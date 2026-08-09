@@ -1,0 +1,40 @@
+# ── What the bot watches and when ──────────────────────────────────────────
+
+[engine]
+# Only `base` is downloaded from the broker. The bigger timeframes are built
+# from it in our own code, so that when a day ends stays under our control
+# instead of the broker's.
+base_timeframe   = "M15"
+derived          = ["H1", "H4", "D1"]
+
+# When the trading day ends. In forex it is NOT midnight UTC — 5pm New York is
+# the usual convention. This decides where every daily level sits, so it must
+# match your broker or the levels the bot draws will not match the ones on
+# your chart.
+daily_close_anchor = "17:00"
+daily_close_tz     = "America/New_York"
+
+[schedule]
+# The bot only looks when a candle finishes, never on a timer. A signal must
+# never be based on a half-formed candle.
+run_on_bar_close   = true
+# Which timeframes actually trigger a look at your rules.
+signal_timeframes  = ["H1", "H4"]
+# Wait a moment after a candle closes so the last price has settled.
+bar_close_grace_ms = 1500
+
+[features]
+# Switch these on in order, one at a time, as each phase is proven. Turning on
+# two at once means you cannot tell which one changed your results.
+telegram_alerts   = true    # Phase 2
+outcome_tracking  = true    # Phase 3 — this is what collects your training data
+ml_scorer         = false   # Phase 4
+news_filter       = false   # Phase 5
+ai_validation     = false   # Phase 5
+execution         = false   # Phase 6. Not built. Leave off.
+
+[delivery]
+send_chart_image  = true
+# The 👍/👎 buttons on every signal. Not a nice-to-have — this is how the
+# training data gets collected. Leave it on.
+feedback_buttons  = true

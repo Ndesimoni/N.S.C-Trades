@@ -1,0 +1,22 @@
+# Rust build output
+/target
+
+# Local secrets — NEVER commit. Copy .env.example instead.
+.env
+*.pem
+
+# Backtest artefacts and generated charts
+/out/
+/data/cache/
+*.png
+!docs/**/*.png
+
+# Python research sidecar (Phase 4)
+research/.venv/
+research/**/__pycache__/
+research/**/*.parquet
+research/**/*.onnx
+.ipynb_checkpoints/
+
+# OS noise
+.DS_Store

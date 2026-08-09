@@ -1,0 +1,30 @@
+# Local development stack: Postgres (durable) + Redis (hot state).
+# The Rust binaries run on the host during development; in production they
+# join this network behind Nginx (see deploy/nginx/).
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nsc
+      POSTGRES_PASSWORD: nsc
+      POSTGRES_DB: nsc_trades
+      # Candle timestamps are stored in UTC. Do not change this — the whole
+      # system's notion of "daily close" depends on a single fixed anchor.
+      TZ: UTC
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nsc -d nsc_trades"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    # Signal cooldowns and dedup keys must survive a restart, so persist.
+    command: ["redis-server", "--appendonly", "yes"]
+    ports: ["6379:6379"]
+    volumes: ["redisdata:/data"]
+
+volumes:
+  pgdata:
+  redisdata:

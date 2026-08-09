@@ -1,0 +1,14 @@
+# Domain vocabulary shared by every other crate.
+# Deliberately tiny dependency set: if nsc-core ever needs tokio or sqlx,
+# something has been put in the wrong place.
+[package]
+name    = "nsc-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+serde        = { workspace = true }
+chrono       = { workspace = true }
+rust_decimal = { workspace = true }
+uuid         = { workspace = true }
+thiserror    = { workspace = true }

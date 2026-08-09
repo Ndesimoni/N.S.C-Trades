@@ -1,0 +1,64 @@
+# ── Which pairs to watch ───────────────────────────────────────────────────
+# Start small. Seven majors on the 1-hour and 4-hour charts is the easiest
+# scope to prove a system actually works on. Add more only once the numbers
+# justify it.
+#
+# pip_size is needed for stop distances. digits is for rounding on display.
+# max_spread_pips is a skip rule: if the live spread is wider than this, the
+# setup gets dropped no matter how good it looks.
+
+[[symbol]]
+name            = "EURUSD"
+pip_size        = 0.0001
+digits          = 5
+max_spread_pips = 2.0
+sessions        = ["London", "NewYork"]
+
+[[symbol]]
+name            = "GBPUSD"
+pip_size        = 0.0001
+digits          = 5
+max_spread_pips = 2.5
+sessions        = ["London", "NewYork"]
+
+[[symbol]]
+name            = "USDJPY"
+pip_size        = 0.01
+digits          = 3
+max_spread_pips = 2.0
+sessions        = ["Tokyo", "London", "NewYork"]
+
+[[symbol]]
+name            = "AUDUSD"
+pip_size        = 0.0001
+digits          = 5
+max_spread_pips = 2.5
+sessions        = ["Tokyo", "London"]
+
+[[symbol]]
+name            = "USDCAD"
+pip_size        = 0.0001
+digits          = 5
+max_spread_pips = 3.0
+sessions        = ["London", "NewYork"]
+
+[[symbol]]
+name            = "USDCHF"
+pip_size        = 0.0001
+digits          = 5
+max_spread_pips = 3.0
+sessions        = ["London", "NewYork"]
+
+[[symbol]]
+name            = "NZDUSD"
+pip_size        = 0.0001
+digits          = 5
+max_spread_pips = 3.0
+sessions        = ["Tokyo", "London"]
+
+# Pairs that are really the same bet. Used to stop you taking one dollar
+# position four times through four different pairs.
+[correlation_groups]
+usd_long  = ["USDJPY", "USDCAD", "USDCHF"]
+usd_short = ["EURUSD", "GBPUSD", "AUDUSD", "NZDUSD"]
+commodity = ["AUDUSD", "NZDUSD", "USDCAD"]

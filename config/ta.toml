@@ -1,0 +1,55 @@
+# ── How sensitive the chart reading is ─────────────────────────────────────
+# These numbers decide what the bot *sees*. Test them in the backtester. Do
+# not adjust them by eye because one chart looks nicer.
+
+[swings]
+# THE most important setting in the project. A swing high is a candle whose
+# high beats this many candles on either side. Bigger = fewer, more meaningful
+# swings. Smaller = noise. Levels, trendlines, Fibonacci and trend direction
+# are ALL built from these.
+lookback          = 3
+# A swing is only confirmed this many candles after it appears. Analysis may
+# only use confirmed swings. This is the main protection against using data
+# you did not have yet.
+require_confirmed = true
+# Ignore swings smaller than this fraction of a normal candle. Filters out
+# chop without needing a fixed pip number that breaks on other pairs.
+min_atr_multiple  = 0.5
+
+[levels]
+# Swing points closer together than this get merged into one zone. Measured
+# against normal candle size. Too tight and you get twenty useless levels; too
+# loose and everything becomes one giant zone.
+cluster_atr_multiple = 0.35
+# How many touches before a zone counts as a real level.
+min_touches          = 2
+# Levels older than this many candles stop being considered.
+max_age_bars         = 500
+# A level tested this many times is worn out — more likely to break than hold.
+exhaustion_touches   = 4
+
+[proximity]
+# What counts as "price is AT the level". In normal-candle multiples, never in
+# pips, because 20 pips means something completely different on GBPJPY than on
+# EURUSD.
+at_level_atr_multiple = 0.25
+
+[trendlines]
+min_touches          = 3      # two points make a line; three makes it real
+max_violation_closes = 0      # closes past the line that break it
+min_bars_between     = 5      # stops neighbouring candles making fake lines
+
+[fibonacci]
+# Drawn automatically from the most recent confirmed move.
+retracement_zone = [0.382, 0.618]   # the zone you actually trade
+golden_pocket    = [0.618, 0.705]   # counts as extra confidence
+extensions       = [1.272, 1.618]   # used for targets
+
+[indicators]
+atr_period = 14      # this is the yardstick for every setting above
+rsi_period = 14
+
+[structure]
+# How far price must push past an old high to count as a real break, measured
+# against normal candle size. Stops a one-pip poke counting as a breakout.
+bos_atr_multiple = 0.3

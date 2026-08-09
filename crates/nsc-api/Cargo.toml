@@ -1,0 +1,28 @@
+# HTTP surface: Telegram webhook + admin.
+[package]
+name    = "nsc-api"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "nsc-api"
+path = "src/main.rs"
+
+[dependencies]
+nsc-core     = { workspace = true }
+nsc-data     = { workspace = true }
+nsc-telegram = { workspace = true }
+nsc-backtest = { workspace = true }
+axum         = { workspace = true }
+tower-http   = { workspace = true }
+tokio        = { workspace = true }
+sqlx         = { workspace = true }
+redis        = { workspace = true }
+serde        = { workspace = true }
+serde_json   = { workspace = true }
+figment      = { workspace = true }
+chrono       = { workspace = true }
+uuid         = { workspace = true }
+anyhow       = { workspace = true }
+tracing      = { workspace = true }
+tracing-subscriber = { workspace = true }

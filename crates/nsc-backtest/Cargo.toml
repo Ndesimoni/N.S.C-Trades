@@ -1,0 +1,24 @@
+# Event-driven replay, parameter sweeps, metrics.
+[package]
+name    = "nsc-backtest"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+nsc-core     = { workspace = true }
+nsc-ta       = { workspace = true }
+nsc-strategy = { workspace = true }
+nsc-risk     = { workspace = true }
+nsc-data     = { workspace = true }
+tokio        = { workspace = true }
+sqlx         = { workspace = true }
+serde        = { workspace = true }
+serde_json   = { workspace = true }
+toml         = { workspace = true }
+chrono       = { workspace = true }
+rust_decimal = { workspace = true }
+uuid         = { workspace = true }
+rayon        = { workspace = true }
+clap         = { workspace = true }
+anyhow       = { workspace = true }
+tracing      = { workspace = true }

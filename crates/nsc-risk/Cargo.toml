@@ -1,0 +1,15 @@
+# Exposure control. In v1 these are vetoes and printed suggestions — nothing
+# here places an order.
+[package]
+name    = "nsc-risk"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+nsc-core     = { workspace = true }
+serde        = { workspace = true }
+toml         = { workspace = true }
+chrono       = { workspace = true }
+rust_decimal = { workspace = true }
+thiserror    = { workspace = true }
+tracing      = { workspace = true }

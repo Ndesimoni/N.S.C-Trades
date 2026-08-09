@@ -1,0 +1,15 @@
+# Reads the chart. Notice there is no tokio, sqlx or reqwest here. That is
+# the point: it is what lets the backtester and the live bot run the same
+# analysis code.
+[package]
+name    = "nsc-ta"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+nsc-core     = { workspace = true }
+serde        = { workspace = true }
+chrono       = { workspace = true }
+rust_decimal = { workspace = true }
+thiserror    = { workspace = true }
+tracing      = { workspace = true }

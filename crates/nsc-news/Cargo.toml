@@ -1,0 +1,19 @@
+# Economic calendar and headlines. Phase 5 — gated off by default in
+# config/app.toml until the core system is proven without it.
+[package]
+name    = "nsc-news"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+nsc-core    = { workspace = true }
+tokio       = { workspace = true }
+reqwest     = { workspace = true }
+sqlx        = { workspace = true }
+serde       = { workspace = true }
+serde_json  = { workspace = true }
+chrono      = { workspace = true }
+async-trait = { workspace = true }
+anyhow      = { workspace = true }
+thiserror   = { workspace = true }
+tracing     = { workspace = true }

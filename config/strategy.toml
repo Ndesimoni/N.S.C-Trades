@@ -1,0 +1,125 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  YOUR TRADING RULES
+# ═══════════════════════════════════════════════════════════════════════════
+#
+#  Any chart-based strategy breaks down into six layers. Each one becomes a
+#  piece of code. This file is what that code reads.
+#
+#      1. DIRECTION   why am I looking at this pair at all?
+#      2. PLACE       where must price be before I care?
+#      3. TRIGGER     what actually makes me click buy?
+#      4. STOP        where does the stop go, and why there?
+#      5. TARGET      where do I get out?
+#      6. SKIP        what makes me pass on a setup that ticked every box?
+#
+#  KEY RULE: direction, place and trigger must ALL pass, or there is no
+#  signal. Only the extras get scored.
+#
+#  Why: a pure points system will eventually send you a setup you would never
+#  take, and you will have no way to work out which point value caused it.
+#  Must-pass rules mean every signal can be explained in one sentence.
+#
+#  STATUS: this is a template. The values below describe a generic
+#  trend-continuation setup. Replace them with YOUR rules.
+# ═══════════════════════════════════════════════════════════════════════════
+
+[meta]
+name    = "trend_continuation_v1"
+enabled = true
+# Bump this whenever the rules change, so old backtest runs stay comparable.
+version = 1
+
+# ── 1. DIRECTION ───────────────────────────────────────────────────────────
+# Without this, the bot will send you a buy and a sell on the same pair on the
+# same day, and you will stop trusting it.
+[bias]
+timeframe = "H4"
+# "structure" means: only trade with the bigger timeframe's trend.
+source            = "structure"
+allow_counter_trend = false
+# Optional second check. Set to "none" to rely on trend alone.
+confirm_with      = "none"        # none | ma_slope | daily_range_position
+
+# ── 2. PLACE ───────────────────────────────────────────────────────────────
+# Price must be at something that matters. At least this many of the sources
+# below must agree, within the closeness set in ta.toml.
+[location]
+timeframe        = "H1"
+min_confluences  = 2
+sources          = ["support_resistance", "fibonacci", "trendline"]
+# Refuse levels that have already been tested too many times (see ta.toml).
+skip_exhausted_levels = true
+
+# ── 3. TRIGGER ─────────────────────────────────────────────────────────────
+# The thing that starts the trade. This decides your entry price and therefore
+# your risk-to-reward, so it is worth being exact here.
+[trigger]
+timeframe = "H1"
+# Any one of these, happening at the right place, produces a setup.
+patterns  = ["bullish_engulfing", "bearish_engulfing", "pin_bar", "inside_bar_break"]
+# The trigger candle must close the way you are trading.
+require_close_in_direction = true
+# Reject huge trigger candles — the move has mostly happened already.
+max_candle_atr_multiple    = 2.0
+
+# ── 4. STOP ────────────────────────────────────────────────────────────────
+# The rule matters more than the number, because it has to work on every pair.
+[invalidation]
+method            = "structure"   # structure | atr | trigger_wick
+# Stop goes past the swing that made the level, plus a bit of room.
+buffer_atr_multiple = 0.3
+# If the stop ends up wider than this, skip the trade rather than accept bad
+# risk-to-reward.
+max_stop_atr_multiple = 3.0
+
+# ── 5. TARGET ──────────────────────────────────────────────────────────────
+# This moves your win rate more than almost anything else, and it is the
+# easiest thing to test. Backtest all three before choosing.
+[target]
+method          = "opposing_level"  # fixed_r | opposing_level | fib_extension
+# The worst risk-to-reward you will accept.
+min_risk_reward = 2.0
+# Taking part of the trade off early. Version 1 reports this, it does not do
+# it.
+partials        = [{ at_r = 1.0, close_pct = 50 }]
+move_to_breakeven_at_r = 1.0
+
+# ── 6. SKIP ────────────────────────────────────────────────────────────────
+# This is where your real edge probably lives, and it is almost never written
+# down. Expect this section to grow more than any other.
+[veto]
+# Sessions you do not want signals during.
+blocked_sessions       = ["Sydney"]
+# No new signals after this time on Friday.
+friday_cutoff_utc      = "15:00"
+# Minutes either side of a big announcement for the currencies involved.
+news_blackout_minutes  = 30
+news_impact_levels     = ["high"]
+# A spread wider than the pair's limit kills the setup.
+respect_max_spread     = true
+# One signal per pair per direction within this many candles, so the bot does
+# not keep sending the same idea.
+cooldown_bars          = 12
+
+# ── CONFIDENCE SCORING ─────────────────────────────────────────────────────
+# The must-pass rules above decide WHETHER there is a setup. These points
+# decide how confident it is, and so whether it is worth your attention.
+#
+# Expect to find, once you have data, that two of these do nearly all the work
+# and the rest are decoration you have been carrying for years. Finding that
+# out is the point of measuring.
+[confluence.weights]
+fib_and_sr_overlap      = 20   # two separate reasons pointing at one price
+golden_pocket           = 15
+trendline_confluence    = 15
+round_number_nearby     = 5
+rsi_divergence          = 15
+higher_tf_level_aligns  = 20
+level_untested          = 10
+clean_approach          = 10   # price came in cleanly, not after repeated pokes
+
+[confluence.thresholds]
+# Below this, the setup is recorded but never sent to you.
+minimum       = 40
+# At or above this, the message gets flagged as a strong one.
+high_conviction = 70

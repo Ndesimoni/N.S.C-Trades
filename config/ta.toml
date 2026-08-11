@@ -26,22 +26,23 @@ min_atr_multiple  = 0.5
 # Too thin and a wick that overshoots by a hair misses the level. Too thick
 # and every price is at every level.
 band_atr_multiple = 0.5
-# How many touches before a band counts as a real level.
+# How many touches before a band counts as a real level at all. Below this,
+# nothing is drawn and nothing is reported.
+#
+# This is a SEEING setting, which is why it lives here: one swing point on its
+# own is not a level, it is a swing point.
 min_touches       = 2
 # Levels older than this many candles stop being considered. Roughly three
 # years of weekly candles, two years of daily, three months of 4-hour — which
 # is about as far left as you look on each.
 max_age_bars      = 500
-# At or above this many touches, treat the level as a strong one.
+
+# NO strong_touches HERE. It moved to strategy.toml [levels].
 #
-# MORE TOUCHES MEANS STRONGER HERE, not worn out. There is a school of thought
-# that says the opposite — that a level tested repeatedly is being worn down
-# and will break. This project follows the trader's actual view: a level lots
-# of people keep defending is one to pay more attention to.
-#
-# Worth measuring once there are 200 labelled signals. Until then it is a
-# belief, and it is written down here so it can be tested rather than assumed.
-strong_touches    = 4
+# How many touches makes a level worth trading is a trading opinion, not part
+# of finding one. nsc-ta reports the touch count and stops; whether four
+# touches means "well defended" or "about to break" is decided by the rules,
+# where it can be switched off and measured.
 
 [proximity]
 # What counts as "price is AT the level". In normal-candle multiples, never in
@@ -56,9 +57,23 @@ min_bars_between     = 5      # stops neighbouring candles making fake lines
 
 [fibonacci]
 # Drawn automatically from the most recent confirmed move.
-retracement_zone = [0.382, 0.618]   # the zone you actually trade
-golden_pocket    = [0.618, 0.705]   # counts as extra confidence
-extensions       = [1.272, 1.618]   # used for targets
+#
+# FOUR LEVELS ONLY: 0.382, 0.5, 0.618 and 0.786. Nothing else gets drawn.
+#
+# The zone that gets attention is 0.5 to 0.618. Price sitting between those two
+# is the thing to look at.
+golden_zone = [0.5, 0.618]
+# For a strong trend. A strong move barely pauses, so it turns back up shallow
+# — often without ever reaching the zone above. Waiting for 0.5 in a market
+# like that means never getting in.
+strong_trend_level = 0.382
+# The third level. It is used, for something different from the zone above, and
+# what that is has not been written down yet. Nothing reads it until it has a
+# job — see docs/worksheets/fibonacci.md.
+deep_level  = 0.786
+# Used for targets. NOT confirmed yet — these are the standard numbers, not
+# this trader's.
+extensions  = [1.272, 1.618]
 
 [indicators]
 atr_period = 14      # this is the yardstick for every setting above

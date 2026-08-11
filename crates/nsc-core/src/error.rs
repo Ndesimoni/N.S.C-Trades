@@ -17,6 +17,21 @@ pub enum CoreError {
     #[error("ATR is zero or negative, so a distance cannot be measured in normal candles")]
     ZeroAtr,
 
+    /// The gap between round numbers was set to zero or less.
+    ///
+    /// A settings mistake. With a step of zero every price is round, so "price
+    /// is at a round number" is always true — a check that always says yes is
+    /// the same as no check at all. Stop rather than skip.
+    #[error("a round-number step of {step} cannot be used")]
+    InvalidRoundStep { step: String },
+
+    /// The ladder of round-number steps for an instrument is unusable.
+    ///
+    /// A settings mistake. Stop rather than skip — out of order, how round a
+    /// price counts as would depend on the order someone typed the settings.
+    #[error("the round-number steps cannot be used: {detail}")]
+    InvalidRoundLadder { detail: String },
+
     /// A float that was infinity or NaN.
     #[error("the value {value} cannot be represented as a decimal")]
     NotRepresentable { value: f64 },
@@ -94,6 +109,28 @@ pub enum CoreError {
     #[error("a swing at {bar_time} cannot be known at {confirmed_at}, which is not later")]
     SwingKnownTooEarly {
         bar_time: DateTime<Utc>,
+        confirmed_at: DateTime<Utc>,
+    },
+
+    /// A level was described in a way that cannot be real — a band whose top
+    /// is below its bottom, no touches at all, or a last touch that comes
+    /// before the first one.
+    ///
+    /// Whatever built the level has a bug. Stop rather than skip.
+    #[error("this level cannot be real: {detail}")]
+    ImpossibleLevel { detail: String },
+
+    /// A level was marked as known before the swing that finished it.
+    ///
+    /// A level with three touches is not knowable until the third touch has
+    /// confirmed as a swing — which is always a few candles after the candle
+    /// it sits on. Drawing it any earlier is drawing a level out of prices
+    /// the market had not printed yet.
+    #[error(
+        "a level last touched at {last_touch} cannot be known at {confirmed_at}, which is not later"
+    )]
+    LevelKnownTooEarly {
+        last_touch: DateTime<Utc>,
         confirmed_at: DateTime<Utc>,
     },
 

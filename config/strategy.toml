@@ -117,6 +117,35 @@ strategies = ["reversal", "breakout", "trend"]
 # keep = "highest_tf"
 
 
+# ── WHAT MAKES A LEVEL WORTH TRADING ───────────────────────────────────────
+#
+# Finding levels is done in nsc-ta, from [levels] in ta.toml. It reports the
+# band, the timeframe, the touch count and the dates — facts, no opinion.
+#
+# This section holds the opinion. It sits here rather than in one strategy
+# file because all three strategies must mean the same thing by "a strong
+# level". Two files with two different answers is how the breakout and the
+# reversal end up disagreeing about the same line on the chart.
+
+[levels]
+# At or above this many touches, treat the level as a strong one. The
+# strategies then use it through their own require_strong_level.
+#
+# MORE TOUCHES MEANS STRONGER HERE, not worn out. There is a well-known school
+# of thought that says the opposite — that a level tested repeatedly is being
+# worn down and will break. This project follows the trader's actual view: a
+# level lots of people keep defending is one to pay more attention to.
+#
+# Note what this does NOT decide: whether the level will hold this time. That
+# needs the trend, the timeframe, the candle printing into it and how price
+# arrived, and it is what the direction and veto layers are for.
+#
+# Worth measuring once there are 200 labelled signals. Until then it is a
+# belief, written down here so it can be tested rather than argued about.
+# See docs/worksheets/levels.md.
+strong_touches = 4
+
+
 # ── WHICH DAYS YOU TRADE AT ALL ────────────────────────────────────────────
 #
 # Days the system produces nothing. No signals, no setups, nothing stored as

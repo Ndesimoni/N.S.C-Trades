@@ -120,7 +120,8 @@ enabled = false
 # min_confluences = 2
 
 # Require the level to be one that has been defended before. Threshold lives
-# in ta.toml [levels] strong_touches.
+# in strategy.toml [levels] strong_touches, because "how many touches is a
+# lot" is a trading opinion. ta.toml only counts them.
 #
 # Note this is the opposite of the usual "exhausted level" idea. Here more
 # touches makes a level stronger, not weaker.

@@ -67,15 +67,31 @@ WHAT IS FINISHED
   indicators/     ATR so far. Read indicators/atr/README.txt — ATR is the
                   yardstick everything else is measured against.
 
+  swings/         Swing highs and lows — the peaks and troughs everything
+                  else is built from. Read swings/README.txt.
+
+                  Both ways of running it live here: one candle at a time
+                  for the live bot, and a whole history at once for the
+                  backtester. The second feeds candles through the first, so
+                  there is only one piece of logic to drift.
+
+  levels/         Support and resistance, from groups of nearby swing
+                  points. Read levels/README.txt.
+
+                  The band is a fixed thickness that SLIDES to catch the most
+                  touches. It never stretches. A band that stretches ends up
+                  wide enough that every price is at every level.
+
+                  It reports the touch count and has no opinion about it.
+                  Whether a level is strong enough to trade is decided in
+                  nsc-strategy, from config/strategy.toml.
+
 
 WHAT IS STILL EMPTY
 
   These are stubs. A doc comment and nothing behind it.
 
-  swings.rs       Swing highs and lows. Next to be built, and the one to
-                  slow down on.
-  levels.rs       Support and resistance.
-  trendlines.rs   Drawn lines.
+  trendlines.rs   Drawn lines. Next to be built.
   fibonacci.rs    Retracements and extensions.
   structure.rs    Higher highs, lower lows, trend direction.
   candles/        Candlestick patterns.

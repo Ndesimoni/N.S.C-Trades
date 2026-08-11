@@ -43,10 +43,20 @@ THE FILES
                 Same gap. Three ways of saying it. They are separate types so
                 you cannot use one where you meant another.
 
+  round.rs      Round numbers. The prices people can say out loud — 0.8000,
+                78.00, 91000 — and how far a price is from one.
+
+                    RoundStep     the gap from one round number to the next
+                    RoundLadder   every step that counts, weakest first
+
+                They are not all equally round. 0.8000 beats 0.8800 beats
+                0.8050, because the more zeros a price ends in the more people
+                are watching it. The ladder is what says which is which.
+
   ops.rs        What you can add and subtract.
                 Also what you CANNOT — and that part is the point. See below.
 
-  tests.rs      Five tests that prove the above actually works.
+  tests.rs      Fifteen tests that prove the above actually works.
 
 
 HOW THEY FIT TOGETHER
@@ -55,9 +65,13 @@ HOW THEY FIT TOGETHER
                  ├─►  ops.rs      needs both, to define + and -
       distance.rs┘
 
-      distance.rs ─► error.rs     because converting can fail
+      point.rs    ─►  round.rs    a round number is a price
+      distance.rs ─►  round.rs    how far from one is a gap
 
-      mod.rs      ─► lets the outside world see the four types
+      distance.rs ─► error.rs     because converting can fail
+      round.rs    ─► error.rs     a step of zero makes every price round
+
+      mod.rs      ─► lets the outside world see the six types
 
 
 WHAT ADDS UP AND WHAT DOES NOT
@@ -85,6 +99,23 @@ WHY YOU CANNOT JUST CONVERT PIPS AUTOMATICALLY
 
   So you have to hand in that information. There is no automatic version,
   because there is no correct answer without it.
+
+
+WHY ROUND NUMBERS LIVE HERE AND NOT WITH THE LEVELS
+
+  Every level in nsc-ta is earned. Price had to turn there, more than once,
+  before it counted as anything.
+
+  A round number is not earned. It is there before price arrives, it needs no
+  history, and you can work it out from the number alone. So it is not a Level
+  — Level insists on at least one touch and a confirmation time, and a round
+  number has neither.
+
+  It is a question you ask about a price. Which is what this folder is for.
+
+  What it does NOT decide: how close counts as "at the number", and how much a
+  strong number is worth. Both belong to whoever is asking — the first in
+  normal candles, the second in config/strategy.toml.
 
 
 WHO USES THIS

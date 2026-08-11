@@ -9,6 +9,11 @@ fn settings() -> TaSettings {
             require_confirmed: true,
             min_atr_multiple: 0.5,
         },
+        levels: LevelSettings {
+            band_atr_multiple: 0.5,
+            min_touches: 2,
+            max_age_bars: 500,
+        },
         indicators: IndicatorSettings {
             atr_period: 14,
             rsi_period: 14,
@@ -33,6 +38,24 @@ fn a_lookback_of_zero_is_refused() {
 fn a_negative_noise_filter_is_refused() {
     let mut s = settings();
     s.swings.min_atr_multiple = -1.0;
+
+    assert!(matches!(s.validate(), Err(TaError::BadSetting { .. })));
+}
+
+#[test]
+fn a_band_with_no_thickness_is_refused() {
+    let mut s = settings();
+    s.levels.band_atr_multiple = 0.0;
+
+    assert!(matches!(s.validate(), Err(TaError::BadSetting { .. })));
+}
+
+// One swing point is a swing point. It takes two for a price to have turned
+// the market more than once, which is the whole idea of a level.
+#[test]
+fn a_level_needing_only_one_touch_is_refused() {
+    let mut s = settings();
+    s.levels.min_touches = 1;
 
     assert!(matches!(s.validate(), Err(TaError::BadSetting { .. })));
 }

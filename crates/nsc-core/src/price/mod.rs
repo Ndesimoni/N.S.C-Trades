@@ -13,14 +13,17 @@
 //!
 //! - [`point`] — `Price`, a point on the chart
 //! - [`distance`] — the three ways of measuring a gap between two prices
+//! - [`round`] — round numbers, how far a price is from one, and how round it is
 //! - [`ops`] — what you are allowed to add and subtract, and what you are not
 
 mod distance;
 mod ops;
 mod point;
+mod round;
 
 #[cfg(test)]
 mod tests;
 
 pub use distance::{AtrMultiple, Pips, PriceDistance};
 pub use point::Price;
+pub use round::{RoundLadder, RoundStep};

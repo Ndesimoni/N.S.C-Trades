@@ -21,17 +21,28 @@ THE FILES
 
   swings.rs        SwingSettings, from the [swings] section.
 
+  levels.rs        LevelSettings, from the [levels] section.
+
   indicators.rs    IndicatorSettings, from the [indicators] section.
 
-  tests.rs         Five tests.
+  tests.rs         Seven tests.
 
   README.txt       This file.
+
+
+WHAT IS NOT IN HERE
+
+  strong_touches — how many touches makes a level worth trading.
+
+  It used to be in ta.toml [levels] and it moved to strategy.toml, because it
+  is a trading opinion rather than part of drawing a level. This crate counts
+  the touches; the rules decide what a lot of touches is worth.
 
 
 HOW THEY FIT TOGETHER
 
       swings.rs     ─┐
-                     ├─►  settings.rs      TaSettings holds both
+      levels.rs      ├─►  settings.rs      TaSettings holds all three
       indicators.rs ─┘
 
       all of them   ─►  error.rs           a bad setting is a BadSetting

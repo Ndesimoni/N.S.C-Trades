@@ -31,9 +31,11 @@
 //!
 //! - [`settings`] — everything, gathered in one place
 //! - [`swings`] — from `[swings]`
+//! - [`levels`] — from `[levels]`
 //! - [`indicators`] — from `[indicators]`
 
 mod indicators;
+mod levels;
 mod settings;
 mod swings;
 
@@ -41,5 +43,6 @@ mod swings;
 mod tests;
 
 pub use indicators::IndicatorSettings;
+pub use levels::LevelSettings;
 pub use settings::TaSettings;
 pub use swings::SwingSettings;

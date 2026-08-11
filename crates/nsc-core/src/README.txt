@@ -64,12 +64,30 @@ WHAT IS FINISHED
 
                   Call is_known_at before using a swing for anything.
 
+  level/          Support and resistance, as a band of price rather than an
+                  exact number.
+                  Read level/README.txt.
+
+                  One type, not a Support and a Resistance. A support that
+                  breaks and later holds price down is the same line doing a
+                  different job — you would not rub it out and draw a new
+                  one.
+
+                  It carries facts only: the band, the timeframe it was found
+                  on, the touch count, the dates. No strength score, no
+                  exhausted flag. Whether a level will hold is a judgement
+                  that needs the trend and the candle as well, so it lives in
+                  nsc-strategy.
+
+                  Carries confirmed_at for the same reason a swing does, and
+                  refuses to exist without one that is later than its last
+                  touch.
+
 
 WHAT IS STILL EMPTY
 
   These are stubs. A doc comment and nothing behind it.
 
-  level.rs        Support and resistance.
   trendline.rs    A drawn line.
   fib.rs          Fibonacci levels.
   structure.rs    Higher highs, lower lows, trend direction.

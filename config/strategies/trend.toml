@@ -125,8 +125,9 @@ allow_counter_trend = false
 # pullback_character = "any"      # any | corrective | impulsive
 
 # Require the level to be one that has been defended before. Threshold lives
-# in ta.toml [levels] strong_touches. More touches means stronger here, not
-# worn out.
+# in strategy.toml [levels] strong_touches, because "how many touches is a
+# lot" is a trading opinion. ta.toml only counts them. More touches means
+# stronger here, not worn out.
 # require_strong_level = true
 
 

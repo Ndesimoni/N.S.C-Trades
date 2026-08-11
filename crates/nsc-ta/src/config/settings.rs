@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::indicators::IndicatorSettings;
+use super::levels::LevelSettings;
 use super::swings::SwingSettings;
 use crate::error::TaError;
 
@@ -11,6 +12,7 @@ use crate::error::TaError;
 #[serde(deny_unknown_fields)]
 pub struct TaSettings {
     pub swings: SwingSettings,
+    pub levels: LevelSettings,
     pub indicators: IndicatorSettings,
 }
 
@@ -22,6 +24,7 @@ impl TaSettings {
     /// nothing to be gained by carrying on.
     pub fn validate(&self) -> Result<(), TaError> {
         self.swings.validate()?;
+        self.levels.validate()?;
         self.indicators.validate()?;
         Ok(())
     }

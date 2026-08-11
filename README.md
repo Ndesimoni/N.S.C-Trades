@@ -51,6 +51,7 @@ all at once. See `crates/nsc-backtest/src/guards.rs`.
 | `crates/nsc-live`     | The bot that actually runs. |
 | `crates/nsc-api`      | Web endpoints: Telegram callbacks and admin. |
 | `config/`             | Your settings. Change these without rebuilding. |
+| `ci/`                 | The checks that run on every push. |
 | `migrations/`         | Database tables. |
 | `docs/`               | Start with `strategy-worksheet.md`. |
 | `research/`           | Python, for training the model. Phase 4. Offline only. |
@@ -78,3 +79,17 @@ cargo run -p nsc-live                  # only once the backtest makes sense
 ```
 
 Note: the last three commands are the Phase 0 target. They are not built yet.
+
+## Before you push
+
+```sh
+./ci/rules.sh                                          # under a second, needs nothing installed
+cargo fmt --all --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace
+```
+
+GitHub runs exactly these on every push and pull request. `ci/rules.sh` is the
+project's own nine checks — a clean crate gaining a database, a pip number
+baked into code, a file grown past 250 lines. `ci/README.txt` says what each
+one is for and what breaks without it.

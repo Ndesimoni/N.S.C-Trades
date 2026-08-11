@@ -1,0 +1,72 @@
+# Runs on every push to main and every pull request.
+#
+# Two jobs, deliberately separate:
+#
+#   rules   the project's own checks. No cargo, no network. Finishes in
+#           seconds, so you learn about a dirty dependency before the build
+#           has even started.
+#   build   formatting, clippy and the tests.
+#
+# Keeping them apart means a red tick tells you which kind of thing broke
+# without opening the log.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# Push twice in a minute and the first run is cancelled. You only ever care
+# about the result for the newest commit.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  # Any warning the compiler emits fails the build. A warning nobody fixes is
+  # a warning everybody scrolls past.
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  rules:
+    name: Project rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # This is the same script you run locally with ./ci/rules.sh. One copy
+      # of the rules, so CI and your machine can never disagree about them.
+      - name: The nine checks
+        run: ./ci/rules.sh
+
+  build:
+    name: Format, clippy, tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Installs whatever rust-toolchain.toml pins, with rustfmt and clippy.
+      # Pinning is why a warning that appears here also appears on your
+      # machine, instead of only in CI.
+      - name: Install the pinned toolchain
+        run: rustup show
+
+      # Caches compiled dependencies between runs. Without it every run
+      # rebuilds tokio and sqlx from scratch.
+      - uses: Swatinem/rust-cache@v2
+
+      # --check means "tell me, do not rewrite". CI must never edit code.
+      - name: Formatting
+        run: cargo fmt --all --check
+
+      # --all-targets covers tests and examples too, not just the library.
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      # --locked fails if Cargo.lock would need changing. A lockfile that
+      # drifts silently means CI tested different dependency versions than
+      # the ones you ran locally.
+      - name: Tests
+        run: cargo test --workspace --locked

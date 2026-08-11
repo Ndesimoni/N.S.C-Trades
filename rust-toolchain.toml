@@ -1,0 +1,10 @@
+# The one Rust version this project is built with.
+#
+# Without this, your machine and the CI machine drift apart. Then clippy finds
+# a warning on one and not the other, and you spend an afternoon on a red tick
+# that has nothing to do with your change.
+#
+# `edition = "2024"` in Cargo.toml needs 1.85 or newer.
+[toolchain]
+channel    = "1.89.0"
+components = ["rustfmt", "clippy"]

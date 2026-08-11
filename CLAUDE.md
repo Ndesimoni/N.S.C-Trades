@@ -98,23 +98,39 @@ The bugs that hurt in this project are the quiet ones — a boundary an hour
 out, a candle read one too early — and quiet bugs hide in files nobody reads
 end to end.
 
-When a file gets too big, turn it into a folder with one file per idea:
+**A module that defines a type and has tests is a folder, not a file.** If it
+has a `struct` or an `enum` in it *and* a `#[cfg(test)]` block, it starts as a
+folder — whatever its length.
 
 ```
-price/
+swing/
   mod.rs        module docs, and what the outside world can see
-  point.rs      Price — a point on the chart
-  distance.rs   the three ways of measuring a gap
-  ops.rs        what you are allowed to add and subtract
+  kind.rs       SwingKind — high or low
+  point.rs      Swing — the swing itself
   tests.rs
+  README.txt
 ```
+
+Do not wait for it to get long. Splitting is cheap while there are three
+things in it and a nuisance once there are twelve, and by then everything
+importing it has to be touched too.
+
+A file that only declares errors, or only holds one small function, stays a
+file. It is types **and** tests together that earn a folder.
+
+**`mod.rs` is a front door, not a room.** Module docs, which files are inside,
+and what the outside world can see. No types, no logic. That way one screen
+tells you what a folder contains without opening anything.
 
 Each file holds one idea **and the behaviour that goes with it**. Do not put
 every struct in a `types.rs` and every function in a `logic.rs` — that splits
 things that are read together and joins things that are not.
 
-**Every folder gets a `README.txt`** saying what the folder is for, what each
-file does, and how they connect. Plain English, no jargon.
+**Every folder with code in it gets a `README.txt`** saying what the folder is
+for, what each file does, and how they connect. Plain English, no jargon.
+
+A folder of empty stubs does not get one. Describing code that does not exist
+is the same lie as describing code that no longer does.
 
 Keep it true. A `README.txt` that describes files that no longer exist is
 worse than none at all, because it is believed. **If you add, remove or

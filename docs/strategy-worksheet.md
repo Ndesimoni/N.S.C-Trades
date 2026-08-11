@@ -1,13 +1,24 @@
 # Writing down your strategy
 
-Answer these in your own words first. `config/strategy.toml` is the
-translation of your answers.
+This is the **generic** worksheet — the six questions every strategy has to
+answer. It explains what each layer is for.
+
+**For an actual strategy, use the one written for it:**
+
+| Worksheet | Becomes | The trade |
+|-----------|---------|-----------|
+| [worksheets/reversal.md](worksheets/reversal.md) | `config/strategies/reversal.toml` | Catching a turn once the trend runs out of strength |
+| [worksheets/breakout.md](worksheets/breakout.md) | `config/strategies/breakout.toml` | Price escapes a range and you go with it |
+| [worksheets/trend.md](worksheets/trend.md) | `config/strategies/trend.toml` | The trend is running; you buy the pullback |
+
+Answer them in your own words first. The config file is the translation of
+your answers.
 
 Do not skip to the config file. Rules written straight into settings look
 precise and usually mean nothing.
 
-Do this for **one setup** — the one you take most often. A second setup gets
-its own file. It does not get bolted onto this one.
+Do one setup at a time. A second setup gets its own file. It does not get
+bolted onto the first.
 
 ---
 

@@ -4,8 +4,12 @@
 # Only `base` is downloaded from the broker. The bigger timeframes are built
 # from it in our own code, so that when a day ends stays under our control
 # instead of the broker's.
+#
+# Listed smallest first — that is the order they are built in. M15 divides
+# evenly into all of them, which is why it is the base. A base that does not
+# divide evenly gives you candles that start in the wrong place.
 base_timeframe   = "M15"
-derived          = ["H1", "H4", "D1"]
+derived          = ["M30", "H1", "H4", "D1", "W1"]
 
 # When the trading day ends. In forex it is NOT midnight UTC — 5pm New York is
 # the usual convention. This decides where every daily level sits, so it must
@@ -14,12 +18,36 @@ derived          = ["H1", "H4", "D1"]
 daily_close_anchor = "17:00"
 daily_close_tz     = "America/New_York"
 
+# Where the week starts, for building weekly candles. The forex week opens
+# Sunday evening in New York, so a weekly candle runs from Sunday's close
+# anchor to Friday's.
+#
+# This is set here and applied once, in nsc-core::timeframe, alongside the
+# daily anchor above. Never work it out again anywhere else — two places
+# calculating the same boundary is how weekly levels start disagreeing with
+# your chart.
+week_starts_on = "Sunday"
+
 [schedule]
 # The bot only looks when a candle finishes, never on a timer. A signal must
 # never be based on a half-formed candle.
 run_on_bar_close   = true
 # Which timeframes actually trigger a look at your rules.
-signal_timeframes  = ["H1", "H4"]
+#
+# These are the ones trades get taken on. Everything else in `derived` above
+# is still built and still read — it just hands context downward instead of
+# firing. D1 and W1 are context only: they tell the smaller timeframes which
+# way to lean.
+#
+# Add "D1" here if you decide you want daily signals too.
+signal_timeframes  = ["M30", "H1", "H4"]
+
+# When several close at once, evaluate biggest first. At 16:00 UTC the M30,
+# H1 and H4 all close together — running the H4 first means its context is
+# fresh before the smaller ones read it. Any other order gives different
+# answers depending on which ran first, and it will differ between the
+# backtester and the live bot.
+evaluate_largest_first = true
 # Wait a moment after a candle closes so the last price has settled.
 bar_close_grace_ms = 1500
 
@@ -38,3 +66,57 @@ send_chart_image  = true
 # The 👍/👎 buttons on every signal. Not a nice-to-have — this is how the
 # training data gets collected. Leave it on.
 feedback_buttons  = true
+
+# ── WHEN SIGNALS REACH YOU ─────────────────────────────────────────────────
+#
+# This is about DELIVERY, not about the rules. The rules still run when a
+# candle closes. This only decides when the message arrives on your phone.
+#
+# READ THIS BEFORE SETTING A TIME. A setup that triggers at 10:00 and reaches
+# you at 19:00 is nine hours old. The entry price has gone. By then the trade
+# has probably already hit its target or its stop, and you would be reading
+# about a trade you could never have taken.
+#
+# So a fixed send time only makes sense if you pick a mode that handles that
+# honestly:
+#
+#   immediate   Send when the setup fires. `send_at` is ignored. The only
+#               mode where the entry price is still live.
+#
+#   digest      Hold everything and send one summary at `send_at`. Treat it
+#               as a review of the day, not as trades to take. Good for
+#               learning what the bot saw; useless for entering.
+#
+#   quiet_hours Send immediately, but only inside a window. Anything firing
+#               outside it is dropped and stored as rejected, so you can
+#               count later what the window cost you.
+#
+mode = "digest"            # immediate | digest | quiet_hours
+
+# Used by `digest`. Ignored by the other two.
+send_at = "19:00"
+
+# Used by `quiet_hours`. Nothing is sent outside this window.
+# quiet_hours_start = "07:00"
+# quiet_hours_end   = "19:00"
+
+# Which clock those times are on. Everything inside the system is UTC — this
+# is only for talking to you, so it is YOUR local time, not UTC.
+delivery_tz = "Asia/Dubai"
+
+# ── WHICH TIMEFRAMES ACTUALLY GO IN THE DIGEST ─────────────────────────────
+#
+# A once-a-day message and a 30-minute setup do not mix. A 30-minute trade
+# that fired at 11:00 is finished by 19:00 — you would be reading about
+# something you could never have taken, every single evening. Do that for a
+# month and you stop opening the message.
+#
+# So: every timeframe in [schedule] signal_timeframes is still evaluated and
+# still STORED. This only controls what gets put in front of you at 19:00.
+#
+# Keeping the small timeframes stored but unsent costs you nothing and is
+# worth a lot — it is how you find out, with real numbers, whether the
+# 30-minute setups you never see would have made money. If they would, you
+# change how you trade. If they would not, you have proof and can switch
+# them off for good. Neither answer is available if you never recorded them.
+digest_timeframes = ["H4"]

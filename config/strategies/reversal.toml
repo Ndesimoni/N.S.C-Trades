@@ -1,0 +1,313 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  STRATEGY — REVERSAL
+# ═══════════════════════════════════════════════════════════════════════════
+#
+#  Buying near the bottom of a fall, or selling near the top of a rise, once
+#  the trend has shown it is running out of strength.
+#
+#  This is the only strategy here that trades AGAINST the bigger trend. So it
+#  has to prove more than the others before it is allowed to fire. The whole
+#  DIRECTION section below is that proof.
+#
+#  ── HOW TO FILL THIS IN ───────────────────────────────────────────────────
+#
+#  Every setting is commented out on purpose. Commented out means "not
+#  decided yet", and the loader refuses to run a strategy that still has
+#  undecided settings.
+#
+#  Why not fill it with sensible defaults? Because you would read 2.0 in a
+#  config file and assume somebody chose it. Nobody chose it. It came with
+#  the file, it survived into your backtest, and now you are testing a
+#  stranger's strategy and calling the results yours.
+#
+#  Answer docs/worksheets/reversal.md in plain words FIRST. Then come here,
+#  uncomment a line, and put your own number on it.
+#
+#  Everything measured in ATR multiples, never pips. ATR is the size of a
+#  normal candle. 20 pips is a big move on EURUSD and a rounding error on
+#  gold — a pip setting works on the thing you tested and quietly stops
+#  working everywhere else.
+# ═══════════════════════════════════════════════════════════════════════════
+
+[meta]
+name    = "reversal"
+# Bump this whenever the rules change, so old backtest runs stay comparable.
+version = 1
+# Stays false until every setting is filled in AND backtested.
+enabled = false
+
+
+# ── TIMEFRAMES ─────────────────────────────────────────────────────────────
+# A strategy fires on some timeframes and reads others for context. A
+# timeframe may only ever be read at its last CLOSED candle. At 14:30 the
+# 14:00–15:00 hourly candle does not exist yet.
+
+[timeframes]
+# Where this strategy is allowed to produce a signal.
+# signal_timeframes  = ["H4"]
+
+# What it reads for context, biggest first.
+# context_timeframes = ["W1", "D1"]
+
+
+# ── 1. DIRECTION — why am I looking at this pair at all? ───────────────────
+#
+# For a reversal this asks a different question from the other two files.
+# Not "which way is the trend" — but "is the trend tired enough that I am
+# allowed to trade against it".
+#
+# Without this, the bot fades every single pullback and you will be short
+# the whole way up.
+
+[bias]
+# Which timeframe shows the trend you are about to fade.
+# timeframe = "D1"
+
+# What counts as evidence the trend is running out of strength?
+#
+#   trendline_fan        A steeper line broke and a shallower one took over.
+#                        For price to reach the shallower line, buyers had to
+#                        push further than the steep line ever allowed. That
+#                        is not a normal pullback — that is buyers arriving.
+#
+#   failed_break         Price pushed past the last low and could not hold
+#                        below it.
+#
+#   slowing_swings       Each new leg down travels less than the one before.
+#
+#   momentum_divergence  Price makes a new low, the indicator does not.
+#
+# exhaustion_evidence = ["trendline_fan"]
+
+# How many of those must be true at the same time.
+# min_exhaustion_signals = 1
+
+# Are you ever allowed to fire with NO exhaustion evidence, purely on the
+# level holding? Answer honestly — this is the setting that decides whether
+# this strategy is disciplined or is just "buying dips".
+# allow_level_only = false
+
+[bias.trendline_fan]
+# How many lines you draw before the fan means anything.
+# min_lines = 2
+
+# Does price have to CLOSE beyond the steeper line, or is touching enough?
+# A wick through and back is not a break.
+# steep_line_break = "close"      # close | touch
+
+# Once price is trading against the shallower line, how many candles does
+# that reading stay good for before it goes stale?
+# valid_for_bars = 20
+
+# Minimum touches before a line counts as a line at all. Two points make a
+# line, three make it real. See also [trendlines] in ta.toml.
+# min_touches_per_line = 3
+
+
+# ── 2. PLACE — where does price have to be before I care? ──────────────────
+#
+# A reversal needs a floor that is already proven. Price should be arriving
+# at something that has held before, not at empty space.
+
+[location]
+# timeframe = "D1"
+
+# What must price be at?
+#   support_resistance | trendline | fibonacci | round_number | weekly_level
+# sources = ["trendline", "support_resistance"]
+
+# How many of those have to agree at the same price.
+# min_confluences = 2
+
+# A level tested too many times is worn out and more likely to break than
+# hold. Threshold lives in ta.toml [levels] exhaustion_touches.
+# skip_exhausted_levels = true
+
+# Does it matter HOW price arrived? Drifting down slowly is not the same as
+# one violent candle, and most traders have never written this down.
+# approach = "any"                # any | slow | impulsive
+
+# A level that only formed last week has not proved anything yet.
+# min_level_age_bars = 20
+
+
+# ── 3. TRIGGER — what actually makes me click buy? ─────────────────────────
+#
+# This decides your entry price, which decides your risk-to-reward on every
+# single trade. Vagueness here is expensive.
+
+[trigger]
+# timeframe = "H4"
+
+# Chart patterns — the shapes. Available in nsc-ta:
+#   double_bottom, double_top     crates/nsc-ta/src/patterns/double.rs
+#   head_shoulders                crates/nsc-ta/src/patterns/head_shoulders.rs
+#   triangle                      crates/nsc-ta/src/patterns/triangle.rs
+#   flag                          crates/nsc-ta/src/patterns/flag.rs
+# chart_patterns = ["double_bottom"]
+
+# Candlesticks — the single-candle confirmation. Available in nsc-ta:
+#   engulfing, pin_bar, inside_bar, doji, star
+# candlestick_patterns = ["engulfing", "pin_bar"]
+
+# Do you need BOTH a shape and a candle, or is either one enough?
+# require = "both"        # both | either | chart_pattern_only | candle_only
+
+# Enter on the close of the trigger candle, or wait for price to come back?
+# entry = "close"         # close | retest | limit_at_level
+
+# The trigger candle must close the way you are trading.
+# require_close_in_direction = true
+
+# Reject huge trigger candles — the move has mostly happened already and
+# your stop would be miles away.
+# max_candle_atr_multiple = 2.0
+
+# After the pattern completes, how many candles before the trigger is stale?
+# max_bars_since_pattern = 3
+
+[trigger.double_bottom]
+# How close in price the two lows must be, as a fraction of a normal candle.
+# Your eye judges this instantly; this is the number that replaces your eye.
+# max_low_difference_atr = 0.5
+
+# How far apart the two lows must be, in candles. Too close and it is one
+# messy bottom, not two attempts.
+# min_bars_apart = 5
+# max_bars_apart = 40
+
+# Do you wait for the middle high (the neckline) to break before entering,
+# or do you buy at the second low?
+#
+# This is the single biggest choice in this file. Buying the second low gets
+# a much better price and is wrong more often. Waiting for the neckline is
+# right more often and pays less. Backtest both before deciding.
+# require_neckline_break = true
+
+# How far past the neckline counts as broken. See [structure] in ta.toml.
+# neckline_break_atr_multiple = 0.3
+
+
+# ── 4. STOP — where does it go, and why there? ─────────────────────────────
+#
+# The rule matters more than the number, because the rule has to work on
+# every instrument you trade.
+
+[invalidation]
+#   structure     past the swing that made the level
+#   pattern_low   past the lowest point of the reversal pattern
+#   trigger_wick  past the wick of the trigger candle
+#   atr           a fixed multiple of normal candle size
+# method = "pattern_low"
+
+# How much room past that point. Too tight and normal noise takes you out.
+# buffer_atr_multiple = 0.3
+
+# If the stop comes out wider than this, the trade is not worth it.
+# max_stop_atr_multiple = 3.0
+
+# What happens when it is too wide — skip it, or take it smaller?
+# too_wide_action = "skip"        # skip | reduce_size
+
+
+# ── 5. TARGET — where do I get out? ────────────────────────────────────────
+#
+# This moves your results more than almost anything else here, and it is the
+# easiest thing to test. Backtest all the methods before choosing one.
+
+[target]
+#   fixed_r         a set multiple of what you risked
+#   opposing_level  the next level in the way
+#   fib_extension   a Fibonacci projection
+#   trendline       the descending line above
+# method = "opposing_level"
+
+# The worst risk-to-reward you will accept. Below this, no signal.
+# min_risk_reward = 2.0
+
+# Taking part of the trade off early. Version 1 reports this, it does not
+# do it — there is no trading code in this project.
+# partials = [{ at_r = 1.0, close_pct = 50 }]
+
+# When the stop moves to break-even. Be honest about whether this actually
+# helps you, or just converts winners into scratches.
+# move_to_breakeven_at_r = 1.0
+
+
+# ── 6. SKIP — what makes me pass on a setup that ticks every box? ──────────
+#
+# This is where your real edge probably lives, and it is almost never
+# written down. Expect this section to grow more than any other.
+
+[veto]
+# Sessions you do not want signals during.
+# blocked_sessions      = ["Sydney"]
+
+# No new signals after this time on Friday.
+# friday_cutoff_utc     = "15:00"
+
+# Minutes either side of a big announcement for the currencies involved.
+# news_blackout_minutes = 30
+# news_impact_levels    = ["high"]
+
+# A spread wider than the instrument's limit kills the setup.
+# respect_max_spread    = true
+
+# One signal per instrument per direction within this many candles, so the
+# bot does not keep sending you the same idea.
+# cooldown_bars         = 12
+
+# ── Reversal-specific skips ──
+# Refuse if the trend is still speeding up — a falling knife has no floor.
+# skip_if_trend_accelerating = true
+
+# Refuse if the last leg down was bigger than this. Something is going on
+# that a chart pattern is not going to fix.
+# max_last_leg_atr_multiple = 6.0
+
+# Refuse if the higher timeframe has no level anywhere near here.
+# require_higher_tf_level = true
+
+
+# ── CONFIDENCE SCORING ─────────────────────────────────────────────────────
+#
+# The rules above decide WHETHER there is a setup. These points only decide
+# how confident it is, and therefore whether it is worth your attention.
+#
+# Expect to find, once you have data, that two of these do nearly all the
+# work and the rest are decoration you have been carrying for years.
+# Finding that out is the whole point of measuring.
+
+[confluence.weights]
+# fib_and_sr_overlap     = 20    # two separate reasons pointing at one price
+# golden_pocket          = 15
+# trendline_confluence   = 15
+# round_number_nearby    = 5
+# momentum_divergence    = 15
+# higher_tf_level_aligns = 20
+# level_untested         = 10
+# clean_approach         = 10    # came in cleanly, not after repeated pokes
+# fan_lines_count        = 10    # more lines in the fan = more exhaustion
+
+[confluence.thresholds]
+# Below this, the setup is recorded in the database but never sent to you.
+# minimum         = 40
+# At or above this, the message gets flagged as a strong one.
+# high_conviction = 70
+
+
+# ── PER-TIMEFRAME OVERRIDES ────────────────────────────────────────────────
+#
+# The settings above are the defaults. Anything you put here replaces them
+# for that one timeframe only. Everything you leave out keeps the default.
+#
+# Use this sparingly. If a timeframe needs so many overrides that it is
+# really a different strategy, it should be a different file.
+
+# [tf.H4]
+# [tf.H4.target]
+# min_risk_reward = 2.0
+
+# [tf.H1]
+# [tf.H1.target]
+# min_risk_reward = 1.5

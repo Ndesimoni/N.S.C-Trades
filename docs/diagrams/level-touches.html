@@ -337,8 +337,8 @@
       </thead>
       <tbody>
         <tr>
-          <td>ta.toml <span style="color:var(--ink-soft)">[levels]</span></td>
-          <td class="was"><code>exhaustion_touches = 4</code><br><span style="color:var(--ink-soft)">worn out at 4</span></td>
+          <td>strategy.toml <span style="color:var(--ink-soft)">[levels]</span></td>
+          <td class="was"><code>exhaustion_touches = 4</code><br><span style="color:var(--ink-soft)">worn out at 4, in ta.toml</span></td>
           <td class="now"><code>strong_touches = 4</code><br><span style="color:var(--ink-soft)">strong at 4 or more</span></td>
         </tr>
         <tr>
@@ -375,7 +375,13 @@
       Both pictures are arguments, not evidence. Once there are 200 signals you
       have judged, this becomes testable: do setups at heavily tested levels
       actually work out better? The reasoning is written into
-      <code>ta.toml</code> so it can be checked rather than quietly assumed.
+      <code>strategy.toml</code> so it can be checked rather than quietly
+      assumed.
+    </p>
+    <p>
+      It lives there, and not in <code>ta.toml</code>, because it is a view
+      about trading rather than about drawing. The chart-reading code counts
+      the touches; the rules decide what a lot of touches is worth.
     </p>
   </div>
 

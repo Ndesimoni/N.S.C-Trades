@@ -1,0 +1,341 @@
+<title>When a higher high is really a higher high</title>
+
+<style>
+  :root {
+    --ground:   #F5F6F9;
+    --panel:    #FFFFFF;
+    --ink:      #14181F;
+    --ink-soft: #5B6472;
+    --rule:     #DDE1E9;
+    --grid:     #EAEDF3;
+    --accent:   #1E3FA8;
+    --worn:     #A2665C;
+    --chip-bg:  #ECEFF5;
+    --price:    #97A0AE;
+
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans:  ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #0E1116;
+      --panel:    #161A21;
+      --ink:      #E8EBF1;
+      --ink-soft: #98A1B0;
+      --rule:     #262C36;
+      --grid:     #1D232C;
+      --accent:   #7C9BFF;
+      --worn:     #C98B7F;
+      --chip-bg:  #1E242E;
+      --price:    #7E8899;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:   #0E1116;
+    --panel:    #161A21;
+    --ink:      #E8EBF1;
+    --ink-soft: #98A1B0;
+    --rule:     #262C36;
+    --grid:     #1D232C;
+    --accent:   #7C9BFF;
+    --worn:     #C98B7F;
+    --chip-bg:  #1E242E;
+    --price:    #7E8899;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    padding: clamp(1.5rem, 5vw, 3.5rem) 1.25rem 4rem;
+  }
+
+  .wrap { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 2.75rem; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-soft); margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: clamp(1.7rem, 3.4vw, 2.35rem); line-height: 1.15;
+    letter-spacing: -0.015em; text-wrap: balance; margin: 0 0 0.9rem;
+  }
+
+  .standfirst { max-width: 64ch; color: var(--ink-soft); margin: 0 0 1.1rem; }
+
+  .ladder {
+    display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+    font-family: var(--mono); font-size: 0.75rem; color: var(--ink-soft);
+  }
+  .ladder span { padding: 0.3rem 0.65rem; border: 1px solid var(--rule); border-radius: 4px; }
+  .ladder .here { border-color: var(--accent); color: var(--accent); }
+
+  h2 {
+    font-family: var(--serif); font-size: 1.35rem; font-weight: 600;
+    letter-spacing: -0.01em; margin: 0 0 0.4rem;
+  }
+  .section-note { color: var(--ink-soft); margin: 0 0 1.4rem; max-width: 64ch; font-size: 0.95rem; }
+
+  figure {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 1.25rem; margin: 0;
+    display: flex; flex-direction: column; gap: 0.9rem;
+  }
+  .scroller { overflow-x: auto; }
+  svg { display: block; max-width: 100%; height: auto; min-width: 620px; }
+  figcaption { color: var(--ink-soft); font-size: 0.92rem; max-width: 68ch; }
+  figcaption strong { color: var(--ink); font-weight: 600; }
+
+  .svg-label { font-family: var(--mono); font-size: 12px; fill: var(--ink-soft); }
+  .svg-label.strong { fill: var(--accent); }
+  .svg-label.warn { fill: var(--worn); }
+  .svg-title { font-family: var(--sans); font-size: 13px; fill: var(--ink); font-weight: 600; }
+
+  .note {
+    background: var(--chip-bg); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; padding: 1.1rem 1.25rem;
+  }
+  .note.open { border-left-color: var(--worn); }
+  .note h3 { font-family: var(--sans); font-size: 1rem; margin: 0 0 0.4rem; }
+  .note p { margin: 0 0 0.6rem; max-width: 66ch; }
+  .note p:last-child { margin-bottom: 0; }
+
+  code { font-family: var(--mono); font-size: 0.88em; background: var(--chip-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+
+  footer { color: var(--ink-soft); font-size: 0.9rem; border-top: 1px solid var(--rule); padding-top: 1.25rem; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">nsc_trades · chart reading</p>
+    <h1>When a higher high is really a higher high</h1>
+    <p class="standfirst">
+      Taking out the old high is not enough. Price has to carry at least 40 to
+      50% of the previous run past it — measured from the take-out — before the
+      market has actually gone somewhere. This is what that looks like, and what
+      it refuses.
+    </p>
+    <div class="ladder">
+      <span>candles</span>
+      <span>ATR</span>
+      <span>swings</span>
+      <span>levels</span>
+      <span class="here">structure</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>The rule</h2>
+    <p class="section-note">
+      The previous run is 200 points, from 1900 up to 2100. Everything is
+      measured against that.
+    </p>
+
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 760 340" role="img"
+             aria-label="Price runs from a low to a high, pulls back, then climbs through the old high and carries on into a shaded band 40 to 50 per cent of the run above it, where the higher high is confirmed.">
+
+          <!-- everything above the threshold counts -->
+          <rect x="380" y="8" width="340" height="52" fill="var(--accent)" opacity="0.10"></rect>
+          <line x1="380" y1="45" x2="720" y2="45" stroke="var(--accent)" stroke-width="1" stroke-dasharray="5 4"></line>
+          <line x1="380" y1="60" x2="720" y2="60" stroke="var(--accent)" stroke-width="1.5"></line>
+          <text class="svg-label strong" x="376" y="64" text-anchor="end">40% · 2180</text>
+          <text class="svg-label" x="376" y="49" text-anchor="end">50% · 2200</text>
+          <text class="svg-label strong" x="720" y="26" text-anchor="end">at least this far — further is stronger, not different</text>
+
+          <!-- the old high -->
+          <line x1="240" y1="120" x2="720" y2="120" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 4"></line>
+          <text class="svg-label" x="720" y="113" text-anchor="end">the old high · 2100</text>
+
+          <!-- the previous run -->
+          <line x1="40" y1="120" x2="40" y2="270" stroke="var(--accent)" stroke-width="1.5"></line>
+          <line x1="34" y1="120" x2="46" y2="120" stroke="var(--accent)" stroke-width="1.5"></line>
+          <line x1="34" y1="270" x2="46" y2="270" stroke="var(--accent)" stroke-width="1.5"></line>
+          <text class="svg-label strong" x="26" y="195" text-anchor="middle"
+                transform="rotate(-90 26 195)">the previous run · 200</text>
+
+          <polyline
+            points="60,270 110,235 140,250 190,165 240,120 290,155 330,140 360,190 420,150 460,160 495,120 545,95 580,105 620,38"
+            fill="none" stroke="var(--price)" stroke-width="2.5"
+            stroke-linejoin="round" stroke-linecap="round"></polyline>
+
+          <circle cx="240" cy="120" r="6" fill="var(--accent)"></circle>
+          <circle cx="360" cy="190" r="5" fill="var(--accent)"></circle>
+          <text class="svg-label" x="360" y="212" text-anchor="middle">pullback</text>
+
+          <circle cx="495" cy="120" r="6" fill="none" stroke="var(--ink-soft)" stroke-width="2"></circle>
+          <text class="svg-label" x="495" y="148" text-anchor="middle">takes the high out</text>
+          <text class="svg-label" x="495" y="166" text-anchor="middle">— not yet</text>
+
+          <circle cx="620" cy="38" r="7" fill="var(--accent)"></circle>
+          <text class="svg-title" x="620" y="88" text-anchor="middle">higher high</text>
+
+          <text class="svg-label" x="60" y="305">a high is taken when the market goes somewhere, not when the line is crossed</text>
+        </svg>
+      </div>
+      <figcaption>
+        <strong>Two separate events, and only the second one counts.</strong>
+        Crossing 2100 starts the test; reaching 2180 finishes it. Everything in
+        between is price poking at a level, which is the most ordinary thing a
+        chart does. The 40 to 50% is a floor, not a target — price running much
+        further is the same answer arrived at more convincingly.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>What it refuses</h2>
+    <p class="section-note">
+      Same setup, same old high. The difference is what happens after the line
+      is crossed.
+    </p>
+
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 760 300" role="img"
+             aria-label="Two charts side by side. On the left price clears the old high and reaches the required band. On the right price pokes just above the old high and falls away without reaching the band.">
+
+          <!-- ── left: accepted ── -->
+          <text class="svg-title" x="20" y="26">Carries on</text>
+
+          <rect x="20" y="55" width="350" height="13" fill="var(--accent)" opacity="0.16"></rect>
+          <line x1="20" y1="120" x2="370" y2="120" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 4"></line>
+          <text class="svg-label" x="26" y="113">the old high</text>
+
+          <polyline points="40,250 90,190 120,205 150,120 190,160 230,175 290,120 330,85 350,60"
+                    fill="none" stroke="var(--price)" stroke-width="2.5"
+                    stroke-linejoin="round" stroke-linecap="round"></polyline>
+
+          <circle cx="150" cy="120" r="5" fill="var(--accent)"></circle>
+          <circle cx="350" cy="60" r="6" fill="var(--accent)"></circle>
+          <text class="svg-label strong" x="200" y="245">reached the band — higher high</text>
+
+          <line x1="380" y1="14" x2="380" y2="285" stroke="var(--rule)" stroke-width="1"></line>
+
+          <!-- ── right: refused ── -->
+          <text class="svg-title" x="400" y="26">Pokes and fails</text>
+
+          <rect x="400" y="55" width="340" height="13" fill="var(--accent)" opacity="0.16"></rect>
+          <line x1="400" y1="120" x2="740" y2="120" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 4"></line>
+          <text class="svg-label" x="406" y="113">the old high</text>
+
+          <polyline points="410,250 460,190 490,205 520,120 560,160 600,175 650,110 690,165 740,215"
+                    fill="none" stroke="var(--price)" stroke-width="2.5"
+                    stroke-linejoin="round" stroke-linecap="round"></polyline>
+
+          <circle cx="520" cy="120" r="5" fill="var(--accent)"></circle>
+          <circle cx="650" cy="110" r="6" fill="none" stroke="var(--worn)" stroke-width="2"></circle>
+          <text class="svg-label warn" x="662" y="100">8% past, then gone</text>
+          <text class="svg-label warn" x="470" y="245">the high was touched, not taken</text>
+        </svg>
+      </div>
+      <figcaption>
+        <strong>The chart on the right is the most common trap there is.</strong>
+        It looks like a breakout, it pulls buyers in, and price turns straight
+        back down. Without this rule the bot would read it as a higher high, call
+        the trend intact, and go looking for a long at the worst possible moment.
+      </figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <h2>Why it is measured from the high, not the pullback</h2>
+    <p class="section-note">
+      There were two places the 40% could have been measured from. Only one of
+      them asks a real question.
+    </p>
+
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 760 320" role="img"
+             aria-label="The same chart with two brackets. A bracket measuring forty per cent from the pullback low ends below the old high. A bracket measuring forty per cent from the old high ends well above it.">
+
+          <line x1="120" y1="120" x2="700" y2="120" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 4"></line>
+          <text class="svg-label" x="126" y="113">the old high</text>
+
+          <line x1="120" y1="190" x2="700" y2="190" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="3 5" opacity="0.7"></line>
+          <text class="svg-label" x="126" y="205">the pullback low</text>
+
+          <polyline points="60,270 110,230 150,165 200,120 250,155 300,190 360,150 420,120 470,90 520,55"
+                    fill="none" stroke="var(--price)" stroke-width="2.5"
+                    stroke-linejoin="round" stroke-linecap="round" opacity="0.5"></polyline>
+
+          <!-- wrong anchor -->
+          <line x1="580" y1="130" x2="580" y2="190" stroke="var(--worn)" stroke-width="1.5"></line>
+          <line x1="574" y1="130" x2="586" y2="130" stroke="var(--worn)" stroke-width="1.5"></line>
+          <line x1="574" y1="190" x2="586" y2="190" stroke="var(--worn)" stroke-width="1.5"></line>
+          <text class="svg-label warn" x="592" y="150">40% from the pullback low</text>
+          <text class="svg-label warn" x="592" y="168">ends below the old high</text>
+
+          <!-- right anchor -->
+          <line x1="440" y1="60" x2="440" y2="120" stroke="var(--accent)" stroke-width="1.5"></line>
+          <line x1="434" y1="60" x2="446" y2="60" stroke="var(--accent)" stroke-width="1.5"></line>
+          <line x1="434" y1="120" x2="446" y2="120" stroke="var(--accent)" stroke-width="1.5"></line>
+          <text class="svg-label strong" x="452" y="80">40% from the old high</text>
+          <text class="svg-label strong" x="452" y="98">the test that asks something</text>
+
+          <text class="svg-label warn" x="60" y="290">measured from the pullback, simply getting back to the high passes the test</text>
+          <text class="svg-label" x="60" y="308">— a rule that is always true is not a rule</text>
+        </svg>
+      </div>
+      <figcaption>
+        <strong>Climbing back to the old high already covers most of the run.</strong>
+        The pullback was 40 to 50% deep, so recovering it is 40 to 50% of the
+        run all on its own. Anchoring there would have given a test that passed
+        every single time it was asked.
+      </figcaption>
+    </figure>
+  </section>
+
+  <div class="note open">
+    <h3>Still to come: option 2</h3>
+    <p>
+      This was described as option 1, so there is at least one other way a
+      higher high gets accepted. It has not been captured yet.
+    </p>
+    <p>
+      One thing is still open with it: the in-between case, where price takes
+      the high and stalls at 20% of the run. Not a higher high — but is it
+      nothing, or is it worth recording as a failed attempt?
+    </p>
+    <p>
+      <strong>Lower lows are settled: exactly the same rule, mirrored.</strong>
+      Break the previous low, then carry 40 to 50% of the previous run below it.
+      One piece of code with a direction passed in — an uptrend and a downtrend
+      judged by different rules is how a bot ends up bullish and bearish about
+      the same chart.
+    </p>
+  </div>
+
+  <div class="note">
+    <h3>One setting has to go</h3>
+    <p>
+      <code>ta.toml</code> already answers this question a different way:
+      <code>[structure] bos_atr_multiple = 0.3</code> — how far past an old high
+      price must push, measured in normal candles rather than as a fraction of
+      the run.
+    </p>
+    <p>
+      Two settings for one question is how they end up disagreeing. The
+      fraction-of-the-run version fits everything else you have described, where
+      the yardstick is always the move in front of you.
+    </p>
+  </div>
+
+  <footer>
+    A diagram is an argument, not evidence. It shows what the rule does; whether
+    it makes money needs a backtest over real candles, which this project cannot
+    run yet.
+  </footer>
+
+</div>

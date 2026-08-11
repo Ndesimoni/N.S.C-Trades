@@ -5,6 +5,40 @@ thing.
 
 ## The diagrams
 
+### [When a higher high is really a higher high →](https://claude.ai/code/artifact/45d262ab-5f17-49e3-bbde-9b7d2a5e96f5)
+
+Taking out the old high is not enough. Price has to carry 40 to 50% of the
+previous run past it, measured from the take-out — which refuses the poke that
+looks like a breakout and turns straight back down.
+
+**Open** — option 2, and whether lower lows work the same way. Written up in
+[worksheets/structure.md](../worksheets/structure.md).
+
+Source: [`higher-high.html`](higher-high.html)
+
+### [A swing is proved by the pullback →](https://claude.ai/code/artifact/07ce73cb-6623-47be-a0df-e8d5fde64372)
+
+The rule that replaces candle counting: a peak counts once price gives back
+about half the run that made it. What it accepts, what it now refuses, why
+swings end up alternating, and the floor the rule still needs so a flat market
+does not fill with swings.
+
+**Open** — how much of the run, and how small a run stops being a move.
+Written up in [worksheets/swings.md](../worksheets/swings.md).
+
+Source: [`swing-pullback.html`](swing-pullback.html)
+
+### [What "3 candles either side" means →](https://claude.ai/code/artifact/cdaabf21-8e37-4597-b860-671f89426877)
+
+What the `lookback` setting asks of a candle, the same chart read at 3 and at
+5, and how long you wait before a swing can be used — half a day on the 4-hour,
+three days on the daily.
+
+**Open** — whether 3 matches the peaks you would point at, and whether major
+and minor swings need separating.
+
+Source: [`swing-lookback.html`](swing-lookback.html)
+
 ### [What repeated touches do to a level →](https://claude.ai/code/artifact/250dbca0-2122-4ff8-b720-8bb8a651f1ce)
 
 Two beliefs about what repeated touches do to a level: the "worn out" view

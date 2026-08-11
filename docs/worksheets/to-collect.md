@@ -78,6 +78,20 @@ This is the line between a disciplined reversal strategy and buying dips.
 
 ---
 
+## For the candlestick patterns
+
+*(from `candles.md`, captured 12 Aug 2026)*
+
+**7. A pin bar you took, and one you passed on.**
+Two that looked similar. Same for an engulfing candle if you have a pair.
+
+*Answers:* the measurements. The code is currently using textbook numbers —
+tail twice the body, doji body under 5% of the range — because you said to use
+standard ones for now. They are somebody else's numbers, and only a pair like
+this replaces them with yours.
+
+---
+
 ## For the breakout and trend strategies
 
 Nothing captured yet. Those worksheets are still empty, so there is nothing
@@ -109,5 +123,6 @@ later. Trades you cannot remember cannot.
 |---|---|
 | Levels 1–3 | `levels.md`, then `nsc-ta::levels` and the veto layer |
 | Reversal 4–6 | `reversal.md`, then `config/strategies/reversal.toml` |
+| Candles 7 | `candles.md`, then `[candles]` in `config/ta.toml` |
 | Breakout, trend | Their own worksheets |
 | The SKIP examples | The `[veto]` section of whichever strategy they belong to |

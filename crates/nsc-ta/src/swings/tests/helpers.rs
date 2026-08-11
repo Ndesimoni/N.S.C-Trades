@@ -1,8 +1,8 @@
-//! Building candles to test with.
+//! Building charts to test with.
 //!
-//! Whole numbers throughout, so the sums can be checked by hand. Flat candles
-//! are 10 tall, which means ATR settles at exactly 10 and the noise filter is
-//! easy to reason about: a filter of 0.5 needs a swing to stand out by 5.
+//! Whole numbers throughout, so every run and every give-back can be checked
+//! by hand. Prices are plain integers: a run from 100 to 300 is a run of 200,
+//! and half of it is 100.
 
 use chrono::{DateTime, TimeDelta, Utc};
 use nsc_core::candle::Candle;
@@ -23,8 +23,23 @@ pub fn price(n: i64) -> Price {
     Price::new(Decimal::from(n))
 }
 
-/// A candle with the given high and low. Open and close sit in the middle,
-/// which keeps the numbers easy to follow.
+/// A candle that simply sits at one price. Its high, low, open and close are
+/// all the same, so a chart built from these is a plain line and the only
+/// thing being tested is the rule.
+pub fn tick(index: i64, at_price: i64) -> Candle {
+    Candle::new(
+        at(index),
+        price(at_price),
+        price(at_price),
+        price(at_price),
+        price(at_price),
+        None,
+        true,
+    )
+    .expect("valid candle")
+}
+
+/// A candle with a real high and low, for the cases where that matters.
 pub fn candle(index: i64, high: i64, low: i64) -> Candle {
     let middle = (high + low) / 2;
 
@@ -40,25 +55,21 @@ pub fn candle(index: i64, high: i64, low: i64) -> Candle {
     .expect("valid candle")
 }
 
-pub fn settings(lookback: usize, min_atr_multiple: f64) -> SwingSettings {
+/// One candle per price, in order.
+pub fn path(prices: &[i64]) -> Vec<Candle> {
+    prices
+        .iter()
+        .enumerate()
+        .map(|(index, at_price)| tick(index as i64, *at_price))
+        .collect()
+}
+
+/// The settings in config/ta.toml today.
+pub fn settings() -> SwingSettings {
     SwingSettings {
-        lookback,
-        require_confirmed: true,
-        min_atr_multiple,
+        confirm_retracement: 0.5,
+        shallow_retracement: 0.382,
+        min_run_fraction: 0.5,
+        run_memory_legs: 5,
     }
-}
-
-/// Boring candles, each 10 tall. ATR settles at 10 and none of them is a
-/// swing.
-pub fn flat(count: i64) -> Vec<Candle> {
-    (0..count).map(|i| candle(i, 105, 95)).collect()
-}
-
-/// Twenty flat candles to warm ATR up, then `interesting`, then enough flat
-/// ones after it for the finder to make up its mind.
-pub fn around(interesting: Candle, trailing: i64) -> Vec<Candle> {
-    let mut candles = flat(20);
-    candles.push(interesting);
-    candles.extend((21..21 + trailing).map(|i| candle(i, 105, 95)));
-    candles
 }

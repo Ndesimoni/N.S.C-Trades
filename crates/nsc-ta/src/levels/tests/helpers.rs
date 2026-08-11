@@ -1,23 +1,20 @@
 //! Building charts and swings to test with.
 //!
-//! Whole numbers throughout, so the sums can be checked by hand. Flat candles
-//! are 10 tall, which puts ATR near 10 and makes a band of half a normal
-//! candle about 5 wide.
+//! Whole numbers throughout, so every run and every give-back can be checked
+//! by hand.
 
 use chrono::{DateTime, TimeDelta, Utc};
 use nsc_core::candle::Candle;
+use nsc_core::level::Level;
 use nsc_core::price::{Price, PriceDistance};
 use nsc_core::swing::{Swing, SwingKind};
 use rust_decimal::Decimal;
 
 use crate::config::{LevelSettings, SwingSettings};
 
-/// How far apart the peaks are placed. Comfortably more than the lookback of
-/// 3, so each one is judged on its own.
-const SPACING: i64 = 8;
-
-/// Where the first peak goes. The candles before it are there to warm ATR up.
-const FIRST_PEAK: i64 = 20;
+/// Short enough that a test chart of a dozen candles has an ATR at the end.
+/// The real setting is 14; nothing here depends on which it is.
+pub const ATR_PERIOD: usize = 3;
 
 pub fn at(index: i64) -> DateTime<Utc> {
     let start = "2026-08-10T00:00:00Z"
@@ -50,11 +47,55 @@ pub fn candle(index: i64, high: i64, low: i64) -> Candle {
     .expect("valid candle")
 }
 
+/// A candle sitting at one price.
+pub fn tick(index: i64, at_price: i64) -> Candle {
+    candle(index, at_price, at_price)
+}
+
+/// A chart that walks from one turn price to the next, with one candle halfway
+/// between so each move takes more than a single step.
+///
+/// Turn `n` lands on candle `2n`, which is what the date tests check against.
+///
+/// Each full swing gives back the whole of the run before it, so every turn
+/// except the last one confirms.
+pub fn zigzag(turns: &[i64]) -> Vec<Candle> {
+    let mut candles = Vec::new();
+    let mut index = 0;
+
+    for (position, turn) in turns.iter().enumerate() {
+        if position > 0 {
+            let previous = turns[position - 1];
+            candles.push(tick(index, (previous + turn) / 2));
+            index += 1;
+        }
+
+        candles.push(tick(index, *turn));
+        index += 1;
+    }
+
+    candles
+}
+
+/// Where `zigzag` puts the nth turn.
+pub fn turn_index(nth: i64) -> i64 {
+    nth * 2
+}
+
+/// The level covering this price, if one was found.
+pub fn level_at(levels: &[Level], at_price: i64) -> Option<Level> {
+    levels
+        .iter()
+        .find(|level| level.contains(price(at_price)))
+        .copied()
+}
+
 pub fn swing_settings() -> SwingSettings {
     SwingSettings {
-        lookback: 3,
-        require_confirmed: true,
-        min_atr_multiple: 0.5,
+        confirm_retracement: 0.5,
+        shallow_retracement: 0.382,
+        min_run_fraction: 0.5,
+        run_memory_legs: 5,
     }
 }
 
@@ -66,34 +107,7 @@ pub fn level_settings(min_touches: usize, max_age_bars: usize) -> LevelSettings 
     }
 }
 
-/// A swing, made by hand rather than found on a chart. Confirmed three
-/// candles after the one it sits on, the way the finder would.
+/// A swing made by hand rather than found on a chart.
 pub fn swing(kind: SwingKind, index: i64, at_price: i64) -> Swing {
     Swing::new(kind, at(index), at(index + 3), price(at_price)).expect("valid swing")
-}
-
-/// A chart with a peak at each of the given prices, well spaced out, and
-/// enough flat candles after the last one for it to confirm.
-///
-/// Every other candle runs from 95 to 105, so nothing else is a swing.
-pub fn chart_with_peaks(peaks: &[i64]) -> Vec<Candle> {
-    let mut candles: Vec<Candle> = (0..FIRST_PEAK).map(|i| candle(i, 105, 95)).collect();
-    let mut index = FIRST_PEAK;
-
-    for peak in peaks {
-        candles.push(candle(index, *peak, 95));
-        index += 1;
-
-        for _ in 1..SPACING {
-            candles.push(candle(index, 105, 95));
-            index += 1;
-        }
-    }
-
-    candles
-}
-
-/// Where `chart_with_peaks` puts the nth peak.
-pub fn peak_index(nth: i64) -> i64 {
-    FIRST_PEAK + nth * SPACING
 }

@@ -1,120 +1,143 @@
-//! Does the finder find the right swings?
+//! Does the finder find the swings the rule describes?
 
-use nsc_core::swing::SwingKind;
+use nsc_core::swing::{Swing, SwingKind};
 
 use super::helpers::*;
 use crate::swings::find_swings;
 
-// ── Finding a peak ──
+fn swings_on(prices: &[i64]) -> Vec<Swing> {
+    find_swings(&path(prices), settings()).expect("valid")
+}
+
+// ── The depth route ──
 
 #[test]
-fn a_clear_peak_is_found() {
-    let candles = around(candle(20, 200, 95), 5);
+fn giving_back_half_the_run_confirms_the_peak() {
+    // Up 100 to 300, a run of 200. Then back to 200, which is half of it.
+    let swings = swings_on(&[100, 200, 300, 250, 200]);
 
-    let swings = find_swings(&candles, settings(3, 0.5), 14).expect("valid");
-    let highs: Vec<_> = swings.iter().filter(|s| s.is_high()).collect();
-
-    assert_eq!(highs.len(), 1, "expected one peak, got {swings:?}");
-    assert_eq!(highs[0].bar_time(), at(20));
-    assert_eq!(highs[0].price(), price(200));
+    assert_eq!(swings.len(), 1, "got {swings:?}");
+    assert_eq!(swings[0].kind(), SwingKind::High);
+    assert_eq!(swings[0].price(), price(300));
 }
 
 #[test]
-fn a_peak_is_confirmed_by_the_candle_lookback_later() {
-    let candles = around(candle(20, 200, 95), 5);
+fn giving_back_less_than_half_confirms_nothing() {
+    // The same run of 200, but only 60 given back.
+    let swings = swings_on(&[100, 200, 300, 260, 240]);
 
-    let swings = find_swings(&candles, settings(3, 0.5), 14).expect("valid");
-    let peak = swings.iter().find(|s| s.is_high()).expect("a peak");
-
-    // Lookback is 3, so candle 23 is what made it knowable.
-    assert_eq!(peak.confirmed_at(), at(23));
-
-    // And the type refuses to let anyone use it before then.
-    assert!(!peak.is_known_at(at(22)));
-    assert!(peak.is_known_at(at(23)));
+    assert!(swings.is_empty(), "got {swings:?}");
 }
 
-// ── The noise filter ──
-
 #[test]
-fn a_bump_smaller_than_the_filter_is_ignored() {
-    // ATR settles at 10, so a filter of 0.5 needs the swing to stand out by
-    // 5. This one stands out by 2.
-    let candles = around(candle(20, 107, 95), 5);
+fn the_peak_is_dated_to_its_own_candle_not_the_one_that_proved_it() {
+    let swings = swings_on(&[100, 200, 300, 250, 200]);
 
-    let swings = find_swings(&candles, settings(3, 0.5), 14).expect("valid");
-
+    assert_eq!(swings[0].bar_time(), at(2), "the peak is candle 2");
     assert!(
-        !swings.iter().any(|s| s.bar_time() == at(20)),
-        "a 2-point bump on a 10-point candle is chop, not structure"
+        swings[0].confirmed_at() > at(2),
+        "and it could not have been known there"
     );
 }
 
+// ── The shallow route ──
+
+// A strong trend barely pauses. Waiting for half would miss the structure in
+// exactly the market worth trading.
 #[test]
-fn turning_the_filter_off_finds_the_same_bump() {
-    let candles = around(candle(20, 107, 95), 5);
+fn a_shallow_pause_counts_once_price_takes_the_peak_out() {
+    // Up 100 to 300. Back to 220 — that is 80 of 200, so 40%: past the
+    // shallow share but short of half. Then up through 300.
+    let swings = swings_on(&[100, 200, 300, 260, 220, 280, 340]);
 
-    let swings = find_swings(&candles, settings(3, 0.0), 14).expect("valid");
-
-    assert!(swings.iter().any(|s| s.bar_time() == at(20) && s.is_high()));
+    assert_eq!(swings.len(), 2, "the peak and the bottom of the pause");
+    assert_eq!(swings[0].kind(), SwingKind::High);
+    assert_eq!(swings[0].price(), price(300));
+    assert_eq!(swings[1].kind(), SwingKind::Low);
+    assert_eq!(swings[1].price(), price(220));
 }
 
-// ── Ties ──
-
 #[test]
-fn a_flat_top_produces_no_swing() {
-    // Two candles share the highest high. Neither strictly beats the other,
-    // so neither is a peak. Missing a level is safer than inventing one.
-    let mut candles = flat(20);
-    candles.push(candle(20, 200, 95));
-    candles.push(candle(21, 200, 95));
-    candles.extend((22..27).map(|i| candle(i, 105, 95)));
+fn a_pause_too_shallow_for_either_route_is_not_a_swing() {
+    // Only 40 given back out of 200 — a fifth. Price then runs on, and the
+    // pause was never structure.
+    let swings = swings_on(&[100, 200, 300, 280, 260, 320, 400]);
 
-    let swings = find_swings(&candles, settings(3, 0.5), 14).expect("valid");
-
-    assert!(!swings.iter().any(|s| s.is_high()), "got {swings:?}");
-}
-
-// ── A candle can be both ──
-
-#[test]
-fn an_outside_bar_is_both_a_high_and_a_low() {
-    let candles = around(candle(20, 200, 10), 5);
-
-    let swings = find_swings(&candles, settings(3, 0.5), 14).expect("valid");
-    let here: Vec<_> = swings.iter().filter(|s| s.bar_time() == at(20)).collect();
-
-    assert_eq!(here.len(), 2, "got {here:?}");
-    assert!(here.iter().any(|s| s.kind() == SwingKind::High));
-    assert!(here.iter().any(|s| s.kind() == SwingKind::Low));
-}
-
-// ── The end of the history ──
-
-#[test]
-fn the_last_few_candles_cannot_be_judged_yet() {
-    // A peak, but only two candles follow it and the lookback is three.
-    let candles = around(candle(20, 200, 95), 2);
-
-    let swings = find_swings(&candles, settings(3, 0.5), 14).expect("valid");
-
-    // Still unknown. That is correct, not a gap — tomorrow it is a swing.
     assert!(swings.is_empty(), "got {swings:?}");
 }
 
-// ── Nothing before ATR exists ──
+// ── Alternating ──
 
 #[test]
-fn nothing_is_found_before_atr_has_warmed_up() {
-    // A huge peak at candle 3, long before ATR has 14 candles to work with.
-    let mut candles = flat(3);
-    candles.push(candle(3, 500, 95));
-    candles.extend((4..10).map(|i| candle(i, 105, 95)));
+fn swings_alternate_high_low_high() {
+    let swings = swings_on(&[
+        100, 200, 300, // up
+        200, 100, // down through half
+        200, 300, 400, // up again
+        300, 200, // and back
+    ]);
 
-    let swings = find_swings(&candles, settings(3, 0.5), 14).expect("valid");
+    let kinds: Vec<_> = swings.iter().map(|s| s.kind()).collect();
 
-    // Without ATR there is no idea what a normal candle looks like, so there
-    // is no way to say whether 500 is a swing or just how this instrument
-    // behaves. Finding nothing beats guessing.
-    assert!(swings.is_empty(), "got {swings:?}");
+    assert!(kinds.len() >= 2, "got {swings:?}");
+    for pair in kinds.windows(2) {
+        assert_ne!(pair[0], pair[1], "two of the same in a row: {kinds:?}");
+    }
+}
+
+#[test]
+fn a_fall_confirms_a_low_the_same_way() {
+    // Down 300 to 100, a run of 200, then back up 100 — half of it.
+    let swings = swings_on(&[300, 200, 100, 150, 200]);
+
+    assert_eq!(swings.len(), 1, "got {swings:?}");
+    assert_eq!(swings[0].kind(), SwingKind::Low);
+    assert_eq!(swings[0].price(), price(100));
+}
+
+// ── The run floor ──
+
+#[test]
+fn a_wobble_after_a_big_run_is_not_a_swing() {
+    // A run of 200 confirms. Then a 20-point wiggle, which is nowhere near
+    // half of it, so nothing else counts however cleanly it turns.
+    let swings = swings_on(&[
+        100, 200, 300, 200, 100, // a real run, down through half
+        120, 110, 120, 110, 120,
+    ]);
+
+    assert_eq!(swings.len(), 1, "only the real one: {swings:?}");
+}
+
+// Each leg is 60% of the one before. Measured against the last one alone they
+// would all pass and the chart would fill with noise.
+#[test]
+fn the_ratchet_stops() {
+    let swings = swings_on(&[
+        1000, 3000, // 2000 up
+        1800, // back 1200, over half — confirms
+        3000, // 1200 up
+        2280, // back 720, over half — confirms
+        2712, // 432 up, which is under half of 2000
+        2453, 2600, 2445,
+    ]);
+
+    assert!(
+        swings.len() <= 3,
+        "the shrinking legs should stop counting: {swings:?}"
+    );
+}
+
+// ── Wicks ──
+
+#[test]
+fn the_swing_sits_on_the_wick() {
+    let mut candles = vec![tick(0, 100), tick(1, 200)];
+    // A candle whose body is at 250 but whose wick reaches 300.
+    candles.push(candle(2, 300, 240));
+    candles.extend([tick(3, 250), tick(4, 200)]);
+
+    let swings = find_swings(&candles, settings()).expect("valid");
+
+    assert_eq!(swings[0].price(), price(300), "the wick, not the body");
 }

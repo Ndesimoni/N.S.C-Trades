@@ -220,11 +220,21 @@ undoing anything.
 
 ---
 
-## What this becomes
+## What this became
 
-`nsc-ta::swings`, driven by `[swings]` in `config/ta.toml`.
+**Built 12 Aug 2026.** `nsc-ta::swings` now works the way this file describes,
+and `[swings]` in `config/ta.toml` holds the four numbers. Twelve tests.
 
-The settings change shape completely:
+One thing dropped along the way: `require_confirmed`. It was a setting that
+asked whether to allow unconfirmed swings, and under this design an
+unconfirmed swing never exists to allow. A setting nothing can read is worse
+than none.
+
+ATR left too. The old finder needed it because its noise filter was measured
+in normal candles. Every number is now a share of a move, so there is nothing
+for it to measure. ATR still matters to levels and to stops.
+
+The settings changed shape completely:
 
 | Was | Becomes |
 |---|---|

@@ -3,18 +3,37 @@
 # not adjust them by eye because one chart looks nicer.
 
 [swings]
-# THE most important setting in the project. A swing high is a candle whose
-# high beats this many candles on either side. Bigger = fewer, more meaningful
-# swings. Smaller = noise. Levels, trendlines, Fibonacci and trend direction
-# are ALL built from these.
-lookback          = 3
-# A swing is only confirmed this many candles after it appears. Analysis may
-# only use confirmed swings. This is the main protection against using data
-# you did not have yet.
-require_confirmed = true
-# Ignore swings smaller than this fraction of a normal candle. Filters out
-# chop without needing a fixed pip number that breaks on other pairs.
-min_atr_multiple  = 0.5
+# THE most important settings in the project. Levels, trendlines, Fibonacci
+# and trend direction are ALL built from swing points.
+#
+# NO CANDLE COUNTING. A peak is not a peak because of how many candles sit
+# either side of it — that passes a lazy rounded top with twenty quiet candles
+# round it, and fails a sharp turn with four. What proves a peak is what price
+# did afterwards.
+#
+# Every number here is a SHARE OF A MOVE, never a distance. That is why the
+# same four work on the 4-hour and the daily, and on gold and EURUSD.
+
+# How much of the run must be given back for a peak to prove itself on its own.
+# Half of THAT move: a 300-point rally needs about 150 back, a 60-point rally
+# about 30.
+confirm_retracement = 0.5
+# The shallower give-back that counts once price has TAKEN THE PEAK OUT.
+#
+# A strong move barely pauses. Insisting on half would read structure fine in
+# chop and go blind in a clean trend, which is the market worth trading. Same
+# number as the strong-trend Fibonacci level below, because it is the same
+# situation.
+shallow_retracement = 0.382
+# How big a run must be next to recent ones, or it is not a move at all.
+# Without it, half of a tiny run is a tinier pullback and a quiet afternoon
+# fills with swings. Range worth trying: 0.5 to 0.75. Higher means fewer,
+# bigger swings.
+min_run_fraction    = 0.5
+# How far back "recent" reaches, counted in runs. Against only the last run the
+# test ratchets down — 200, 120, 72, 43 — each passing while the chain shrinks
+# to nothing. Remembering five stops that.
+run_memory_legs     = 5
 
 [levels]
 # How thick a level band is, as a fraction of a normal candle.

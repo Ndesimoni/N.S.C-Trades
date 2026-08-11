@@ -15,15 +15,15 @@ use crate::swings::find_swings;
 
 #[test]
 fn a_level_is_never_known_on_the_candle_of_its_last_touch() {
-    let candles = chart_with_peaks(&[200, 200]);
-    let swings = find_swings(&candles, swing_settings(), 14).expect("valid");
+    let candles = zigzag(&[100, 200, 100, 200, 100]);
+    let swings = find_swings(&candles, swing_settings()).expect("valid");
 
     let levels = find_levels(
         &candles,
         &swings,
         Timeframe::M15,
         &level_settings(2, 500),
-        14,
+        ATR_PERIOD,
     )
     .expect("valid");
 
@@ -40,8 +40,8 @@ fn a_level_is_never_known_on_the_candle_of_its_last_touch() {
 // must not quietly add a touch to a level.
 #[test]
 fn a_swing_that_has_not_confirmed_yet_is_ignored() {
-    let candles = chart_with_peaks(&[200, 200]);
-    let mut swings = find_swings(&candles, swing_settings(), 14).expect("valid");
+    let candles = zigzag(&[100, 200, 100, 200, 100]);
+    let mut swings = find_swings(&candles, swing_settings()).expect("valid");
 
     // Sits at a candle far beyond the end of this chart, so it confirms long
     // after the last candle closed.
@@ -52,24 +52,21 @@ fn a_swing_that_has_not_confirmed_yet_is_ignored() {
         &swings,
         Timeframe::M15,
         &level_settings(2, 500),
-        14,
+        ATR_PERIOD,
     )
     .expect("valid");
 
-    assert_eq!(levels.len(), 1, "got {levels:?}");
-    assert_eq!(
-        levels[0].touches(),
-        2,
-        "the third touch had not happened yet"
-    );
+    let level = level_at(&levels, 200).expect("a level at 200");
+
+    assert_eq!(level.touches(), 2, "the third touch had not happened yet");
 }
 
 // An unfinished candle's high and low have not finished happening. A level
 // built from one is drawn from prices that may never print.
 #[test]
 fn an_unfinished_last_candle_is_refused() {
-    let mut candles = chart_with_peaks(&[200, 200]);
-    let swings = find_swings(&candles, swing_settings(), 14).expect("valid");
+    let mut candles = zigzag(&[100, 200, 100, 200, 100]);
+    let swings = find_swings(&candles, swing_settings()).expect("valid");
 
     let still_forming = Candle::new(
         at(500),
@@ -88,7 +85,7 @@ fn an_unfinished_last_candle_is_refused() {
         &swings,
         Timeframe::M15,
         &level_settings(2, 500),
-        14,
+        ATR_PERIOD,
     );
 
     assert!(matches!(refused, Err(TaError::IncompleteCandle { .. })));
@@ -114,7 +111,7 @@ fn an_empty_chart_finds_no_levels() {
 
 #[test]
 fn a_nonsense_setting_stops_the_run() {
-    let candles = chart_with_peaks(&[200, 200]);
+    let candles = zigzag(&[100, 200, 100, 200, 100]);
 
     let refused = find_levels(&candles, &[], Timeframe::M15, &level_settings(1, 500), 14);
 

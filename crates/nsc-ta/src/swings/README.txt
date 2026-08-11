@@ -6,176 +6,138 @@ WHAT THIS FOLDER IS FOR
 
   Turning candles into swing points.
 
-  This is the foundation of everything else. Levels, trendlines, Fibonacci,
-  trend direction and chart patterns are all built on what comes out of here.
+  Spend more time here than anywhere else. Levels, trendlines, Fibonacci
+  anchors, trend direction and chart patterns are all built from this one
+  output.
 
-  Get the sensitivity wrong and every feature downstream is quietly rubbish,
-  in a way that is very hard to trace back to this folder.
+
+WHAT PROVES A SWING
+
+  Not the number of candles either side of it.
+
+  That is how most swing detection works and it asks the wrong question. A
+  lazy rounded top with twenty quiet candles around it passes. A sharp turn
+  with four candles around it fails. Neither answer matches what you see.
+
+  What proves a peak is what price did AFTERWARDS. So the finder measures the
+  RUN — from the last confirmed swing up to the peak — and then how much of
+  that run gets given back.
+
+      given back half of the run          the peak is a swing
+      given back the shallower share,     the peak is a swing, and so is the
+      and then price takes it out         bottom of that pause
+
+  Both numbers are shares of that particular move, so a 300-point rally needs
+  about 150 back and a 60-point rally about 30. No units means nothing to get
+  wrong when you change instrument or timeframe.
+
+
+WHY THE SECOND ROUTE EXISTS
+
+  The strongest trends barely pause.
+
+  A rule that only confirmed on depth would read structure perfectly well in a
+  choppy market and go blind in a clean trend — which is the market you most
+  want to be reading. So a shallower pause counts too, as soon as price takes
+  the peak out and proves it WAS a pause.
+
+  When that happens two swings are learned at once: the top of the run, and
+  the bottom of the pause.
+
+
+THE FLOOR
+
+  Half of a tiny run is a tinier pullback, so without a floor a flat Tuesday
+  afternoon fills with swings.
+
+  A run has to be at least a share of the BIGGEST of the last few runs. Not of
+  the last one — measured against only its predecessor the test ratchets
+  downwards, 200 then 120 then 72 then 43, each one passing on its own while
+  the chain shrinks to nothing. Against the biggest of five, the third one
+  already fails.
+
+  A rejected run is not remembered, so a quiet stretch cannot slowly redefine
+  what a big move is. Structure simply goes quiet until a real move comes
+  back, which is the honest answer for a market that has gone quiet.
 
 
 THE FILES
 
-  mod.rs              The front door. Lets the outside world see two things:
-                      SwingFinder and find_swings.
+  mod.rs      The front door.
 
-  finder.rs           SwingFinder. Takes candles one at a time. This is what
-                      the live bot uses.
+  run.rs      A price with the candle it happened on, and what share of one
+              distance another is.
 
-  series.rs           find_swings. Takes a whole history at once. This is
-                      what the backtester uses. It runs the same struct.
+  direction.rs  Which way round a leg is. Every comparison in here is "further
+              along the run" or "further back against it", and which of > and
+              < that means flips with the direction. Written once, so the
+              flips cannot get out of step with each other.
 
-  tests/              Twelve tests.
-    helpers.rs        building candles to test with
-    detection.rs      does it find the right swings
-    guards.rs         does it refuse what it should refuse
+  memory.rs   The last few runs, and whether the next one is big enough to
+              count.
 
-  README.txt          This file.
+  step.rs     What a candle did to the leg it arrived on: nothing, or one or
+              two swings and a fresh leg.
 
+  leg.rs      One move in one direction: where it started, how far it has got,
+              how much it has given back, and the two ways it can end.
 
-HOW THEY FIT TOGETHER
+  seed.rs     The start of a history, before anything has been confirmed.
+              Keeps the highest and lowest so far, and whichever came LATER
+              decides which way the market has been going. Worked out again on
+              every candle, so a start that looked like a rise and turns into
+              a fall simply reads as a fall.
 
-      finder.rs ─►  series.rs         series runs the same struct in a loop
+  finder.rs   One candle at a time, the way the live bot works. Holds the
+              state: seeking at first, then following one leg at a time.
 
-      finder.rs ─►  indicators/atr/   the noise filter is measured in ATR
-      finder.rs ─►  config/           lookback and the filter setting
-      finder.rs ─►  nsc-core swing/   the Swing type it produces
+  series.rs   A whole history at once, for the backtester. Feeds candles
+              through the SAME finder, so the two cannot drift apart.
 
-      mod.rs    ─►  lets the outside world see SwingFinder and find_swings
+  tests/      Twelve tests. Read guards.rs first.
 
+  README.txt  This file.
 
-HOW A SWING IS FOUND
 
-  A swing high is a candle whose high beats the highs of a few candles on
-  either side.
+TWO THINGS THAT FALL OUT OF THE RULE
 
-  How many candles either side is the "lookback" setting in ta.toml. With a
-  lookback of 3, the finder looks at a window seven candles wide and asks
-  whether the middle one beats the three before it and the three after it.
+  SWINGS ALTERNATE. After a high the finder is hunting a low. The same candle
+  can never be both, which is what a hand-drawn zigzag looks like.
 
-  A swing low is the same thing upside down.
+  THE WAIT IS HONEST RATHER THAN FIXED. There is no "confirmed three candles
+  later". A swing is knowable when the pullback gets there — sometimes two
+  candles, sometimes thirty. On the daily a shallow pullback can leave a swing
+  you can plainly see unusable for weeks.
 
+  That last one is the rule being strict, not a bug. By your own rule that
+  peak has not proved itself yet.
 
-WHY THE ANSWER IS ALWAYS ABOUT AN OLDER CANDLE
 
-  To know candle 100 was a peak, you have to see the candles after it.
+THE PRICE USED
 
-  So when candle 103 arrives, the finder decides about candle 100. It is
-  always three candles behind.
+  Always the wick. The high of the candle for a peak, the low for a trough.
 
-  That lag is not a limitation to work around. It is the honest answer.
-  Anything faster is reading the chart backwards.
 
-  This is also why the last few candles of any history produce no swings.
-  Correct, not a gap — tomorrow they might be swings.
+WHAT IS NOT IN HERE
 
+  ATR. The old finder needed it, because its noise filter was measured in
+  normal candles. Every number is now a share of a move, so there is nothing
+  left for it to measure. ATR still matters for levels and for stops.
 
-CONFIRMATION IS BUILT IN, NOT REMEMBERED
+  Major and minor swings. There is one flat list, and every swing in it is
+  treated the same. If the turns that structure a move need separating from
+  the wiggles inside a pullback, that is two thresholds running side by side —
+  it changes what this folder RETURNS, not how it decides.
 
-  Every swing carries two times: where it sits, and when it became knowable.
 
-  The important part is that this folder CANNOT produce an unconfirmed swing.
-  The finder has no opinion about a candle until the candles after it have
-  arrived. So there is no unconfirmed swing anywhere for someone to
-  accidentally use.
+SETTINGS IT READS
 
-  That is better than a rule people have to remember. Rules get forgotten;
-  this cannot be forgotten because the thing does not exist.
+  From [swings] in config/ta.toml:
 
-  A note on ta.toml: there is a "require_confirmed" setting in the [swings]
-  section. Given the above, it does nothing — an unconfirmed swing is not
-  possible here. Worth deleting so nobody assumes it is protecting them.
+    confirm_retracement   the give-back that proves a peak on its own
+    shallow_retracement   the give-back that counts once price takes it out
+    min_run_fraction      how big a run must be next to recent ones
+    run_memory_legs       how far back "recent" reaches
 
-
-DECISION ONE: A TIE IS NOT A SWING
-
-  The middle candle must STRICTLY beat its neighbours. Equal is not enough.
-
-  So a flat double top — two candles at exactly the same high, next to each
-  other — produces no swing at all.
-
-  That misses a real level occasionally. The alternative is worse: loosen it
-  and a flat stretch produces several swings at the same price, and every
-  level and trendline built from them is wrong in a way that looks fine.
-
-  Missing a level is safer than inventing one. You can see a missed level on
-  your own chart. An invented one you cannot see at all.
-
-  Exact ties are rare in forex, where prices have five decimal places. They
-  are more likely on the indices, which move in whole points.
-
-  Test: a_flat_top_produces_no_swing
-
-
-DECISION TWO: HOW FAR IS FAR ENOUGH
-
-  In a choppy market almost every candle beats its immediate neighbours by a
-  hair. Without a filter you get hundreds of "swings" that are just noise.
-
-  So a swing must also stand out by a minimum amount: the "min_atr_multiple"
-  setting.
-
-  It is measured in ATR — the size of a normal candle — not in pips. With the
-  setting at 0.5, a swing must stand out from its neighbours by half a normal
-  candle.
-
-  That same 0.5 works on EURUSD and gold. A pip threshold would need
-  retuning for every instrument, and again every time volatility changed.
-
-  Tests: a_bump_smaller_than_the_filter_is_ignored
-         turning_the_filter_off_finds_the_same_bump
-
-
-NOTHING IS FOUND UNTIL ATR EXISTS
-
-  The filter needs ATR, and ATR needs 14 candles.
-
-  So the first 14 candles of any history produce no swings, even if there is
-  an obvious peak among them.
-
-  That is deliberate. Without ATR there is no idea what a normal candle looks
-  like on this instrument, so there is no way to tell a real swing from how
-  this thing always behaves. Finding nothing beats guessing.
-
-  Test: nothing_is_found_before_atr_has_warmed_up
-
-
-A CANDLE CAN BE BOTH
-
-  An outside bar — one that makes the highest high AND the lowest low in the
-  window — is both a swing high and a swing low.
-
-  That is why update() returns a list rather than a single swing. Usually the
-  list is empty, which costs nothing.
-
-  Test: an_outside_bar_is_both_a_high_and_a_low
-
-
-ONE AT A TIME, AND ALL AT ONCE
-
-  The live bot gets candles one at a time. The backtester has the whole
-  history.
-
-  Both go through the same struct. find_swings feeds candles into the same
-  SwingFinder the bot uses.
-
-  Not similar code. The SAME code.
-
-  If those two ever gave different answers, your backtest would stop
-  describing what the bot does — and you would not notice, because that kind
-  of mismatch makes backtests look better rather than broken.
-
-  Test: one_at_a_time_matches_all_at_once
-
-
-IF YOU CHANGE THE LOOKBACK
-
-  Everything downstream changes. Every level, every trendline, every
-  Fibonacci anchor, every trend reading.
-
-  So do not nudge it because one chart looks nicer. Test it in the
-  backtester, read what changed, and decide whether you agree with the new
-  levels before accepting them.
-
-  And if a small change to the lookback makes a big change to your results,
-  that means the strategy was fitted to the old setting. Not that the new
-  setting is better.
+  See docs/worksheets/swings.md for where these came from, and
+  docs/diagrams/swing-pullback.html for the picture.

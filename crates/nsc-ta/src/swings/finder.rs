@@ -1,68 +1,79 @@
 //! Finding swings one candle at a time.
 
-use std::collections::VecDeque;
-
 use nsc_core::candle::Candle;
-use nsc_core::price::{AtrMultiple, PriceDistance};
-use nsc_core::swing::{Swing, SwingKind};
+use nsc_core::swing::Swing;
 
+use super::leg::Leg;
+use super::memory::RunMemory;
+use super::seed::Seed;
+use super::step::Step;
 use crate::config::SwingSettings;
 use crate::error::TaError;
-use crate::indicators::atr::Atr;
 
-/// A candle, and how big a normal candle was at the time.
-type Seen = (Candle, Option<PriceDistance>);
+/// What the finder is doing right now.
+#[derive(Debug, Clone)]
+enum State {
+    /// No swing has been confirmed yet, so the direction is worked out fresh
+    /// from where price has been.
+    Seeking(Seed),
+
+    /// Anchored on a confirmed swing, following the run away from it.
+    Running(Leg),
+}
 
 /// Finds swings as candles arrive.
 ///
-/// Feed it complete candles in time order. It gives back any swings it can
-/// now be sure about — usually none.
+/// Feed it complete candles in time order. It gives back any swings it can now
+/// be sure about — usually none.
 ///
-/// ## Why it always answers about an older candle
+/// ## What proves a swing
 ///
-/// To know candle 100 was a peak, you need to see the candles after it. So
-/// this keeps a small window of recent candles and only ever decides about
-/// the one in the middle.
+/// A peak is not a peak because of how many candles sit either side of it. It
+/// is a peak because price left it. So the finder measures the **run** from
+/// the last confirmed swing, and then how much of that run gets given back:
 ///
-/// With a lookback of 3 the window is 7 candles wide, and when candle 103
-/// arrives the finder decides about candle 100.
+///   - given back half → the peak is a swing, on its own
+///   - given back the shallower share, and then price takes the peak out →
+///     the peak is a swing, and so is the bottom of that pause
 ///
-/// That lag is not a limitation to work around. It is the honest answer.
-/// Anything faster is reading the chart backwards.
+/// The second route is there because the strongest trends barely pause. A rule
+/// that only confirmed on depth would read structure fine in a choppy market
+/// and go blind in a clean trend.
+///
+/// ## Two things that follow from it
+///
+/// **Swings alternate.** After a high it is hunting a low. The same candle can
+/// never be both.
+///
+/// **The wait is honest rather than fixed.** A swing is knowable when the
+/// pullback gets there — sometimes two candles later, sometimes thirty. On the
+/// daily a shallow pullback can leave a swing you can plainly see unusable for
+/// weeks. That is the rule being strict, not a bug.
 #[derive(Debug, Clone)]
 pub struct SwingFinder {
     settings: SwingSettings,
-    atr: Atr,
-
-    /// The last `2 x lookback + 1` candles, oldest first.
-    window: VecDeque<Seen>,
+    memory: RunMemory,
+    state: Option<State>,
 }
 
 impl SwingFinder {
-    pub fn new(settings: SwingSettings, atr_period: usize) -> Result<Self, TaError> {
+    pub fn new(settings: SwingSettings) -> Result<Self, TaError> {
         settings.validate()?;
 
-        let width = 2 * settings.lookback + 1;
+        let memory = RunMemory::new(settings.run_memory_legs, settings.min_run_fraction);
 
         Ok(Self {
             settings,
-            atr: Atr::new(atr_period)?,
-            window: VecDeque::with_capacity(width),
+            memory,
+            state: None,
         })
-    }
-
-    /// How many candles the window holds when it is full.
-    fn width(&self) -> usize {
-        2 * self.settings.lookback + 1
     }
 
     /// Takes the next candle and gives back any swings now confirmed.
     ///
-    /// Usually empty. A candle can be both a swing high and a swing low at
-    /// once — an outside bar that beats everything around it in both
-    /// directions — which is why this returns a list rather than one swing.
-    ///
-    /// An empty `Vec` does not allocate, so the common case is free.
+    /// Usually empty. Two come back together when a shallow pause is proved by
+    /// price taking the peak out — the end of the run and the end of the
+    /// pause are both known at that moment.
     pub fn update(&mut self, candle: &Candle) -> Result<Vec<Swing>, TaError> {
         if !candle.is_complete() {
             return Err(TaError::IncompleteCandle {
@@ -70,119 +81,50 @@ impl SwingFinder {
             });
         }
 
-        let atr_now = self.atr.update(candle)?;
-        self.window.push_back((*candle, atr_now));
-
-        if self.window.len() > self.width() {
-            self.window.pop_front();
-        }
-
-        if self.window.len() < self.width() {
-            return Ok(Vec::new());
-        }
-
-        self.decide_about_the_middle()
-    }
-
-    /// Looks at the candle in the middle of the window and works out whether
-    /// it is a swing.
-    fn decide_about_the_middle(&self) -> Result<Vec<Swing>, TaError> {
-        let middle_index = self.settings.lookback;
-
-        let Some((middle, atr_then)) = self.window.get(middle_index).copied() else {
+        let Some(state) = self.state.take() else {
+            self.state = Some(State::Seeking(Seed::new(candle)));
             return Ok(Vec::new());
         };
 
-        // The newest candle in the window is the one that made this
-        // knowable. Analysis runs when a candle closes, so by the time we
-        // are looking at that candle it has finished.
-        let Some((newest, _)) = self.window.back().copied() else {
+        match state {
+            State::Seeking(seed) => self.seek(seed, candle),
+            State::Running(leg) => self.follow(leg, candle),
+        }
+    }
+
+    /// Before the first swing, working out the direction as it goes.
+    fn seek(&mut self, mut seed: Seed, candle: &Candle) -> Result<Vec<Swing>, TaError> {
+        let step = seed.take(candle, &self.settings, &self.memory)?;
+
+        if matches!(step, Step::Continue) {
+            self.state = Some(State::Seeking(seed));
+            return Ok(Vec::new());
+        }
+
+        self.settle(step)
+    }
+
+    /// After the first swing: one leg, anchored on it.
+    fn follow(&mut self, mut leg: Leg, candle: &Candle) -> Result<Vec<Swing>, TaError> {
+        let step = leg.take(candle, &self.settings, &self.memory)?;
+
+        if matches!(step, Step::Continue) {
+            self.state = Some(State::Running(leg));
+            return Ok(Vec::new());
+        }
+
+        self.settle(step)
+    }
+
+    /// Records a finished run and starts following the next one.
+    fn settle(&mut self, step: Step) -> Result<Vec<Swing>, TaError> {
+        let Step::Confirmed { swings, next, run } = step else {
             return Ok(Vec::new());
         };
 
-        // No ATR yet means we are at the very start of the history and have
-        // no idea what a normal candle looks like. Better to find no swings
-        // than to guess.
-        let Some(atr_then) = atr_then else {
-            return Ok(Vec::new());
-        };
+        self.memory.remember(run);
+        self.state = Some(State::Running(next));
 
-        let mut found = Vec::new();
-
-        let highest = self.beats_neighbours(middle_index, SwingKind::High);
-        let lowest = self.beats_neighbours(middle_index, SwingKind::Low);
-
-        if let Some(stands_out_by) = highest
-            && self.is_big_enough(stands_out_by, atr_then)?
-        {
-            found.push(Swing::new(
-                SwingKind::High,
-                middle.open_time(),
-                newest.open_time(),
-                middle.high(),
-            )?);
-        }
-
-        if let Some(stands_out_by) = lowest
-            && self.is_big_enough(stands_out_by, atr_then)?
-        {
-            found.push(Swing::new(
-                SwingKind::Low,
-                middle.open_time(),
-                newest.open_time(),
-                middle.low(),
-            )?);
-        }
-
-        Ok(found)
-    }
-
-    /// Does the middle candle beat every other candle in the window, and by
-    /// how much?
-    ///
-    /// Returns `None` if it does not. Strictly beat — a tie does not count.
-    /// See README.txt for what that misses and why it is the safer choice.
-    fn beats_neighbours(&self, middle_index: usize, kind: SwingKind) -> Option<PriceDistance> {
-        let (middle, _) = self.window.get(middle_index)?;
-
-        let mut nearest_rival = None;
-
-        for (position, (other, _)) in self.window.iter().enumerate() {
-            if position == middle_index {
-                continue;
-            }
-
-            let (mine, theirs) = match kind {
-                SwingKind::High => (middle.high(), other.high()),
-                SwingKind::Low => (other.low(), middle.low()),
-            };
-
-            if theirs >= mine {
-                return None;
-            }
-
-            let gap = mine - theirs;
-            nearest_rival = Some(match nearest_rival {
-                None => gap,
-                Some(smallest) if gap < smallest => gap,
-                Some(smallest) => smallest,
-            });
-        }
-
-        nearest_rival
-    }
-
-    /// Is the swing worth calling a swing, or is it just chop?
-    ///
-    /// Measured against ATR rather than a fixed number of pips, so the same
-    /// setting works on EURUSD and gold.
-    fn is_big_enough(
-        &self,
-        stands_out_by: PriceDistance,
-        atr: PriceDistance,
-    ) -> Result<bool, TaError> {
-        let threshold = AtrMultiple::new(self.settings.min_atr_multiple).to_distance(atr)?;
-
-        Ok(stands_out_by >= threshold)
+        Ok(swings)
     }
 }

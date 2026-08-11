@@ -5,9 +5,10 @@ use crate::error::TaError;
 fn settings() -> TaSettings {
     TaSettings {
         swings: SwingSettings {
-            lookback: 3,
-            require_confirmed: true,
-            min_atr_multiple: 0.5,
+            confirm_retracement: 0.5,
+            shallow_retracement: 0.382,
+            min_run_fraction: 0.5,
+            run_memory_legs: 5,
         },
         levels: LevelSettings {
             band_atr_multiple: 0.5,
@@ -26,18 +27,31 @@ fn the_settings_in_ta_toml_are_accepted() {
     assert_eq!(settings().validate(), Ok(()));
 }
 
+// Every swing setting is a share of a move. A number above one means somebody
+// typed a price or a pip count into a field that wanted a fraction.
 #[test]
-fn a_lookback_of_zero_is_refused() {
+fn a_give_back_of_more_than_the_whole_run_is_refused() {
     let mut s = settings();
-    s.swings.lookback = 0;
+    s.swings.confirm_retracement = 1.5;
 
     assert!(matches!(s.validate(), Err(TaError::BadSetting { .. })));
 }
 
 #[test]
-fn a_negative_noise_filter_is_refused() {
+fn a_negative_share_is_refused() {
     let mut s = settings();
-    s.swings.min_atr_multiple = -1.0;
+    s.swings.min_run_fraction = -1.0;
+
+    assert!(matches!(s.validate(), Err(TaError::BadSetting { .. })));
+}
+
+// If the shallow route needed a deeper pullback than the one that confirms on
+// its own, it could never fire, and the strong-trend case it exists for would
+// silently stop working.
+#[test]
+fn a_shallow_route_deeper_than_the_deep_one_is_refused() {
+    let mut s = settings();
+    s.swings.shallow_retracement = 0.8;
 
     assert!(matches!(s.validate(), Err(TaError::BadSetting { .. })));
 }
@@ -74,9 +88,10 @@ fn an_atr_period_of_one_is_refused() {
 #[test]
 fn a_misspelled_setting_is_refused() {
     let toml = r#"
-        lookbak = 3
-        require_confirmed = true
-        min_atr_multiple = 0.5
+        confirm_retracemnt  = 0.5
+        shallow_retracement = 0.382
+        min_run_fraction    = 0.5
+        run_memory_legs     = 5
     "#;
 
     assert!(toml::from_str::<SwingSettings>(toml).is_err());

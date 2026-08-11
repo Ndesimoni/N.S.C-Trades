@@ -89,6 +89,37 @@ level", how much room the stop gets, how big a candle is too big.
 Why: 20 pips is a big move on EURUSD and a small one on GBPJPY. A pip setting
 works on the pair you tested and quietly stops working on every other one.
 
+**Keep a file under 200 lines. 250 is the hard limit.** Counting everything —
+doc comments, tests, the lot.
+
+Past that, a file is a thing you scroll rather than a thing you read, and the
+part you need is never on screen at the same time as the part it depends on.
+The bugs that hurt in this project are the quiet ones — a boundary an hour
+out, a candle read one too early — and quiet bugs hide in files nobody reads
+end to end.
+
+When a file gets too big, turn it into a folder with one file per idea:
+
+```
+price/
+  mod.rs        module docs, and what the outside world can see
+  point.rs      Price — a point on the chart
+  distance.rs   the three ways of measuring a gap
+  ops.rs        what you are allowed to add and subtract
+  tests.rs
+```
+
+Each file holds one idea **and the behaviour that goes with it**. Do not put
+every struct in a `types.rs` and every function in a `logic.rs` — that splits
+things that are read together and joins things that are not.
+
+**Every folder gets a `README.txt`** saying what the folder is for, what each
+file does, and how they connect. Plain English, no jargon.
+
+Keep it true. A `README.txt` that describes files that no longer exist is
+worse than none at all, because it is believed. **If you add, remove or
+rename a file in a folder, update its `README.txt` in the same change.**
+
 **Errors:** libraries use typed errors (`thiserror`); the two binaries use
 `anyhow`. The point of separate error types is to tell the caller *retry or
 give up*. Never lump a bad API key in with a network timeout — the bot will

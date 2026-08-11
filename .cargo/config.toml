@@ -1,0 +1,16 @@
+# Shortcuts, so you are not retyping the same commands all day.
+#
+#   cargo dev    the API server, restarted every time you save
+#   cargo live   the bot, restarted every time you save
+#   cargo w      check the whole workspace on every save (fastest feedback)
+#   cargo t      run the tests on every save
+#
+# `-q` keeps cargo quiet so your own output is readable.
+# `-c` clears the screen between runs, so what you are looking at is always
+#      the result of the save you just made, not a mix of two runs.
+
+[alias]
+dev  = ["watch", "-q", "-c", "-x", "run -p nsc-api"]
+live = ["watch", "-q", "-c", "-x", "run -p nsc-live"]
+w    = ["watch", "-q", "-c", "-x", "check --workspace"]
+t    = ["watch", "-q", "-c", "-x", "test --workspace"]

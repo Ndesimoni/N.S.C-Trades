@@ -1,0 +1,31 @@
+{
+  // ── Rust: format on save ─────────────────────────────────────────────────
+  // Scoped to Rust on purpose. The TOML files in config/ are hand-aligned so
+  // the comments line up, and a TOML formatter would flatten all of that.
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true
+  },
+
+  // ── Squiggles come from clippy, not just the compiler ────────────────────
+  // CLAUDE.md requires `cargo clippy --workspace -- -D warnings` to pass, so
+  // see clippy's complaints while typing rather than at the end.
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.check.allTargets": true,
+  "rust-analyzer.check.extraArgs": ["--workspace"],
+
+  // Run tests and see results from the editor gutter.
+  "rust-analyzer.cargo.features": "all",
+
+  // ── General tidiness ─────────────────────────────────────────────────────
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+
+  // Don't index build output — it is large and changes constantly.
+  "files.watcherExclude": {
+    "**/target/**": true
+  },
+  "search.exclude": {
+    "**/target": true
+  }
+}

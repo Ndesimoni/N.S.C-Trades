@@ -2203,6 +2203,7 @@ dependencies = [
  "rust_decimal",
  "serde",
  "thiserror",
+ "toml",
  "tracing",
 ]
 

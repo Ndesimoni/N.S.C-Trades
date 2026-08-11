@@ -13,3 +13,8 @@ chrono       = { workspace = true }
 rust_decimal = { workspace = true }
 thiserror    = { workspace = true }
 tracing      = { workspace = true }
+
+# Tests only — never compiled into the library. Used to prove that a
+# misspelled setting in ta.toml is refused rather than silently ignored.
+[dev-dependencies]
+toml = { workspace = true }

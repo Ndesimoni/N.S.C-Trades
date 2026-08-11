@@ -17,16 +17,31 @@ require_confirmed = true
 min_atr_multiple  = 0.5
 
 [levels]
-# Swing points closer together than this get merged into one zone. Measured
-# against normal candle size. Too tight and you get twenty useless levels; too
-# loose and everything becomes one giant zone.
-cluster_atr_multiple = 0.35
-# How many touches before a zone counts as a real level.
-min_touches          = 2
-# Levels older than this many candles stop being considered.
-max_age_bars         = 500
-# A level tested this many times is worn out — more likely to break than hold.
-exhaustion_touches   = 4
+# How thick a level band is, as a fraction of a normal candle.
+#
+# The thickness is the SAME for every level on a timeframe. The band gets slid
+# up and down to catch the most touches; it never gets stretched. That is how
+# the levels on your charts are drawn — see docs/worksheets/levels.md.
+#
+# Too thin and a wick that overshoots by a hair misses the level. Too thick
+# and every price is at every level.
+band_atr_multiple = 0.5
+# How many touches before a band counts as a real level.
+min_touches       = 2
+# Levels older than this many candles stop being considered. Roughly three
+# years of weekly candles, two years of daily, three months of 4-hour — which
+# is about as far left as you look on each.
+max_age_bars      = 500
+# At or above this many touches, treat the level as a strong one.
+#
+# MORE TOUCHES MEANS STRONGER HERE, not worn out. There is a school of thought
+# that says the opposite — that a level tested repeatedly is being worn down
+# and will break. This project follows the trader's actual view: a level lots
+# of people keep defending is one to pay more attention to.
+#
+# Worth measuring once there are 200 labelled signals. Until then it is a
+# belief, and it is written down here so it can be tested rather than assumed.
+strong_touches    = 4
 
 [proximity]
 # What counts as "price is AT the level". In normal-candle multiples, never in

@@ -85,6 +85,9 @@ assume somebody chose it, and end up backtesting a stranger's strategy.
 | `worksheets/reversal.md` | Your reversal rules, in words. Becomes `strategies/reversal.toml`. |
 | `worksheets/breakout.md` | Your breakout rules, in words. Becomes `strategies/breakout.toml`. |
 | `worksheets/trend.md` | Your trend rules, in words. Becomes `strategies/trend.toml`. |
+| `worksheets/levels.md` | How you draw support and resistance. Becomes `nsc-ta::levels`, not a strategy file. |
+| `worksheets/to-collect.md` | Screenshots still needed to pin down vague rules. Grows as each strategy is worked through. |
+| `diagrams/` | Pictures built to settle a question. Links at the top of its README. |
 | `architecture.md` | Why the code is split up the way it is. Read before moving code between crates. |
 | `phases.md` | What gets built when, and how you know a phase is done. |
 | `pitfalls.md` | The ways this kind of system breaks without telling you. Read before believing any result. |

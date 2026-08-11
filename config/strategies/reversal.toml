@@ -119,9 +119,12 @@ enabled = false
 # How many of those have to agree at the same price.
 # min_confluences = 2
 
-# A level tested too many times is worn out and more likely to break than
-# hold. Threshold lives in ta.toml [levels] exhaustion_touches.
-# skip_exhausted_levels = true
+# Require the level to be one that has been defended before. Threshold lives
+# in ta.toml [levels] strong_touches.
+#
+# Note this is the opposite of the usual "exhausted level" idea. Here more
+# touches makes a level stronger, not weaker.
+# require_strong_level = true
 
 # Does it matter HOW price arrived? Drifting down slowly is not the same as
 # one violent candle, and most traders have never written this down.
@@ -285,7 +288,7 @@ enabled = false
 # round_number_nearby    = 5
 # momentum_divergence    = 15
 # higher_tf_level_aligns = 20
-# level_untested         = 10
+# level_well_defended    = 10    # lots of touches, so lots of people watching
 # clean_approach         = 10    # came in cleanly, not after repeated pokes
 # fan_lines_count        = 10    # more lines in the fan = more exhaustion
 

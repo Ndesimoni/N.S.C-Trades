@@ -1,0 +1,382 @@
+<title>What repeated touches do to a level</title>
+
+<style>
+  :root {
+    --ground:   #F5F6F9;
+    --panel:    #FFFFFF;
+    --ink:      #14181F;
+    --ink-soft: #5B6472;
+    --rule:     #DDE1E9;
+    --grid:     #EAEDF3;
+    --accent:   #1E3FA8;
+    --worn:     #A2665C;
+    --chip-bg:  #ECEFF5;
+
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans:  ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #0E1116;
+      --panel:    #161A21;
+      --ink:      #E8EBF1;
+      --ink-soft: #98A1B0;
+      --rule:     #262C36;
+      --grid:     #1D232C;
+      --accent:   #7C9BFF;
+      --worn:     #C98B7F;
+      --chip-bg:  #1E242E;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:   #0E1116;
+    --panel:    #161A21;
+    --ink:      #E8EBF1;
+    --ink-soft: #98A1B0;
+    --rule:     #262C36;
+    --grid:     #1D232C;
+    --accent:   #7C9BFF;
+    --worn:     #C98B7F;
+    --chip-bg:  #1E242E;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    padding: clamp(1.5rem, 5vw, 3.5rem) 1.25rem 4rem;
+  }
+
+  .wrap {
+    max-width: 1040px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(1.7rem, 3.4vw, 2.35rem);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+    margin: 0 0 0.9rem;
+  }
+
+  .standfirst {
+    max-width: 62ch;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-size: 1.28rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+
+  .chip {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    padding: 0.28rem 0.6rem;
+    border-radius: 4px;
+    background: var(--chip-bg);
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  .chip.is-adopted {
+    background: color-mix(in srgb, var(--accent) 16%, transparent);
+    color: var(--accent);
+  }
+
+  .chart {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+
+  .panel p {
+    margin: 0;
+    font-size: 0.94rem;
+    color: var(--ink-soft);
+  }
+
+  .panel p strong { color: var(--ink); font-weight: 600; }
+
+  .scroller { overflow-x: auto; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 480px;
+    font-size: 0.88rem;
+  }
+
+  caption {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding-bottom: 0.8rem;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 0.7rem 1rem 0.7rem 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: top;
+  }
+
+  thead th {
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  td code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+  }
+
+  .was code { color: var(--worn); text-decoration: line-through; }
+  .now code { color: var(--accent); }
+
+  .note {
+    border-left: 2px solid var(--accent);
+    padding: 0.15rem 0 0.15rem 1.1rem;
+    max-width: 66ch;
+  }
+
+  .note h3 {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 0.35rem;
+    font-weight: 600;
+  }
+
+  .note p { margin: 0; }
+
+  .svg-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    fill: var(--ink-soft);
+  }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">nsc_trades &middot; levels &middot; 11 Aug 2026</p>
+    <h1>What repeated touches do to a level</h1>
+    <p class="standfirst">
+      The same five touches on the same level. Two schools of thought about what
+      they mean — and they point in opposite directions. Your config assumed the
+      left one. You trade the right one.
+    </p>
+  </header>
+
+  <div class="panels">
+
+    <!-- ── The rejected view ─────────────────────────────────────────── -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Worn down</h2>
+        <span class="chip">not how you trade</span>
+      </div>
+
+      <svg class="chart" viewBox="0 0 400 250" role="img"
+           aria-label="A support level drawn as a band that gets thinner and fainter with each of five touches, until price breaks through it on the fifth.">
+        <line x1="0" y1="60"  x2="400" y2="60"  stroke="var(--grid)" stroke-width="1"/>
+        <line x1="0" y1="105" x2="400" y2="105" stroke="var(--grid)" stroke-width="1"/>
+        <line x1="0" y1="195" x2="400" y2="195" stroke="var(--grid)" stroke-width="1"/>
+
+        <!-- band segments: thinner and fainter each time -->
+        <rect x="10"  y="142" width="72" height="16" fill="var(--worn)" opacity="0.95"/>
+        <rect x="82"  y="143.5" width="72" height="13" fill="var(--worn)" opacity="0.72"/>
+        <rect x="154" y="145" width="72" height="10" fill="var(--worn)" opacity="0.5"/>
+        <rect x="226" y="146.5" width="72" height="7"  fill="var(--worn)" opacity="0.3"/>
+        <rect x="298" y="148" width="72" height="4"  fill="var(--worn)" opacity="0.15"/>
+
+        <path d="M 10 72 L 55 145 L 92 78 L 128 145 L 163 84 L 198 145
+                 L 234 92 L 268 145 L 300 100 L 336 150 L 360 200 L 392 226"
+              fill="none" stroke="var(--ink)" stroke-width="1.8"
+              stroke-linejoin="round" stroke-linecap="round"/>
+
+        <circle cx="55"  cy="145" r="3" fill="var(--worn)"/>
+        <circle cx="128" cy="145" r="3" fill="var(--worn)"/>
+        <circle cx="198" cy="145" r="3" fill="var(--worn)"/>
+        <circle cx="268" cy="145" r="3" fill="var(--worn)"/>
+        <circle cx="336" cy="150" r="3.4" fill="var(--worn)" opacity="0.45"/>
+
+        <text class="svg-label" x="45"  y="176">1</text>
+        <text class="svg-label" x="118" y="176">2</text>
+        <text class="svg-label" x="188" y="176">3</text>
+        <text class="svg-label" x="258" y="176">4</text>
+        <text class="svg-label" x="326" y="176">5</text>
+        <text class="svg-label" x="352" y="222">breaks</text>
+      </svg>
+
+      <p>
+        Every touch uses up the orders sitting there. By the fifth, there is
+        nothing left to defend it, so it gives way.
+        <strong>A level that has been tested a lot is one to avoid.</strong>
+      </p>
+    </section>
+
+    <!-- ── Your view ─────────────────────────────────────────────────── -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Well defended</h2>
+        <span class="chip is-adopted">your rule</span>
+      </div>
+
+      <svg class="chart" viewBox="0 0 400 250" role="img"
+           aria-label="The same support level drawn as a band that gets thicker and stronger with each of five touches, with price bouncing away on the fifth.">
+        <line x1="0" y1="60"  x2="400" y2="60"  stroke="var(--grid)" stroke-width="1"/>
+        <line x1="0" y1="105" x2="400" y2="105" stroke="var(--grid)" stroke-width="1"/>
+        <line x1="0" y1="195" x2="400" y2="195" stroke="var(--grid)" stroke-width="1"/>
+
+        <!-- band segments: thicker and firmer each time -->
+        <rect x="10"  y="146" width="72" height="8"  fill="var(--accent)" opacity="0.35"/>
+        <rect x="82"  y="145" width="72" height="10" fill="var(--accent)" opacity="0.5"/>
+        <rect x="154" y="144" width="72" height="12" fill="var(--accent)" opacity="0.66"/>
+        <rect x="226" y="143" width="72" height="14" fill="var(--accent)" opacity="0.82"/>
+        <rect x="298" y="142" width="92" height="16" fill="var(--accent)" opacity="1"/>
+
+        <path d="M 10 72 L 55 148 L 92 78 L 128 148 L 163 84 L 198 148
+                 L 234 92 L 268 147 L 300 100 L 336 146 L 368 86 L 392 62"
+              fill="none" stroke="var(--ink)" stroke-width="1.8"
+              stroke-linejoin="round" stroke-linecap="round"/>
+
+        <circle cx="55"  cy="148" r="3" fill="var(--accent)"/>
+        <circle cx="128" cy="148" r="3" fill="var(--accent)"/>
+        <circle cx="198" cy="148" r="3" fill="var(--accent)"/>
+        <circle cx="268" cy="147" r="3" fill="var(--accent)"/>
+        <circle cx="336" cy="146" r="3.6" fill="var(--accent)"/>
+
+        <text class="svg-label" x="45"  y="176">1</text>
+        <text class="svg-label" x="118" y="176">2</text>
+        <text class="svg-label" x="188" y="176">3</text>
+        <text class="svg-label" x="258" y="176">4</text>
+        <text class="svg-label" x="326" y="176">5</text>
+        <text class="svg-label" x="352" y="78">holds</text>
+      </svg>
+
+      <p>
+        Every touch is more people noticing that price and deciding to defend it.
+        By the fifth, everyone is watching.
+        <strong>A level that has been tested a lot is one to pay attention to.</strong>
+      </p>
+    </section>
+
+  </div>
+
+  <div class="scroller">
+    <table>
+      <caption>What changed in the settings</caption>
+      <thead>
+        <tr>
+          <th scope="col">Where</th>
+          <th scope="col">Was</th>
+          <th scope="col">Now</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>ta.toml <span style="color:var(--ink-soft)">[levels]</span></td>
+          <td class="was"><code>exhaustion_touches = 4</code><br><span style="color:var(--ink-soft)">worn out at 4</span></td>
+          <td class="now"><code>strong_touches = 4</code><br><span style="color:var(--ink-soft)">strong at 4 or more</span></td>
+        </tr>
+        <tr>
+          <td>reversal.toml, trend.toml</td>
+          <td class="was"><code>skip_exhausted_levels</code><br><span style="color:var(--ink-soft)">avoid heavily tested levels</span></td>
+          <td class="now"><code>require_strong_level</code><br><span style="color:var(--ink-soft)">insist on a defended one</span></td>
+        </tr>
+        <tr>
+          <td>confluence weights</td>
+          <td class="was"><code>level_untested = 10</code><br><span style="color:var(--ink-soft)">fresh level scores points</span></td>
+          <td class="now"><code>level_well_defended = 10</code><br><span style="color:var(--ink-soft)">tested level scores points</span></td>
+        </tr>
+        <tr>
+          <td>ta.toml <span style="color:var(--ink-soft)">[levels]</span></td>
+          <td class="was"><code>cluster_atr_multiple</code><br><span style="color:var(--ink-soft)">stretch a box round the swings</span></td>
+          <td class="now"><code>band_atr_multiple = 0.5</code><br><span style="color:var(--ink-soft)">fixed thickness, slid to catch the most</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <h3>One thing kept separate</h3>
+    <p>
+      A well-defended level that finally <em>does</em> break is a big event —
+      probably a bigger one than a weak level breaking. That is a breakout rule,
+      not a level-strength rule, and it does not contradict anything above.
+    </p>
+  </div>
+
+  <div class="note">
+    <h3>Still a belief, not a measurement</h3>
+    <p>
+      Both pictures are arguments, not evidence. Once there are 200 signals you
+      have judged, this becomes testable: do setups at heavily tested levels
+      actually work out better? The reasoning is written into
+      <code>ta.toml</code> so it can be checked rather than quietly assumed.
+    </p>
+  </div>
+
+</div>

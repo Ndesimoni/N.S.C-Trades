@@ -1,0 +1,307 @@
+<title>What makes a level strong</title>
+
+<style>
+  :root {
+    --ground:   #F5F6F9;
+    --panel:    #FFFFFF;
+    --ink:      #14181F;
+    --ink-soft: #5B6472;
+    --rule:     #DDE1E9;
+    --grid:     #EAEDF3;
+    --accent:   #1E3FA8;
+    --worn:     #A2665C;
+    --chip-bg:  #ECEFF5;
+
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans:  ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #0E1116;
+      --panel:    #161A21;
+      --ink:      #E8EBF1;
+      --ink-soft: #98A1B0;
+      --rule:     #262C36;
+      --grid:     #1D232C;
+      --accent:   #7C9BFF;
+      --worn:     #C98B7F;
+      --chip-bg:  #1E242E;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:   #0E1116;
+    --panel:    #161A21;
+    --ink:      #E8EBF1;
+    --ink-soft: #98A1B0;
+    --rule:     #262C36;
+    --grid:     #1D232C;
+    --accent:   #7C9BFF;
+    --worn:     #C98B7F;
+    --chip-bg:  #1E242E;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    padding: clamp(1.5rem, 5vw, 3.5rem) 1.25rem 4rem;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 2.75rem; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-soft); margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: clamp(1.7rem, 3.4vw, 2.35rem); line-height: 1.15;
+    letter-spacing: -0.015em; text-wrap: balance; margin: 0 0 0.9rem;
+  }
+
+  .standfirst { max-width: 64ch; color: var(--ink-soft); margin: 0 0 1.1rem; }
+
+  .ladder {
+    display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;
+    font-family: var(--mono); font-size: 0.75rem; color: var(--ink-soft);
+  }
+  .ladder span { padding: 0.3rem 0.65rem; border: 1px solid var(--rule); border-radius: 4px; }
+  .ladder .here { border-color: var(--accent); color: var(--accent); }
+
+  h2 {
+    font-family: var(--serif); font-size: 1.35rem; font-weight: 600;
+    letter-spacing: -0.01em; margin: 0 0 0.4rem;
+  }
+  .section-note { color: var(--ink-soft); margin: 0 0 1.4rem; max-width: 64ch; font-size: 0.95rem; }
+
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.25rem; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 1.25rem; display: flex; flex-direction: column; gap: 0.8rem;
+  }
+
+  .card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; }
+
+  h3 { font-size: 1rem; font-weight: 600; margin: 0; letter-spacing: -0.005em; }
+
+  .chip {
+    font-family: var(--mono); font-size: 0.63rem; letter-spacing: 0.09em;
+    text-transform: uppercase; padding: 0.24rem 0.5rem; border-radius: 4px;
+    background: var(--chip-bg); color: var(--ink-soft); white-space: nowrap;
+  }
+  .chip.settled { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+
+  .card svg { display: block; width: 100%; height: auto; }
+
+  .card p { margin: 0; font-size: 0.9rem; color: var(--ink-soft); }
+  .card p strong { color: var(--ink); font-weight: 600; }
+
+  .swatch-label { font-family: var(--mono); font-size: 9.5px; fill: var(--ink-soft); }
+
+  .note { border-left: 2px solid var(--accent); padding: 0.15rem 0 0.15rem 1.1rem; max-width: 66ch; }
+  .note h3 {
+    font-family: var(--sans); font-size: 0.78rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-soft); margin: 0 0 0.35rem; font-weight: 600;
+  }
+  .note p { margin: 0 0 0.7rem; }
+  .note p:last-child { margin-bottom: 0; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">nsc_trades &middot; levels &middot; 11 Aug 2026</p>
+    <h1>What makes a level strong</h1>
+    <p class="standfirst">
+      Everything below can be measured from candles alone — no guessing about
+      the future. Each card shows the weak version on the left and the strong
+      version on the right. Tell me which ones you actually use, which I have
+      wrong, and what is missing.
+    </p>
+    <div class="ladder">
+      <span>how a level is drawn &check;</span>
+      <span class="here">how strong it is &mdash; you are here</span>
+      <span>will it hold or break?</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>Already settled</h2>
+    <p class="section-note">From what you have told me so far.</p>
+
+    <div class="cards">
+
+      <article class="card">
+        <div class="card-head"><h3>How many touches</h3><span class="chip settled">settled</span></div>
+        <svg viewBox="0 0 260 90" role="img" aria-label="One touch on the left, five touches on the right.">
+          <rect x="8" y="46" width="108" height="7" fill="var(--accent)" opacity="0.35"/>
+          <path d="M 8 22 L 40 50 L 70 26 L 100 40 L 116 30" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          <circle cx="40" cy="50" r="2.6" fill="var(--accent)"/>
+          <line x1="130" y1="10" x2="130" y2="72" stroke="var(--rule)" stroke-width="1"/>
+          <rect x="144" y="44" width="108" height="11" fill="var(--accent)"/>
+          <path d="M 144 20 L 164 49 L 182 24 L 200 49 L 218 26 L 234 49 L 252 22" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          <circle cx="164" cy="49" r="2.6" fill="var(--accent)"/><circle cx="200" cy="49" r="2.6" fill="var(--accent)"/><circle cx="234" cy="49" r="2.6" fill="var(--accent)"/>
+          <text class="swatch-label" x="8" y="84">1 touch</text>
+          <text class="swatch-label" x="144" y="84">5 touches</text>
+        </svg>
+        <p>More touches means more people watching it. <strong>Already in the code as <code>strong_touches</code>.</strong></p>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>Which timeframe</h3><span class="chip settled">settled</span></div>
+        <svg viewBox="0 0 260 90" role="img" aria-label="A thin 4-hour level, a thicker daily one, and a thickest weekly one.">
+          <rect x="8" y="20" width="244" height="5" fill="var(--accent)" opacity="0.4"/>
+          <text class="swatch-label" x="8" y="17">4-hour &mdash; confirmation</text>
+          <rect x="8" y="46" width="244" height="9" fill="var(--accent)" opacity="0.75"/>
+          <text class="swatch-label" x="8" y="43">daily &mdash; decides things</text>
+          <rect x="8" y="72" width="244" height="13" fill="var(--ink)"/>
+          <text class="swatch-label" x="8" y="69">weekly &mdash; do not trade into it</text>
+        </svg>
+        <p>Weekly beats daily beats 4-hour. <strong>Your weekly veto is the strongest rule you have given me.</strong></p>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Candidates &mdash; are these yours?</h2>
+    <p class="section-note">
+      These are things a chart can measure, not rules I hold. I do not trade.
+      Reject the ones that are not how you think.
+    </p>
+
+    <div class="cards">
+
+      <article class="card">
+        <div class="card-head"><h3>How hard price left</h3><span class="chip">open</span></div>
+        <svg viewBox="0 0 260 90" role="img" aria-label="Price drifting weakly away from a level on the left, snapping violently away on the right.">
+          <rect x="8" y="56" width="108" height="8" fill="var(--worn)" opacity="0.6"/>
+          <path d="M 8 34 L 44 58 L 62 52 L 82 56 L 100 48 L 116 52" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          <line x1="130" y1="10" x2="130" y2="72" stroke="var(--rule)" stroke-width="1"/>
+          <rect x="144" y="56" width="108" height="8" fill="var(--accent)"/>
+          <path d="M 144 34 L 180 60 L 200 20 L 224 14 L 252 10" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          <text class="swatch-label" x="8" y="84">drifted off</text>
+          <text class="swatch-label" x="144" y="84">snapped away</text>
+        </svg>
+        <p>A level that launched a big move is more convincing than one price wandered away from. <strong>Measured as: how far did price travel after the touch, in normal candles.</strong></p>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>Spread out in time</h3><span class="chip">open</span></div>
+        <svg viewBox="0 0 260 90" role="img" aria-label="Five touches bunched into a few days on the left, five touches spread across months on the right.">
+          <rect x="8" y="50" width="108" height="8" fill="var(--worn)" opacity="0.6"/>
+          <circle cx="52" cy="54" r="2.6" fill="var(--worn)"/><circle cx="58" cy="54" r="2.6" fill="var(--worn)"/><circle cx="64" cy="54" r="2.6" fill="var(--worn)"/><circle cx="70" cy="54" r="2.6" fill="var(--worn)"/><circle cx="76" cy="54" r="2.6" fill="var(--worn)"/>
+          <line x1="130" y1="10" x2="130" y2="72" stroke="var(--rule)" stroke-width="1"/>
+          <rect x="144" y="50" width="108" height="8" fill="var(--accent)"/>
+          <circle cx="152" cy="54" r="2.6" fill="var(--accent)"/><circle cx="176" cy="54" r="2.6" fill="var(--accent)"/><circle cx="200" cy="54" r="2.6" fill="var(--accent)"/><circle cx="224" cy="54" r="2.6" fill="var(--accent)"/><circle cx="248" cy="54" r="2.6" fill="var(--accent)"/>
+          <text class="swatch-label" x="8" y="80">5 touches, one week</text>
+          <text class="swatch-label" x="144" y="80">5 touches, six months</text>
+        </svg>
+        <p>Five touches in three days is <em>one</em> event seen five times. Five touches over six months is a level people keep coming back to. <strong>Same count, very different thing.</strong></p>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>It has flipped</h3><span class="chip">open</span></div>
+        <svg viewBox="0 0 260 90" role="img" aria-label="A level only ever tested from above on the left; on the right, tested from above, broken, then tested from below.">
+          <rect x="8" y="48" width="108" height="8" fill="var(--worn)" opacity="0.6"/>
+          <path d="M 8 24 L 40 52 L 66 28 L 92 52 L 116 30" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          <line x1="130" y1="10" x2="130" y2="76" stroke="var(--rule)" stroke-width="1"/>
+          <rect x="144" y="48" width="108" height="8" fill="var(--accent)"/>
+          <path d="M 144 24 L 168 52 L 186 30 L 206 70 L 226 52 L 244 74 L 252 78" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          <circle cx="168" cy="52" r="2.6" fill="var(--accent)"/><circle cx="226" cy="52" r="2.6" fill="var(--accent)"/>
+          <text class="swatch-label" x="8" y="80">held from above only</text>
+          <text class="swatch-label" x="144" y="88">held from both sides</text>
+        </svg>
+        <p>You already said support turning into resistance stays the same level. <strong>Does surviving from both sides make it stronger than one that only ever held from one?</strong></p>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>How it was made</h3><span class="chip">open</span></div>
+        <svg viewBox="0 0 260 90" role="img" aria-label="A level formed by a slow rounded turn on the left, and by a single violent rejection wick on the right.">
+          <rect x="8" y="56" width="108" height="8" fill="var(--worn)" opacity="0.6"/>
+          <path d="M 8 30 C 36 30, 44 60, 62 60 C 80 60, 88 32, 116 30" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+          <line x1="130" y1="10" x2="130" y2="72" stroke="var(--rule)" stroke-width="1"/>
+          <rect x="144" y="56" width="108" height="8" fill="var(--accent)"/>
+          <line x1="196" y1="18" x2="196" y2="66" stroke="var(--ink)" stroke-width="1.6"/>
+          <rect x="191" y="18" width="10" height="14" fill="var(--ink)"/>
+          <path d="M 144 26 L 176 30 L 196 34" fill="none" stroke="var(--ink)" stroke-width="1.6" opacity="0.5"/>
+          <path d="M 208 24 L 232 18 L 252 14" fill="none" stroke="var(--ink)" stroke-width="1.6" opacity="0.5"/>
+          <text class="swatch-label" x="8" y="84">slow rounded turn</text>
+          <text class="swatch-label" x="144" y="84">one violent rejection</text>
+        </svg>
+        <p>A long wick means somebody big defended that price in a hurry. <strong>Does a level born from a sharp rejection count for more than one price drifted away from?</strong></p>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>How recently</h3><span class="chip">open</span></div>
+        <svg viewBox="0 0 260 90" role="img" aria-label="A level last touched long ago on the left, touched recently on the right.">
+          <rect x="8" y="50" width="108" height="8" fill="var(--worn)" opacity="0.45"/>
+          <circle cx="24" cy="54" r="2.6" fill="var(--worn)"/><circle cx="40" cy="54" r="2.6" fill="var(--worn)"/>
+          <text class="swatch-label" x="86" y="46">now</text>
+          <line x1="112" y1="16" x2="112" y2="72" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 3"/>
+          <line x1="130" y1="10" x2="130" y2="76" stroke="var(--rule)" stroke-width="1"/>
+          <rect x="144" y="50" width="108" height="8" fill="var(--accent)"/>
+          <circle cx="160" cy="54" r="2.6" fill="var(--accent)"/><circle cx="228" cy="54" r="2.6" fill="var(--accent)"/>
+          <text class="swatch-label" x="222" y="46">now</text>
+          <line x1="248" y1="16" x2="248" y2="72" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="2 3"/>
+          <text class="swatch-label" x="8" y="80">last touched long ago</text>
+          <text class="swatch-label" x="144" y="80">touched recently</text>
+        </svg>
+        <p>You said you do not look too far left. <strong><code>max_age_bars</code> already cuts levels off at 500 candles — but should a level fade gradually rather than switching off?</strong></p>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h3>Something else at the same price</h3><span class="chip">open</span></div>
+        <svg viewBox="0 0 260 90" role="img" aria-label="A level alone on the left; on the right the same level with a Fibonacci line and a round number at the same price.">
+          <rect x="8" y="48" width="108" height="8" fill="var(--worn)" opacity="0.6"/>
+          <path d="M 8 24 L 44 52 L 74 28 L 100 52 L 116 34" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          <line x1="130" y1="10" x2="130" y2="76" stroke="var(--rule)" stroke-width="1"/>
+          <rect x="144" y="48" width="108" height="8" fill="var(--accent)"/>
+          <line x1="144" y1="46" x2="252" y2="46" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="3 3"/>
+          <line x1="144" y1="58" x2="252" y2="58" stroke="var(--ink-soft)" stroke-width="1" stroke-dasharray="1 3"/>
+          <path d="M 144 24 L 180 52 L 210 28 L 236 52 L 252 34" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round"/>
+          <text class="swatch-label" x="8" y="80">level alone</text>
+          <text class="swatch-label" x="144" y="80">level + fib + round number</text>
+        </svg>
+        <p>Two separate reasons pointing at one price. <strong>Already scored in the strategy files as <code>fib_and_sr_overlap</code> — but should it also make the level itself stronger?</strong></p>
+      </article>
+
+    </div>
+  </section>
+
+  <div class="note">
+    <h3>What I deliberately left out</h3>
+    <p>
+      Anything that needs a guess about what happens next. "This level looks
+      like it will break" is not a measurement — it is a prediction, and it
+      belongs in the strategy, not in the chart reading.
+    </p>
+    <p>
+      The split matters because chart reading has to give the same answer every
+      time, for the backtester and the live bot alike. Predictions can be wrong;
+      measurements cannot.
+    </p>
+  </div>
+
+  <div class="note">
+    <h3>These are candidates, not my rules</h3>
+    <p>
+      I do not trade. Everything above is drawn from what a chart can measure,
+      not from experience of what works. Reject freely — a factor you do not
+      actually use is worse than no factor, because it quietly moves scores
+      around for reasons you would not agree with.
+    </p>
+    <p>
+      And the most useful thing you can add is one that is not here at all.
+    </p>
+  </div>
+
+</div>

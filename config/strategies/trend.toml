@@ -124,7 +124,10 @@ allow_counter_trend = false
 # filter.
 # pullback_character = "any"      # any | corrective | impulsive
 
-# skip_exhausted_levels = true
+# Require the level to be one that has been defended before. Threshold lives
+# in ta.toml [levels] strong_touches. More touches means stronger here, not
+# worn out.
+# require_strong_level = true
 
 
 # ── 3. TRIGGER — what actually makes me click buy? ─────────────────────────
@@ -250,7 +253,7 @@ allow_counter_trend = false
 # higher_tf_level_aligns = 20
 # round_number_nearby    = 5
 # rsi_divergence         = 15
-# level_untested         = 10
+# level_well_defended    = 10    # lots of touches, so lots of people watching
 # clean_approach         = 10    # came in cleanly, not after repeated pokes
 # shallow_pullback       = 10    # strong trends pull back less
 

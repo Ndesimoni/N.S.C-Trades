@@ -51,6 +51,9 @@ csv        = "1"
 
 # --- domain primitives -----------------------------------------------------
 chrono       = { version = "0.4", features = ["serde"] }
+# Named timezones, so "5pm New York" survives the clocks changing. A compiled-in
+# table of timezone rules — no internet, no files, no clock. Safe for nsc-core.
+chrono-tz    = { version = "0.10", features = ["serde"] }
 rust_decimal = { version = "1",   features = ["serde-with-float"] }
 uuid         = { version = "1",   features = ["v4", "serde"] }
 

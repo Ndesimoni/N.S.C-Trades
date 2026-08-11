@@ -8,3 +8,19 @@
 //! Converting between pips and ATR multiples happens here. Almost every
 //! threshold in this system is in ATR rather than pips, because a pip value
 //! that works on one pair stops working on the next one.
+//!
+//! ## What is where
+//!
+//! - [`point`] — `Price`, a point on the chart
+//! - [`distance`] — the three ways of measuring a gap between two prices
+//! - [`ops`] — what you are allowed to add and subtract, and what you are not
+
+mod distance;
+mod ops;
+mod point;
+
+#[cfg(test)]
+mod tests;
+
+pub use distance::{AtrMultiple, Pips, PriceDistance};
+pub use point::Price;

@@ -85,6 +85,18 @@ pub enum CoreError {
         last: DateTime<Utc>,
     },
 
+    /// A swing was marked as known before the candle it sits on.
+    ///
+    /// A swing high at candle 100 cannot be known until a few candles later —
+    /// you have to see price come back down first. Confirming it any earlier
+    /// means using knowledge you did not have, and every backtest built on
+    /// that is fiction.
+    #[error("a swing at {bar_time} cannot be known at {confirmed_at}, which is not later")]
+    SwingKnownTooEarly {
+        bar_time: DateTime<Utc>,
+        confirmed_at: DateTime<Utc>,
+    },
+
     /// Something tried to change a candle that had already closed.
     ///
     /// Once a candle is complete it is history. If history can be rewritten,

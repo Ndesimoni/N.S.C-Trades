@@ -28,6 +28,8 @@ THE RULE THIS CRATE LIVES BY
 
 WHAT IS FINISHED
 
+  lib.rs          The crate root. Lists every module and nothing else.
+
   error.rs        Everything that can go wrong, as types.
                   Not strings. The whole point is that the caller can tell
                   "skip this candle and carry on" apart from "your settings
@@ -44,13 +46,29 @@ WHAT IS FINISHED
                   currencies.
                   Read symbol/README.txt.
 
+  candle/         One candle, and lists of them.
+                  Read candle/README.txt.
+
+  swing/          A swing high or low.
+                  Read swing/README.txt.
+
+                  Carries TWO times, and the difference between them is the
+                  point. bar_time is where the swing sits on the chart.
+                  confirmed_at is the first moment you could have known it
+                  was a swing.
+
+                  Scroll back over any chart and the highs are obvious. That
+                  is the trap. When candle 100 printed, nobody knew it was a
+                  high — price could have carried on up. It only became one
+                  once price turned away.
+
+                  Call is_known_at before using a swing for anything.
+
 
 WHAT IS STILL EMPTY
 
   These are stubs. A doc comment and nothing behind it.
 
-  candle.rs       One candle. The most important type in the project.
-  swing.rs        A swing high or low.
   level.rs        Support and resistance.
   trendline.rs    A drawn line.
   fib.rs          Fibonacci levels.

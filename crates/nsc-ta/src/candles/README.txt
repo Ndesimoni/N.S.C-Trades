@@ -109,3 +109,7 @@ SETTINGS IT READS
 
   From [candles] in config/ta.toml. Ten numbers, eight of them shares of a
   candle and two in ATR.
+
+  See docs/worksheets/candles.md for where they came from, and
+  docs/diagrams/candles.html for every shape drawn with the measurement that
+  makes it one.

@@ -6,6 +6,9 @@ Different from the strategy worksheets. This one describes **shapes**, and
 becomes `nsc-ta::candles` — code that measures a candle and reports what it
 is. It has no opinion about buying or selling.
 
+**The picture:** [the candlestick shapes, and two still undecided →](https://claude.ai/code/artifact/9f9ef70d-c0d6-4bfb-b621-25a26f94339a)
+— every shape drawn with the measurement that makes it one.
+
 ---
 
 ## What you told me

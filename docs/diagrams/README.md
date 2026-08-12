@@ -5,6 +5,18 @@ thing.
 
 ## The diagrams
 
+### [The candlestick shapes, and two still undecided →](https://claude.ai/code/artifact/9f9ef70d-c0d6-4bfb-b621-25a26f94339a)
+
+The six shapes the bot now reads, drawn with the measurement that makes each
+one. Three near misses it refuses, including the body-in-the-middle case that
+slipped through until it was caught by a second read. And the two stubs —
+inside bar and star — that are waiting on one answer.
+
+**Open** — whether inside bars and stars get built or deleted. Written up in
+[worksheets/candles.md](../worksheets/candles.md).
+
+Source: [`candles.html`](candles.html)
+
 ### [When a higher high is really a higher high →](https://claude.ai/code/artifact/45d262ab-5f17-49e3-bbde-9b7d2a5e96f5)
 
 Taking out the old high is not enough. Price has to carry 40 to 50% of the

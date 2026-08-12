@@ -105,12 +105,20 @@ WHAT IS FINISHED
                   and two wicks, as shares of its own height.
 
 
+  fib/            One move, and the two questions asked of it: where is a
+                  given share of it, and how deep is price now.
+                  Read fib/README.txt.
+
+                  It holds the MOVE rather than a list of prices, because the
+                  prices are only ever a share of it — and the move is the
+                  thing worth arguing about.
+
+
 WHAT IS STILL EMPTY
 
   These are stubs. A doc comment and nothing behind it.
 
   trendline.rs    A drawn line.
-  fib.rs          Fibonacci levels.
   session.rs      London, New York, Tokyo, Sydney.
   signal.rs       A finished trade idea.
 

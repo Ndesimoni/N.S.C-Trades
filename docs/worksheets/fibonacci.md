@@ -94,11 +94,25 @@ zone with three lines in it.
 
 ---
 
+## Built 12 Aug 2026
+
+`nsc-ta::fibonacci` draws the four levels over the last completed leg — the two
+most recent confirmed swings, which is the same run the swing finder measured
+to confirm them. Thirteen tests, plus eight on the type.
+
+Three settings checks came out of writing it down, and each catches a config
+nobody would notice was wrong: the strong-trend level has to sit shallower than
+the zone or it says nothing new, the stop level has to sit beyond the zone or
+it would be hit by the entry it protects, and the shallow edge of the zone
+comes first.
+
+---
+
 ## Still open
 
-1. **Which move gets measured.** Drawn from the last confirmed swing to the
-   one before it — but on which timeframe, and what happens when a bigger move
-   is still running inside a smaller one?
+1. **Which timeframe the move is measured on**, and what happens when a bigger
+   move is still running inside a smaller one. Right now it measures whatever
+   swings it is handed.
 2. **Extensions.** `ta.toml` has the textbook 1.272 and 1.618 for targets and
    you have not confirmed them.
 3. **What the other factors are** that decide whether the stop actually goes

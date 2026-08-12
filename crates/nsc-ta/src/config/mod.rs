@@ -34,9 +34,11 @@
 //! - [`levels`] — from `[levels]`
 //! - [`structure`] — from `[structure]`
 //! - [`candles`] — from `[candles]`
+//! - [`fibonacci`] — from `[fibonacci]`
 //! - [`indicators`] — from `[indicators]`
 
 mod candles;
+mod fibonacci;
 mod indicators;
 mod levels;
 mod settings;
@@ -47,6 +49,7 @@ mod swings;
 mod tests;
 
 pub use candles::CandleSettings;
+pub use fibonacci::FibSettings;
 pub use indicators::IndicatorSettings;
 pub use levels::LevelSettings;
 pub use settings::TaSettings;

@@ -30,6 +30,10 @@ THE FILES
                    rather than the trader's — they are textbook defaults, and
                    they say so.
 
+  fibonacci.rs     FibSettings, from the [fibonacci] section. Four levels
+                   with four different jobs, and three checks that they make
+                   sense together.
+
   indicators.rs    IndicatorSettings, from the [indicators] section.
 
   tests.rs         Eight tests.
@@ -50,8 +54,9 @@ HOW THEY FIT TOGETHER
 
       swings.rs     ─┐
       levels.rs      │
-      structure.rs   ├─►  settings.rs      TaSettings holds all five
+      structure.rs   ├─►  settings.rs      TaSettings holds all six
       candles.rs     │
+      fibonacci.rs   │
       indicators.rs ─┘
 
       all of them   ─►  error.rs           a bad setting is a BadSetting

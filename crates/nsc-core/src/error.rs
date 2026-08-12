@@ -142,6 +142,13 @@ pub enum CoreError {
     #[error("this break of structure cannot be real: {detail}")]
     ImpossibleStructureBreak { detail: String },
 
+    /// A Fibonacci move was described in a way that cannot be real — one that
+    /// ends before it starts, or one that went nowhere.
+    ///
+    /// Whatever built it has a bug. Stop rather than skip.
+    #[error("this move cannot be measured: {detail}")]
+    ImpossibleRetracement { detail: String },
+
     /// A candlestick pattern was described in a way that cannot be real.
     ///
     /// Whatever built it has a bug. Stop rather than skip.

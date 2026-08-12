@@ -118,12 +118,23 @@ WHAT IS FINISHED
                   finishing it.
 
 
+  fibonacci/      Retracements over the last completed leg.
+                  Read fibonacci/README.txt.
+
+                  The ratios are trivial; which move gets measured is the
+                  whole game. It measures the last two confirmed swings —
+                  the same run the swing finder used — so the two cannot
+                  disagree about what the current move is.
+
+                  Four levels with four different jobs, not one zone with
+                  lines in it.
+
+
 WHAT IS STILL EMPTY
 
   These are stubs. A doc comment and nothing behind it.
 
   trendlines.rs   Drawn lines. Next to be built.
-  fibonacci.rs    Retracements and extensions.
   patterns/       Chart patterns. Deliberately last.
   context.rs      What one timeframe hands down to the smaller ones.
   snapshot.rs     Everything above, gathered for the rules engine to read.

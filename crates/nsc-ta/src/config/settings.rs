@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::candles::CandleSettings;
+use super::fibonacci::FibSettings;
 use super::indicators::IndicatorSettings;
 use super::levels::LevelSettings;
 use super::structure::StructureSettings;
@@ -17,6 +18,7 @@ pub struct TaSettings {
     pub levels: LevelSettings,
     pub structure: StructureSettings,
     pub candles: CandleSettings,
+    pub fibonacci: FibSettings,
     pub indicators: IndicatorSettings,
 }
 
@@ -31,6 +33,7 @@ impl TaSettings {
         self.levels.validate()?;
         self.structure.validate()?;
         self.candles.validate()?;
+        self.fibonacci.validate()?;
         self.indicators.validate()?;
         Ok(())
     }

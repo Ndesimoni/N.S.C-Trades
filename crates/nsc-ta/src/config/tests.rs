@@ -33,6 +33,12 @@ fn settings() -> TaSettings {
             star_min_outer_body_share: 0.5,
             star_min_close_into_first: 0.5,
         },
+        fibonacci: FibSettings {
+            golden_zone: [0.5, 0.618],
+            strong_trend_level: 0.382,
+            stop_level: 0.786,
+            extensions: [1.272, 1.618],
+        },
         indicators: IndicatorSettings {
             atr_period: 14,
             rsi_period: 14,

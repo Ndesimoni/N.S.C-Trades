@@ -86,3 +86,9 @@ THE CHECK THAT MATTERS
 
   Neither mistake causes an error anywhere else. They just quietly produce
   history that never happened.
+
+
+WHERE THIS CAME FROM
+
+  docs/worksheets/structure.md, and docs/diagrams/higher-high.html for the
+  picture.

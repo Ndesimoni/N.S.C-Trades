@@ -9,6 +9,9 @@ other.
 This becomes `nsc-ta::structure`. It decides nothing about trading — it says
 what the sequence is, and the rules decide what to do about it.
 
+**The picture:** [when a higher high is really a higher high →](https://claude.ai/code/artifact/45d262ab-5f17-49e3-bbde-9b7d2a5e96f5) — the
+rule, what it refuses, and the calls made inside the code.
+
 ---
 
 ## What you told me

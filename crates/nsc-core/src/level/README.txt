@@ -90,3 +90,10 @@ THE CHECK THAT MATTERS
   rather than a rule to remember.
 
   Call is_known_at before using a level for anything.
+
+
+WHERE THIS CAME FROM
+
+  docs/worksheets/levels.md, off four annotated charts, and
+  docs/diagrams/level-touches.html for the picture that settled what repeated
+  touches do.

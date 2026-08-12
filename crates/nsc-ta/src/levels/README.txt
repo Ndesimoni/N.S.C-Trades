@@ -115,3 +115,7 @@ SETTINGS IT READS
 
   max_age_bars is counted in CANDLES, not days. Counting days would let a
   weekend or a market holiday quietly shorten how far back the bot looks.
+
+  See docs/worksheets/levels.md for where these came from, and
+  docs/diagrams/level-touches.html for the picture that settled the argument
+  about what repeated touches do.

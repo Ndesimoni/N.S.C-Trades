@@ -10,6 +10,10 @@ about whether to trade.
 Captured 11 Aug 2026 from four screenshots: XAUUSD on 4h and daily, GBPUSD on
 weekly and daily.
 
+**The pictures:** [what repeated touches do to a level →](https://claude.ai/code/artifact/250dbca0-2122-4ff8-b720-8bb8a651f1ce) settled the
+strength question. [What makes a level strong →](https://claude.ai/code/artifact/2e60670f-5c45-485e-aab0-e5893ae4544b) is the menu of things
+that can be measured about one.
+
 ---
 
 ## What you told me

@@ -9,6 +9,10 @@ Nothing here decides a trade.
 Swings matter more than anything else in this project. Levels, trendlines,
 Fibonacci anchors and trend direction are all built from them.
 
+**The pictures:** [a swing is proved by the pullback →](https://claude.ai/code/artifact/07ce73cb-6623-47be-a0df-e8d5fde64372) is this rule
+drawn out. [What "3 candles either side" means →](https://claude.ai/code/artifact/cdaabf21-8e37-4597-b860-671f89426877) is the old rule it
+replaced, kept because it is why the change was made.
+
 ---
 
 ## What you told me

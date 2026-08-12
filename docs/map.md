@@ -29,6 +29,8 @@ where it goes, start here.
 | "Which timeframes exist and which ones fire" | `config/app.toml` → `[engine]`, `[schedule]` |
 | "When the trading day and week end" | `config/app.toml` → `[engine]` |
 | "How big a swing has to be before it counts" | `config/ta.toml` → `[swings]` |
+| "What makes a higher high real" | `config/ta.toml` → `[structure]` |
+| "How many touches makes a level worth trading" | `config/strategy.toml` → `[levels]` |
 | "How close counts as *at* the level" | `config/ta.toml` → `[proximity]` |
 | "Which parts of the system are switched on" | `config/app.toml` → `[features]` |
 | "Send signals at 7pm" / "don't message me at night" | `config/app.toml` → `[delivery]` |
@@ -64,10 +66,15 @@ changes strategies you were not thinking about.
 
 Two things to know about `config/`:
 
-**`ta.toml` swing sensitivity is the most influential number in the project.**
+**`ta.toml` swing sensitivity is the most influential setting in the project.**
 Every level, trendline, Fibonacci anchor and trend reading is built from swing
 points. Change it and *everything* downstream changes. Never nudge it because
 one chart looks nicer.
+
+Those settings are all **shares of a move** rather than distances — how much of
+a run gets given back, how big a run is next to recent ones. That is why one
+set of numbers works on the 4-hour and the daily, and on gold and EURUSD.
+`worksheets/swings.md` says where each came from.
 
 **Strategy settings start commented out, and that is on purpose.** Commented
 out means "not decided yet", and a strategy with undecided settings refuses to
@@ -85,9 +92,13 @@ assume somebody chose it, and end up backtesting a stranger's strategy.
 | `worksheets/reversal.md` | Your reversal rules, in words. Becomes `strategies/reversal.toml`. |
 | `worksheets/breakout.md` | Your breakout rules, in words. Becomes `strategies/breakout.toml`. |
 | `worksheets/trend.md` | Your trend rules, in words. Becomes `strategies/trend.toml`. |
-| `worksheets/levels.md` | How you draw support and resistance. Becomes `nsc-ta::levels`, not a strategy file. |
+| `worksheets/levels.md` | How you draw support and resistance, and which round numbers matter. Becomes `nsc-ta::levels`, not a strategy file. |
+| `worksheets/swings.md` | How a peak proves itself — the pullback, not a count of candles. Becomes `nsc-ta::swings`. **Read before touching that folder.** |
+| `worksheets/structure.md` | When a higher high is really a higher high, and what happens to the pushes that fail. Becomes `nsc-ta::structure`. |
+| `worksheets/candles.md` | The six candlestick patterns used, with textbook measurements. Becomes `nsc-ta::candles`. |
+| `worksheets/fibonacci.md` | The four levels used. Deliberately thin — what each one is FOR is not captured yet. |
 | `worksheets/to-collect.md` | Screenshots still needed to pin down vague rules. Grows as each strategy is worked through. |
-| `diagrams/` | Pictures built to settle a question. Links at the top of its README. |
+| `diagrams/` | Pictures built to settle a question — swings, levels, structure. Live links in [diagrams/README.md](diagrams/README.md). |
 | `architecture.md` | Why the code is split up the way it is. Read before moving code between crates. |
 | `phases.md` | What gets built when, and how you know a phase is done. |
 | `pitfalls.md` | The ways this kind of system breaks without telling you. Read before believing any result. |

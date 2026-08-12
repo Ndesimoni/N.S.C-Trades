@@ -84,13 +84,21 @@ WHAT IS FINISHED
                   touch.
 
 
+  structure/      Trend, and the moment it is proved.
+                  Read structure/README.txt.
+
+                  Taking an old high out is not enough. Price has to cross it
+                  AND carry a share of the run that made it past. The poke
+                  that crosses and stalls is the most common trap on a chart,
+                  and this is what refuses it.
+
+
 WHAT IS STILL EMPTY
 
   These are stubs. A doc comment and nothing behind it.
 
   trendline.rs    A drawn line.
   fib.rs          Fibonacci levels.
-  structure.rs    Higher highs, lower lows, trend direction.
   pattern.rs      Candlestick and chart patterns.
   session.rs      London, New York, Tokyo, Sydney.
   signal.rs       A finished trade idea.

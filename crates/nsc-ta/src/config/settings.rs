@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use super::indicators::IndicatorSettings;
 use super::levels::LevelSettings;
+use super::structure::StructureSettings;
 use super::swings::SwingSettings;
 use crate::error::TaError;
 
@@ -13,6 +14,7 @@ use crate::error::TaError;
 pub struct TaSettings {
     pub swings: SwingSettings,
     pub levels: LevelSettings,
+    pub structure: StructureSettings,
     pub indicators: IndicatorSettings,
 }
 
@@ -25,6 +27,7 @@ impl TaSettings {
     pub fn validate(&self) -> Result<(), TaError> {
         self.swings.validate()?;
         self.levels.validate()?;
+        self.structure.validate()?;
         self.indicators.validate()?;
         Ok(())
     }

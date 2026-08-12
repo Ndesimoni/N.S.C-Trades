@@ -23,6 +23,8 @@ THE FILES
 
   levels.rs        LevelSettings, from the [levels] section.
 
+  structure.rs     StructureSettings, from the [structure] section.
+
   indicators.rs    IndicatorSettings, from the [indicators] section.
 
   tests.rs         Eight tests.
@@ -42,7 +44,8 @@ WHAT IS NOT IN HERE
 HOW THEY FIT TOGETHER
 
       swings.rs     ─┐
-      levels.rs      ├─►  settings.rs      TaSettings holds all three
+      levels.rs      │
+      structure.rs   ├─►  settings.rs      TaSettings holds all four
       indicators.rs ─┘
 
       all of them   ─►  error.rs           a bad setting is a BadSetting

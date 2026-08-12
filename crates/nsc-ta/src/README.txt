@@ -87,13 +87,21 @@ WHAT IS FINISHED
                   nsc-strategy, from config/strategy.toml.
 
 
+  structure/      Higher highs and lower lows, counted off the swings.
+                  Read structure/README.txt.
+
+                  Taking an old high out is not enough on its own — price has
+                  to carry a share of the run that made it past. That refuses
+                  the poke that looks like a breakout and turns straight back
+                  down.
+
+
 WHAT IS STILL EMPTY
 
   These are stubs. A doc comment and nothing behind it.
 
   trendlines.rs   Drawn lines. Next to be built.
   fibonacci.rs    Retracements and extensions.
-  structure.rs    Higher highs, lower lows, trend direction.
   candles/        Candlestick patterns.
   patterns/       Chart patterns. Deliberately last.
   aggregate.rs    Building bigger candles from smaller ones.

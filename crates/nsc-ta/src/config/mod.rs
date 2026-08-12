@@ -32,11 +32,13 @@
 //! - [`settings`] — everything, gathered in one place
 //! - [`swings`] — from `[swings]`
 //! - [`levels`] — from `[levels]`
+//! - [`structure`] — from `[structure]`
 //! - [`indicators`] — from `[indicators]`
 
 mod indicators;
 mod levels;
 mod settings;
+mod structure;
 mod swings;
 
 #[cfg(test)]
@@ -45,4 +47,5 @@ mod tests;
 pub use indicators::IndicatorSettings;
 pub use levels::LevelSettings;
 pub use settings::TaSettings;
+pub use structure::StructureSettings;
 pub use swings::SwingSettings;

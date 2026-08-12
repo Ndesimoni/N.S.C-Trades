@@ -134,6 +134,14 @@ pub enum CoreError {
         confirmed_at: DateTime<Utc>,
     },
 
+    /// A break of structure was described in a way that cannot be real — one
+    /// that happens before the extreme it breaks, or one where price never
+    /// actually carried past.
+    ///
+    /// Whatever built it read the chart backwards. Stop rather than skip.
+    #[error("this break of structure cannot be real: {detail}")]
+    ImpossibleStructureBreak { detail: String },
+
     /// Something tried to change a candle that had already closed.
     ///
     /// Once a candle is complete it is history. If history can be rewritten,

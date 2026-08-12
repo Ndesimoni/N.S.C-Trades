@@ -88,19 +88,14 @@ from *the market went somewhere*.
 
 ---
 
-## What it changes in the config
+## Built 12 Aug 2026
 
-`config/ta.toml` currently says:
+`nsc-ta::structure` now reads this rule, and `ta.toml` holds one setting for
+it: `min_follow_through = 0.4`. Ten tests.
 
-    [structure]
-    bos_atr_multiple = 0.3
-
-That is the same idea measured a different way — how far past an old high price
-must push to count as a real break, in normal candles rather than as a fraction
-of the run.
-
-**Not changed yet**, because the reading above needs confirming and because
-`structure.rs` does not exist. But one of the two has to go: two settings for
+`bos_atr_multiple = 0.3` is gone. It measured the same thing against normal
+candle size, and one question with two settings is how they end up
+disagreeing. But one of the two has to go: two settings for
 one question is how they end up disagreeing.
 
 The fraction-of-the-run version fits the rest of the system better. Every other

@@ -15,6 +15,9 @@ fn settings() -> TaSettings {
             min_touches: 2,
             max_age_bars: 500,
         },
+        structure: StructureSettings {
+            min_follow_through: 0.4,
+        },
         indicators: IndicatorSettings {
             atr_period: 14,
             rsi_period: 14,

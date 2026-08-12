@@ -99,6 +99,28 @@ atr_period = 14      # this is the yardstick for every setting above
 rsi_period = 14
 
 [structure]
-# How far price must push past an old high to count as a real break, measured
-# against normal candle size. Stops a one-pip poke counting as a breakout.
-bos_atr_multiple = 0.3
+# TAKING AN OLD HIGH OUT IS NOT ENOUGH. Price has to cross it AND carry this
+# share of the run that made it past — measured from the high itself, not from
+# where the pullback started.
+#
+# A run from 1900 to 2100 is 200 points. At 0.4, price has to reach 2180 before
+# that high counts as taken. Poke through by 5 points and stall and the high
+# was touched, not taken.
+#
+# That poke is the most common trap on a chart: it looks like a breakout, it
+# pulls buyers in, and price turns straight back down. Without this the bot
+# reads it as a higher high and goes looking for a long at the worst moment.
+#
+# Range worth trying: 0.4 to 0.5. It is a FLOOR, not a target — carrying much
+# further is the same answer arrived at more convincingly, and how far it went
+# is kept on the break for the rules to weigh.
+#
+# Lower lows use the same number, mirrored. One rule with a direction passed
+# in, because an uptrend and a downtrend judged by different rules is how a bot
+# ends up bullish and bearish about the same chart on the same day.
+#
+# This replaces bos_atr_multiple, which measured the same thing against normal
+# candle size. A share of the run is the better yardstick: what counts as real
+# follow-through should change with the size of the move in front of you, not
+# with how big candles happen to be this week.
+min_follow_through = 0.4

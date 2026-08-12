@@ -4,15 +4,16 @@ use nsc_core::candle::Candle;
 use nsc_core::pattern::PatternSighting;
 use nsc_core::price::PriceDistance;
 
-use super::{belt_hold, doji, engulfing, pin_bar, tweezers};
+use super::{belt_hold, doji, engulfing, inside_bar, pin_bar, star, tweezers};
 use crate::config::CandleSettings;
 use crate::error::TaError;
 
 /// Every shape that completes on the last candle of `window`.
 ///
-/// Give it the newest candle and the one before it. Anything longer is
-/// ignored — no shape here is more than two candles — and one candle alone
-/// still works, it simply cannot produce the two-candle shapes.
+/// Give it the newest candle and the two before it. Anything longer is
+/// ignored — no shape here is more than three candles — and a shorter window
+/// still works, it simply cannot produce the shapes that need more candles
+/// than it has.
 ///
 /// ## One candle can be several things
 ///
@@ -47,14 +48,20 @@ pub fn look_at(
     seen.extend(doji::look(newest, settings)?);
     seen.extend(belt_hold::look(newest, atr, settings)?);
 
-    if let Some(before) = second_to_last(window) {
+    if let Some(before) = back(window, 2) {
         seen.extend(engulfing::look(before, newest, settings)?);
         seen.extend(tweezers::look(before, newest, atr, settings)?);
+        seen.extend(inside_bar::look(before, newest)?);
+
+        if let Some(first) = back(window, 3) {
+            seen.extend(star::look(first, before, newest, settings)?);
+        }
     }
 
     Ok(seen)
 }
 
-fn second_to_last(window: &[Candle]) -> Option<&Candle> {
-    window.len().checked_sub(2).and_then(|at| window.get(at))
+/// The candle `nth` from the end, counting the last one as the first.
+fn back(window: &[Candle], nth: usize) -> Option<&Candle> {
+    window.len().checked_sub(nth).and_then(|at| window.get(at))
 }

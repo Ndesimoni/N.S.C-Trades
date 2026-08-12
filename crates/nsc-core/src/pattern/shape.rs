@@ -27,6 +27,20 @@ pub enum CandleShape {
 
     /// Two neighbouring candles reaching the same high, or the same low.
     Tweezers,
+
+    /// A candle whose whole range sits inside the one before it.
+    ///
+    /// Points nowhere on its own. It is the market pausing, and which way it
+    /// leaves the pause is the part that matters — which is a rule, not a
+    /// shape.
+    InsideBar,
+
+    /// Three candles: a strong push, a small stalled one, then a strong
+    /// candle back the other way.
+    ///
+    /// Bullish is a morning star at a bottom, bearish an evening star at a
+    /// top. The only three-candle shape here.
+    Star,
 }
 
 /// Which doji.

@@ -29,6 +29,9 @@ fn settings() -> TaSettings {
             belt_hold_min_body_share: 0.6,
             belt_hold_min_atr_multiple: 1.0,
             tweezer_tolerance_atr: 0.05,
+            star_max_middle_body_share: 0.2,
+            star_min_outer_body_share: 0.5,
+            star_min_close_into_first: 0.5,
         },
         indicators: IndicatorSettings {
             atr_period: 14,

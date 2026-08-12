@@ -13,7 +13,7 @@ is. It has no opinion about buying or selling.
 
 ## What you told me
 
-### The six you use
+### The ones you named
 
 1. **Pin bar** — bullish or bearish
 2. **Engulfing** — bullish or bearish
@@ -22,8 +22,41 @@ is. It has no opinion about buying or selling.
 5. **Belt-hold line**
 6. **Tweezer tops and bottoms**
 
-That is the whole list. These are the shapes the bot looks for and nothing
-more.
+And, added 12 Aug 2026 when asked directly:
+
+7. **Inside bar**
+8. **Morning and evening star**
+
+### The list is not finished, and it is not meant to be
+
+Your words: you trade many other candlestick patterns combined with other
+factors, and **you do not know all their names**. The plan is that training on
+your labelled trades picks them up and names them later.
+
+That is a better plan than guessing, and it changes what this code is for.
+
+**What it means now.** Nobody adds a detector nobody asked for. A shape in the
+code that you would not act on is noise in every backtest it appears in, and a
+rule nobody can explain is exactly what this project is built to avoid.
+
+**What it means for Phase 4.** A model cannot learn a shape from the word
+"engulfing". It learns from measurements. So every sighting carries the
+proportions of the candle it was found on — body, upper wick and lower wick as
+shares of that candle's height — rather than just a name.
+
+**The gap, and it is worth naming now.** Those measurements are only recorded
+for candles that matched one of the eight. A shape with no name yet produces
+nothing, so there is nothing for a model to find it in.
+
+Fixing that is cheap and it has to happen before the data is collected, not
+after — the same argument as failed attempts in `structure.md`. Every candle's
+proportions should be stored with the signal, named shape or not. Then the
+model has something to learn from and the unnamed patterns can surface on
+their own.
+
+**Not built yet.** It belongs with the storage layer, which does not exist.
+Written down here so it is not discovered too late. See
+`worksheets/to-collect.md`.
 
 ### These are not a strategy
 
@@ -156,15 +189,14 @@ can be a swing high now, and the two modules no longer disagree.
 | `pin_bar.rs` | Kept. Covers hammer and inverted hammer too. |
 | `engulfing.rs` | Kept. |
 | `doji.rs` | Kept, with the three variants. |
-| `inside_bar.rs` | Left untouched — see below. |
-| `star.rs` | Left untouched — see below. |
+| `inside_bar.rs` | **Built** — you confirmed you trade it. |
+| `star.rs` | **Built** — the only three-candle shape so far. |
 | — | **Add** `belt_hold.rs` |
 | — | **Add** `tweezers.rs` |
 
-**Still open:** you did not mention inside bars or morning/evening stars, and
-did not answer when asked. Both stubs are left exactly as they were rather
-than deleted or quietly built. Deleting a stub is cheap; finding out in six
-months that the bot never looked for a pattern you trade is not.
+Both were confirmed on 12 Aug 2026 and are built. The star is the first
+three-candle shape in the project — everything else reads one candle or two,
+and the finder now looks at the newest three.
 
 ---
 
@@ -172,7 +204,8 @@ months that the bot never looked for a pattern you trade is not.
 
 **Built 12 Aug 2026.** `nsc-ta::candles` has all six, driven by a `[candles]`
 section in `config/ta.toml` — ten settings, eight of them shares of a candle
-and two in ATR. Twenty-four tests on the detectors, eight on the types.
+and two in ATR, plus three for the star. Thirty-two tests on the detectors,
+eight on the types.
 
 The numbers in that file are marked as textbook so nobody later reads `2.0`
 and assumes somebody chose it.
@@ -190,7 +223,10 @@ back from a yes or no.
    would replace them are one you took and one you passed on that looked the
    same.
 2. **Is a hammer a different shape to you, or a pin bar after a downtrend?**
-3. **Do inside bars and stars go?**
+3. ~~**Do inside bars and stars go?**~~ **ANSWERED 12 Aug 2026** — both are
+   traded, and both are built.
+4. **The patterns with no names yet.** They come out of Phase 4, and what they
+   need is every candle's measurements stored, not just the matched ones.
 4. **The tweezer tolerance.** 0.05 of a normal candle is the placeholder. Two
    candles never share a high to the tick, and how close counts as the same
    price is a judgement nobody has made yet.

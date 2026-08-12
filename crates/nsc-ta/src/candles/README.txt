@@ -4,20 +4,40 @@ candles/ — spotting candlestick patterns
 
 WHAT THIS FOLDER IS FOR
 
-  Six shapes, and they are the six the trader actually uses:
+  Eight shapes, and they are the ones the trader named:
 
       pin bar        a long wick with a small body at the far end
       engulfing      one body swallowing the one before it
       doji           open and close in nearly the same place
       belt-hold      a long candle opening at one extreme, no wick there
       tweezers       two candles reaching the same high, or the same low
+      inside bar     a candle wholly inside the one before it
+      star           a push, a stall, then a push back the other way
 
   Hammer and inverted hammer are not separate detectors. A hammer IS a bullish
   pin bar. Textbook separates them by what came before — a hammer follows a
   downtrend — and that is context, not shape.
 
   A pattern in the code nobody would act on is noise in every backtest it
-  appears in, so this list is short on purpose.
+  appears in, so nothing gets added that was not asked for.
+
+
+THE LIST IS NOT FINISHED, AND IS NOT MEANT TO BE
+
+  The trader reads more shapes than he can name. The plan is that training on
+  his labelled trades picks them up and names them, rather than anyone
+  guessing now.
+
+  That is why every sighting carries the MEASUREMENTS of the candle it was
+  found on and not just a name. A model cannot learn a shape from the word
+  "engulfing"; it learns from proportions.
+
+  There is a gap in that, and it is written down in docs/worksheets/candles.md
+  rather than hidden here: those measurements are only recorded for candles
+  that matched one of the eight. A shape with no name yet produces nothing at
+  all, so there is nothing for a model to find it in. Storing every candle's
+  proportions is what fixes it, and it has to be done BEFORE the data is
+  collected rather than after.
 
 
 IT NEVER LOOKS LEFT
@@ -70,27 +90,24 @@ THE FILES
 
   mod.rs        The front door.
 
-  pin_bar.rs    One shape each. Every one takes a candle and settings and
-  doji.rs       gives back a sighting or nothing. None of them looks at
-  engulfing.rs  anything but the candles it was handed.
+  pin_bar.rs      One shape each. Every one takes the candles it needs and
+  doji.rs         gives back a sighting or nothing. None of them looks at
+  engulfing.rs    anything but the candles it was handed.
   belt_hold.rs
-  tweezers.rs
+  tweezers.rs     inside_bar.rs needs no settings at all — either the range is
+  inside_bar.rs   inside or it is not, and there is no threshold to get wrong.
+  star.rs
+                  star.rs is the only three-candle shape in the project.
 
-  finder.rs     Asks all five about the newest candle. Takes the newest and
-                the one before it — no shape here is more than two candles.
+  finder.rs     Asks all seven about the newest candle. Takes the newest and
+                the two before it — no shape here is more than three candles.
 
   series.rs     A whole history at once, for the backtester. Works ATR out as
                 it goes, so each candle is judged against how big a normal
                 candle was AT THE TIME. Judging a quiet week by this week's
                 volatility would find shapes that were not there.
 
-  tests/        Twenty-four tests. Read guards.rs first.
-
-  inside_bar.rs Stubs from the original scaffolding. NEITHER IS ON THE
-  star.rs       TRADER'S LIST. They are left untouched pending a decision
-                rather than deleted or quietly built — deleting a stub is
-                cheap, and finding out in six months that the bot never looked
-                for a pattern he trades is not.
+  tests/        Thirty-two tests. Read guards.rs first.
 
   README.txt    This file.
 
@@ -107,8 +124,8 @@ THE TWEEZER AND THE SWING FINDER
 
 SETTINGS IT READS
 
-  From [candles] in config/ta.toml. Ten numbers, eight of them shares of a
-  candle and two in ATR.
+  From [candles] in config/ta.toml. Thirteen numbers: eleven are shares of a
+  candle, two are in ATR, and the inside bar needs none.
 
   See docs/worksheets/candles.md for where they came from, and
   docs/diagrams/candles.html for every shape drawn with the measurement that

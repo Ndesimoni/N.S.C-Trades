@@ -1,8 +1,13 @@
 //! Spotting candlestick patterns.
 //!
-//! Six shapes, and they are the six the trader actually uses: pin bar,
-//! engulfing, doji, belt-hold, tweezers — with hammer and inverted hammer
-//! being the same shape as a pin bar, pointing one way or the other.
+//! Eight shapes: pin bar, engulfing, doji, belt-hold, tweezers, inside bar and
+//! star — with hammer and inverted hammer being the same shape as a pin bar,
+//! pointing one way or the other.
+//!
+//! **This list is not finished, and it is not meant to be.** The trader reads
+//! more shapes than he can name, and the ones without names are supposed to be
+//! found later from labelled trades rather than guessed at now. What that
+//! needs from this code is the measurements, which every sighting carries.
 //!
 //! ## A shape, and nothing about what it means
 //!
@@ -33,26 +38,22 @@
 //!
 //! ## What is where
 //!
-//! - [`pin_bar`], [`doji`], [`engulfing`], [`belt_hold`], [`tweezers`] — one
-//!   shape each
+//! - [`pin_bar`], [`doji`], [`engulfing`], [`belt_hold`], [`tweezers`],
+//!   [`inside_bar`], [`star`] — one shape each
 //! - [`finder`] — asks all five about the newest candle
 //! - [`series`] — a whole history at once, for the backtester
 //!
-//! `inside_bar` and `star` are stubs from the original scaffolding. Neither is
-//! on the trader's list, and they are left untouched pending a decision rather
-//! than deleted or quietly built.
 
 mod belt_hold;
 mod doji;
 mod engulfing;
+mod inside_bar;
 mod pin_bar;
+mod star;
 mod tweezers;
 
 mod finder;
 mod series;
-
-pub mod inside_bar;
-pub mod star;
 
 #[cfg(test)]
 mod tests;

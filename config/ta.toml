@@ -95,9 +95,14 @@ deep_level  = 0.786
 extensions  = [1.272, 1.618]
 
 [candles]
-# THE SIX SHAPES USED: pin bar, engulfing, doji, belt-hold, tweezers — with
-# hammer and inverted hammer being the same shape as a pin bar pointing one way
-# or the other.
+# EIGHT SHAPES: pin bar, engulfing, doji, belt-hold, tweezers, inside bar and
+# star — with hammer and inverted hammer being the same shape as a pin bar
+# pointing one way or the other.
+#
+# THIS LIST IS NOT FINISHED, AND IT IS NOT MEANT TO BE. There are more shapes
+# being traded than have been named, and naming them is a job for the labelled
+# trades in Phase 4, not for guesswork now. Adding a detector nobody asked for
+# would put a rule in the bot that nobody could explain.
 #
 # THESE NUMBERS ARE TEXTBOOK, NOT YOURS. They were taken as standard defaults
 # on 12 Aug 2026 so the detectors could be built, and they stay borrowed until
@@ -145,6 +150,25 @@ belt_hold_min_atr_multiple    = 1.0
 # How close two highs must be to count as the same price, in normal candles.
 # Two candles never share a high to the tick.
 tweezer_tolerance_atr = 0.05
+
+# ── Inside bar ──
+# No settings. Either the second candle's range is inside the first or it is
+# not, and there is no threshold to get wrong.
+
+# ── Star ──
+# The most of its candle the MIDDLE body may take. This is what makes it a
+# stall rather than a third push.
+star_max_middle_body_share = 0.2
+# The least the two OUTER bodies must take. Both have to be real moves, or the
+# shape is three shrugs in a row.
+star_min_outer_body_share  = 0.5
+# How far into the first candle's body the third must close, as a share of that
+# body. Half means it gave back half the push.
+#
+# This is the test that does the work. Without it, any small candle followed by
+# any down candle would be an evening star — a pause and a reversal would look
+# the same.
+star_min_close_into_first  = 0.5
 
 [indicators]
 atr_period = 14      # this is the yardstick for every setting above

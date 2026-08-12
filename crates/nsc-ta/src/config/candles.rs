@@ -62,6 +62,21 @@ pub struct CandleSettings {
     /// How close two highs must be to count as the same price, in normal
     /// candles. Tweezers are never identical to the tick.
     pub tweezer_tolerance_atr: f64,
+
+    /// The most of its candle the middle body of a star may take. This is what
+    /// makes it a stall rather than a third push.
+    pub star_max_middle_body_share: f64,
+
+    /// The least the two outer bodies of a star must take. Both have to be
+    /// real moves, or the shape is three shrugs in a row.
+    pub star_min_outer_body_share: f64,
+
+    /// How far into the first candle's body the third must close, as a share
+    /// of that body. Half means it gave back half of the push.
+    ///
+    /// This is what separates a reversal from a pause. Without it, any small
+    /// candle followed by any down candle would be an evening star.
+    pub star_min_close_into_first: f64,
 }
 
 impl CandleSettings {
@@ -83,6 +98,12 @@ impl CandleSettings {
                 self.belt_hold_max_open_wick_share,
             ),
             ("belt_hold_min_body_share", self.belt_hold_min_body_share),
+            (
+                "star_max_middle_body_share",
+                self.star_max_middle_body_share,
+            ),
+            ("star_min_outer_body_share", self.star_min_outer_body_share),
+            ("star_min_close_into_first", self.star_min_close_into_first),
         ];
 
         for (name, value) in shares {
@@ -108,6 +129,16 @@ impl CandleSettings {
                 setting: "candles.doji_max_body_share".into(),
                 value: self.doji_max_body_share.to_string(),
                 why: "a doji has less body than a pin bar, or every doji is also a pin bar".into(),
+            });
+        }
+
+        if self.star_max_middle_body_share >= self.star_min_outer_body_share {
+            return Err(TaError::BadSetting {
+                setting: "candles.star_max_middle_body_share".into(),
+                value: self.star_max_middle_body_share.to_string(),
+                why: "the stalled candle in the middle has to be smaller than the two \
+                      pushes around it, or all three are the same candle"
+                    .into(),
             });
         }
 

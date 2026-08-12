@@ -90,6 +90,18 @@ tail twice the body, doji body under 5% of the range — because you said to use
 standard ones for now. They are somebody else's numbers, and only a pair like
 this replaces them with yours.
 
+**8. The candlestick patterns you have not named.**
+You said you trade many more shapes than you can name, and that training on
+your labelled trades should pick them up.
+
+Nothing to screenshot for this one. What it needs is a note on the signal when
+you press 👍 or 👎 — "took it because of the way that candle closed" is enough.
+The shape itself comes out of the measurements later.
+
+*Answers:* which shapes matter beyond the eight that are built. It also
+requires storing EVERY candle's proportions rather than only the ones that
+matched a named shape — see `candles.md`.
+
 ---
 
 ## For the breakout and trend strategies
@@ -124,5 +136,6 @@ later. Trades you cannot remember cannot.
 | Levels 1–3 | `levels.md`, then `nsc-ta::levels` and the veto layer |
 | Reversal 4–6 | `reversal.md`, then `config/strategies/reversal.toml` |
 | Candles 7 | `candles.md`, then `[candles]` in `config/ta.toml` |
+| Candles 8 | `candles.md`, then the Phase 4 model in `research/` |
 | Breakout, trend | Their own worksheets |
 | The SKIP examples | The `[veto]` section of whichever strategy they belong to |

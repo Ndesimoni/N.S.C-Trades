@@ -91,9 +91,10 @@ impl Marker {
         }
     }
 
-    /// Price is back under the extreme. If it had been past, that push is over
-    /// and it failed.
-    fn gave_up(&mut self, now: DateTime<Utc>) -> Result<Option<FailedAttempt>, TaError> {
+    /// Price is back under the extreme, or this extreme is being replaced by a
+    /// newer one. Either way, a push that was still in flight is over and it
+    /// did not get there.
+    pub fn gave_up(&mut self, now: DateTime<Utc>) -> Result<Option<FailedAttempt>, TaError> {
         let Some(attempt) = self.attempt.take() else {
             return Ok(None);
         };

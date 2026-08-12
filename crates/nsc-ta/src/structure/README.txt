@@ -75,6 +75,11 @@ A PUSH THAT GIVES UP IS RECORDED
   One push is one attempt, however much it wobbles above the line while it
   lasts. It ends when a whole candle fails to get past the extreme at all.
 
+  A push can also be ended by a NEWER swing forming and replacing the extreme
+  being watched, before price ever comes back under the old one. That push
+  still failed, so it is closed out and recorded then. Dropping it because the
+  chart moved on would lose exactly the evidence these are kept for.
+
 
 THE FILES
 
@@ -91,7 +96,7 @@ THE FILES
   series.rs   A whole history at once, for the backtester. Feeds candles
               through the SAME reader, so the two cannot drift apart.
 
-  tests/      Fourteen tests. Read guards.rs first.
+  tests/      Fifteen tests. Read guards.rs first.
 
   README.txt  This file.
 

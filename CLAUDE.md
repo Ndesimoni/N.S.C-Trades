@@ -162,6 +162,39 @@ write that sentence, the rules are too loose. Fix the rules, not the wording.
 
 ---
 
+## Finished is not finished until you have read it twice
+
+When a piece of work is done, go back over it **before** saying it works.
+
+Not by running the tests again. Green tests are what you had a minute ago, and
+they only check what somebody thought to ask. Three real bugs have been found
+in this project by reading code back against the worksheet that describes it,
+and the tests were passing for all three:
+
+- a swing peak thrown away when price crashed straight through the start of
+  the run
+- two flat candles inventing a swing, on every history, at the left edge
+- a failed attempt at a level silently dropped when a newer swing replaced it
+
+The second pass asks four things:
+
+1. **Does the code do what the worksheet says**, line by line? Not roughly —
+   the worksheet is the specification and the code is the guess.
+2. **Is every README, worksheet and config comment still true?** File lists,
+   test counts, settings that moved or were renamed. A README that describes
+   something that is no longer there is worse than none, because it is
+   believed.
+3. **What did this change make possible that nothing checks yet?** New states,
+   new orderings, the first candle, the last candle, an empty list.
+4. **Does any type still mean what its name says?** Borrowing `AtrMultiple` to
+   multiply by a run is right arithmetic under a wrong name, and the next
+   person reads the name.
+
+Anything found this way gets its own test — one that fails without the fix.
+Check that it does fail. A test that passes either way pins nothing.
+
+---
+
 ## The AI layer specifically
 
 - **It never does arithmetic.** Levels, distances, risk-to-reward and stop

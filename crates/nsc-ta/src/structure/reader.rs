@@ -2,6 +2,8 @@
 
 use std::cmp::{max, min};
 
+use chrono::{DateTime, Utc};
+
 use nsc_core::candle::Candle;
 use nsc_core::price::Price;
 use nsc_core::structure::{StructureEvent, Trend};
@@ -98,11 +100,12 @@ impl StructureReader {
             });
         }
 
+        let mut events = Vec::new();
         for swing in confirmed {
-            self.remember(*swing);
+            events.extend(self.remember(*swing, candle.open_time())?);
         }
 
-        let events = self.look(candle);
+        events.extend(self.look(candle)?);
 
         // Recorded last, so that a swing confirming on this candle measures
         // its run against the candles BEFORE it — which are the only ones that
@@ -110,34 +113,50 @@ impl StructureReader {
         self.seen_low = Some(min(self.seen_low.unwrap_or(candle.low()), candle.low()));
         self.seen_high = Some(max(self.seen_high.unwrap_or(candle.high()), candle.high()));
 
-        events
+        Ok(events)
     }
 
     /// Files a newly confirmed swing as the extreme to watch.
     ///
     /// The newest one replaces the one before it. "The previous high" means
     /// the most recent high, even when it is lower than the one before.
-    fn remember(&mut self, swing: Swing) {
+    ///
+    /// If a push at the old extreme was still in flight, it is closed out and
+    /// reported as failed. Price never got where it needed to, and dropping
+    /// the record because a new swing happened to form would lose exactly the
+    /// evidence these are collected for.
+    fn remember(
+        &mut self,
+        swing: Swing,
+        now: DateTime<Utc>,
+    ) -> Result<Option<StructureEvent>, TaError> {
         // Normally the run behind a high is the move up from the low before
         // it. The first swing of a history has no swing before it, so the
-        // lowest price seen so far stands in — that is where the move up from,
-        // as far as anything here can know.
+        // lowest price seen so far stands in — that is where the move came up
+        // from, as far as anything here can know.
         let started_at = match (self.previous, swing.kind()) {
             (Some(previous), _) => Some(previous.price()),
             (None, SwingKind::High) => self.seen_low,
             (None, SwingKind::Low) => self.seen_high,
         };
 
-        if let Some(started_at) = started_at {
-            let marker = Marker::new(swing, started_at);
-
-            match marker.kind() {
-                SwingKind::High => self.high = Some(marker),
-                SwingKind::Low => self.low = Some(marker),
-            }
-        }
-
         self.previous = Some(swing);
+
+        let Some(started_at) = started_at else {
+            return Ok(None);
+        };
+
+        let marker = Marker::new(swing, started_at);
+        let replaced = match marker.kind() {
+            SwingKind::High => self.high.replace(marker),
+            SwingKind::Low => self.low.replace(marker),
+        };
+
+        let Some(mut replaced) = replaced else {
+            return Ok(None);
+        };
+
+        Ok(replaced.gave_up(now)?.map(StructureEvent::Failed))
     }
 
     /// Asks both extremes what this candle did to them.

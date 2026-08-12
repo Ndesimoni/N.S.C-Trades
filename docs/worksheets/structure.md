@@ -126,12 +126,22 @@ together would waste the data.
 
 **A failed attempt never moves the trend.** It is evidence, not a direction.
 
+### When a push ends
+
+Normally when a whole candle fails to get past the extreme at all — price is
+back under, so the push is over.
+
+It also ends if a **newer swing replaces the extreme being watched** before
+price ever comes back under the old one. The push still failed, so it is
+recorded then rather than dropped. Losing it because the chart moved on would
+lose exactly the evidence these are collected for.
+
 ---
 
 ## Built 12 Aug 2026
 
 `nsc-ta::structure` now reads this rule, and `ta.toml` holds one setting for
-it: `min_follow_through = 0.4`. Fourteen tests, plus nine on the types.
+it: `min_follow_through = 0.4`. Fifteen tests, plus nine on the types.
 
 `bos_atr_multiple = 0.3` is gone. It measured the same thing against normal
 candle size, and one question with two settings is how they end up

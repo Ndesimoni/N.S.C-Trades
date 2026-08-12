@@ -70,6 +70,26 @@ fn a_high_can_be_taken_after_a_failed_attempt_at_it() {
     assert_eq!(breaks[0].broken(), price(300));
 }
 
+// A push can be interrupted by a newer swing forming above the old high
+// before price ever comes back under it. The push still failed, and dropping
+// the record because the chart moved on would lose exactly the evidence these
+// are kept for.
+#[test]
+fn a_push_still_in_flight_is_recorded_when_a_newer_swing_replaces_the_extreme() {
+    // 300 is taken out to 340 — 20% of the 200 run, short of the 40% needed.
+    // Price turns there and comes back to 270. On that very candle the swing
+    // high at 340 confirms, so 340 replaces 300 as the extreme to watch on the
+    // same candle that the push at 300 finally gives up.
+    let failures = failures_on(&[100, 200, 300, 250, 200, 250, 340, 305, 270]);
+
+    assert!(
+        failures
+            .iter()
+            .any(|attempt| attempt.attempted() == price(300)),
+        "the push at 300 should still be on the record: {failures:?}"
+    );
+}
+
 // A failure is evidence, not a direction.
 #[test]
 fn a_failed_attempt_does_not_move_the_trend() {

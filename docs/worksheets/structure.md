@@ -95,8 +95,7 @@ it: `min_follow_through = 0.4`. Ten tests.
 
 `bos_atr_multiple = 0.3` is gone. It measured the same thing against normal
 candle size, and one question with two settings is how they end up
-disagreeing. But one of the two has to go: two settings for
-one question is how they end up disagreeing.
+disagreeing.
 
 The fraction-of-the-run version fits the rest of the system better. Every other
 rule you have given is relative to the move in front of you rather than to an

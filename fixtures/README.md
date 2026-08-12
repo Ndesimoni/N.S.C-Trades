@@ -8,6 +8,29 @@ same swings, the same levels and the same signals, forever.
 That promise is only worth something if you test it against input that cannot
 change — which a live broker connection is not.
 
+## The format
+
+A CSV with a header row. Column names are matched case-insensitively and the
+order does not matter — the header says which column is which.
+
+```
+time,open,high,low,close
+2025-01-06,1.20000,1.20740,1.19820,1.20560
+```
+
+Accepted names for the first column: `time`, `timestamp`, `date`, `datetime`,
+`open_time`. A `volume` column is ignored — cash forex and CFDs have no traded
+volume, so nothing in this project may depend on it.
+
+Timestamps mark when the candle **started**, and are read as **UTC** unless
+they carry an offset of their own. If your export is in broker time, convert it
+before it gets here: guessing a timezone would shift every candle, and with it
+every level the bot draws.
+
+**Watch the last row.** A file exported mid-session ends with a candle that is
+still forming — its high and low have not finished happening. Nothing in the
+file says so, and the reader will not pretend to know.
+
 ## What is here
 
 ```

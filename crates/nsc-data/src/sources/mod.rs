@@ -22,3 +22,5 @@ pub mod csv_source;
 pub mod mt5_bridge;
 pub mod oanda;
 pub mod twelvedata;
+
+pub use csv_source::read_candles;

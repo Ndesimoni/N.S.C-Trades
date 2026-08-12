@@ -48,6 +48,14 @@ pub enum TaError {
     #[error("the candle at {open_time} has not finished forming yet")]
     IncompleteCandle { open_time: DateTime<Utc> },
 
+    /// Asked to build a bigger candle out of ones that are not smaller.
+    ///
+    /// Building a 15-minute candle out of 4-hour candles is not a hard job,
+    /// it is a meaningless one — and it would quietly produce a chart that
+    /// looks fine. A programming mistake, so stop.
+    #[error("cannot build {into} candles out of {from} ones — they are not smaller")]
+    CannotAggregate { from: String, into: String },
+
     /// Something the shared types refused.
     ///
     /// Mostly this is `SwingKnownTooEarly` — a swing that claimed to be

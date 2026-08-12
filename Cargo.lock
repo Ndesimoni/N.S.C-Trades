@@ -2199,6 +2199,7 @@ name = "nsc-ta"
 version = "0.1.0"
 dependencies = [
  "chrono",
+ "chrono-tz",
  "nsc-core",
  "rust_decimal",
  "serde",

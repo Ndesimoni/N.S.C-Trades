@@ -1,49 +1,51 @@
 # Worksheet — Fibonacci
 
-**Started 12 Aug 2026. Deliberately incomplete.**
-
-Only one thing is captured so far, written down now so it is not lost. The
-rest comes when we work through Fibonacci properly.
+Captured 12 Aug 2026. Four levels, and each one has a different job — which is
+why they could never be treated as one zone with lines in it.
 
 ---
 
-## The levels you use
+## The levels you use, and what each is for
 
-    0.382    when the trend is strong
-    0.5      ┐ the zone that gets your attention
-    0.618    ┘
-    0.786    its own use, not described yet
+    0.382    a reading: the pullback was shallow, so the trend is strong
+    0.5      ┐ the golden zone. The most important two. Where you look
+    0.618    ┘ to get in.
+    0.786    where you look to put stops — but not always
 
 That is the whole list. Nothing else gets drawn.
 
-### 0.382 is the strong-trend level
-
-Added 12 Aug 2026, after 0.382 had been struck off.
-
-It is not a level you use all the time — it is the one that matters **when the
-move is strong**. A powerful trend barely pauses. It turns back up shallow and
-often never reaches 0.5 at all, so waiting for the zone in a market like that
-means standing aside for the best moves.
-
-So the depth is not only where price is. It also says something about how
-strong the move is, which is why this level cannot simply be added to the zone
-and forgotten.
-
 ### The golden zone is 0.5 to 0.618
 
-Your words: those two are your golden levels, and **price sitting between them
-is what gets your attention**.
+Your words: those two are your golden levels, **the most important ones**, and
+price sitting between them is what gets your attention.
 
-So it is a zone, not two separate lines. The pair works together.
+So it is a zone, not two separate lines. The pair works together, and it is
+where you look to get in.
 
-### 0.786 is on its own
+### 0.786 is where stops go
 
-The third level is used, for something different from the zone above. What
-that is has not been described yet, and you will say when we work through
-Fibonacci properly.
+Captured 12 Aug 2026. **Not always** — you look at other factors too, and the
+level on its own does not place the stop.
 
-That is why nothing is being built. A level with no job attached is a line the
-bot draws and nothing reads.
+That split matters for the code. `nsc-ta` draws the level; where the stop
+actually goes is the invalidation layer in `nsc-strategy`, weighing this
+against whatever else is on the chart. A stop placed by one line, every time,
+is a stop everybody can see.
+
+### 0.382 says the trend is strong
+
+**It is not an entry level. It is a reading.**
+
+A pullback that shallow means the market barely paused, and that is what a
+strong trend looks like. So when price turns at 0.382 rather than reaching the
+zone, the information is not "here is my entry" — it is "this move is
+powerful".
+
+A strong move often never reaches 0.5 at all, so waiting for the zone in a
+market like that means standing aside for the best moves.
+
+Which is why the same number is already the shallow swing threshold in
+`swings.md`. One belief written once.
 
 ---
 
@@ -79,8 +81,26 @@ places, because it is the same number doing the same job. See `swings.md`.
 
 ---
 
+## What each level does, in one table
+
+| Level | What it is for | Which layer |
+|---|---|---|
+| 0.382 | reading trend strength from a shallow pullback | `nsc-ta`, then confidence |
+| 0.5 – 0.618 | the golden zone — where you look to get in | the location layer |
+| 0.786 | where you look to put a stop, not always | the invalidation layer |
+
+Three different jobs, which is exactly why they could not be treated as one
+zone with three lines in it.
+
+---
+
 ## Still open
 
-Everything else. What each of the three levels is for, which move they get
-drawn from, whether extensions are used for targets, and whether the levels
-differ by timeframe.
+1. **Which move gets measured.** Drawn from the last confirmed swing to the
+   one before it — but on which timeframe, and what happens when a bigger move
+   is still running inside a smaller one?
+2. **Extensions.** `ta.toml` has the textbook 1.272 and 1.618 for targets and
+   you have not confirmed them.
+3. **What the other factors are** that decide whether the stop actually goes
+   at 0.786.
+4. Whether any of this differs by timeframe.

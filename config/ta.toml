@@ -79,17 +79,21 @@ min_bars_between     = 5      # stops neighbouring candles making fake lines
 #
 # FOUR LEVELS ONLY: 0.382, 0.5, 0.618 and 0.786. Nothing else gets drawn.
 #
-# The zone that gets attention is 0.5 to 0.618. Price sitting between those two
-# is the thing to look at.
+# THE GOLDEN ZONE, and the most important two. Where to look to get in: price
+# sitting between them is the thing to pay attention to.
 golden_zone = [0.5, 0.618]
-# For a strong trend. A strong move barely pauses, so it turns back up shallow
-# — often without ever reaching the zone above. Waiting for 0.5 in a market
-# like that means never getting in.
+# NOT AN ENTRY LEVEL — a reading. A pullback this shallow means the market
+# barely paused, which is what a strong trend looks like. When price turns here
+# rather than reaching the zone, the information is "this move is powerful".
+#
+# Same number as shallow_retracement in [swings] above, because it is the same
+# belief written once.
 strong_trend_level = 0.382
-# The third level. It is used, for something different from the zone above, and
-# what that is has not been written down yet. Nothing reads it until it has a
-# job — see docs/worksheets/fibonacci.md.
-deep_level  = 0.786
+# Where stops get looked at — NOT ALWAYS, and never on its own. Other factors
+# come into it, so nsc-ta draws this level and the invalidation layer in
+# nsc-strategy decides whether the stop actually goes there. A stop placed by
+# one line every time is a stop everybody can see.
+stop_level  = 0.786
 # Used for targets. NOT confirmed yet — these are the standard numbers, not
 # this trader's.
 extensions  = [1.272, 1.618]

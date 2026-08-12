@@ -14,7 +14,11 @@ rust_decimal = { workspace = true }
 thiserror    = { workspace = true }
 tracing      = { workspace = true }
 
-# Tests only — never compiled into the library. Used to prove that a
-# misspelled setting in ta.toml is refused rather than silently ignored.
+# Tests only — never compiled into the library.
 [dev-dependencies]
-toml = { workspace = true }
+# Proves a misspelled setting in ta.toml is refused rather than ignored.
+toml         = { workspace = true }
+# Building a DayBoundary needs a real timezone. Not a runtime dependency:
+# nsc-ta is handed the boundary already built, because reading which timezone
+# to use would mean reading a config file.
+chrono-tz    = { workspace = true }

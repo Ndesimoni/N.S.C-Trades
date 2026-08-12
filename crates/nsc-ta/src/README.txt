@@ -108,6 +108,16 @@ WHAT IS FINISHED
                   as borrowed until a pair of charts replaces them.
 
 
+  aggregate/      Building 1-hour, 4-hour and daily candles out of smaller
+                  ones. Read aggregate/README.txt.
+
+                  A bigger candle is sealed only when a smaller one from the
+                  NEXT bucket arrives — not when the clock says the time is
+                  up. A candle that is merely expected is not a candle that
+                  happened, so four 15-minute candles fill an hour without
+                  finishing it.
+
+
 WHAT IS STILL EMPTY
 
   These are stubs. A doc comment and nothing behind it.
@@ -115,7 +125,6 @@ WHAT IS STILL EMPTY
   trendlines.rs   Drawn lines. Next to be built.
   fibonacci.rs    Retracements and extensions.
   patterns/       Chart patterns. Deliberately last.
-  aggregate.rs    Building bigger candles from smaller ones.
   context.rs      What one timeframe hands down to the smaller ones.
   snapshot.rs     Everything above, gathered for the rules engine to read.
 

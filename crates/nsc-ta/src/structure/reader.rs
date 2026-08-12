@@ -4,7 +4,7 @@ use std::cmp::{max, min};
 
 use nsc_core::candle::Candle;
 use nsc_core::price::Price;
-use nsc_core::structure::{StructureBreak, Trend};
+use nsc_core::structure::{StructureEvent, Trend};
 use nsc_core::swing::{Swing, SwingKind};
 
 use super::watch::Marker;
@@ -83,11 +83,15 @@ impl StructureReader {
     ///
     /// The swings go in first: they were knowable by the close of this candle,
     /// so the extremes being watched are the newest ones.
+    ///
+    /// Usually gives back nothing. Two events can land together when one side
+    /// is taken while a push at the other side gives up — an outside candle
+    /// does exactly that.
     pub fn update(
         &mut self,
         candle: &Candle,
         confirmed: &[Swing],
-    ) -> Result<Option<StructureBreak>, TaError> {
+    ) -> Result<Vec<StructureEvent>, TaError> {
         if !candle.is_complete() {
             return Err(TaError::IncompleteCandle {
                 open_time: candle.open_time(),
@@ -98,7 +102,7 @@ impl StructureReader {
             self.remember(*swing);
         }
 
-        let broken = self.look_for_a_break(candle);
+        let events = self.look(candle);
 
         // Recorded last, so that a swing confirming on this candle measures
         // its run against the candles BEFORE it — which are the only ones that
@@ -106,7 +110,7 @@ impl StructureReader {
         self.seen_low = Some(min(self.seen_low.unwrap_or(candle.low()), candle.low()));
         self.seen_high = Some(max(self.seen_high.unwrap_or(candle.high()), candle.high()));
 
-        broken
+        events
     }
 
     /// Files a newly confirmed swing as the extreme to watch.
@@ -136,26 +140,47 @@ impl StructureReader {
         self.previous = Some(swing);
     }
 
-    fn look_for_a_break(&mut self, candle: &Candle) -> Result<Option<StructureBreak>, TaError> {
+    /// Asks both extremes what this candle did to them.
+    fn look(&mut self, candle: &Candle) -> Result<Vec<StructureEvent>, TaError> {
         let needed = self.settings.min_follow_through;
         let now = candle.open_time();
+        let mut events = Vec::new();
 
-        if let Some(marker) = self.high
-            && let Some(broken) = marker.taken(candle.high(), now, needed)?
-        {
-            self.high = None;
-            self.trend = Trend::from_break(SwingKind::High);
-            return Ok(Some(broken));
+        if let Some(mut marker) = self.high {
+            let seen = marker.saw(candle.high(), now, needed)?;
+            self.high = Some(marker);
+            self.settle(seen, SwingKind::High, &mut events);
         }
 
-        if let Some(marker) = self.low
-            && let Some(broken) = marker.taken(candle.low(), now, needed)?
-        {
-            self.low = None;
-            self.trend = Trend::from_break(SwingKind::Low);
-            return Ok(Some(broken));
+        if let Some(mut marker) = self.low {
+            let seen = marker.saw(candle.low(), now, needed)?;
+            self.low = Some(marker);
+            self.settle(seen, SwingKind::Low, &mut events);
         }
 
-        Ok(None)
+        Ok(events)
+    }
+
+    /// Files what happened. Only a break changes the trend — a failed attempt
+    /// is evidence, not a direction.
+    fn settle(
+        &mut self,
+        seen: Option<StructureEvent>,
+        side: SwingKind,
+        events: &mut Vec<StructureEvent>,
+    ) {
+        let Some(event) = seen else {
+            return;
+        };
+
+        if event.is_taken() {
+            match side {
+                SwingKind::High => self.high = None,
+                SwingKind::Low => self.low = None,
+            }
+            self.trend = Trend::from_break(side);
+        }
+
+        events.push(event);
     }
 }

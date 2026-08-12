@@ -30,6 +30,69 @@ fn a_poke_past_the_high_is_not_a_break() {
     assert!(breaks.is_empty(), "got {breaks:?}");
 }
 
+// ── Failed attempts ──
+
+// Not a break, and not nothing. The market tried there and could not hold it,
+// which is the "do not take this" side of the training data and cannot be
+// collected afterwards.
+#[test]
+fn a_push_that_gives_up_is_recorded_as_a_failed_attempt() {
+    // Crosses 300, gets to 320 — 10% of the 200 run — then back under.
+    let failures = failures_on(&[100, 200, 300, 250, 200, 260, 320, 305, 290]);
+
+    assert_eq!(failures.len(), 1, "got {failures:?}");
+    assert_eq!(failures[0].kind(), SwingKind::High);
+    assert_eq!(failures[0].attempted(), price(300));
+    assert_eq!(failures[0].best(), distance(20));
+    assert_eq!(failures[0].share_of_run(), Some(0.1));
+}
+
+#[test]
+fn the_failed_attempt_keeps_the_furthest_it_got() {
+    // Wobbles above 300 twice in one push: 320, back to 305, up to 340, then
+    // out. The push is one attempt and 40 is the best of it.
+    let failures = failures_on(&[100, 200, 300, 250, 200, 260, 320, 305, 340, 290]);
+
+    assert_eq!(failures.len(), 1, "one push, not three: {failures:?}");
+    assert_eq!(failures[0].best(), distance(40));
+}
+
+// The extreme stays on the books after a failure, so a later push that does
+// carry far enough still takes it.
+#[test]
+fn a_high_can_be_taken_after_a_failed_attempt_at_it() {
+    let prices = [100, 200, 300, 250, 200, 260, 320, 290, 340, 380];
+
+    assert_eq!(failures_on(&prices).len(), 1, "the first push gave up");
+
+    let breaks = breaks_on(&prices);
+    assert_eq!(breaks.len(), 1, "the second one did not: {breaks:?}");
+    assert_eq!(breaks[0].broken(), price(300));
+}
+
+// A failure is evidence, not a direction.
+#[test]
+fn a_failed_attempt_does_not_move_the_trend() {
+    let candles = path(&[100, 200, 300, 250, 200, 260, 320, 305, 290]);
+    let swings = find_swings(&candles, swing_settings()).expect("valid");
+
+    let mut reader = StructureReader::new(settings()).expect("valid settings");
+    let mut next = 0;
+
+    for candle in &candles {
+        let from = next;
+        while swings
+            .get(next)
+            .is_some_and(|swing| swing.confirmed_at() <= candle.open_time())
+        {
+            next += 1;
+        }
+        reader.update(candle, &swings[from..next]).expect("valid");
+    }
+
+    assert_eq!(reader.trend(), Trend::Unclear);
+}
+
 // A cross that stalls is not thrown away. If price comes back and carries far
 // enough later, the break completes then — the test is about how far price
 // got, not how quickly.

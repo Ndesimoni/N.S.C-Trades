@@ -67,6 +67,64 @@ fn a_break_reports_how_far_past_it_carried() {
     assert_eq!(broken.share_of_run(), Some(0.45));
 }
 
+// ── Failed attempts ──
+
+#[test]
+fn a_failed_attempt_reports_how_far_it_got() {
+    let attempt = FailedAttempt::new(
+        SwingKind::High,
+        price(2100),
+        at(1),
+        distance(200),
+        distance(40),
+        at(4),
+        at(6),
+    )
+    .expect("valid attempt");
+
+    assert_eq!(attempt.best(), distance(40));
+    assert_eq!(attempt.share_of_run(), Some(0.2));
+    assert!(!StructureEvent::Failed(attempt).is_taken());
+}
+
+// A push that never went past the extreme is not an attempt at all — nothing
+// happened, and a row saying otherwise would be noise in the training data.
+#[test]
+fn an_attempt_that_never_crossed_is_refused() {
+    let refused = FailedAttempt::new(
+        SwingKind::High,
+        price(2100),
+        at(1),
+        distance(200),
+        distance(0),
+        at(4),
+        at(6),
+    );
+
+    assert!(matches!(
+        refused,
+        Err(CoreError::ImpossibleStructureBreak { .. })
+    ));
+}
+
+#[test]
+fn an_attempt_that_ends_before_it_starts_is_refused() {
+    let refused = FailedAttempt::new(
+        SwingKind::High,
+        price(2100),
+        at(1),
+        distance(200),
+        distance(40),
+        at(6),
+        at(4),
+    );
+
+    assert!(matches!(
+        refused,
+        Err(CoreError::ImpossibleStructureBreak { .. })
+    ));
+}
+
 #[test]
 fn a_break_that_happens_before_the_extreme_it_breaks_is_refused() {
     let refused = StructureBreak::new(

@@ -298,11 +298,11 @@
   </section>
 
   <section>
-    <h2>Four decisions inside the code</h2>
+    <h2>What else the code does</h2>
     <p class="section-note">
-      None of these came from you directly. They are the calls that had to be
-      made to turn the rule into working code, drawn so you can disagree with
-      them.
+      One of these is your answer on the in-between case. The rest are calls
+      that had to be made to turn the rule into working code, drawn so you can
+      disagree with them.
     </p>
 
     <figure>
@@ -340,6 +340,45 @@
         enough completes the break then. The one thing that clears it early is a
         <em>newer</em> swing high confirming — then that newer high becomes the
         one to take out, even when it is lower than the old one.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 760 300" role="img"
+             aria-label="Price crosses the old high, reaches twenty per cent of the run, and falls back under. The push is recorded as a failed attempt rather than discarded.">
+
+          <rect x="30" y="20" width="700" height="42" fill="var(--accent)" opacity="0.10"></rect>
+          <line x1="30" y1="62" x2="730" y2="62" stroke="var(--accent)" stroke-width="1.5"></line>
+          <text class="svg-label strong" x="730" y="80" text-anchor="end">40% — what a break needs</text>
+
+          <line x1="30" y1="120" x2="730" y2="120" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 4"></line>
+          <text class="svg-label" x="36" y="113">the old high</text>
+
+          <line x1="330" y1="91" x2="600" y2="91" stroke="var(--worn)" stroke-width="1" stroke-dasharray="3 4"></line>
+          <text class="svg-label warn" x="608" y="95">20% — as far as it got</text>
+
+          <polyline points="40,230 110,180 160,200 220,150 270,120 310,104 350,91 400,110 450,125 500,150 560,175 620,195 680,215"
+                    fill="none" stroke="var(--price)" stroke-width="2.5"
+                    stroke-linejoin="round" stroke-linecap="round"></polyline>
+
+          <circle cx="270" cy="120" r="5" fill="var(--accent)"></circle>
+          <text class="svg-label" x="262" y="140" text-anchor="end">crossed</text>
+
+          <circle cx="350" cy="91" r="6" fill="none" stroke="var(--worn)" stroke-width="2"></circle>
+
+          <circle cx="400" cy="110" r="5" fill="var(--worn)"></circle>
+          <text class="svg-label warn" x="412" y="132">back under — the push is over</text>
+
+          <text class="svg-label warn" x="40" y="270">recorded: a failed attempt at 300, best 20% of the run</text>
+        </svg>
+      </div>
+      <figcaption>
+        <strong>Not a break, and not nothing.</strong> The market tried there
+        and could not hold it. That row cannot be collected afterwards — the
+        chart does not remember what nearly happened — so it is written down
+        when it happens, with how far it got, ready for the strategy that uses
+        it. A failure never moves the trend: it is evidence, not a direction.
       </figcaption>
     </figure>
 
@@ -481,7 +520,7 @@
   </div>
 
   <div class="note open">
-    <h3>Three things left out on purpose</h3>
+    <h3>Two things left out on purpose</h3>
     <p>
       <strong>Change of character</strong> — the first swing that breaks the
       pattern, the earliest hint a trend is turning. A real idea, and the module
@@ -497,6 +536,10 @@
       <strong>Option 2.</strong> Still waiting on it, and it does not block
       anything — it is an extra way to accept a higher high, so it slots in
       beside this one rather than changing it.
+    </p>
+    <p>
+      The in-between case is no longer open: price that crosses and gives up is
+      recorded as a failed attempt, drawn above.
     </p>
   </div>
 

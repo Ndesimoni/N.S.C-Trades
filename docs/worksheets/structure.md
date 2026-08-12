@@ -88,10 +88,47 @@ from *the market went somewhere*.
 
 ---
 
+## The in-between case: record it as a failed attempt
+
+Answered 12 Aug 2026.
+
+Price crosses the old high, stalls at 20% of the run, and comes back under.
+That is **not** a higher high — and it is not nothing either. It gets recorded
+as a failed attempt.
+
+Your reasoning, and it is the same reasoning as the rejected-setups rule in
+CLAUDE.md: **there will be a time when a strategy uses those failed attempts
+along with other factors.** They cannot be collected later. The chart does not
+remember what nearly happened, so if the bot does not write it down when it
+happens, that evidence is gone.
+
+### What happens next at that same high
+
+If price later comes back and does reach 40%, the high is taken as normal —
+the failure did not use it up. And the point price reached becomes a swing high
+in its own right once a retracement is made there, which is simply the swing
+finder doing its job.
+
+So one high can produce: a failed attempt, then a break, then a new swing.
+All three are true and all three get recorded.
+
+### What a failed attempt carries
+
+Which extreme was attempted, the run behind it, **how far past it got**, when
+the push started and when it was over.
+
+How far it got is the number to sort them by later. One that reached 35% and
+failed is a near miss. One that reached 5% barely happened, and lumping the two
+together would waste the data.
+
+**A failed attempt never moves the trend.** It is evidence, not a direction.
+
+---
+
 ## Built 12 Aug 2026
 
 `nsc-ta::structure` now reads this rule, and `ta.toml` holds one setting for
-it: `min_follow_through = 0.4`. Ten tests.
+it: `min_follow_through = 0.4`. Fourteen tests, plus nine on the types.
 
 `bos_atr_multiple = 0.3` is gone. It measured the same thing against normal
 candle size, and one question with two settings is how they end up
@@ -110,5 +147,5 @@ relative in `swings.md`.
    high.
 2. ~~Whether the same applies to lower lows~~ **ANSWERED 12 Aug 2026** — it
    does, exactly mirrored.
-3. What happens between: price takes the high but stalls at 20% of the run.
-   Not a higher high — but is it nothing, or is it something worth recording?
+3. ~~What happens between — price takes the high but stalls at 20%~~
+   **ANSWERED 12 Aug 2026** — see below.

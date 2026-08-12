@@ -1,14 +1,15 @@
 //! Reading trend across a whole history at once.
 
 use nsc_core::candle::Candle;
-use nsc_core::structure::StructureBreak;
+use nsc_core::structure::StructureEvent;
 use nsc_core::swing::Swing;
 
 use super::StructureReader;
 use crate::config::StructureSettings;
 use crate::error::TaError;
 
-/// Finds every break of structure in a run of candles.
+/// Finds everything that happened at an old extreme in a run of candles —
+/// the ones price took, and the ones it tried and could not hold past.
 ///
 /// Takes the swings as [`crate::swings::find_swings`] gives them back — in
 /// confirmation order — and hands each one to the reader on the candle it
@@ -20,7 +21,7 @@ pub fn read_structure(
     candles: &[Candle],
     swings: &[Swing],
     settings: &StructureSettings,
-) -> Result<Vec<StructureBreak>, TaError> {
+) -> Result<Vec<StructureEvent>, TaError> {
     let mut reader = StructureReader::new(settings.clone())?;
     let mut found = Vec::new();
     let mut next = 0;

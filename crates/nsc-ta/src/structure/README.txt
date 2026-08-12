@@ -55,13 +55,34 @@ A CROSS THAT STALLS IS NOT THROWN AWAY
 
   The test is about how FAR price got, not how quickly.
 
+  The one thing that clears an extreme early is a NEWER swing high confirming.
+  Then that newer high becomes the one to take out, even when it is lower than
+  the old one — "the previous high" means the most recent one.
+
+
+A PUSH THAT GIVES UP IS RECORDED
+
+  Price crosses, runs out of steam short of the follow-through, and comes back
+  under. That gets its own row: which extreme, how far it got, when it started
+  and when it was over.
+
+  Not a break, and not nothing. The market tried there and could not hold it.
+  Those are the "do not take this" examples nothing else in the system
+  collects, and they cannot be gathered afterwards.
+
+  A failed attempt never moves the trend. It is evidence, not a direction.
+
+  One push is one attempt, however much it wobbles above the line while it
+  lasts. It ends when a whole candle fails to get past the extreme at all.
+
 
 THE FILES
 
   mod.rs      The front door.
 
-  watch.rs    An extreme being watched, and whether price has taken it. The
-              run travels with the extreme, so the two cannot be paired up
+  watch.rs    An extreme being watched, and what price does at it. Three
+              outcomes: taken, a push still under way, or a push that gave up.
+              The run travels with the extreme, so the two cannot be paired up
               wrongly later.
 
   reader.rs   One candle at a time, the way the live bot works. Holds the
@@ -70,7 +91,7 @@ THE FILES
   series.rs   A whole history at once, for the backtester. Feeds candles
               through the SAME reader, so the two cannot drift apart.
 
-  tests/      Ten tests. Read guards.rs first.
+  tests/      Fourteen tests. Read guards.rs first.
 
   README.txt  This file.
 

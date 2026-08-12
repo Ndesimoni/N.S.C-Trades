@@ -16,19 +16,32 @@
 //! rule reads it as a higher high, calls the trend intact, and goes hunting
 //! for a long at the worst possible moment.
 //!
+//! ## Both outcomes get reported
+//!
+//! A market that tried to take a high and could not is telling you something.
+//! Those are the "do not take this" examples nothing else in the system
+//! collects, and they cannot be gathered afterwards — so a failed attempt is
+//! a result here, not a silence.
+//!
 //! ## What is where
 //!
 //! - [`trend`] — `Trend`, which way the market is going
 //! - [`breaks`] — `StructureBreak`, one old extreme properly taken out
+//! - [`attempts`] — `FailedAttempt`, one it crossed and could not hold past
+//! - [`event`] — `StructureEvent`, either of those two
 //!
 //! How far past is a share of the previous run, never a number of pips or of
 //! normal candles — see `README.txt` for why that particular yardstick.
 
+mod attempts;
 mod breaks;
+mod event;
 mod trend;
 
 #[cfg(test)]
 mod tests;
 
+pub use attempts::FailedAttempt;
 pub use breaks::StructureBreak;
+pub use event::StructureEvent;
 pub use trend::Trend;

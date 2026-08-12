@@ -5,10 +5,12 @@
 
 use chrono::{DateTime, TimeDelta, Utc};
 use nsc_core::candle::Candle;
-use nsc_core::price::Price;
+use nsc_core::price::{Price, PriceDistance};
 use rust_decimal::Decimal;
 
 use crate::config::{StructureSettings, SwingSettings};
+use nsc_core::structure::{FailedAttempt, StructureBreak, StructureEvent};
+
 use crate::structure::read_structure;
 use crate::swings::find_swings;
 
@@ -22,6 +24,10 @@ pub fn at(index: i64) -> DateTime<Utc> {
 
 pub fn price(n: i64) -> Price {
     Price::new(Decimal::from(n))
+}
+
+pub fn distance(n: i64) -> PriceDistance {
+    PriceDistance::new(Decimal::from(n))
 }
 
 pub fn tick(index: i64, at_price: i64) -> Candle {
@@ -60,10 +66,32 @@ pub fn settings() -> StructureSettings {
     }
 }
 
-/// Candles in, breaks out.
-pub fn breaks_on(prices: &[i64]) -> Vec<nsc_core::structure::StructureBreak> {
+/// Candles in, everything that happened at an old extreme out.
+pub fn events_on(prices: &[i64]) -> Vec<StructureEvent> {
     let candles = path(prices);
     let swings = find_swings(&candles, swing_settings()).expect("valid");
 
     read_structure(&candles, &swings, &settings()).expect("valid")
+}
+
+/// Only the extremes price actually took.
+pub fn breaks_on(prices: &[i64]) -> Vec<StructureBreak> {
+    events_on(prices)
+        .into_iter()
+        .filter_map(|event| match event {
+            StructureEvent::Taken(broken) => Some(broken),
+            StructureEvent::Failed(_) => None,
+        })
+        .collect()
+}
+
+/// Only the pushes that gave up.
+pub fn failures_on(prices: &[i64]) -> Vec<FailedAttempt> {
+    events_on(prices)
+        .into_iter()
+        .filter_map(|event| match event {
+            StructureEvent::Failed(attempt) => Some(attempt),
+            StructureEvent::Taken(_) => None,
+        })
+        .collect()
 }

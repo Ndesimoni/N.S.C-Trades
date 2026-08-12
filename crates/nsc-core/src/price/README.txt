@@ -56,7 +56,7 @@ THE FILES
   ops.rs        What you can add and subtract.
                 Also what you CANNOT — and that part is the point. See below.
 
-  tests.rs      Fifteen tests that prove the above actually works.
+  tests.rs      Seventeen tests that prove the above actually works.
 
 
 HOW THEY FIT TOGETHER

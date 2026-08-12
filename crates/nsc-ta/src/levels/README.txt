@@ -21,7 +21,7 @@ THE FILES
                 swings that are too old or not confirmed yet, groups what is
                 left, and turns each group into a Level.
 
-  tests/        Twenty-two tests. Read tests/guards.rs first.
+  tests/        Twenty tests. Read tests/guards.rs first.
 
   README.txt    This file.
 

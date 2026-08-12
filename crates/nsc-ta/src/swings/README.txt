@@ -94,7 +94,7 @@ THE FILES
   series.rs   A whole history at once, for the backtester. Feeds candles
               through the SAME finder, so the two cannot drift apart.
 
-  tests/      Twelve tests. Read guards.rs first.
+  tests/      Eighteen tests. Read guards.rs first.
 
   README.txt  This file.
 

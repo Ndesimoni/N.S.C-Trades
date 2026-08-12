@@ -25,7 +25,7 @@ THE FILES
 
   indicators.rs    IndicatorSettings, from the [indicators] section.
 
-  tests.rs         Seven tests.
+  tests.rs         Eight tests.
 
   README.txt       This file.
 

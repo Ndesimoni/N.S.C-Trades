@@ -27,7 +27,7 @@ THE FILES
   zone.rs     Level. A Band, plus the timeframe it was found on, the touch
               count, the two touch times, and confirmed_at.
 
-  tests.rs    Ten tests. Half of them are about what gets REFUSED.
+  tests.rs    Nine tests. Five of them are about what gets REFUSED.
 
   README.txt  This file.
 

@@ -169,6 +169,17 @@ fn a_ladder_that_is_not_in_order_is_refused() {
     assert!(matches!(refused, Err(CoreError::InvalidRoundLadder { .. })));
 }
 
+// The rungs have to sit on top of each other, or counting them says nothing.
+// With steps of 3 and 10, the price 30 is on the small rung only and 10 is on
+// the big rung only — both score one, which claims they are equally round when
+// they cannot be compared at all.
+#[test]
+fn a_ladder_whose_rungs_do_not_stack_is_refused() {
+    let refused = RoundLadder::new(vec![step(3, 0), step(10, 0)]);
+
+    assert!(matches!(refused, Err(CoreError::InvalidRoundLadder { .. })));
+}
+
 #[test]
 fn a_ladder_with_no_steps_is_refused() {
     let refused = RoundLadder::new(Vec::new());

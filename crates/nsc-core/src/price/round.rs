@@ -109,12 +109,21 @@ impl RoundStep {
 pub struct RoundLadder(Vec<RoundStep>);
 
 impl RoundLadder {
-    /// Refuses an empty ladder, and one whose steps are not strictly
-    /// increasing.
+    /// Refuses an empty ladder, one whose steps are not strictly increasing,
+    /// and one whose rungs do not sit on top of each other.
     ///
-    /// Out of order, "how round is this" would depend on the order someone
-    /// happened to type the settings in, and two instruments with the same
-    /// steps could score the same price differently.
+    /// **Each step has to be a whole number of the step below it** — 0.0050,
+    /// then 0.0100, then 0.1000. That is what makes a rung count mean
+    /// something: a price on a bigger rung is then always on every smaller one
+    /// too, so "on three rungs" really is rounder than "on two".
+    ///
+    /// Steps of 0.003 and 0.010 would break that. 0.030 sits on the small rung
+    /// and not the big one, 0.010 on the big rung and not the small one, and
+    /// both score one — which says they are equally round when they are not
+    /// comparable at all.
+    ///
+    /// Out of order is refused for a plainer reason: how round a price counted
+    /// as would depend on the order somebody typed the settings in.
     pub fn new(steps: Vec<RoundStep>) -> Result<Self, CoreError> {
         let Some(first) = steps.first() else {
             return Err(CoreError::InvalidRoundLadder {
@@ -133,6 +142,18 @@ impl RoundLadder {
                     ),
                 });
             }
+
+            if !(step.value() % previous.value()).is_zero() {
+                return Err(CoreError::InvalidRoundLadder {
+                    detail: format!(
+                        "{} is not a whole number of {} steps, so a price on the bigger \
+                         rung would not always sit on the smaller one",
+                        step.value(),
+                        previous.value()
+                    ),
+                });
+            }
+
             previous = *step;
         }
 

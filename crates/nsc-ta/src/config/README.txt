@@ -25,6 +25,11 @@ THE FILES
 
   structure.rs     StructureSettings, from the [structure] section.
 
+  candles.rs       CandleSettings, from the [candles] section. The only
+                   settings in this project that are somebody else's numbers
+                   rather than the trader's — they are textbook defaults, and
+                   they say so.
+
   indicators.rs    IndicatorSettings, from the [indicators] section.
 
   tests.rs         Eight tests.
@@ -45,7 +50,8 @@ HOW THEY FIT TOGETHER
 
       swings.rs     ─┐
       levels.rs      │
-      structure.rs   ├─►  settings.rs      TaSettings holds all four
+      structure.rs   ├─►  settings.rs      TaSettings holds all five
+      candles.rs     │
       indicators.rs ─┘
 
       all of them   ─►  error.rs           a bad setting is a BadSetting

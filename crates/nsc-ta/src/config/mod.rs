@@ -33,8 +33,10 @@
 //! - [`swings`] — from `[swings]`
 //! - [`levels`] — from `[levels]`
 //! - [`structure`] — from `[structure]`
+//! - [`candles`] — from `[candles]`
 //! - [`indicators`] — from `[indicators]`
 
+mod candles;
 mod indicators;
 mod levels;
 mod settings;
@@ -44,6 +46,7 @@ mod swings;
 #[cfg(test)]
 mod tests;
 
+pub use candles::CandleSettings;
 pub use indicators::IndicatorSettings;
 pub use levels::LevelSettings;
 pub use settings::TaSettings;

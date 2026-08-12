@@ -94,6 +94,58 @@ deep_level  = 0.786
 # this trader's.
 extensions  = [1.272, 1.618]
 
+[candles]
+# THE SIX SHAPES USED: pin bar, engulfing, doji, belt-hold, tweezers — with
+# hammer and inverted hammer being the same shape as a pin bar pointing one way
+# or the other.
+#
+# THESE NUMBERS ARE TEXTBOOK, NOT YOURS. They were taken as standard defaults
+# on 12 Aug 2026 so the detectors could be built, and they stay borrowed until
+# a pair of charts — one you took, one you passed that looked the same —
+# replaces them. See docs/worksheets/candles.md.
+#
+# Shape is measured as shares of a candle's OWN height, so a body that is a
+# fifth of its candle is a fifth on EURUSD and a fifth on gold. Only two
+# settings are in ATR, and both are about size rather than shape.
+
+# ── Pin bar ──
+# How many times the body the long wick must be.
+pin_min_tail_to_body = 2.0
+# The most of the candle the body may take.
+pin_max_body_share   = 0.33
+# The most the wick on the OTHER side may take. This is what keeps the body at
+# the far end from the tail — without it, long wicks both sides would pass, and
+# that shape means close to the opposite thing.
+pin_max_nose_share   = 0.25
+
+# ── Engulfing ──
+# The least the first candle's body may be. Without it almost anything engulfs
+# a doji and the word stops meaning anything. Bodies only — wicks are ignored,
+# which is the standard definition.
+engulfing_min_first_body_share = 0.1
+
+# ── Doji ──
+# The most of its candle a body may take and still be a doji.
+doji_max_body_share         = 0.05
+# A wick smaller than this counts as none at all. It is what separates a
+# dragonfly from a long-legged doji.
+doji_max_missing_wick_share = 0.05
+
+# ── Belt-hold ──
+# The most wick allowed on the OPENING side. In real forex there is nearly
+# always a tick or two, so "no wick" cannot mean exactly zero.
+belt_hold_max_open_wick_share = 0.05
+# The least of the candle the body must take.
+belt_hold_min_body_share      = 0.6
+# How tall it must be, in normal candles. A tiny candle with the same
+# proportions is a quiet minute, not a belt-hold.
+belt_hold_min_atr_multiple    = 1.0
+
+# ── Tweezers ──
+# How close two highs must be to count as the same price, in normal candles.
+# Two candles never share a high to the tick.
+tweezer_tolerance_atr = 0.05
+
 [indicators]
 atr_period = 14      # this is the yardstick for every setting above
 rsi_period = 14

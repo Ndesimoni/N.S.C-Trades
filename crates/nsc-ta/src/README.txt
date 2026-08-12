@@ -96,13 +96,24 @@ WHAT IS FINISHED
                   down.
 
 
+  candles/        The six candlestick shapes actually used — pin bar,
+                  engulfing, doji, belt-hold, tweezers.
+                  Read candles/README.txt.
+
+                  Shape is measured as shares of a candle's own height, so it
+                  needs no ATR. Size does, and only two settings are about
+                  size.
+
+                  The numbers are TEXTBOOK, not the trader's, and are marked
+                  as borrowed until a pair of charts replaces them.
+
+
 WHAT IS STILL EMPTY
 
   These are stubs. A doc comment and nothing behind it.
 
   trendlines.rs   Drawn lines. Next to be built.
   fibonacci.rs    Retracements and extensions.
-  candles/        Candlestick patterns.
   patterns/       Chart patterns. Deliberately last.
   aggregate.rs    Building bigger candles from smaller ones.
   context.rs      What one timeframe hands down to the smaller ones.

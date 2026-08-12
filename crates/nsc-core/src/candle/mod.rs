@@ -16,13 +16,16 @@
 //! ## What is where
 //!
 //! - [`bar`] — one candle
+//! - [`proportions`] — its shape, as shares of its own height
 //! - [`series`] — a run of candles for one instrument
 
 mod bar;
+mod proportions;
 mod series;
 
 #[cfg(test)]
 mod tests;
 
 pub use bar::Candle;
+pub use proportions::Proportions;
 pub use series::CandleSeries;

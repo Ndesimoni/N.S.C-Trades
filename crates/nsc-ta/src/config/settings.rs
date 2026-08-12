@@ -2,6 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use super::candles::CandleSettings;
 use super::indicators::IndicatorSettings;
 use super::levels::LevelSettings;
 use super::structure::StructureSettings;
@@ -15,6 +16,7 @@ pub struct TaSettings {
     pub swings: SwingSettings,
     pub levels: LevelSettings,
     pub structure: StructureSettings,
+    pub candles: CandleSettings,
     pub indicators: IndicatorSettings,
 }
 
@@ -28,6 +30,7 @@ impl TaSettings {
         self.swings.validate()?;
         self.levels.validate()?;
         self.structure.validate()?;
+        self.candles.validate()?;
         self.indicators.validate()?;
         Ok(())
     }

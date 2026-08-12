@@ -18,6 +18,18 @@ fn settings() -> TaSettings {
         structure: StructureSettings {
             min_follow_through: 0.4,
         },
+        candles: CandleSettings {
+            pin_min_tail_to_body: 2.0,
+            pin_max_body_share: 0.33,
+            pin_max_nose_share: 0.25,
+            engulfing_min_first_body_share: 0.1,
+            doji_max_body_share: 0.05,
+            doji_max_missing_wick_share: 0.05,
+            belt_hold_max_open_wick_share: 0.05,
+            belt_hold_min_body_share: 0.6,
+            belt_hold_min_atr_multiple: 1.0,
+            tweezer_tolerance_atr: 0.05,
+        },
         indicators: IndicatorSettings {
             atr_period: 14,
             rsi_period: 14,

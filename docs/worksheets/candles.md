@@ -103,6 +103,11 @@ Three named variants, same rule with different wicks:
 - **Dragonfly** — long lower wick, almost no upper
 - **Gravestone** — long upper wick, almost no lower
 
+The code adds a fourth, **Plain**: almost no wick either side. A candle that
+opened, closed and went nowhere at all. It is not a textbook name, it is what
+is left when the other three do not fit, and it is better than filing that
+candle as a long-legged doji when it has no legs.
+
 ### Belt-hold line
 
 A long candle that opens at one extreme with no wick there.
@@ -125,18 +130,17 @@ Two neighbouring candles that reach the **same** high (top) or the same low
 
 ---
 
-## One conflict to settle before this is built
+## The conflict with the swing finder — settled
 
-A tweezer top is two candles with the same high.
+A tweezer top is two candles with the same high, and that used to be the exact
+shape swing detection threw away. The old finder refused ties: when two candles
+shared the highest high, neither strictly beat the other, so neither became a
+swing.
 
-The swing finder deliberately **refuses ties** — see
-`a_flat_top_produces_no_swing`. When two candles share the highest high,
-neither strictly beats the other, so neither becomes a swing. Missing a level
-was judged safer than inventing one.
-
-So the exact shape a tweezer looks for is the shape swing detection throws
-away. Both can be right, but they must agree on what "the same price" means,
-and right now only one of them has a tolerance for it.
+**Settled by the swing rewrite on 12 Aug 2026.** The finder no longer compares
+neighbours at all — it tracks a running extreme and proves it with the
+pullback, so the first of two equal highs simply is the extreme. A tweezer top
+can be a swing high now, and the two modules no longer disagree.
 
 ---
 
@@ -149,22 +153,26 @@ and right now only one of them has a tolerance for it.
 | `pin_bar.rs` | Kept. Covers hammer and inverted hammer too. |
 | `engulfing.rs` | Kept. |
 | `doji.rs` | Kept, with the three variants. |
-| `inside_bar.rs` | **Delete** — not on your list. |
-| `star.rs` | **Delete** — morning and evening star not on your list. |
+| `inside_bar.rs` | Left untouched — see below. |
+| `star.rs` | Left untouched — see below. |
 | — | **Add** `belt_hold.rs` |
 | — | **Add** `tweezers.rs` |
 
-**Open:** you did not mention inside bars or morning/evening stars. Confirm
-they go, rather than that they were just missed. Deleting a stub is cheap;
-finding out in six months that the bot never looked for a pattern you trade is
-not.
+**Still open:** you did not mention inside bars or morning/evening stars, and
+did not answer when asked. Both stubs are left exactly as they were rather
+than deleted or quietly built. Deleting a stub is cheap; finding out in six
+months that the bot never looked for a pattern you trade is not.
 
 ---
 
-## What this becomes
+## What this became
 
-`nsc-ta::candles`, driven by a new `[candles]` section in `config/ta.toml`,
-which does not exist yet.
+**Built 12 Aug 2026.** `nsc-ta::candles` has all six, driven by a `[candles]`
+section in `config/ta.toml` — ten settings, eight of them shares of a candle
+and two in ATR. Twenty-four tests on the detectors, eight on the types.
+
+The numbers in that file are marked as textbook so nobody later reads `2.0`
+and assumes somebody chose it.
 
 Every detector reports the pattern **and its measurements** — how long the
 wick was, how much of the range the body took. The rules layer needs those
@@ -180,5 +188,6 @@ back from a yes or no.
    same.
 2. **Is a hammer a different shape to you, or a pin bar after a downtrend?**
 3. **Do inside bars and stars go?**
-4. **The tweezer tolerance**, and whether swing detection should use the same
-   one.
+4. **The tweezer tolerance.** 0.05 of a normal candle is the placeholder. Two
+   candles never share a high to the tick, and how close counts as the same
+   price is a judgement nobody has made yet.

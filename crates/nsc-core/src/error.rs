@@ -142,6 +142,12 @@ pub enum CoreError {
     #[error("this break of structure cannot be real: {detail}")]
     ImpossibleStructureBreak { detail: String },
 
+    /// A candlestick pattern was described in a way that cannot be real.
+    ///
+    /// Whatever built it has a bug. Stop rather than skip.
+    #[error("this candlestick pattern cannot be real: {detail}")]
+    ImpossiblePattern { detail: String },
+
     /// Something tried to change a candle that had already closed.
     ///
     /// Once a candle is complete it is history. If history can be rewritten,

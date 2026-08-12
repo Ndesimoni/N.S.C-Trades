@@ -93,13 +93,24 @@ WHAT IS FINISHED
                   and this is what refuses it.
 
 
+  pattern/        Names for the six candlestick shapes, and one sighting of
+                  one. Read pattern/README.txt.
+
+                  A sighting carries the MEASUREMENTS that made it. A pin bar
+                  whose wick is nine times its body and one that scrapes the
+                  minimum are both pin bars, and a rules layer that only hears
+                  "pin bar" cannot tell them apart.
+
+  candle/         ...also holds Proportions: how a candle divides into body
+                  and two wicks, as shares of its own height.
+
+
 WHAT IS STILL EMPTY
 
   These are stubs. A doc comment and nothing behind it.
 
   trendline.rs    A drawn line.
   fib.rs          Fibonacci levels.
-  pattern.rs      Candlestick and chart patterns.
   session.rs      London, New York, Tokyo, Sydney.
   signal.rs       A finished trade idea.
 

@@ -2,8 +2,9 @@
 
 use std::collections::VecDeque;
 
-use nsc_core::price::{AtrMultiple, PriceDistance};
+use nsc_core::price::PriceDistance;
 use rust_decimal::Decimal;
+use rust_decimal::prelude::FromPrimitive;
 
 /// The last few runs the market actually made.
 ///
@@ -41,15 +42,14 @@ impl RunMemory {
             return true;
         };
 
-        let floor = AtrMultiple::new(self.min_fraction).to_distance(biggest);
+        // Only fails if the fraction is not a real number, which validate()
+        // has already refused. Let the run through rather than silently
+        // swallowing every swing.
+        let Some(fraction) = Decimal::from_f64(self.min_fraction) else {
+            return true;
+        };
 
-        match floor {
-            Ok(floor) => run >= floor,
-            // Only happens if the fraction is not a real number, which
-            // validate() has already refused. Let the run through rather than
-            // silently swallowing every swing.
-            Err(_) => true,
-        }
+        run.value() >= biggest.value() * fraction
     }
 
     /// Remembers a run that counted. Rejected runs never go in — otherwise a

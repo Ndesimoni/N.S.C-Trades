@@ -49,17 +49,21 @@ impl Leg {
         let now = candle.open_time();
         let (forward, backward) = sides(self.hunting, candle);
 
-        // The run has been undone completely — price is past where it began.
-        // Nothing here was structure, so the run simply restarts from here.
+        // Ask what this candle proved BEFORE anything else. A candle that
+        // dives straight past the start of the run has given back more than
+        // all of it, so the extreme it left behind is a swing — and asking
+        // about the wreckage first would throw that swing away.
+        if let Some(step) = self.look(candle, settings, memory)? {
+            return Ok(step);
+        }
+
+        // The run has been undone completely and proved nothing on the way —
+        // too small to count, most likely. It simply restarts from here.
         if is_behind(self.hunting, backward, self.anchor.price) {
             self.anchor = Extreme::new(backward, now);
             self.extreme = Extreme::new(forward, now);
             self.retrace = Extreme::new(backward, now);
             return Ok(Step::Continue);
-        }
-
-        if let Some(step) = self.look(candle, settings, memory)? {
-            return Ok(step);
         }
 
         self.absorb(candle);
@@ -118,7 +122,10 @@ impl Leg {
     ) -> Result<Option<Step>, TaError> {
         // A candle cannot confirm a peak it made itself. The peak is only
         // knowable once a later candle has come back off it.
-        if now <= self.extreme.bar_time || !self.given_back_enough(settings.confirm_retracement) {
+        if now <= self.extreme.bar_time
+            || !self.spans_more_than_one_candle()
+            || !self.given_back_enough(settings.confirm_retracement)
+        {
             return Ok(None);
         }
 
@@ -153,7 +160,10 @@ impl Leg {
         let a_real_pause =
             self.retrace.bar_time > self.extreme.bar_time && now > self.retrace.bar_time;
 
-        if !a_real_pause || !self.given_back_enough(settings.shallow_retracement) {
+        if !a_real_pause
+            || !self.spans_more_than_one_candle()
+            || !self.given_back_enough(settings.shallow_retracement)
+        {
             return Ok(None);
         }
 
@@ -186,6 +196,20 @@ impl Leg {
 
     fn run(&self) -> PriceDistance {
         span(self.anchor.price, self.extreme.price)
+    }
+
+    /// Has this run happened at all?
+    ///
+    /// A run that starts and ends on the same candle is not a run — it is one
+    /// candle's height. Without this, two flat candles in a row would confirm
+    /// a swing: the whole of that "run" gets given back inside the next
+    /// candle, which passes every share test there is.
+    ///
+    /// It bites hardest at the very start of a history, where there is no
+    /// memory of earlier runs to measure against and anything at all would be
+    /// allowed through.
+    fn spans_more_than_one_candle(&self) -> bool {
+        self.extreme.bar_time > self.anchor.bar_time
     }
 
     fn given_back_enough(&self, needed: f64) -> bool {

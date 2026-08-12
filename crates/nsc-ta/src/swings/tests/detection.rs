@@ -128,6 +128,31 @@ fn the_ratchet_stops() {
     );
 }
 
+// A crash straight through the start of the run gives back more than all of
+// it, so the peak it left behind is certainly a swing. The finder used to
+// throw the whole leg away instead, because it noticed the wreckage before it
+// asked what had been proved.
+#[test]
+fn a_peak_still_counts_when_price_crashes_past_where_the_run_began() {
+    let swings = swings_on(&[100, 200, 300, 90]);
+
+    assert_eq!(swings.len(), 1, "got {swings:?}");
+    assert_eq!(swings[0].kind(), SwingKind::High);
+    assert_eq!(swings[0].price(), price(300));
+}
+
+// One candle's own height is not a run. Without that, the whole of it gets
+// given back inside the next candle and every share test passes — so a dead
+// flat market would open with a swing.
+#[test]
+fn a_flat_start_produces_no_swings() {
+    let candles: Vec<_> = (0..10).map(|i| candle(i, 105, 95)).collect();
+
+    let swings = find_swings(&candles, settings()).expect("valid");
+
+    assert!(swings.is_empty(), "got {swings:?}");
+}
+
 // ── Wicks ──
 
 #[test]

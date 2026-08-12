@@ -14,18 +14,25 @@
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
+use chrono::Weekday;
+use chrono_tz::Tz;
 use clap::Parser;
-use nsc_core::candle::Candle;
-use nsc_core::price::PriceDistance;
-use nsc_core::structure::StructureEvent;
-use nsc_core::timeframe::Timeframe;
+use nsc_core::timeframe::{DayBoundary, Timeframe};
 use nsc_data::sources::read_candles;
-use nsc_ta::indicators::atr::atr_series;
 
 #[path = "chart/settings.rs"]
 mod settings;
 
-use settings::{candle_settings, fib_settings, level_settings, structure_settings, swing_settings};
+#[path = "chart/as_json.rs"]
+mod as_json;
+
+#[path = "chart/printing.rs"]
+mod printing;
+
+use as_json::as_json;
+use printing::{
+    show_fibonacci, show_patterns, show_structure, show_swings_and_levels, show_the_file,
+};
 
 #[derive(Parser)]
 #[command(about = "Print what the chart-reading code sees in a CSV of candles")]
@@ -33,9 +40,19 @@ pub struct Args {
     /// The CSV file. Needs a header row with time, open, high, low and close.
     file: PathBuf,
 
-    /// The timeframe the file is in. Only used for tagging levels.
+    /// The timeframe the file is in.
     #[arg(long, default_value = "D1")]
-    timeframe: String,
+    from: String,
+
+    /// The timeframe to read the chart at. If it is bigger than `--from`, the
+    /// candles are built up to it first, through the same aggregator the live
+    /// bot uses.
+    #[arg(long)]
+    timeframe: Option<String>,
+
+    /// Print the findings as JSON instead, for drawing elsewhere.
+    #[arg(long, default_value_t = false)]
+    json: bool,
 
     /// How many candles ATR averages over.
     #[arg(long, default_value_t = 14)]
@@ -54,17 +71,41 @@ pub struct Args {
 fn main() -> Result<()> {
     let args = Args::parse();
 
-    let timeframe: Timeframe = args
-        .timeframe
+    let from: Timeframe = args
+        .from
         .parse()
-        .with_context(|| format!("'{}' is not a timeframe", args.timeframe))?;
+        .with_context(|| format!("'{}' is not a timeframe", args.from))?;
 
-    let candles =
+    let timeframe: Timeframe = match &args.timeframe {
+        Some(text) => text
+            .parse()
+            .with_context(|| format!("'{text}' is not a timeframe"))?,
+        None => from,
+    };
+
+    let file =
         read_candles(&args.file).with_context(|| format!("reading {}", args.file.display()))?;
 
-    if candles.is_empty() {
+    if file.is_empty() {
         println!("No candles in {}.", args.file.display());
         return Ok(());
+    }
+
+    // Built through the same aggregator the live bot uses, so what gets read
+    // here is what the bot would have read.
+    let candles = if timeframe == from {
+        file
+    } else {
+        nsc_ta::aggregate::aggregate(&file, from, timeframe, &boundary()?)?
+    };
+
+    if candles.is_empty() {
+        println!("Not enough {from} candles to build one {timeframe}.");
+        return Ok(());
+    }
+
+    if args.json {
+        return as_json(&candles, timeframe, &args);
     }
 
     show_the_file(&candles, &args)?;
@@ -79,154 +120,11 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn show_the_file(candles: &[Candle], args: &Args) -> Result<()> {
-    let first = candles.first().context("at least one candle")?;
-    let last = candles.last().context("at least one candle")?;
+/// The daily close this project uses, from config/app.toml.
+fn boundary() -> Result<DayBoundary> {
+    let tz: Tz = "America/New_York"
+        .parse()
+        .map_err(|_| anyhow::anyhow!("America/New_York is not a timezone this build knows"))?;
 
-    println!("\n{}", args.file.display());
-    println!(
-        "{} candles, {} to {}",
-        candles.len(),
-        first.open_time().date_naive(),
-        last.open_time().date_naive()
-    );
-
-    if let Some(atr) = latest_atr(candles, args.atr_period)? {
-        println!("a normal candle right now is {}", atr.value().round_dp(5));
-    }
-
-    Ok(())
-}
-
-fn show_swings_and_levels(candles: &[Candle], timeframe: Timeframe, args: &Args) -> Result<()> {
-    let swings = nsc_ta::swings::find_swings(candles, swing_settings(args))?;
-
-    println!("\nSWINGS  {} found", swings.len());
-    for swing in swings.iter().rev().take(8) {
-        println!(
-            "  {:?}  {}  on {}, usable from {}",
-            swing.kind(),
-            swing.price(),
-            swing.bar_time().date_naive(),
-            swing.confirmed_at().date_naive()
-        );
-    }
-
-    let levels = nsc_ta::levels::find_levels(
-        candles,
-        &swings,
-        timeframe,
-        &level_settings(),
-        args.atr_period,
-    )?;
-
-    println!("\nLEVELS  {} found, lowest first", levels.len());
-    for level in &levels {
-        println!(
-            "  {} to {}   {} touches, last {}",
-            level.band().low().round_for_display(5),
-            level.band().high().round_for_display(5),
-            level.touches(),
-            level.last_touch().date_naive()
-        );
-    }
-
-    Ok(())
-}
-
-fn show_structure(candles: &[Candle], args: &Args) -> Result<()> {
-    let swings = nsc_ta::swings::find_swings(candles, swing_settings(args))?;
-    let events = nsc_ta::structure::read_structure(candles, &swings, &structure_settings())?;
-
-    let taken = events.iter().filter(|event| event.is_taken()).count();
-
-    println!(
-        "\nSTRUCTURE  {taken} extremes taken, {} pushes that failed",
-        events.len() - taken
-    );
-
-    for event in events.iter().rev().take(6) {
-        let share = event
-            .share_of_run()
-            .map(|share| format!("{:.0}% of the run", share * 100.0))
-            .unwrap_or_else(|| "unmeasured".into());
-
-        match event {
-            StructureEvent::Taken(broken) => println!(
-                "  TAKEN   {:?} at {} on {} — carried {share}",
-                broken.kind(),
-                broken.broken(),
-                broken.at().date_naive()
-            ),
-            StructureEvent::Failed(attempt) => println!(
-                "  FAILED  {:?} at {} by {} — got {share}",
-                attempt.kind(),
-                attempt.attempted(),
-                attempt.to().date_naive()
-            ),
-        }
-    }
-
-    Ok(())
-}
-
-fn show_patterns(candles: &[Candle], args: &Args) -> Result<()> {
-    let seen = nsc_ta::candles::find_patterns(candles, &candle_settings(), args.atr_period)?;
-
-    println!("\nCANDLESTICKS  {} found", seen.len());
-    for sighting in seen.iter().rev().take(8) {
-        println!(
-            "  {:?}  {:?}  on {}",
-            sighting.shape(),
-            sighting.bias(),
-            sighting.at().date_naive()
-        );
-    }
-
-    Ok(())
-}
-
-fn show_fibonacci(candles: &[Candle], args: &Args) -> Result<()> {
-    let swings = nsc_ta::swings::find_swings(candles, swing_settings(args))?;
-    let last = candles.last().context("at least one candle")?;
-
-    let Some(measured) = nsc_ta::fibonacci::last_move(&swings, last.open_time())? else {
-        println!("\nFIBONACCI  no completed leg to measure yet");
-        return Ok(());
-    };
-
-    let settings = fib_settings();
-    let Some(reading) = nsc_ta::fibonacci::FibReading::take(measured, last.close(), &settings)?
-    else {
-        println!("\nFIBONACCI  the move has no size");
-        return Ok(());
-    };
-
-    println!(
-        "\nFIBONACCI  measured {} to {}",
-        measured.from(),
-        measured.to()
-    );
-    println!("  0.382  {}", reading.strong_trend().round_for_display(5));
-    println!("  0.5    {}", reading.golden_from().round_for_display(5));
-    println!("  0.618  {}", reading.golden_to().round_for_display(5));
-    println!("  0.786  {}", reading.stop().round_for_display(5));
-    println!(
-        "  price is {:.0}% back{}",
-        reading.depth() * 100.0,
-        if reading.in_golden_zone(&settings) {
-            " — inside the golden zone"
-        } else {
-            ""
-        }
-    );
-
-    Ok(())
-}
-
-fn latest_atr(candles: &[Candle], period: usize) -> Result<Option<PriceDistance>> {
-    Ok(atr_series(candles, period)?
-        .into_iter()
-        .flatten()
-        .next_back())
+    Ok(DayBoundary::new(17, 0, tz, Weekday::Sun)?)
 }

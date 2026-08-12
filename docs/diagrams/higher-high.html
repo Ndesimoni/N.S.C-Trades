@@ -297,6 +297,169 @@
     </figure>
   </section>
 
+  <section>
+    <h2>Four decisions inside the code</h2>
+    <p class="section-note">
+      None of these came from you directly. They are the calls that had to be
+      made to turn the rule into working code, drawn so you can disagree with
+      them.
+    </p>
+
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 760 300" role="img"
+             aria-label="Price crosses the old high, stalls just above it, falls back, then later rises again and reaches the required band, where the break completes.">
+
+          <rect x="30" y="20" width="700" height="42" fill="var(--accent)" opacity="0.10"></rect>
+          <line x1="30" y1="62" x2="730" y2="62" stroke="var(--accent)" stroke-width="1.5"></line>
+          <text class="svg-label strong" x="730" y="80" text-anchor="end">40% of the run past the high</text>
+
+          <line x1="30" y1="120" x2="730" y2="120" stroke="var(--ink-soft)" stroke-width="1.5" stroke-dasharray="4 4"></line>
+          <text class="svg-label" x="36" y="113">the old high</text>
+
+          <polyline points="40,240 110,180 150,200 200,140 240,120 290,165 330,180 380,150 420,120 470,105 505,130 540,160 580,120 620,90 660,72 700,48"
+                    fill="none" stroke="var(--price)" stroke-width="2.5"
+                    stroke-linejoin="round" stroke-linecap="round"></polyline>
+
+          <circle cx="240" cy="120" r="6" fill="var(--accent)"></circle>
+
+          <circle cx="470" cy="105" r="6" fill="none" stroke="var(--worn)" stroke-width="2"></circle>
+          <text class="svg-label warn" x="470" y="94" text-anchor="middle">crossed, then stalled</text>
+          <text class="svg-label warn" x="470" y="222" text-anchor="middle">nothing fires — and nothing</text>
+          <text class="svg-label warn" x="470" y="240" text-anchor="middle">is forgotten either</text>
+
+          <circle cx="700" cy="48" r="7" fill="var(--accent)"></circle>
+          <text class="svg-title" x="700" y="36" text-anchor="middle">break completes</text>
+
+          <text class="svg-label" x="40" y="278">the test is how FAR price got, not how quickly it got there</text>
+        </svg>
+      </div>
+      <figcaption>
+        <strong>A cross that stalls stays on the books.</strong> The old high is
+        still the level to take, and a candle three weeks later that carries far
+        enough completes the break then. The one thing that clears it early is a
+        <em>newer</em> swing high confirming — then that newer high becomes the
+        one to take out, even when it is lower than the old one.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 760 300" role="img"
+             aria-label="A 200-point run and a 40-point run side by side. A threshold measured in normal candles asks the same few points of both. A threshold measured as a share of the run asks eighty points of one and sixteen of the other.">
+
+          <text class="svg-title" x="20" y="26">A 200-point run</text>
+          <text class="svg-title" x="420" y="26">A 40-point run</text>
+
+          <line x1="20" y1="250" x2="740" y2="250" stroke="var(--rule)" stroke-width="1"></line>
+
+          <!-- big run -->
+          <rect x="60" y="90" width="46" height="160" fill="var(--price)"></rect>
+          <text class="svg-label" x="83" y="82" text-anchor="middle">200</text>
+
+          <rect x="140" y="245" width="46" height="5" fill="var(--worn)"></rect>
+          <text class="svg-label warn" x="163" y="238" text-anchor="middle">6</text>
+
+          <rect x="220" y="186" width="46" height="64" fill="var(--accent)"></rect>
+          <text class="svg-label strong" x="243" y="178" text-anchor="middle">80</text>
+
+          <line x1="390" y1="14" x2="390" y2="285" stroke="var(--rule)" stroke-width="1"></line>
+
+          <!-- small run -->
+          <rect x="450" y="218" width="46" height="32" fill="var(--price)"></rect>
+          <text class="svg-label" x="473" y="210" text-anchor="middle">40</text>
+
+          <rect x="530" y="245" width="46" height="5" fill="var(--worn)"></rect>
+          <text class="svg-label warn" x="553" y="238" text-anchor="middle">6</text>
+
+          <rect x="610" y="237" width="46" height="13" fill="var(--accent)"></rect>
+          <text class="svg-label strong" x="633" y="229" text-anchor="middle">16</text>
+
+          <text class="svg-label" x="83" y="272" text-anchor="middle">the run</text>
+          <text class="svg-label warn" x="163" y="272" text-anchor="middle">0.3 x ATR</text>
+          <text class="svg-label strong" x="243" y="272" text-anchor="middle">40% of it</text>
+          <text class="svg-label" x="473" y="272" text-anchor="middle">the run</text>
+          <text class="svg-label warn" x="553" y="272" text-anchor="middle">0.3 x ATR</text>
+          <text class="svg-label strong" x="633" y="272" text-anchor="middle">40% of it</text>
+        </svg>
+      </div>
+      <figcaption>
+        <strong>Why <code>bos_atr_multiple</code> went and
+        <code>min_follow_through</code> replaced it.</strong> A threshold in
+        normal candles asks the same six points of a 200-point rally and a
+        40-point drift — trivial for one, most of the way for the other. A share
+        of the run scales with the move in front of you. Both settings answered
+        the same question, and one question with two settings is how they end up
+        disagreeing.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 760 240" role="img"
+             aria-label="Two breaks that both pass the threshold: one carries forty-five per cent of the run, the other two hundred per cent.">
+
+          <line x1="150" y1="30" x2="150" y2="200" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="6 5"></line>
+          <text class="svg-label strong" x="150" y="22" text-anchor="middle">the threshold, 40%</text>
+
+          <rect x="60" y="60" width="98" height="34" fill="var(--accent)" opacity="0.55"></rect>
+          <text class="svg-label" x="50" y="82" text-anchor="end">scraped past</text>
+          <text class="svg-label strong" x="170" y="82">45% of the run</text>
+
+          <rect x="60" y="140" width="430" height="34" fill="var(--accent)"></rect>
+          <text class="svg-label" x="50" y="162" text-anchor="end">tore through</text>
+          <text class="svg-label strong" x="502" y="162">200% of the run</text>
+
+          <text class="svg-label" x="60" y="215">same verdict — a higher high — and plainly not the same event</text>
+        </svg>
+      </div>
+      <figcaption>
+        <strong>So the number is kept on the break rather than thrown away.</strong>
+        Both of these pass, and a rules layer that only hears "yes" cannot tell
+        them apart. This is the confidence input you flagged: the chart-reading
+        code reports how far it went, and <code>strategy.toml</code> decides
+        what that is worth.
+      </figcaption>
+    </figure>
+
+    <figure>
+      <div class="scroller">
+        <svg viewBox="0 0 760 280" role="img"
+             aria-label="A chart that begins part way up a move. There is no earlier swing low, so the lowest price in the data stands in as the start of the run.">
+
+          <line x1="120" y1="10" x2="120" y2="230" stroke="var(--worn)" stroke-width="1.5"></line>
+          <text class="svg-label warn" x="112" y="130" text-anchor="middle" transform="rotate(-90 112 130)">the data starts here</text>
+
+          <polyline points="130,180 180,150 220,165 270,110 320,70 370,105 420,140 470,120 520,90 570,60"
+                    fill="none" stroke="var(--price)" stroke-width="2.5"
+                    stroke-linejoin="round" stroke-linecap="round"></polyline>
+
+          <line x1="130" y1="180" x2="700" y2="180" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 4"></line>
+          <circle cx="130" cy="180" r="6" fill="none" stroke="var(--accent)" stroke-width="2"></circle>
+          <text class="svg-label strong" x="140" y="202">the lowest price in the data — stands in for the missing swing low</text>
+
+          <circle cx="320" cy="70" r="6" fill="var(--accent)"></circle>
+          <text class="svg-title" x="320" y="58" text-anchor="middle">the first high</text>
+
+          <line x1="86" y1="70" x2="86" y2="180" stroke="var(--accent)" stroke-width="1.5"></line>
+          <line x1="80" y1="70" x2="92" y2="70" stroke="var(--accent)" stroke-width="1.5"></line>
+          <line x1="80" y1="180" x2="92" y2="180" stroke="var(--accent)" stroke-width="1.5"></line>
+          <text class="svg-label strong" x="72" y="125" text-anchor="middle" transform="rotate(-90 72 125)">the run</text>
+
+          <text class="svg-label" x="130" y="252">without this, the first high of every chart is ignored — including today's</text>
+        </svg>
+      </div>
+      <figcaption>
+        <strong>The first swing of a history has nothing behind it.</strong> The
+        run behind a high is normally the move up from the swing low before it,
+        and at the left edge of the data there is no such low. The lowest price
+        seen so far stands in, because that is where the move came up from as
+        far as anything can know. The alternative was ignoring the first high of
+        every chart, which is the one the bot starts trading on.
+      </figcaption>
+    </figure>
+  </section>
+
   <div class="note open">
     <h3>Still to come: option 2</h3>
     <p>
@@ -317,18 +480,23 @@
     </p>
   </div>
 
-  <div class="note">
-    <h3>One setting has to go</h3>
+  <div class="note open">
+    <h3>Three things left out on purpose</h3>
     <p>
-      <code>ta.toml</code> already answers this question a different way:
-      <code>[structure] bos_atr_multiple = 0.3</code> — how far past an old high
-      price must push, measured in normal candles rather than as a fraction of
-      the run.
+      <strong>Change of character</strong> — the first swing that breaks the
+      pattern, the earliest hint a trend is turning. A real idea, and the module
+      docs used to promise it. You have not described it, so it is not there.
     </p>
     <p>
-      Two settings for one question is how they end up disagreeing. The
-      fraction-of-the-run version fits everything else you have described, where
-      the yardstick is always the move in front of you.
+      <strong>Whether an uptrend needs higher lows too.</strong> Today the trend
+      is simply the direction of the last extreme properly taken out. Textbook
+      structure also wants each pullback low to be higher than the one before.
+      You have not been asked, so it is not assumed.
+    </p>
+    <p>
+      <strong>Option 2.</strong> Still waiting on it, and it does not block
+      anything — it is an extra way to accept a higher high, so it slots in
+      beside this one rather than changing it.
     </p>
   </div>
 

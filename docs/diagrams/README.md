@@ -11,7 +11,13 @@ Taking out the old high is not enough. Price has to carry 40 to 50% of the
 previous run past it, measured from the take-out — which refuses the poke that
 looks like a breakout and turns straight back down.
 
-**Open** — option 2, and whether lower lows work the same way. Written up in
+Also holds the four calls made inside the code so they can be argued with: what
+happens to a cross that stalls, why the yardstick changed from normal candles
+to a share of the run, why how far it carried is kept, and what stands in for
+the missing swing behind the first high of a chart.
+
+**Open** — option 2, change of character, and whether an uptrend should insist
+on higher lows. Written up in
 [worksheets/structure.md](../worksheets/structure.md).
 
 Source: [`higher-high.html`](higher-high.html)

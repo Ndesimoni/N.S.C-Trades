@@ -207,6 +207,38 @@ with nothing to show for it.
 
 ---
 
+## The run floor, against real data — OPEN
+
+Tested 13 Aug 2026 on 24,027 real XAUUSD 30-minute candles from Pepperstone,
+aggregated up by the bot.
+
+**The floor as built is too strict.** You said a run must reach about half of
+the *previous* run. It was built as half the **biggest of the last five**, to
+stop a ratchet where each leg is 60% of the last and the chain shrinks away.
+
+On real gold that backfires. One enormous run poisons the memory, and because
+rejected runs never enter the memory, the giant never ages out:
+
+| | Daily swings | Daily levels | 4-hour swings | 4-hour levels |
+|---|---|---|---|---|
+| biggest of five (today) | 28 | 4 | 38 | **0** |
+| middle of five | 53 | 10 | 239 | 1 |
+
+In 83 days of 4-hour gold it found **two swings**, 358 points apart — which is
+why it found no levels at all. A level needs two touches at the same price.
+
+**The proposal, not yet accepted:** measure against the middle of recent runs
+rather than the biggest. It keeps the ratchet protection, because a shrinking
+chain drags the middle down slowly rather than instantly, and stops one freak
+move silencing the next three months.
+
+Both readings are drawn on the real data at
+[docs/diagrams/gold-two-ways.html](../diagrams/gold-two-ways.html). **Left for
+the trader to settle** — it is his rule, and the answer is which reading marks
+the turns he would mark.
+
+---
+
 ## Still open
 
 1. ~~**How near is near half?**~~ **ANSWERED** — 0.382, the same number as the

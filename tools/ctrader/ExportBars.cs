@@ -29,7 +29,6 @@
 // a CSV can say so.
 
 using System;
-using System.IO;
 using System.Text;
 using cAlgo.API;
 
@@ -48,7 +47,9 @@ namespace cAlgo
                 : Folder;
 
             var name = string.Format("{0}_{1}.csv", SymbolName, TimeFrame);
-            var path = Path.Combine(folder, name);
+            // Fully qualified: cAlgo.API has its own Path and File types, and an
+            // unqualified name is ambiguous between the two.
+            var path = System.IO.Path.Combine(folder, name);
 
             var csv = new StringBuilder();
             csv.AppendLine("time,open,high,low,close");
@@ -65,7 +66,7 @@ namespace cAlgo
                     Bars.ClosePrices[i].ToString("F5")));
             }
 
-            File.WriteAllText(path, csv.ToString());
+            System.IO.File.WriteAllText(path, csv.ToString());
 
             Print("Wrote {0} bars to {1}", Bars.Count - 1, path);
             Print("Scroll further left and re-add this indicator if you want more history.");

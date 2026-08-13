@@ -86,8 +86,13 @@ namespace cAlgo
         /// cTrader's sandbox and leaves the file somewhere nobody would look.
         private string WhereToWrite()
         {
+            // Trimmed. A folder pasted into cTrader's box can carry a trailing
+            // newline or space, and the file system will happily make a folder
+            // called "Desktop\n" — which then swallows the export inside a
+            // nest of directories nobody would ever look in. That happened
+            // three times before anyone noticed.
             if (!string.IsNullOrWhiteSpace(Folder))
-                return Folder;
+                return Folder.Trim();
 
             var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 

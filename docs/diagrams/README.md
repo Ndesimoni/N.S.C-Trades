@@ -5,6 +5,55 @@ thing.
 
 ## The diagrams
 
+### [How thick should a band be? →](https://claude.ai/code/artifact/bd6f98cf-a63a-458f-9cdd-a99430cb9b3a)
+
+Six USDCAD levels drawn twice at different thicknesses. One pen width across
+every chart looks consistent to the eye but cannot be computed; a share of a
+normal candle can.
+
+**Settled** — 0.35 of a weekly candle, 0.60 of a daily one, on every
+instrument. Set as `drawn_weekly_atr` and `drawn_daily_atr` in `ta.toml`.
+
+Source: [`band-thickness.html`](band-thickness.html)
+
+### [Your levels, on the real candles →](https://claude.ai/code/artifact/a5a16539-c393-4783-ad87-5c87577046d7)
+
+The eight gold levels he drew, put on the 15-minute export and built up into
+weekly, daily, 4-hour, 1-hour and 15-minute. Same bands on every chart, because
+a level is a price band and cannot change size with the zoom.
+
+Source: [`gold-my-levels.html`](gold-my-levels.html)
+
+### [Your lines against the code's →](https://claude.ai/code/artifact/c31231ba-328a-489f-9948-92ff02f34f88)
+
+His six weekly levels beside the finder's, on the same six years.
+
+**Settled, and it decided the whole approach** — the finder got four of his
+eight, and three could never be found. His levels are where a big move *ended*;
+the finder looks for prices where swings *cluster*. Different definitions, and
+no setting bridges them. So the bot trades his levels.
+
+Source: [`levels-vs-yours.html`](levels-vs-yours.html)
+
+### [Real gold, weekly and daily levels →](https://claude.ai/code/artifact/99c24550-c8cd-42a1-a656-9bc93ee06d3c)
+
+The finder running on six years of real gold. Ten levels found, nine drawn, one
+hidden behind a weekly band.
+
+Also holds the `max_age_bars` problem: 500 candles is two years on the daily
+but ten on the weekly, so the daily search comes back nearly empty.
+
+Source: [`gold-levels.html`](gold-levels.html)
+
+### [Six levels, three lines →](https://claude.ai/code/artifact/58d7f1c9-6472-4092-bb99-578ae36eb925)
+
+What happens when levels from three timeframes land on one chart. The bigger
+timeframe keeps its line; the smaller one is marked, not deleted.
+
+**Made-up prices**, and the page says so.
+
+Source: [`level-absorbing.html`](level-absorbing.html)
+
 ### [Real gold, read two ways →](https://claude.ai/code/artifact/85930284-f032-4dca-ba5a-90d672d8ef4f)
 
 The first page in this folder built on **real data** — 24,027 XAUUSD 30-minute
@@ -75,14 +124,15 @@ Written up in [worksheets/swings.md](../worksheets/swings.md).
 
 Source: [`swing-pullback.html`](swing-pullback.html)
 
-### [What "3 candles either side" means →](https://claude.ai/code/artifact/cdaabf21-8e37-4597-b860-671f89426877)
+### ~~What "3 candles either side" means~~ · [superseded →](https://claude.ai/code/artifact/cdaabf21-8e37-4597-b860-671f89426877)
 
-What the `lookback` setting asks of a candle, the same chart read at 3 and at
-5, and how long you wait before a swing can be used — half a day on the 4-hour,
-three days on the daily.
+**Describes a rule the project no longer uses.** Counting candles either side
+of a peak was replaced by the run-and-pullback rule above.
 
-**Open** — whether 3 matches the peaks you would point at, and whether major
-and minor swings need separating.
+Kept because it records *why*. Candle counting passed a lazy rounded top with
+twenty quiet candles around it, and failed a sharp turn with four — neither
+matching what you see on a chart. The page now opens with a banner saying so,
+so it cannot be read as current.
 
 Source: [`swing-lookback.html`](swing-lookback.html)
 

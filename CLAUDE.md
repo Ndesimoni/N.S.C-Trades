@@ -136,6 +136,14 @@ Keep it true. A `README.txt` that describes files that no longer exist is
 worse than none at all, because it is believed. **If you add, remove or
 rename a file in a folder, update its `README.txt` in the same change.**
 
+**Finish a piece of work, update `PROGRESS.md` in the same change.** Tick what
+is done, mark what is half done, and correct the test count.
+
+Same reason as the READMEs. A progress file that says something is still
+missing when it was finished last week is worse than not having one, because
+the next decision gets made against it. It is the file you look at to answer
+"what now", so it has to be true on the day you look.
+
 **Errors:** libraries use typed errors (`thiserror`); the two binaries use
 `anyhow`. The point of separate error types is to tell the caller *retry or
 give up*. Never lump a bad API key in with a network timeout — the bot will

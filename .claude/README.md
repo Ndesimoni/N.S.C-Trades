@@ -37,6 +37,7 @@ Every change → rule. One kind → skill.
 | `db-migration`   | Changing the database |
 | `workspace`      | Adding a crate or a dependency |
 | `testing`        | Writing tests, especially golden files |
+| `diagram`        | Drawing a picture to settle a question about a rule |
 | `merge-check`    | Checking a change before it lands |
 | `observability`  | Adding logging or health checks |
 | `debug-live`     | Something is wrong with the running bot |

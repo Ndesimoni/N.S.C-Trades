@@ -122,10 +122,35 @@
   footer { color: var(--ink-soft); font-size: 0.9rem; border-top: 1px solid var(--rule); padding-top: 1.25rem; }
 </style>
 
+<style>
+  .superseded {
+    border: 1px solid var(--worn, #A2665C);
+    border-left-width: 3px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--worn, #A2665C) 10%, transparent);
+    color: var(--ink, #14181F);
+    padding: 1rem 1.25rem;
+    font-size: 0.94rem;
+    line-height: 1.6;
+  }
+  .superseded strong { display: block; margin-bottom: 0.35rem; }
+  .superseded a { color: var(--worn, #A2665C); }
+</style>
+
 <div class="wrap">
 
+  <div class="superseded">
+    <strong>This describes a rule the project no longer uses.</strong>
+    Counting candles either side of a peak was replaced by the run-and-pullback
+    rule: a peak counts once price gives back about half the run that made it.
+    Kept because it records why the change was made — a lazy rounded top with
+    twenty quiet candles around it passed this test, and a sharp turn with four
+    around it failed. Neither matched what you see.
+    <a href="https://claude.ai/code/artifact/07ce73cb-6623-47be-a0df-e8d5fde64372">The rule that replaced it →</a>
+  </div>
+
   <header>
-    <p class="eyebrow">nsc_trades · chart reading</p>
+    <p class="eyebrow">nsc_trades · chart reading · superseded</p>
     <h1>What "3 candles either side" actually means</h1>
     <p class="standfirst">
       <code>lookback</code> is the most influential number in the project. Every

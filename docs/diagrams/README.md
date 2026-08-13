@@ -5,6 +5,21 @@ thing.
 
 ## The diagrams
 
+### [Real gold, read two ways →](https://claude.ai/code/artifact/85930284-f032-4dca-ba5a-90d672d8ef4f)
+
+The first page in this folder built on **real data** — 24,027 XAUUSD 30-minute
+candles from Pepperstone, aggregated up to 4-hour and daily by the bot and read
+by the real code.
+
+Holds the proof that the aggregator is right: all 2,096 prices across 524 built
+daily candles match the broker's own daily candles to the cent.
+
+**Open** — whether the run floor measures against the biggest of recent runs or
+the middle. The page shows both readings of the same data so it can be settled
+by eye.
+
+Source: [`gold-two-ways.html`](gold-two-ways.html)
+
 ### [The same rules at four timeframes →](https://claude.ai/code/artifact/9bb3407c-3896-4f6c-9608-7a20edd671f1)
 
 One series of 30-minute candles, built up into 1-hour, 4-hour and daily through

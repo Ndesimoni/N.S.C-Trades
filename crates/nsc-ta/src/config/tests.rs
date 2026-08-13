@@ -14,6 +14,8 @@ fn settings() -> TaSettings {
             band_atr_multiple: 0.5,
             min_touches: 2,
             max_age_bars: 500,
+            absorb_gap_bands: 1.5,
+            min_separation_bands: 3.0,
         },
         structure: StructureSettings {
             min_follow_through: 0.4,

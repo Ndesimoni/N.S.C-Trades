@@ -104,6 +104,8 @@ pub fn level_settings(min_touches: usize, max_age_bars: usize) -> LevelSettings 
         band_atr_multiple: 0.5,
         min_touches,
         max_age_bars,
+        absorb_gap_bands: 1.5,
+        min_separation_bands: 3.0,
     }
 }
 

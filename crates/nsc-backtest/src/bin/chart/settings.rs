@@ -23,11 +23,13 @@ pub fn swing_settings(args: &Args) -> SwingSettings {
     }
 }
 
-pub fn level_settings() -> LevelSettings {
+pub fn level_settings(args: &Args) -> LevelSettings {
     LevelSettings {
-        band_atr_multiple: 0.5,
-        min_touches: 2,
-        max_age_bars: 500,
+        band_atr_multiple: args.band_atr,
+        min_touches: args.min_touches,
+        max_age_bars: args.max_age,
+        absorb_gap_bands: args.absorb_gap,
+        min_separation_bands: args.min_separation,
     }
 }
 

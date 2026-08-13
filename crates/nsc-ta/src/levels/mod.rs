@@ -36,15 +36,18 @@
 //! ## What is where
 //!
 //! - [`grouping`] — sliding one band to catch the most swing points
-//! - [`finder`] — the whole job: age, thickness, grouping, levels out
+//! - [`finder`] — one timeframe: age, thickness, grouping, levels out
+//! - [`across`] — every timeframe at once, and which of them get a line
 //!
 //! Read `README.txt` for the decisions inside the grouping and what they
 //! cost.
 
+mod across;
 mod finder;
 mod grouping;
 
 #[cfg(test)]
 mod tests;
 
+pub use across::{decide_what_gets_a_line, find_levels_across};
 pub use finder::find_levels;

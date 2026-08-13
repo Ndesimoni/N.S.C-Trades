@@ -76,7 +76,7 @@ fn distance_is_measured_to_the_nearest_edge_and_keeps_its_side() {
 fn a_level_reports_the_facts_it_was_built_from() {
     let level = level();
 
-    assert_eq!(level.touches(), 3);
+    assert_eq!(level.touches(), Some(3));
     assert_eq!(level.timeframe(), Timeframe::D1);
     assert_eq!(level.centre(), price(105));
     assert!(level.contains(price(102)));
@@ -116,4 +116,54 @@ fn a_level_cannot_be_used_before_it_confirmed() {
     assert!(!level.is_known_at(at(5)));
     assert!(level.is_known_at(at(6)));
     assert!(level.is_known_at(at(7)));
+}
+
+// ── Being covered by a bigger timeframe ──
+
+#[test]
+fn a_level_is_drawn_unless_something_bigger_covers_it() {
+    let daily = level();
+
+    assert!(daily.is_drawn());
+    assert_eq!(daily.absorbed_by(), None);
+
+    let covered = daily.covered_by(Timeframe::W1).expect("weekly is bigger");
+
+    assert!(!covered.is_drawn());
+    assert_eq!(covered.absorbed_by(), Some(Timeframe::W1));
+}
+
+// Being covered is a drawing rule. Everything that made the level worth
+// having is still on it, because two timeframes turning at one price is the
+// confluence you actually want.
+#[test]
+fn a_covered_level_keeps_everything_it_knew() {
+    let daily = level();
+    let covered = daily.covered_by(Timeframe::W1).expect("weekly is bigger");
+
+    assert_eq!(covered.band(), daily.band());
+    assert_eq!(covered.touches(), daily.touches());
+    assert_eq!(
+        covered.timeframe(),
+        Timeframe::D1,
+        "it is still a daily level"
+    );
+    assert_eq!(covered.confirmed_at(), daily.confirmed_at());
+}
+
+// The rule is that the bigger timeframe wins. This is where that is enforced
+// rather than remembered.
+#[test]
+fn a_smaller_timeframe_cannot_swallow_a_bigger_one() {
+    let daily = level();
+
+    assert!(matches!(
+        daily.covered_by(Timeframe::H4),
+        Err(CoreError::ImpossibleLevel { .. })
+    ));
+
+    assert!(matches!(
+        daily.covered_by(Timeframe::D1),
+        Err(CoreError::ImpossibleLevel { .. })
+    ));
 }

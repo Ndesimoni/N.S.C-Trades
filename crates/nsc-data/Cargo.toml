@@ -15,6 +15,9 @@ redis        = { workspace = true }
 serde        = { workspace = true }
 serde_json   = { workspace = true }
 csv          = { workspace = true }
+# Reading the hand-drawn levels in config/levels/. Pure parsing, no I/O of its
+# own — the file is opened here and handed over as text.
+toml         = { workspace = true }
 chrono       = { workspace = true }
 rust_decimal = { workspace = true }
 uuid         = { workspace = true }

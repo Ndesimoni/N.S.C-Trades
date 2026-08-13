@@ -36,10 +36,14 @@
 //! - [`zone`] — `Level`, that band plus what is known about it
 
 mod band;
+mod hidden;
+mod origin;
 mod zone;
 
 #[cfg(test)]
 mod tests;
 
 pub use band::Band;
+pub use hidden::NotDrawn;
+pub use origin::Origin;
 pub use zone::Level;

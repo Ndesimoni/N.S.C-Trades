@@ -29,10 +29,10 @@ fn a_level_is_never_known_on_the_candle_of_its_last_touch() {
 
     for level in &levels {
         assert!(
-            level.confirmed_at() > level.last_touch(),
+            Some(level.confirmed_at()) > level.last_touch(),
             "a touch is a swing, and a swing takes candles to confirm: {level:?}"
         );
-        assert!(!level.is_known_at(level.last_touch()));
+        assert!(!level.is_known_at(level.last_touch().expect("a found level")));
     }
 }
 
@@ -58,7 +58,11 @@ fn a_swing_that_has_not_confirmed_yet_is_ignored() {
 
     let level = level_at(&levels, 200).expect("a level at 200");
 
-    assert_eq!(level.touches(), 2, "the third touch had not happened yet");
+    assert_eq!(
+        level.touches(),
+        Some(2),
+        "the third touch had not happened yet"
+    );
 }
 
 // An unfinished candle's high and low have not finished happening. A level

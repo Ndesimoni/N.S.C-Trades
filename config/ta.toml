@@ -45,6 +45,21 @@ run_memory_legs     = 5
 # Too thin and a wick that overshoots by a hair misses the level. Too thick
 # and every price is at every level.
 band_atr_multiple = 0.5
+# How thick a HAND-DRAWN level's band is, as a fraction of a normal candle on
+# its own timeframe.
+#
+# The levels files hold one price per level. This turns that price into a band.
+#
+# TWO NUMBERS, NOT ONE. Measured off the trader's own gold chart: his weekly
+# band is 0.36 of a normal weekly candle, his daily 0.63 of a normal daily one.
+# Rounded here to what a pixel measurement can honestly support. A single
+# multiple cannot produce both — on the higher timeframe he draws TIGHTER
+# relative to how far price moves, not looser.
+#
+# Same numbers on every instrument. He draws with the same pen everywhere.
+drawn_weekly_atr  = 0.35
+drawn_daily_atr   = 0.60
+drawn_h4_atr      = 0.60
 # How many touches before a band counts as a real level at all. Below this,
 # nothing is drawn and nothing is reported.
 #
@@ -55,6 +70,43 @@ min_touches       = 2
 # years of weekly candles, two years of daily, three months of 4-hour — which
 # is about as far left as you look on each.
 max_age_bars      = 500
+# How far clear of a BIGGER level a smaller one must sit to keep its own line,
+# measured in the bigger band's own thickness.
+#
+#   0.0   only when they actually touch
+#   0.5   also when you could not fit another band between them
+#   1.0   anything within a full band's width
+#
+# Overlapping is not the only thing that makes two lines read as one. A daily
+# band sitting just under a weekly band, clear of it, still looks like one
+# thick line and tells you nothing the weekly did not.
+#
+# Measured in bands rather than points so it means the same on gold and on
+# EURUSD. A weekly band is thick, so "close to a weekly" is a bigger distance
+# than "close to a 4-hour" — which is right.
+#
+# A DRAWING rule. Nothing is thrown away: the level is still found, still
+# counted, and the engine still knows two timeframes turned at that price.
+absorb_gap_bands  = 1.5
+# How far apart two levels on the SAME timeframe must sit, in that timeframe's
+# own band-widths.
+#
+# THE CONSOLIDATION RULE. Price chops around one area for two years and turns a
+# dozen times, so a level is found at every turn. You look at all of it and draw
+# ONE line saying "price did something here".
+#
+# When two are too close, the one with MORE TOUCHES keeps the line — the price
+# it actually turned at, not the middle of the area.
+#
+# The one crowded out is not deleted. And because only a DRAWN level can cover a
+# smaller one, a weekly that lost its line stops hiding the daily at that price,
+# so the daily draws itself instead. That is the demotion, and it needs no rule
+# of its own.
+#
+# Measured off the trader's own gold weekly chart on 13 Aug 2026: his levels sit
+# 400 to 800 apart, and a weekly band is about 125. Three bands is the tightest
+# he draws.
+min_separation_bands = 3.0
 
 # NO strong_touches HERE. It moved to strategy.toml [levels].
 #

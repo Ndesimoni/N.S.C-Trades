@@ -2122,6 +2122,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-tungstenite",
+ "toml",
  "tracing",
  "uuid",
 ]

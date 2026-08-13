@@ -24,6 +24,7 @@ pub mod cache;
 pub mod error;
 pub mod events;
 pub mod gaps;
+pub mod levels;
 pub mod source;
 pub mod sources;
 pub mod store;

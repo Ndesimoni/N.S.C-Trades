@@ -28,7 +28,7 @@ fn a_price_turned_at_twice_becomes_a_level() {
 
     let level = level_at(&levels, 200).expect("a level at 200");
 
-    assert_eq!(level.touches(), 2);
+    assert_eq!(level.touches(), Some(2));
     assert_eq!(level.centre(), price(200));
     assert_eq!(level.timeframe(), Timeframe::M15);
 }
@@ -41,7 +41,7 @@ fn turns_at_nearly_the_same_price_make_one_level() {
 
     let level = level_at(&levels, 202).expect("a level at the peaks");
 
-    assert_eq!(level.touches(), 3);
+    assert_eq!(level.touches(), Some(3));
 }
 
 #[test]
@@ -69,8 +69,8 @@ fn the_touch_dates_are_the_candles_the_touches_sit_on() {
     let levels = levels_on(&[100, 200, 100, 200, 100], 2, 500);
     let level = level_at(&levels, 200).expect("a level at 200");
 
-    assert_eq!(level.first_touch(), at(turn_index(1)));
-    assert_eq!(level.last_touch(), at(turn_index(3)));
+    assert_eq!(level.first_touch(), Some(at(turn_index(1))));
+    assert_eq!(level.last_touch(), Some(at(turn_index(3))));
 }
 
 // A price that turned the market long ago and has not been near it since is

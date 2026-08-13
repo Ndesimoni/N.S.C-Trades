@@ -49,7 +49,7 @@ pub fn show_swings_and_levels(candles: &[Candle], timeframe: Timeframe, args: &A
         candles,
         &swings,
         timeframe,
-        &level_settings(),
+        &level_settings(args),
         args.atr_period,
     )?;
 
@@ -59,8 +59,10 @@ pub fn show_swings_and_levels(candles: &[Candle], timeframe: Timeframe, args: &A
             "  {} to {}   {} touches, last {}",
             level.band().low().round_for_display(5),
             level.band().high().round_for_display(5),
-            level.touches(),
-            level.last_touch().date_naive()
+            level.touches().map_or("-".into(), |t| t.to_string()),
+            level
+                .last_touch()
+                .map_or("-".into(), |t| t.date_naive().to_string())
         );
     }
 

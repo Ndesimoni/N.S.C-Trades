@@ -50,6 +50,13 @@ pub struct Args {
     #[arg(long)]
     timeframe: Option<String>,
 
+    /// Read the levels the trader drew himself, instead of finding them.
+    ///
+    /// Point it at `config/levels/XAUUSD.toml`. These are what the bot
+    /// actually trades — the finder only exists to be scored against them.
+    #[arg(long)]
+    pub levels: Option<PathBuf>,
+
     /// Print the findings as JSON instead, for drawing elsewhere.
     #[arg(long, default_value_t = false)]
     json: bool,
@@ -66,6 +73,27 @@ pub struct Args {
     /// How far back "recent" reaches, counted in runs.
     #[arg(long, default_value_t = 5)]
     run_memory_legs: usize,
+
+    /// How thick a level band is, as a fraction of a normal candle.
+    #[arg(long, default_value_t = 0.5)]
+    pub band_atr: f64,
+
+    /// How many touches before a band counts as a level.
+    #[arg(long, default_value_t = 2)]
+    pub min_touches: usize,
+
+    /// How far back to look for levels, in candles.
+    #[arg(long, default_value_t = 500)]
+    pub max_age: usize,
+
+    /// How far apart two levels on the SAME timeframe must sit, in bands.
+    #[arg(long, default_value_t = 3.0)]
+    pub min_separation: f64,
+
+    /// How clear of a bigger level a smaller one must sit, in the bigger
+    /// level's bands.
+    #[arg(long, default_value_t = 1.5)]
+    pub absorb_gap: f64,
 }
 
 fn main() -> Result<()> {
@@ -121,7 +149,7 @@ fn main() -> Result<()> {
 }
 
 /// The daily close this project uses, from config/app.toml.
-fn boundary() -> Result<DayBoundary> {
+pub fn boundary() -> Result<DayBoundary> {
     let tz: Tz = "America/New_York"
         .parse()
         .map_err(|_| anyhow::anyhow!("America/New_York is not a timezone this build knows"))?;

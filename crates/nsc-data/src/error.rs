@@ -62,6 +62,14 @@ pub enum DataError {
         text: String,
     },
 
+    /// A levels file could not be parsed.
+    ///
+    /// **Give up rather than guess.** A level with a mistyped price is a line
+    /// drawn at the wrong place, and every decision made against it is wrong
+    /// with nothing to show that it happened.
+    #[error("cannot read the levels in {path}: {detail}")]
+    BadLevelsFile { path: PathBuf, detail: String },
+
     /// Something the shared types refused — an impossible candle, or candles
     /// out of order.
     ///

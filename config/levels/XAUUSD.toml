@@ -1,0 +1,77 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  XAUUSD — levels drawn by hand
+# ═══════════════════════════════════════════════════════════════════════════
+#
+#  Read off the weekly TradingView chart of 14 Aug 2026.
+#
+#  ── ONE PRICE, NOT A BAND ─────────────────────────────────────────────────
+#
+#  Each level is the price the line sits at. The band around it is worked out
+#  from a normal candle on that timeframe, using `band_bands` in ta.toml.
+#
+#  Why the split: the thickness is the same on every chart he draws, so it is
+#  a setting rather than something to write out a hundred times. And reading
+#  one centre line off a screenshot is far more accurate than reading two
+#  edges — about 3 points instead of 15.
+#
+#  ── EVERY LEVEL RUNS FORWARD ONLY ─────────────────────────────────────────
+#
+#  `from` is the day it was drawn, and the level does not exist before it. A
+#  level drawn today knows what price did last year, so letting it act on last
+#  year's candles would make a backtest look better than anything that could
+#  have been traded.
+#
+#  A level that stops being true gets DELETED, not marked.
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+# ── Weekly ─────────────────────────────────────────────────────────────────
+
+[[level]]
+timeframe = "W1"
+price     = 495
+from      = 2026-08-14
+
+[[level]]
+timeframe = "W1"
+price     = 452
+from      = 2026-08-14
+note      = "a 1195-point drop ended here — the biggest move in the file"
+
+[[level]]
+timeframe = "W1"
+price     = 4
+from      = 2026-08-14
+note      = "an 866-point crash stopped dead here"
+
+[[level]]
+timeframe = "W1"
+price     = 335
+from      = 2026-08-14
+
+[[level]]
+timeframe = "W1"
+price     = 266
+from      = 2026-08-14
+
+[[level]]
+timeframe = "W1"
+price     = 204
+from      = 2026-08-14
+note      = "the top of the two-year base"
+
+
+# ── Daily ─────────────────────────────────────────────────────────────────
+
+[[level]]
+timeframe = "D1"
+price     = 428
+from      = 2026-08-14
+
+[[level]]
+timeframe = "D1"
+price     = 299
+from      = 2026-08-14
+
+# ── 4-hour ─────────────────────────────────────────────────────────────────
+# None yet.

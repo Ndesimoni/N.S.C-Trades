@@ -5,6 +5,20 @@ thing.
 
 ## The diagrams
 
+### [The same rules at four timeframes →](https://claude.ai/code/artifact/9bb3407c-3896-4f6c-9608-7a20edd671f1)
+
+One series of 30-minute candles, built up into 1-hour, 4-hour and daily through
+the aggregator, then read by the same four settings. Every swing and level on
+it came out of the real code.
+
+Shows that more swings appear on lower timeframes because there are more legs
+there, not because the rule loosened — the settings are identical on all four.
+
+**Made-up candles**, and the page says so twice. The real version needs a gold
+daily export.
+
+Source: [`timeframes.html`](timeframes.html)
+
 ### [The candlestick shapes, and two still undecided →](https://claude.ai/code/artifact/9f9ef70d-c0d6-4bfb-b621-25a26f94339a)
 
 The six shapes the bot now reads, drawn with the measurement that makes each

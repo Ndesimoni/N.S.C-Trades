@@ -8,6 +8,10 @@
 # ───────────────────────────────────────────────────────────────────────────
 [package]
 name              = "nsc-work-man"
+
+# Which program `cargo run -p nsc-work-man` means. Without it, adding a second
+# program to bin/ makes plain `cargo run` refuse to choose.
+default-run       = "nsc-work-man"
 version.workspace = true
 edition.workspace = true
 
@@ -16,6 +20,10 @@ edition.workspace = true
 # Waiting on the network without freezing everything else.
 tokio   = { workspace = true }
 reqwest = { workspace = true }
+tokio-tungstenite = { workspace = true }
+futures-util = "0.3"
+
+
 
 # Turning the JSON that comes back into types we can use.
 serde      = { workspace = true }

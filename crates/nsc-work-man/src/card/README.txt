@@ -1,0 +1,87 @@
+card/ — turning candles into a picture
+======================================
+
+
+WHAT THIS FOLDER IS FOR
+
+  Putting real numbers into an HTML template and asking Chrome to take a
+  photograph of it.
+
+  THE DESIGN IS NOT IN HERE. It is in assets/card/*.html. Open one, change
+  it, run the bot — the next message picks it up. No rebuild, no Rust.
+
+  This folder only does the plumbing between the two.
+
+
+THE FILES
+
+  mod.rs      The front door.
+
+  fill.rs     Reads a template, puts the numbers in, works out how tall it
+              is, and hands it to Chrome. Start here.
+
+  facts.rs    Turns candles into the numbers a template can read. Nothing in
+              here knows about colours or layout, and nothing in a template
+              works out a price.
+
+  chrome.rs   Runs Chrome headless, then cuts the white strip off the
+              bottom.
+
+  tests.rs    Seven tests, on the two things that have actually gone wrong.
+
+  README.txt  This file.
+
+
+TWO THINGS THAT HAVE CAUGHT US, BOTH NOW PINNED BY TESTS
+
+  1. THE HEIGHT LIVES IN THE TEMPLATE
+
+     At the top of each card's CSS:
+
+         --card-height:647px;
+
+     fill.rs reads that line straight out of the file.
+
+     Chrome screenshots a WINDOW, not a page, so something has to say how
+     tall. The file being designed is the honest place for it — two numbers
+     in two files drift apart, one does not.
+
+     The height was held in Rust first. It clipped the footer four times.
+
+  2. ROUNDING HAPPENS ON THE WAY OUT, AND NOWHERE ELSE
+
+     The feed sends gold as 4385.59525. Gold is quoted to two decimals.
+
+     facts.rs rounds every price to the instrument's own precision as it
+     hands it over. Let all five through and a card reads like a debug dump
+     rather than a signal.
+
+     That is also the only place a price becomes a float, because JSON has no
+     other kind of number. Everything before it is Decimal.
+
+
+THE TRAP IN chrome.rs
+
+  CHROME ALWAYS LEAVES 87 PIXELS OF WHITE.
+
+  It hands the page a viewport 87px shorter than the window asked for, and
+  paints the rest white. Measured, not guessed: ask for 600 and the page gets
+  513; ask for 900 and it gets 813.
+
+  So the window is asked for 87 taller and the strip is cut off afterwards.
+  The old headless mode did not do this, and it has been removed from Chrome.
+
+  BOTH PATHS MUST BE ABSOLUTE. Chrome runs with its own working folder. Give
+  it file://preview/chart.html and it reads "preview" as a HOSTNAME, fails to
+  reach it, and quietly screenshots its own error page — which then goes to
+  Telegram looking like a real card. That has happened.
+
+  And Chrome answers 0 whether it drew your card or its own error page. The
+  only honest check is whether a file appeared.
+
+
+THE COST OF ALL THIS
+
+  Whatever machine runs the bot needs Chrome installed. Fine on a Mac. A real
+  dependency on a server, and worth remembering before it goes anywhere but a
+  laptop.

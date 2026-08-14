@@ -30,13 +30,19 @@ THE FILES
 
   feed.rs       Asking Twelve Data. One request, one answer.
 
-  card.rs       Filling in an HTML template and letting Chrome screenshot it.
+  card/         Filling in an HTML template and letting Chrome screenshot it.
+                A folder because it holds three jobs — putting the numbers in,
+                turning candles into numbers, and driving Chrome — and because
+                it has tests.
 
   message.rs    The one line under the picture. It is the notification
                 banner, not the message — the card is the message.
 
   telegram.rs   Sending. Several pictures go as one media group so the phone
                 buzzes once and each picture still opens on its own.
+
+  bin/          Small programs that are not the bot. listen.rs watches the
+                live price stream.
 
   README.txt    This file.
 

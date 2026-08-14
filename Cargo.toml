@@ -19,6 +19,19 @@ edition = "2024"
 tokio   = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "multipart"] }
 
+
+# Holding a line open. reqwest can only ask a question and get an answer;
+# a websocket stays open and the other side pushes prices down it whenever
+# it likes.
+tokio-tungstenite = { version = "0.24", default-features = false, features = ["connect", "rustls-tls-webpki-roots"] }
+
+
+# Pinned exactly. 0.3.34 asks for a companion crate at the same version that
+# was never published, so it cannot build. 0.3.31 is the last good pair.
+futures-util = "=0.3.31"
+
+
+
 # ── Reading what comes back ──
 serde      = { version = "1", features = ["derive"] }
 serde_json = "1"

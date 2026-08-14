@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**One crate · 8 tests · clippy clean · a message arrives every time it runs.**
+**One crate · 15 tests · clippy clean · a message arrives every time it runs.**
 
 ---
 
@@ -61,7 +61,8 @@ crates/nsc-work-man/src/
   settings.rs   pair, timeframe, digits — step 2 replaces this with config
   candle/       one candle, and whether it has finished. 8 tests
   feed.rs       asking Twelve Data
-  card.rs       filling in a template, letting Chrome draw it
+  card/         filling in a template, letting Chrome draw it. 7 tests
+  bin/listen.rs the live price stream, proved to work
   message.rs    the caption — the notification banner, not the message
   telegram.rs   sending, as a media group
 
@@ -70,8 +71,8 @@ assets/card/
   readout.html   where price sat inside the candle
 ```
 
-Every file is under 100 lines except `card.rs` at 187. Every folder with code
-in it has a `README.txt`.
+**Every file is under 140 lines. Every folder with code in it has a
+`README.txt`.**
 
 **The design lives in HTML, not in Rust.** Open the file, change it, and the
 next message picks it up — no rebuild. Chrome draws it headlessly.
@@ -121,8 +122,13 @@ to build in now, annoying to retrofit.
 
 - [ ] **OANDA** — waiting on them, about 24 hours from 14 August. Worth having
       because it marks each candle finished or not, so the guessing stops
-- [ ] **The websocket** — Twelve Data gives 8 credits and 1 connection on the
-      free plan, marked *trial*. Untested. No price watcher without it
+- [x] **The websocket works, and it changes the cost of everything.** Tested
+      14 August: the line opens, gold is allowed on the trial plan, and prices
+      arrive about one a second. So price watching costs **0 requests**, and a
+      request only happens when price reaches a level — not once per candle
+      close. See `crates/nsc-work-man/src/bin/README.txt`
+- [ ] **Gold specifically has not been watched ticking** — it was shut for the
+      weekend, so the test ran on BTC/USD. Change one word back on Sunday
 - [ ] **`--card-height` is measured by hand.** Each template says how tall it
       is and Rust reads that line, but the number comes from measuring the page
       once and typing it in. It will go stale when the design changes

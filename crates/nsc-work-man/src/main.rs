@@ -78,7 +78,12 @@ async fn main() -> Result<()> {
     card::render("chart.html", &oldest_first, settings::DIGITS, &chart_card)?;
 
     let readout_card = std::path::Path::new("preview").join("readout.png");
-    card::render("readout.html", &oldest_first, settings::DIGITS, &readout_card)?;
+    card::render(
+        "readout.html",
+        &oldest_first,
+        settings::DIGITS,
+        &readout_card,
+    )?;
 
     telegram::send(&client, &[&chart_card, &readout_card], &caption).await?;
 

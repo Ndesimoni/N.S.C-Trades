@@ -89,17 +89,55 @@ comes from a closed candle.
 If those two ever start looking the same, the alert has quietly become a
 signal, and the price watcher has become a strategy nobody reviewed.
 
-## The cards, and which message sends which
+## Silence is the default
 
-Each card in `assets/card/` is a whole picture that stands up on its own. They
-are pieces, not a set — **a message picks the ones it needs.**
+**Nothing arrives on a quiet hour.** No routine message, no hourly candle, no
+"here is the chart again".
 
-| Message | Cards |
+That is the trader's own decision and it is the right one. Send something every
+hour and by the second week he stops opening them — and then he misses the one
+that mattered.
+
+## The ladder
+
+Three rungs, each adding to the one below. A message only exists because
+something happened.
+
+| | When | What arrives |
+|---|---|---|
+| **1** | price touches a level he drew | **an alert.** One line, no picture. *Gold has reached 4,520* |
+| **2** | a candle closes inside that zone | **the candlestick.** What it actually did there |
+| **3** | it closed there **and** a strategy matched | **the chart and the candlestick**, with entry, stop, target and the sentence |
+
+**Rung 2 is the one worth understanding.** Price arriving at a level says
+nothing — it may cut straight through. The *close* is what says whether it was
+a rejection. A candle at 4,520 that closes with a long wick back down is one
+thing; the same candle closing at its high is the opposite. You only know which
+once it has finished.
+
+Rung 1 may fire on a candle still forming — it is only a heads-up. **Rungs 2
+and 3 never may.**
+
+## The heartbeat
+
+Silence has one problem: after three quiet days he cannot tell whether nothing
+happened or the bot died.
+
+So: **one message in the morning, one in the evening.** Still running, pairs
+watched, zones touched, signals sent. Twice rather than once, because twelve
+hours of silence is believable and twenty-four starts to feel wrong.
+
+It doubles as the record that answers "why did nothing fire this week?".
+
+## The cards
+
+Each file in `assets/card/` is a whole picture that stands up on its own. They
+are pieces, not a set — **a message picks the ones its rung needs.**
+
+| | |
 |---|---|
-| Price watcher — *your zone is live* | its own card: the level touched, price now. No chart; nothing has formed |
-| A candle closed | `chart.html` alone. It carries its own open, high, low and range |
-| A signal | the chart with your levels and the entry, stop and target on it, plus a card carrying the reasoning |
-| Detail on request | `readout.html` — where price sat inside the candle |
+| `chart.html` | the candles, with the price scale and the open, high, low and range |
+| `readout.html` | where price sat inside one candle — the shape of it |
 
 Several pictures go as a **media group**, not several messages. One buzz, and
 each picture opens on its own when tapped.

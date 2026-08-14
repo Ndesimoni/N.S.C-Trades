@@ -131,6 +131,32 @@ to build in now, annoying to retrofit.
 
 ---
 
+## What the bot is allowed to say — [x] decided, [ ] built
+
+**Silence is the default.** Nothing arrives on a quiet hour. Send something
+every hour and by the second week he stops opening them, and then he misses
+the one that mattered.
+
+| | When | What arrives |
+|---|---|---|
+| **1** | price touches a level he drew | an alert. One line, no picture. May fire on a candle still forming — it is only a heads-up |
+| **2** | a candle closes inside that zone | the candlestick. What it actually did there |
+| **3** | it closed there **and** a strategy matched | the chart and the candlestick, with entry, stop, target and the sentence |
+| **·** | morning and evening | a heartbeat — still running, pairs watched, zones touched, signals sent |
+
+**Rung 2 is the point.** Price arriving at a level says nothing; it may cut
+straight through. The *close* says whether it was a rejection. So rungs 2 and 3
+never fire on a candle still forming.
+
+The heartbeat exists because silence has one problem: after three quiet days
+you cannot tell whether nothing happened or the bot died. Twice a day rather
+than once — twelve hours of silence is believable, twenty-four is not.
+
+Needs levels loaded, which is step 5. Until then the hourly message stays as
+the only sign of life.
+
+---
+
 ## Step 2 — every pair, behind one door — [ ]
 
 *Done when it runs a full trading day without dropping a stream or missing a

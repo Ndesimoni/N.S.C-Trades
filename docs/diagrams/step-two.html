@@ -1,0 +1,438 @@
+<title>One Door, Eight Pairs</title>
+
+<style>
+  :root {
+    --ground:    #F4F6F5;
+    --panel:     #FFFFFF;
+    --sunk:      #ECEFEE;
+    --ink:       #12181A;
+    --ink-soft:  #57646A;
+    --ink-faint: #8A959B;
+    --rule:      #DBE1E0;
+
+    --live:   #0F6E5C;
+    --watch:  #A9701C;
+    --stop:   #A33A32;
+
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans:  ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:    #0C1012;
+      --panel:     #141A1C;
+      --sunk:      #101618;
+      --ink:       #E6EBEA;
+      --ink-soft:  #97A4A8;
+      --ink-faint: #6A777C;
+      --rule:      #232D30;
+
+      --live:   #4FBFA3;
+      --watch:  #D9A54A;
+      --stop:   #E08079;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:    #0C1012;
+    --panel:     #141A1C;
+    --sunk:      #101618;
+    --ink:       #E6EBEA;
+    --ink-soft:  #97A4A8;
+    --ink-faint: #6A777C;
+    --rule:      #232D30;
+
+    --live:   #4FBFA3;
+    --watch:  #D9A54A;
+    --stop:   #E08079;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    margin: 0;
+    padding: clamp(1.5rem, 5vw, 3.5rem) 1.25rem 5rem;
+  }
+
+  .wrap { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 3rem; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 0.7rem;
+  }
+
+  h1 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.12;
+    letter-spacing: -0.02em; text-wrap: balance; margin: 0 0 1rem;
+  }
+
+  .standfirst { max-width: 62ch; color: var(--ink-soft); margin: 0; font-size: 1.03rem; }
+
+  h2 {
+    font-family: var(--serif); font-size: 1.4rem; font-weight: 600;
+    letter-spacing: -0.012em; margin: 0 0 0.45rem;
+  }
+  .note { color: var(--ink-soft); margin: 0 0 1.6rem; max-width: 66ch; font-size: 0.95rem; }
+
+  .stage {
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 12px; padding: 1.5rem;
+  }
+  .scroller { overflow-x: auto; }
+  .chart { display: block; width: 100%; min-width: 660px; height: auto; }
+
+  pre.code {
+    font-family: var(--mono); font-size: 0.86rem; line-height: 1.7;
+    background: var(--sunk); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 1.2rem 1.35rem; overflow-x: auto; margin: 0;
+    color: var(--ink);
+  }
+  pre.code b { color: var(--live); font-weight: 500; }
+  pre.code i { color: var(--ink-faint); font-style: normal; }
+
+  .gate { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
+  .lane { border-radius: 10px; padding: 1.15rem 1.25rem; background: var(--sunk); border: 1px solid var(--rule); }
+  .lane h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+  .lane h3 i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+  .lane p { margin: 0 0 0.6rem; font-size: 0.92rem; color: var(--ink-soft); }
+  .lane p:last-child { margin: 0; }
+  .lane strong { color: var(--ink); font-weight: 600; }
+  .lane.is-bad  { border-left: 3px solid var(--stop); }
+  .lane.is-good { border-left: 3px solid var(--live); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+  th, td { text-align: left; padding: 0.62rem 1rem 0.62rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  td code { font-family: var(--mono); font-size: 0.85rem; }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; padding-right: 0; }
+  tr.is-worst td { color: var(--stop); font-weight: 600; }
+
+  .steps { display: flex; flex-direction: column; gap: 1rem; counter-reset: step; }
+  .step {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 1.35rem 1.5rem; display: grid; grid-template-columns: 2.4rem 1fr; gap: 0 1.15rem;
+  }
+  .step::before {
+    counter-increment: step; content: counter(step);
+    font-family: var(--mono); font-size: 1.4rem; font-weight: 500;
+    color: var(--ink-faint); line-height: 1.25; grid-row: 1 / span 3;
+    font-variant-numeric: tabular-nums;
+  }
+  .step h3 { margin: 0 0 0.3rem; font-size: 1.06rem; font-weight: 600; }
+  .step p { margin: 0 0 0.55rem; font-size: 0.94rem; color: var(--ink-soft); }
+  .step p:last-child { margin: 0; }
+  .step strong { color: var(--ink); font-weight: 600; }
+  @media (max-width: 520px) {
+    .step { grid-template-columns: 1fr; }
+    .step::before { grid-row: auto; }
+  }
+
+  footer { border-top: 1px solid var(--rule); padding-top: 1.5rem; color: var(--ink-soft); font-size: 0.93rem; max-width: 68ch; }
+  footer strong { color: var(--ink); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">nsc_trades · step 2 of 8</p>
+    <h1>One Door, Eight Pairs</h1>
+    <p class="standfirst">
+      Step 1 fetched one pair on one timeframe, with both written into the
+      code. Step 2 makes that a list you edit, hides the feed behind one
+      interface so a second one can be added without a rewrite, and solves a
+      timing problem that is worse than it first looked.
+    </p>
+  </header>
+
+  <section>
+    <h2>The problem nobody would have found by reading</h2>
+    <p class="note">
+      Twelve Data allows <strong>8 requests a minute</strong> on the free plan.
+      That sounds generous until you notice <em>when</em> our requests want to
+      happen.
+    </p>
+
+    <div class="stage">
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr>
+              <th>Moment</th>
+              <th>What closes at once</th>
+              <th class="num">Requests</th>
+              <th class="num">Limit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Every hour</td>
+              <td>the 1-hour</td>
+              <td class="num">8</td>
+              <td class="num">8</td>
+            </tr>
+            <tr>
+              <td>Every 4 hours</td>
+              <td>the 1-hour <em>and</em> the 4-hour</td>
+              <td class="num">16</td>
+              <td class="num">8</td>
+            </tr>
+            <tr>
+              <td>21:00 UTC daily</td>
+              <td>1-hour, 4-hour and the day</td>
+              <td class="num">24</td>
+              <td class="num">8</td>
+            </tr>
+            <tr class="is-worst">
+              <td>Friday 21:00 UTC</td>
+              <td>1-hour, 4-hour, the day <em>and the week</em></td>
+              <td class="num">32</td>
+              <td class="num">8</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="note" style="margin: 1.4rem 0 0;">
+        <strong style="color: var(--ink)">Friday at 21:00 UTC is the worst
+        moment in the week</strong>, and it is not a coincidence — 21:00 UTC is
+        17:00 in New York, which is where the hour, the day <em>and</em> the
+        week all end at once. Every timeframe we watch finishes on the same
+        second.
+      </p>
+      <p class="note" style="margin: 0.8rem 0 0;">
+        <strong style="color: var(--ink)">The daily budget is not the
+        problem.</strong> Eight pairs use about 250 of the 800 allowed in a
+        day. It is the burst, not the total.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Fire at once, or spread out</h2>
+    <p class="note">
+      One minute of Friday evening, drawn twice. Each mark is a request; the
+      dotted line is what the plan allows.
+    </p>
+
+    <div class="stage">
+      <div class="scroller">
+        <svg class="chart" viewBox="0 0 940 420" role="img"
+             aria-label="Fired at once, all 32 requests land on the same second and 24 of them are refused. Spread over four minutes, eight land per minute and none are refused.">
+
+          <!-- ── all at once ── -->
+          <text x="0" y="22" font-family="var(--mono)" font-size="11.5" letter-spacing="1.2" fill="var(--stop)">ALL AT ONCE</text>
+          <text x="0" y="42" font-family="var(--sans)" font-size="13" fill="var(--ink-soft)">32 requests on the same second</text>
+
+          <line x1="0" y1="150" x2="940" y2="150" stroke="var(--rule)" />
+          <text x="0" y="168" font-family="var(--mono)" font-size="11" fill="var(--ink-faint)">21:00:00</text>
+          <text x="940" y="168" font-family="var(--mono)" font-size="11" fill="var(--ink-faint)" text-anchor="end">21:04:00</text>
+
+          <!-- the ceiling -->
+          <line x1="0" y1="72" x2="940" y2="72" stroke="var(--stop)" stroke-width="1.5" stroke-dasharray="5 4" />
+          <text x="936" y="66" font-family="var(--mono)" font-size="11" fill="var(--stop)" text-anchor="end">8 a minute — the limit</text>
+
+          <!-- 32 stacked on one instant: 8 through, 24 refused -->
+          <g>
+            <rect x="10" y="72" width="16" height="78" fill="var(--live)" opacity="0.85" />
+            <rect x="10" y="58" width="16" height="14" fill="var(--stop)" opacity="0.25" />
+            <rect x="10" y="44" width="16" height="14" fill="var(--stop)" opacity="0.25" />
+            <rect x="10" y="30" width="16" height="14" fill="var(--stop)" opacity="0.25" />
+          </g>
+          <text x="36" y="96" font-family="var(--sans)" font-size="12.5" fill="var(--live)">8 get through</text>
+          <text x="36" y="48" font-family="var(--sans)" font-size="12.5" fill="var(--stop)">24 refused</text>
+          <text x="36" y="118" font-family="var(--sans)" font-size="12" fill="var(--ink-soft)">and the candles they were fetching are simply missing</text>
+
+          <!-- ── spread ── -->
+          <text x="0" y="248" font-family="var(--mono)" font-size="11.5" letter-spacing="1.2" fill="var(--live)">SPREAD OUT</text>
+          <text x="0" y="268" font-family="var(--sans)" font-size="13" fill="var(--ink-soft)">one request every 7 seconds — 32 of them take four minutes</text>
+
+          <line x1="0" y1="380" x2="940" y2="380" stroke="var(--rule)" />
+          <text x="0" y="398" font-family="var(--mono)" font-size="11" fill="var(--ink-faint)">21:00:00</text>
+          <text x="940" y="398" font-family="var(--mono)" font-size="11" fill="var(--ink-faint)" text-anchor="end">21:04:00</text>
+
+          <line x1="0" y1="302" x2="940" y2="302" stroke="var(--live)" stroke-width="1.5" stroke-dasharray="5 4" />
+          <text x="936" y="296" font-family="var(--mono)" font-size="11" fill="var(--live)" text-anchor="end">never near the limit</text>
+
+          <!-- 32 marks, evenly spread -->
+          <g fill="var(--live)" opacity="0.85">
+            <rect x="10" y="340" width="9" height="40" /><rect x="39" y="340" width="9" height="40" />
+            <rect x="68" y="340" width="9" height="40" /><rect x="97" y="340" width="9" height="40" />
+            <rect x="126" y="340" width="9" height="40" /><rect x="155" y="340" width="9" height="40" />
+            <rect x="184" y="340" width="9" height="40" /><rect x="213" y="340" width="9" height="40" />
+            <rect x="242" y="340" width="9" height="40" /><rect x="271" y="340" width="9" height="40" />
+            <rect x="300" y="340" width="9" height="40" /><rect x="329" y="340" width="9" height="40" />
+            <rect x="358" y="340" width="9" height="40" /><rect x="387" y="340" width="9" height="40" />
+            <rect x="416" y="340" width="9" height="40" /><rect x="445" y="340" width="9" height="40" />
+            <rect x="474" y="340" width="9" height="40" /><rect x="503" y="340" width="9" height="40" />
+            <rect x="532" y="340" width="9" height="40" /><rect x="561" y="340" width="9" height="40" />
+            <rect x="590" y="340" width="9" height="40" /><rect x="619" y="340" width="9" height="40" />
+            <rect x="648" y="340" width="9" height="40" /><rect x="677" y="340" width="9" height="40" />
+            <rect x="706" y="340" width="9" height="40" /><rect x="735" y="340" width="9" height="40" />
+            <rect x="764" y="340" width="9" height="40" /><rect x="793" y="340" width="9" height="40" />
+            <rect x="822" y="340" width="9" height="40" /><rect x="851" y="340" width="9" height="40" />
+            <rect x="880" y="340" width="9" height="40" /><rect x="909" y="340" width="9" height="40" />
+          </g>
+          <text x="10" y="332" font-family="var(--sans)" font-size="12.5" fill="var(--ink-soft)">all 32 arrive · nothing refused</text>
+        </svg>
+      </div>
+
+      <div class="gate">
+        <div class="lane is-bad">
+          <h3><i style="background: var(--stop)"></i> Why this would not look like a bug</h3>
+          <p>A refused request does not crash anything. It comes back as an ordinary reply saying <strong>too many requests</strong>.</p>
+          <p>So the bot carries on, and the candles it did not get are just <strong>missing</strong> — quietly, on the busiest close of the week.</p>
+        </div>
+
+        <div class="lane is-good">
+          <h3><i style="background: var(--live)"></i> Waiting costs nothing</h3>
+          <p>We do not need the candle <em>instantly</em>. We need it <strong>soon</strong> — and four minutes after a Friday close is soon.</p>
+          <p>The alternative is paying $79 a month for a limit we do not otherwise need.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What gets built, in order</h2>
+
+    <div class="steps">
+
+      <article class="step">
+        <div>
+          <h3>The pairs become a file you edit</h3>
+          <p>
+            <code>config/symbols.toml</code> replaces the constants at the top
+            of <code>settings.rs</code>. One entry per instrument, and the
+            things that differ between them live on the entry.
+          </p>
+          <p>
+            <strong>Gold is quoted to 2 decimals, EURUSD to 5, USDJPY to 3.</strong>
+            That is not a detail — print five decimals on gold and a signal
+            reads like a debug dump.
+          </p>
+        </div>
+      </article>
+
+      <article class="step">
+        <div>
+          <h3>One door every feed hides behind</h3>
+          <p>
+            An interface with one job — <em>give me the last N candles of this
+            pair on this timeframe</em> — and Twelve Data behind it.
+          </p>
+          <p>
+            <strong>This goes in now, not later.</strong> OANDA is already
+            planned. Adding the door afterwards means unpicking it out of
+            every line written in between, and nothing outside that one file
+            should ever know which feed you use.
+          </p>
+        </div>
+      </article>
+
+      <article class="step">
+        <div>
+          <h3>A queue, not a burst</h3>
+          <p>
+            Everything due at a close goes into a list, and the list is worked
+            through <strong>one request every seven seconds</strong>. Never
+            more than eight in any minute, whatever lands at once.
+          </p>
+          <p>
+            Cheap to build now. Painful to retrofit once four timeframes and
+            eight pairs are all calling the feed directly.
+          </p>
+        </div>
+      </article>
+
+      <article class="step">
+        <div>
+          <h3>Know which minute it is</h3>
+          <p>
+            The bot has no clock today — you run it and it exits. It needs to
+            wake at each close, work out <strong>which timeframes just
+            finished</strong>, and queue only those.
+          </p>
+          <p>
+            At 22:00 UTC that is the 1-hour only. At Friday 21:00 it is all
+            four. Same code, different answer.
+          </p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>The file, as it will look</h2>
+    <p class="note">
+      Nothing tunable stays in the code. That is a rule in <code>CLAUDE.md</code>,
+      and <code>settings.rs</code> broke it on purpose while there was one pair.
+    </p>
+
+    <div class="stage">
+      <pre class="code"><i># config/symbols.toml</i>
+
+<b>[[symbol]]</b>
+name   = "XAU/USD"
+digits = 2                 <i># gold is quoted to two. The feed sends five.</i>
+
+<i># It shuts 17:00–18:00 New York, every weekday. Measured in the real</i>
+<i># export, not assumed — the file stops at 20:45 UTC and restarts at 22:00.</i>
+nightly_break_minutes = 60
+
+<b>[[symbol]]</b>
+name   = "EUR/USD"
+digits = 5
+nightly_break_minutes = 0  <i># spot forex never shuts mid-week</i></pre>
+
+      <div class="gate">
+        <div class="lane">
+          <h3><i style="background: var(--ink-soft)"></i> What moves out of the code</h3>
+          <p><code>SYMBOL</code>, <code>DIGITS</code>, <code>INTERVAL</code>, <code>HISTORY</code> — all four leave <code>settings.rs</code>, and the file goes with them.</p>
+          <p>What stays in code is the <em>meaning</em>: that digits control rounding, that a nightly break is not a fault.</p>
+        </div>
+
+        <div class="lane">
+          <h3><i style="background: var(--ink-soft)"></i> What it unlocks later</h3>
+          <p>The weekend-candle rule and the nightly break both need to know <strong>which instrument</strong> before they can be applied.</p>
+          <p>Neither can be written until this file exists, which is why it comes before the history scan.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Done when</h2>
+    <div class="stage">
+      <p style="margin: 0 0 0.9rem; font-size: 0.98rem;">
+        <strong>It runs a full trading day without missing a candle</strong> —
+        including one Friday 21:00 UTC, which is the moment that breaks it if
+        anything is going to.
+      </p>
+      <p style="margin: 0; font-size: 0.95rem; color: var(--ink-soft);">
+        And adding a pair is one entry in a file, with nothing rebuilt and no
+        code touched.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      <strong>This is a plan, not a result.</strong> The request numbers are
+      arithmetic against a published limit, and the 17:00 New York boundary was
+      measured against the real feed. Whether the queue holds up on a live
+      Friday is something only a live Friday will say.
+    </p>
+    <p>
+      Step 2 of 8. The rest is in
+      <a href="https://claude.ai/code/artifact/1093ff9f-f3b3-4af7-afd5-6377629ea1dd" style="color: var(--live)">Broker to Telegram</a>.
+    </p>
+  </footer>
+
+</div>

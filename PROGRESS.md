@@ -159,8 +159,16 @@ the only sign of life.
 
 ## Step 2 — every pair, behind one door — [ ]
 
-*Done when it runs a full trading day without dropping a stream or missing a
-candle.*
+**Designed:** [One Door, Eight Pairs](https://claude.ai/code/artifact/475ba411-e3c9-4d1e-8bb1-83591bd4e47e)
+
+*Done when it runs a full trading day without missing a candle — including one
+Friday 21:00 UTC, which is the moment that breaks it if anything will.*
+
+**The burst is worse than 16.** At Friday 21:00 UTC the hour, the 4-hour, the
+day and the week all end on the same second, because 21:00 UTC is 17:00 New
+York. Eight pairs across four timeframes is **32 requests against a limit of
+8 a minute** — and a refused request does not crash anything, it just leaves
+the candle missing on the busiest close of the week.
 
 - [ ] The pairs and their settings come from `config/`, not from constants at
       the top of `main.rs`

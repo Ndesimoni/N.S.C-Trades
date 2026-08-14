@@ -24,6 +24,19 @@ changes.
 
 Source: [`diagrams/plan.html`](diagrams/plan.html)
 
+### [One Door, Eight Pairs →](https://claude.ai/code/artifact/475ba411-e3c9-4d1e-8bb1-83591bd4e47e)
+
+**Step 2, designed.** The pairs become a file you edit, the feed hides behind
+one interface so a second one can be added without a rewrite, and the requests
+go into a queue instead of a burst.
+
+The reason for the queue is the finding on that page: **Friday 21:00 UTC is the
+worst moment of the week.** The hour, the 4-hour, the day and the week all end
+on the same second — 32 requests against a limit of 8 a minute. Nothing would
+crash; the candles would just be missing.
+
+Source: [`diagrams/step-two.html`](diagrams/step-two.html)
+
 ### [The clock, not the stamp →](https://claude.ai/code/artifact/9088bc46-0abf-4d19-b33e-7f3ba4d2895a)
 
 Why a candle's timestamp does not say when it became true. A 4-hour candle

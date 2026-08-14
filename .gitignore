@@ -20,3 +20,6 @@ research/**/*.onnx
 
 # OS noise
 .DS_Store
+
+# The last cards the bot drew. Handy to look at, not worth keeping.
+preview/

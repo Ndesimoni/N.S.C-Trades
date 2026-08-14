@@ -34,7 +34,7 @@ you will have no way to work out which point value caused it.
 
 **A rule is missing. The model is not broken.** Work in this order:
 
-1. Write the rule in plain words in `docs/strategy-worksheet.md` first. If you
+1. Write the rule in plain words first, in a worksheet beside the config. If you
    cannot say it, you cannot code it.
 2. Work out which layer it belongs to. Most of them are skip rules — that
    layer is where a trader's real edge usually lives and it is almost never

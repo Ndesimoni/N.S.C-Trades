@@ -4,8 +4,14 @@ Reads forex charts and sends trading signals to Telegram. Rust workspace.
 **Version 1 sends signals and places no trades.** Trading is Phase 6 and does
 not exist in this code.
 
-Read `docs/architecture.md` before moving code between crates, and
-`docs/pitfalls.md` before believing any result.
+**There is no code right now.** It was cleared on 14 August 2026 and is being
+rebuilt against a settled data design: the broker's chart is the truth, every
+timeframe arrives on its own websocket subscription, and nothing is computed
+from anything else. The old code is in git at `a4a2170` if you want to read it
+back — it was right about its own job and wrong about where candles come from.
+
+These rules survived unchanged. They are what the rebuild gets measured
+against.
 
 ---
 
@@ -32,7 +38,7 @@ project are genuinely technical and dropping them would make the system
 worse. The goal is that any explanation can be read once and acted on.
 
 Applies everywhere: chat replies, code comments, `//!` module docs, commit
-messages, and everything in `docs/`.
+messages, and every worksheet.
 
 ---
 
@@ -137,7 +143,8 @@ worse than none at all, because it is believed. **If you add, remove or
 rename a file in a folder, update its `README.txt` in the same change.**
 
 **Finish a piece of work, update `PROGRESS.md` in the same change.** Tick what
-is done, mark what is half done, and correct the test count.
+is done, mark what is half done, and correct the test count. It does not exist
+right now — the first piece of work that lands creates it.
 
 Same reason as the READMEs. A progress file that says something is still
 missing when it was finished last week is worse than not having one, because

@@ -12,204 +12,169 @@ gets made against it.
 [ ]  not started
 ```
 
-**286 tests passing · clippy clean · ~8,000 lines of real code**
-
-One thing to know before reading: **most of the work so far is Phase 1, not
-Phase 0.** That was deliberate — reading a chart is the part that could have
-gone wrong. Storage and replay are plumbing.
+**One crate · 8 tests · clippy clean · a message arrives every time it runs.**
 
 ---
 
-## Phase 0 — the boring foundations
+## What this is
 
-*Finished when you can replay a year of 15-minute candles and the lookahead
-checks stay quiet.*
+A signal bot. Phase one sends signals to Telegram and places no trades.
 
-### Download price history — [~]
+**The design is a page you can click through** —
+[Broker to Telegram](https://claude.ai/code/artifact/1093ff9f-f3b3-4af7-afd5-6377629ea1dd).
+The two lanes, what sits in each stage, where your rules live, and the build
+order. Everything else visual is indexed in [docs/README.md](docs/README.md).
 
-- [x] cTrader exporter, and the trailing-newline bug that buried the files
-- [x] CSV reader — any column order, UTC, 10 tests
-- [x] 62,384 real gold 15-minute candles, Dec 2023 to Aug 2026 — no
-      impossible candles, spacing all accounted for
-- [ ] Broker connection — no IBKR contracts filled in, nothing connects
-- [ ] `backfill.rs` — automatic download
-- [x] `gaps/` — two different faults, kept apart. `holes.rs` finds candles
-      missing from the file and says whether the weekend or the instrument's
-      nightly break accounts for them. `flat.rs` finds runs of candles that
-      are present but never moved — not missing data, but what invented a
-      swing at the left edge of every history once already.
-- [x] Gold's nightly hour off, measured rather than guessed: the 15-minute
-      export stops 20:45 UTC and restarts 22:00 UTC every weekday. Now
-      `daily_break_minutes` in `config/symbols.toml` — 60 for metals and oil,
-      0 for spot forex, and marked unmeasured on the two indices.
-- [x] Ran on all three real exports: **every hole accounted for, none
-      unexplained, no flat runs**
-- [ ] Nothing calls it yet — it runs from a test
+**Forex pairs and gold, nothing else.** Trades are executed on the 4-hour and
+the 1-hour; the weekly and daily are there for levels.
 
-Exports are done by hand. Enough for now.
-
-### Store it — [ ]
-
-- [x] 7 migrations written
-- [ ] Migrations have never been run
-- [ ] `store/candles.rs` — empty
-- [ ] `store/signals.rs` · `outcomes.rs` · `labels.rs` · `backtests.rs` — empty
-- [ ] No database query anywhere in the codebase
-
-Every run re-reads a 4 MB CSV.
-
-### Build the backtester — [ ]
-
-- [x] `events/` — `BarClosed`, the one place the backtester and bot meet.
-      Refuses an unfinished candle, and owns the single answer to "what time
-      is it" that every lookahead check uses.
-- [x] `replay/` — walks a history one candle at a time, building the bigger
-      timeframes as it goes and emitting a bar for each that finishes,
-      biggest first. Proven to give the same candles as building them in bulk.
-- [ ] `harness.rs` · `metrics.rs` · `report.rs` · `sweep.rs` — all empty
-- [x] `bin/chart` — reads a file and prints everything the analysis sees
-
-The chart tool does most of what replay needs. The gap is doing it **one candle
-at a time with the guards watching**.
-
-### Lookahead checks — [x]
-
-- [x] `Swing::new` refuses a swing knowable before its own candle
-- [x] `Level::new` refuses a level built from unconfirmed swings
-- [x] Incomplete candles refused by ATR, swings and levels
-- [x] The swing finder **cannot** emit an unconfirmed swing — none exists to misuse
-- [x] Tested throughout
-- [x] `guards/` — the run-level watcher. Stands at the clock time a bar
-      finished and refuses any swing, level or candle that was not knowable
-      by then. `LookaheadDetected` kills the run — no number comes out.
-- [x] It judges by **clock time, not stamp**. A 4-hour candle stamped 21:00
-      is not knowable until 01:00. Getting this wrong let 4-hour readings in
-      four hours early and threw out 15-minute swings that had happened.
-      Found on the second read, and two tests fail without the fix.
-- [ ] Nothing calls it yet — `harness.rs` is where it gets wired in
-
-The types refuse a bad thing one at a time. This is the watcher over a whole
-run, and it is the piece that lets a backtest be believed.
+**The broker's chart is the truth.** Every timeframe comes from the feed
+finished. Nothing is built from anything else — that assumption is what got the
+last version of this project cleared out on 14 August 2026.
 
 ---
 
-## Phase 1 — reading the chart
+## Step 1 — the thin pipe — [x]
 
-Nearly finished, and well ahead of Phase 0.
+*Done when a candle closes and the phone buzzes.*
 
-### nsc-core — the shared types — [x]
+- [x] Connected to **Twelve Data**, key in `.env`, never in the code
+- [x] **Gold works on the free plan** — `XAU/USD` comes back as
+      `"type": "Precious Metal"`. That was the one thing we could not know
+      without asking, because "commodities" is a paid feature on their pricing
+      page
+- [x] **The finished-candle rule, proved against the clock.** At 18:19 it sent
+      the 17:00 candle and skipped the 18:00 one, because 18:00 plus an hour
+      has not happened. Not asserted in a comment — demonstrated on real data
+- [x] Telegram bot made, channel made, bot is an admin
+- [x] A card is drawn and sent, with a one-line caption
+- [x] **The finished-candle rule is pinned by tests**, including the one that
+      shows why "skip the first candle in the list" is wrong: ask at 18:00:02
+      and the finished candle is first or second depending on whether a price
+      has landed yet
 
-- [x] `error.rs` · `price/` · `timeframe/` · `symbol/` · `candle/`
-- [x] `swing/` · `level/` · `structure/` · `fib/` · `pattern/`
-- [ ] `session.rs` — London, New York, Tokyo, Sydney. Still empty.
-- [ ] `signal.rs` — a finished trade idea. Waits on Phase 2.
-- [ ] `trendline.rs`
+### What it is made of
 
-### nsc-ta — the chart reading — [~]
+```
+crates/nsc-work-man/src/
+  main.rs       the flow, and nothing else
+  settings.rs   pair, timeframe, digits — step 2 replaces this with config
+  candle/       one candle, and whether it has finished. 8 tests
+  feed.rs       asking Twelve Data
+  card.rs       filling in a template, letting Chrome draw it
+  message.rs    the caption — the notification banner, not the message
+  telegram.rs   sending, as a media group
 
-- [x] `swings/` — the run-and-pullback rule, no candle counting
-- [x] `levels/` — bands, across timeframes, crowding and covering
-- [x] `structure/` — higher highs with follow-through
-- [x] `candles/` — pin bar, engulfing, doji, belt-hold, tweezers, star, inside bar
-- [x] `fibonacci/` — the four levels and the golden zone
-- [x] `indicators/atr/` — Wilder's smoothing, matches TradingView
-- [x] `aggregate/` — proven against the broker's own daily candles
-- [x] `config/` — every setting, checked at startup
-- [ ] `snapshot.rs` — everything about one moment, in one object
-- [ ] `context.rs` — what a timeframe hands down to smaller ones
-- [ ] `trendlines.rs`
-- [ ] `patterns/` — double, flag, head and shoulders, triangle. Deferred on purpose.
-- [ ] `indicators/moving_average.rs` · `rsi.rs`
+assets/card/
+  chart.html     the candle chart. Carries its own open, high, low and range
+  readout.html   where price sat inside the candle
+```
 
----
+Every file is under 100 lines except `card.rs` at 187. Every folder with code
+in it has a `README.txt`.
 
-## Phase 2 — your rules — [ ]
+**The design lives in HTML, not in Rust.** Open the file, change it, and the
+next message picks it up — no rebuild. Chrome draws it headlessly.
 
-- [x] `config/strategies/` — reversal, breakout and trend files, all settings
-      commented out until answered
-- [~] `docs/worksheets/` — swings, levels, candles, structure and fibonacci have
-      real answers in them; reversal is part done; breakout and trend are empty
-- [ ] `nsc-strategy` — 11 lines. Nothing built.
-- [ ] `nsc-telegram` — nothing built
+Every run leaves the card in `preview/` as both a picture and a web page. Open
+the page in Chrome, edit the template, refresh — that is the design loop.
+Everything worth looking at is listed in [docs/README.md](docs/README.md).
 
----
-
-## Phases 3 to 6 — [ ]
-
-Collecting labels, the model, news and AI checks, and trading. Nothing started,
-and nothing should be.
-
----
-
-## Work that is not in any phase
-
-### Levels drawn by hand — [~]
-
-- [x] `config/levels/XAUUSD.toml` — 6 weekly and 2 daily, with the date drawn
-- [x] `nsc-data/levels/` — reads the file into real `Level` values, 8 tests
-- [x] `Level` carries an `Origin` — `Found` or `DrawnByHand`
-- [x] A hand-drawn level has **no touch count**. Asking gives `None`, not a
-      made-up number that would poison every later comparison.
-- [x] `from` enforced — a level does not exist before the day it was drawn
-- [x] Nothing thinned. The crowding and covering rules do not run on his
-      levels, because he already thins them while drawing.
-- [x] `bin/chart --levels config/levels/XAUUSD.toml`
-- [x] `config/levels/USDCAD.toml` — 4 weekly and 2 daily
-- [x] Band thickness **settled**: `drawn_weekly_atr = 0.35`,
-      `drawn_daily_atr = 0.60`, same on every instrument
-- [x] Levels hold **one price**, not a band. The band is worked out from a
-      normal candle when the level loads.
-- [ ] The other 50-odd pairs
-
-Why one price: he draws with one pen width, so the band looks identical on
-every chart. That reads as consistent but cannot be computed — a bot has no
-screen. A share of a normal candle can be, so that is what is built. Also
-practical: reading one centre line off a screenshot is accurate to about 3
-points, reading two edges was accurate to about 15.
-
-Decided along the way: the bot trades **your** levels, not found ones. The
-finder stays only as something to score against them.
-
-Why: the finder was tried against his own gold chart. The best any setting
-managed was four of his eight, and three could never be found at all. His
-levels are where a big move **ended**; the finder looks for prices where swings
-**cluster**. Different definitions, and no band width bridges them.
-
-### Recording your decisions — [ ]
-
-- [ ] `snapshot.rs`, then a decisions file — your words plus what the code saw
-      at that exact moment
-- [ ] Pattern-finding across them. **Not until there are hundreds** — anything
-      found in a handful of examples is a coincidence.
-
-### Settings — [x]
-
-- [x] `app.toml` · `symbols.toml` (13 instruments) · `ta.toml` · `risk.toml`
-- [x] `strategy.toml` and the three strategy files
-- [x] `brokers/ibkr.toml` — shape written, contracts still blank
-
-### Documents and pictures — [x]
-
-- [x] `docs/map.md` — which file a given change belongs in
-- [x] 13 diagrams in `docs/diagrams/`, all with source in the repo and
-      listed in its README
-- [x] 9 worksheets in `docs/worksheets/`
-- [x] 12 skills in `.claude/skills/`
-- [x] `README.txt` in all 20 folders that have code
+The cost: **whatever machine runs this needs Chrome.** Fine on a Mac. A real
+dependency on a server, and worth remembering before it goes anywhere else.
 
 ---
 
-## What is left in Phase 0, in order
+## What the feed actually does — [x]
 
-| | Size |
-|---|---|
-| `guards.rs` — kill the run on lookahead | small |
-| `gaps.rs` — holes that are not weekends | small |
-| `store/candles.rs` — Postgres in and out | medium |
-| Run the migrations | trivial |
+All of it measured, none of it read off their documentation. The detail is in
+`docs/worksheets/twelve-data.md`.
 
-Four of the six are small. Storage can come last — the CSV works and nothing is
-blocked on the database.
+- [x] **Their day ends at 17:00 New York.** Checked by matching the daily
+      candle's open against every hourly candle for thirty hours — exactly one
+      matched. Their daily chart is your daily chart
+- [x] **Their week opens Sunday 17:00 New York.** The forex week
+- [x] **The newest candle is always still forming**, and skipping the first one
+      in the list is not the fix — position is right most of the time, which is
+      worse than being wrong always
+- [x] **The datetime field means two different things.** An hourly stamp is the
+      candle's open time. A daily stamp is the date it *ends* on
+- [ ] **Weekend daily candles exist and are noise.** Saturday and Sunday come
+      back with ranges of 0.57 and 1.32 against 60–200 on a real day. Your chart
+      has five daily candles a week; this feed gives seven. **Not handled in
+      code yet** — the rule is to drop any daily stamped Saturday or Sunday
 
-**`snapshot.rs` sits outside this list** but is worth doing early, because it is
-what turns each screenshot you send into a record that can be searched later.
+### The limit that shapes the design
+
+**8 requests a minute.** Not the 800 a day — that is plenty.
+
+Our requests all want to happen at the same instant, on the hour. Eight pairs at
+a 4-hour close is eight 1-hour candles plus eight 4-hour candles: **sixteen
+requests in one second against a limit of eight.**
+
+So the fetching has to spread itself over the minute or two after a close. Cheap
+to build in now, annoying to retrofit.
+
+---
+
+## Still open
+
+- [ ] **OANDA** — waiting on them, about 24 hours from 14 August. Worth having
+      because it marks each candle finished or not, so the guessing stops
+- [ ] **The websocket** — Twelve Data gives 8 credits and 1 connection on the
+      free plan, marked *trial*. Untested. No price watcher without it
+- [ ] **`--card-height` is measured by hand.** Each template says how tall it
+      is and Rust reads that line, but the number comes from measuring the page
+      once and typing it in. It will go stale when the design changes
+- [ ] **Everything was measured on gold only.** The majors almost certainly
+      behave the same. Almost is not checked
+
+---
+
+## Step 2 — every pair, behind one door — [ ]
+
+*Done when it runs a full trading day without dropping a stream or missing a
+candle.*
+
+- [ ] The pairs and their settings come from `config/`, not from constants at
+      the top of `main.rs`
+- [ ] Four timeframes — W1, D1, H4, H1
+- [ ] Requests spread out after a close, to stay under 8 a minute
+- [ ] One interface every feed hides behind, so adding OANDA is a config change
+      rather than a rewrite. **Two feeds are already planned, so the door goes
+      in now** — building it afterwards means unpicking it out of everything
+      written in between
+
+---
+
+## Then, in order
+
+- [ ] **Keep it** — Postgres, one table of candles, written as they arrive
+- [ ] **The past** — download history per timeframe, and a scan that says
+      whether it is complete before anything reads it
+- [ ] **Read the chart** — swings, candle types, structure, and your hand-drawn
+      levels loaded from config
+- [ ] **The price watcher** — every tick against every level you drew. Alerts
+      only. It may never produce a signal
+- [ ] **The strategies** — one family first. Direction, place, trigger, stop,
+      target, skip
+- [ ] **Prove it** — replay the stored history through the same code the bot
+      runs, with the lookahead guard on
+
+---
+
+## Rules this project has already paid for
+
+Written down because each cost something.
+
+**The lookahead rule got in through the drawing, not the analysis.** The first
+chart quoted its headline price from the candle still forming — a picture with
+a price on it gets believed exactly like a number does.
+
+**Round to the instrument.** The feed sends gold as `4385.59525`. Gold is quoted
+to two decimals. Printing all five is what makes a signal look like a debug
+dump.
+
+**A reply that parses is not a reply that worked.** Twelve Data refuses with a
+normal-looking `{"code": 401}`. Telegram refuses with a polite `ok: false`. Both
+in one afternoon, so it is a pattern rather than bad luck.

@@ -1,6 +1,6 @@
 ---
 name: diagram
-description: Use when drawing a picture to settle a question about how the bot reads a chart — comparing two readings of a rule, showing what a setting does, or putting real candles on screen with the swings and levels the code found. Also use when a diagram in docs/diagrams/ needs updating because the rule it shows has changed.
+description: Use when drawing a picture to settle a question about how the bot reads a chart — comparing two readings of a rule, showing what a setting does, or putting real candles on screen with the swings and levels the code found. Also use when a diagram needs updating because the rule it shows has changed.
 ---
 
 # Drawing a picture to settle a question
@@ -49,7 +49,8 @@ exactly what they are looking at.
 
 ## Colours that are not yours to choose
 
-The level colours come from the trader, in `docs/worksheets/levels.md`:
+The level colours come from the trader. They are recorded here because this
+is now the only place they are written down:
 
 | Colour | Timeframe |
 |---|---|

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>chart</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* How tall this card is. Chrome shoots a window, not a page, so this
+       number is the card's height and Rust reads it straight out of here.
+       Change it here and nowhere else. */
+    --card-height:647px;
+
+    --vault:#0E1216;
+    --panel:#151A1F;
+    --panel-2:#11161A;
+    --rule:#232B32;
+    --grid:#1B2229;
+    --ink:#EDEFF1;
+    --mute:#79848D;
+    --brass:#CBA35C;
+    --down:#C4564C;
+    --up:#56A184;
+    --dir:var(--down);
+    --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+    --data:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{
+    margin:0;height:var(--card-height);overflow:hidden;
+    background:var(--vault);
+  }
+  body{
+    color:var(--ink);
+    font-family:var(--data);
+    width:860px;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ── header band ─────────────────────────────────────────────────────── */
+  .band{
+    background:var(--panel);
+    padding:26px 40px 24px;
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:16px;
+  }
+  .band__pair{
+    font-family:var(--display);font-weight:800;font-size:34px;
+    letter-spacing:-.02em;margin:0 0 8px;line-height:1;
+  }
+  .band__pair span{color:var(--mute);font-weight:400;margin:0 1px}
+  .band__when{
+    font-size:12.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);
+  }
+  .band__when b{color:var(--brass);font-weight:500}
+
+  .band__right{text-align:right}
+  .band__last{
+    font-family:var(--display);font-weight:600;font-size:34px;
+    letter-spacing:-.025em;font-variant-numeric:tabular-nums;margin:0 0 8px;line-height:1;
+  }
+  .band__move{
+    font-size:13px;color:var(--dir);font-variant-numeric:tabular-nums;white-space:nowrap;
+  }
+  .band__move i{font-style:normal;margin-right:3px}
+
+  /* the one place the card carries a mood */
+  .accent{height:3px;background:var(--dir);flex:none}
+
+  /* ── chart ───────────────────────────────────────────────────────────── */
+  .plot{flex:1;padding:18px 0 4px}
+  .plot svg{display:block;width:100%;height:auto}
+  .plot__when{
+    display:flex;justify-content:space-between;
+    padding:6px 40px 0;
+    font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);
+  }
+
+  /* ── footer band ─────────────────────────────────────────────────────── */
+  .strip{
+    background:var(--panel);
+    border-top:1px solid var(--rule);
+    padding:20px 40px 22px;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+  }
+  .strip__label{
+    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--mute);margin-bottom:6px;
+  }
+  .strip__value{
+    font-family:var(--display);font-weight:400;font-size:27px;
+    letter-spacing:-.015em;font-variant-numeric:tabular-nums;
+  }
+</style>
+</head>
+<body>
+
+<header class="band">
+  <div>
+    <h1 class="band__pair" id="pair"></h1>
+    <div class="band__when"><b id="interval"></b> &nbsp;·&nbsp; <span id="stamp"></span></div>
+  </div>
+  <div class="band__right">
+    <p class="band__last" id="last"></p>
+    <div class="band__move" id="move"></div>
+  </div>
+</header>
+
+<div class="accent"></div>
+
+<div class="plot">
+  <svg id="chart" viewBox="0 0 860 400"></svg>
+  <div class="plot__when"><span id="from"></span><span id="span"></span><span id="to"></span></div>
+</div>
+
+<footer class="strip">
+  <div><div class="strip__label">Open</div><div class="strip__value" id="o"></div></div>
+  <div><div class="strip__label">High</div><div class="strip__value" id="h"></div></div>
+  <div><div class="strip__label">Low</div><div class="strip__value" id="l"></div></div>
+  <div><div class="strip__label">Range</div><div class="strip__value" id="r"></div></div>
+</footer>
+
+<script>
+// Rust replaces these two lines.
+const candle = /*__CANDLE__*/;
+const bars   = /*__BARS__*/;
+
+const fmt = n => n.toLocaleString("en-US",{minimumFractionDigits:candle.digits,maximumFractionDigits:candle.digits});
+const svgNS = "http://www.w3.org/2000/svg";
+const make = (name, attrs) => {
+  const el = document.createElementNS(svgNS, name);
+  for(const k in attrs) el.setAttribute(k, attrs[k]);
+  return el;
+};
+
+function bands(){
+  const delta = candle.close - candle.open;
+  const pct   = candle.open === 0 ? 0 : (delta / candle.open) * 100;
+  const down  = delta < 0;
+
+  document.documentElement.style.setProperty("--dir", down ? "var(--down)" : "var(--up)");
+
+  document.getElementById("pair").innerHTML  = candle.symbol.replace("/", '<span>/</span>');
+  document.getElementById("interval").textContent = candle.interval.toUpperCase();
+  document.getElementById("stamp").textContent    = "CLOSED " + candle.stamp.toUpperCase();
+  document.getElementById("last").textContent     = fmt(candle.close);
+  document.getElementById("move").innerHTML =
+    `<i>${down ? "▼" : "▲"}</i>${fmt(Math.abs(delta))} &nbsp; ${Math.abs(pct).toFixed(2)}%`;
+
+  document.getElementById("o").textContent = fmt(candle.open);
+  document.getElementById("h").textContent = fmt(candle.high);
+  document.getElementById("l").textContent = fmt(candle.low);
+  document.getElementById("r").textContent = fmt(candle.high - candle.low);
+}
+
+/* A round number to put a gridline on. 4,317.31 is a price; 4,350 is a level
+   you can measure a distance against without doing arithmetic. */
+function niceStep(range, wanted){
+  const rough = range / wanted;
+  const size  = Math.pow(10, Math.floor(Math.log10(rough)));
+  const norm  = rough / size;
+  const pick  = [1, 2, 2.5, 5, 10].find(c => c >= norm) || 10;
+  return pick * size;
+}
+
+function chart(){
+  const W = 860, H = 400;
+  const LEFT = 40, AXIS = 92;          // margin, and room on the right for prices
+  const PLOT = W - LEFT - AXIS;
+  const svg = document.getElementById("chart");
+
+  const lo = Math.min(...bars.map(b => b.low));
+  const hi = Math.max(...bars.map(b => b.high));
+  const pad = (hi - lo) * 0.08 || 1;
+  const top = hi + pad, bottom = lo - pad;
+  const y = v => (1 - (v - bottom) / (top - bottom)) * H;
+
+  const gap = niceStep(top - bottom, 5);
+  for(let p = Math.ceil(bottom / gap) * gap; p < top; p += gap){
+    const gy = y(p);
+    if(gy < 12 || gy > H - 12) continue;
+
+    svg.appendChild(make("line", {
+      x1:LEFT, y1:gy, x2:LEFT + PLOT, y2:gy, stroke:"var(--grid)", "stroke-width":1
+    }));
+
+    const label = make("text", {
+      x:W - 40, y:gy + 4, "text-anchor":"end",
+      fill:"var(--mute)", "font-size":13, "font-family":"var(--data)"
+    });
+    label.textContent = fmt(p);
+    svg.appendChild(label);
+  }
+
+  const step = PLOT / bars.length;
+  const bw = Math.max(1.5, step * 0.6);
+
+  bars.forEach((b, i) => {
+    const x = LEFT + step * i + step / 2;
+    const tint = b.close >= b.open ? "var(--up)" : "var(--down)";
+
+    svg.appendChild(make("line", {
+      x1:x, y1:y(b.high), x2:x, y2:y(b.low),
+      stroke:tint, "stroke-width":Math.max(1, bw * 0.18)
+    }));
+
+    const openY = y(b.open), closeY = y(b.close);
+    svg.appendChild(make("rect", {
+      x:x - bw / 2, y:Math.min(openY, closeY),
+      width:bw, height:Math.max(Math.abs(closeY - openY), 1.2),
+      fill:tint
+    }));
+  });
+
+  // Where the last close sits, carried across and named on the axis. Same brass
+  // as the close in the readout card, so the two pictures tie together even
+  // though they are separate.
+  const last  = bars[bars.length - 1].close;
+  const lastY = y(last);
+
+  svg.appendChild(make("line", {
+    x1:LEFT, y1:lastY, x2:LEFT + PLOT, y2:lastY,
+    stroke:"var(--brass)", "stroke-width":1, "stroke-dasharray":"3 5", opacity:0.55
+  }));
+
+  svg.appendChild(make("rect", {
+    x:LEFT + PLOT + 8, y:lastY - 12, width:AXIS - 48, height:24, rx:4,
+    fill:"var(--brass)", opacity:0.16
+  }));
+
+  const now = make("text", {
+    x:W - 40, y:lastY + 4, "text-anchor":"end",
+    fill:"var(--brass)", "font-size":13.5, "font-family":"var(--data)"
+  });
+  now.textContent = fmt(last);
+  svg.appendChild(now);
+
+  document.getElementById("from").textContent = bars[0].at;
+  document.getElementById("span").textContent = bars.length + " candles";
+  document.getElementById("to").textContent   = bars[bars.length - 1].at;
+}
+
+bands();
+chart();
+</script>
+</body>
+</html>

@@ -1,0 +1,1283 @@
+<title>Broker to Telegram</title>
+
+<style>
+  :root {
+    --ground:    #F4F6F5;
+    --panel:     #FFFFFF;
+    --sunk:      #ECEFEE;
+    --ink:       #12181A;
+    --ink-soft:  #57646A;
+    --ink-faint: #8A959B;
+    --rule:      #DBE1E0;
+
+    --live:   #0F6E5C;
+    --watch:  #A9701C;
+    --stop:   #A33A32;
+
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans:  ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:    #0C1012;
+      --panel:     #141A1C;
+      --sunk:      #101618;
+      --ink:       #E6EBEA;
+      --ink-soft:  #97A4A8;
+      --ink-faint: #6A777C;
+      --rule:      #232D30;
+
+      --live:   #4FBFA3;
+      --watch:  #D9A54A;
+      --stop:   #E08079;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:    #0C1012;
+    --panel:     #141A1C;
+    --sunk:      #101618;
+    --ink:       #E6EBEA;
+    --ink-soft:  #97A4A8;
+    --ink-faint: #6A777C;
+    --rule:      #232D30;
+
+    --live:   #4FBFA3;
+    --watch:  #D9A54A;
+    --stop:   #E08079;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.62;
+    margin: 0;
+    padding: clamp(1.5rem, 5vw, 3.5rem) 1.25rem 5rem;
+  }
+
+  .wrap { max-width: 1060px; margin: 0 auto; display: flex; flex-direction: column; gap: 3rem; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--ink-faint); margin: 0 0 0.7rem;
+  }
+
+  h1 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.12;
+    letter-spacing: -0.02em; text-wrap: balance; margin: 0 0 1rem;
+  }
+
+  .standfirst { max-width: 62ch; color: var(--ink-soft); margin: 0; font-size: 1.03rem; }
+
+  h2 {
+    font-family: var(--serif); font-size: 1.4rem; font-weight: 600;
+    letter-spacing: -0.012em; margin: 0 0 0.45rem;
+  }
+  .note { color: var(--ink-soft); margin: 0 0 1.6rem; max-width: 66ch; font-size: 0.95rem; }
+
+  .stage {
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 12px; padding: 1.5rem;
+  }
+  .scroller { overflow-x: auto; }
+  .chart { display: block; width: 100%; min-width: 720px; height: auto; }
+
+  .gate { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
+  .lane { border-radius: 10px; padding: 1.15rem 1.25rem; background: var(--sunk); border: 1px solid var(--rule); }
+  .lane h3 { margin: 0 0 0.5rem; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+  .lane h3 i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+  .lane p { margin: 0 0 0.6rem; font-size: 0.92rem; color: var(--ink-soft); }
+  .lane p:last-child { margin: 0; }
+  .lane strong { color: var(--ink); font-weight: 600; }
+  .lane.is-watch { border-left: 3px solid var(--watch); }
+  .lane.is-live  { border-left: 3px solid var(--live); }
+
+  .changes { display: flex; flex-direction: column; gap: 1rem; }
+  .change {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 12px;
+    border-left: 3px solid var(--stop); padding: 1.35rem 1.5rem;
+  }
+  .change h3 { margin: 0 0 0.6rem; font-size: 1.08rem; font-weight: 600; letter-spacing: -0.008em; }
+  .change p { margin: 0 0 0.7rem; font-size: 0.95rem; color: var(--ink-soft); }
+  .change p:last-child { margin: 0; }
+  .change strong { color: var(--ink); font-weight: 600; }
+  .swap { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.75rem; margin: 0.9rem 0; }
+  .swap div { background: var(--sunk); border-radius: 8px; padding: 0.7rem 0.9rem; font-size: 0.9rem; }
+  .swap dt { font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 0.25rem; }
+  .swap dd { margin: 0; color: var(--ink); }
+  .change.is-ok { border-left-color: var(--live); }
+
+  .steps { display: flex; flex-direction: column; gap: 1rem; counter-reset: step; }
+  .step {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 1.4rem 1.5rem;
+    display: grid; grid-template-columns: 2.6rem 1fr; gap: 0 1.25rem;
+  }
+  .step::before {
+    counter-increment: step; content: counter(step);
+    font-family: var(--mono); font-size: 1.5rem; font-weight: 500;
+    color: var(--ink-faint); line-height: 1.2; grid-row: 1 / span 4;
+    font-variant-numeric: tabular-nums;
+  }
+  .step h3 { margin: 0 0 0.15rem; font-size: 1.1rem; font-weight: 600; letter-spacing: -0.008em; }
+  .step .what { margin: 0.35rem 0 0.9rem; color: var(--ink-soft); font-size: 0.95rem; }
+  .step dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 0.35rem 1rem; font-size: 0.9rem; }
+  .step dt {
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-faint); padding-top: 0.2rem; white-space: nowrap;
+  }
+  .step dd { margin: 0; color: var(--ink-soft); }
+  .step dd strong { color: var(--ink); font-weight: 600; }
+  .step.is-first { border-color: var(--live); }
+
+  @media (max-width: 560px) {
+    .step { grid-template-columns: 1fr; }
+    .step::before { grid-row: auto; }
+    .step dl { grid-template-columns: 1fr; gap: 0.1rem; }
+    .step dt { padding-top: 0.6rem; }
+  }
+
+  .flag {
+    font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 0.22rem 0.5rem; border-radius: 4px;
+    background: color-mix(in srgb, var(--watch) 18%, transparent); color: var(--watch);
+    white-space: nowrap; margin-left: 0.6rem; vertical-align: 0.15em;
+  }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
+  th, td { text-align: left; padding: 0.65rem 1rem 0.65rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  td code { font-family: var(--mono); font-size: 0.85rem; }
+  td:last-child { color: var(--ink-soft); }
+  td.num { font-variant-numeric: tabular-nums; }
+
+  ul.plain { margin: 0; padding-left: 1.15rem; color: var(--ink-soft); font-size: 0.95rem; }
+  ul.plain li { margin-bottom: 0.5rem; }
+  ul.plain strong { color: var(--ink); font-weight: 600; }
+
+  .asks { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+  .ask { background: var(--panel); border: 1px solid var(--rule); border-left: 3px solid var(--stop); border-radius: 10px; padding: 1.1rem 1.25rem; }
+  .ask h3 { margin: 0 0 0.35rem; font-size: 0.98rem; font-weight: 600; }
+  .ask p { margin: 0; font-size: 0.9rem; color: var(--ink-soft); }
+
+
+  /* the handover */
+  .sheet {
+    font-family: var(--mono); font-size: 0.83rem; line-height: 1.75;
+    background: var(--sunk); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 1.25rem 1.4rem; overflow-x: auto; white-space: pre; color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  .sheet b { color: var(--ink); font-weight: 600; }
+  .sheet em { color: var(--watch); font-style: normal; }
+
+  /* telegram */
+  .phone { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.25rem; }
+  .bubble {
+    background: var(--sunk); border: 1px solid var(--rule);
+    border-radius: 14px 14px 14px 4px; padding: 1.1rem 1.25rem;
+    font-size: 0.92rem; line-height: 1.6;
+  }
+  .bubble.is-alert  { border-left: 3px solid var(--watch); }
+  .bubble.is-signal { border-left: 3px solid var(--live); }
+  .bubble .head { font-weight: 700; color: var(--ink); margin-bottom: 0.5rem; font-size: 0.98rem; }
+  .bubble p { margin: 0 0 0.6rem; color: var(--ink-soft); }
+  .bubble p:last-of-type { margin-bottom: 0; }
+  .bubble .nums {
+    font-family: var(--mono); font-size: 0.83rem; white-space: pre; overflow-x: auto;
+    color: var(--ink); margin: 0.7rem 0; font-variant-numeric: tabular-nums;
+  }
+  .bubble .why { border-top: 1px solid var(--rule); padding-top: 0.6rem; margin-top: 0.7rem; color: var(--ink-soft); font-size: 0.88rem; }
+  .bubble .stamp { font-family: var(--mono); font-size: 0.7rem; color: var(--ink-faint); margin-top: 0.7rem; }
+
+  .naming td:first-child { color: var(--ink-soft); }
+  .naming td b { color: var(--ink); }
+
+  /* the parts list */
+  .stages { display: grid; grid-template-columns: repeat(auto-fit, minmax(285px, 1fr)); gap: 1.1rem; }
+  .stagecard {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 0;
+  }
+  .stagecard .sc-rail { display: block; height: 4px; background: var(--ink-faint); border-radius: 12px 12px 0 0; }
+  .stagecard.c-watch .sc-rail { background: var(--watch); }
+  .stagecard.c-live  .sc-rail { background: var(--live); }
+  .stagecard .sc-body { display: block; padding: 1.15rem 1.25rem 1.3rem; }
+  .stagecard .sc-num { display: block;
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .stagecard h3 { display: block; margin: 0.15rem 0 0.4rem; font-size: 1.06rem; font-weight: 600; letter-spacing: -0.008em; color: var(--ink); }
+  .stagecard .sc-job { display: block; margin: 0 0 0.9rem; font-size: 0.88rem; color: var(--ink-soft); }
+  .stagecard ul { display: block; margin: 0; padding: 0; list-style: none; }
+  .stagecard li {
+    display: block; font-size: 0.88rem; color: var(--ink);
+    padding: 0 0 0 1.05rem; margin: 0 0 0.45rem; position: relative; line-height: 1.5;
+  }
+  .stagecard li:last-child { margin-bottom: 0; }
+  .stagecard li::before {
+    content: ""; position: absolute; left: 0; top: 0.58em;
+    width: 5px; height: 5px; border-radius: 50%; background: var(--ink-faint);
+  }
+  .stagecard li.sc-open { color: var(--ink-soft); }
+  .stagecard li.sc-open::before { background: none; border: 1.5px solid var(--stop); width: 4px; height: 4px; top: 0.5em; }
+  .stagecard li span { color: var(--ink-faint); font-size: 0.83rem; }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 1.3rem; font-size: 0.85rem;
+    color: var(--ink-soft); margin-top: 1.4rem;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 0.45rem; }
+  .legend i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint); display: inline-block; }
+  .legend i.hollow { background: none; border: 1.5px solid var(--stop); width: 5px; height: 5px; }
+
+  footer { border-top: 1px solid var(--rule); padding-top: 1.6rem; color: var(--ink-soft); font-size: 0.93rem; max-width: 68ch; }
+  footer strong { color: var(--ink); }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">nsc_trades · phase one</p>
+    <h1>Broker to Telegram</h1>
+    <p class="standfirst">
+      Phase one sends signals and places no trades. Forex pairs and gold, and
+      nothing else. Trades are executed on the 4-hour and the 1-hour; the
+      weekly and daily are there for levels. Candles come from the broker
+      finished, and nothing is computed from anything else — the broker's chart
+      is the truth.
+    </p>
+  </header>
+
+  <section>
+    <h2>One hour, both roads</h2>
+    <p class="note">
+      The clearest way to see it. Here is a single 1-hour gold candle, from the
+      moment it opens to the moment it reaches the strategies.
+    </p>
+
+    <div class="stage">
+      <div class="scroller">
+        <svg class="chart" viewBox="0 0 1000 400" role="img"
+             aria-label="From 14:00 to 15:00 the candle is forming. The websocket sends a constant price, which the price watcher checks against your levels — it alerts when price touches one. The analysis cannot see any of this. At 15:00 the candle closes; three seconds later one request fetches the finished candle from the broker, and that goes to the analysis and the strategies.">
+
+          <!-- ── forming zone ── -->
+          <rect x="70" y="52" width="540" height="230" rx="10"
+                fill="var(--sunk)" stroke="var(--rule)" stroke-dasharray="5 4" />
+          <text x="86" y="76" font-family="var(--mono)" font-size="10.5" letter-spacing="1.3" fill="var(--ink-faint)">STILL FORMING · 14:00 → 15:00</text>
+          <text x="86" y="272" font-family="var(--sans)" font-size="12" fill="var(--stop)">the analysis cannot see any of this — the high and low have not happened yet</text>
+
+          <!-- the level he drew -->
+          <line x1="70" y1="150" x2="610" y2="150" stroke="var(--ink)" stroke-width="2.5" opacity="0.75" />
+          <text x="80" y="143" font-family="var(--mono)" font-size="10.5" fill="var(--ink-soft)">a level you drew · 4315</text>
+
+          <!-- the tick stream -->
+          <polyline fill="none" stroke="var(--watch)" stroke-width="2"
+            points="90,232 115,220 140,227 165,210 190,214 215,200 240,205 265,192 290,199 315,150 340,164 365,182 390,158 415,140 440,166 465,178 490,172 515,186 540,180 565,194 590,188 608,196" />
+          <text x="96" y="252" font-family="var(--mono)" font-size="10.5" fill="var(--watch)">websocket · a price, many times a second, always on</text>
+
+          <!-- the touch -->
+          <circle cx="315" cy="150" r="6" fill="none" stroke="var(--watch)" stroke-width="2.5" />
+          <line x1="315" y1="144" x2="315" y2="106" stroke="var(--watch)" stroke-width="1.5" stroke-dasharray="3 3" />
+          <rect x="240" y="80" width="150" height="26" rx="5" fill="color-mix(in srgb, var(--watch) 18%, var(--panel))" />
+          <text x="315" y="98" font-family="var(--sans)" font-size="12" font-weight="600" fill="var(--watch)" text-anchor="middle">touched → alert to you</text>
+
+          <!-- ── the close ── -->
+          <line x1="640" y1="40" x2="640" y2="300" stroke="var(--live)" stroke-width="2.5" />
+          <text x="648" y="56" font-family="var(--sans)" font-size="13" font-weight="600" fill="var(--live)">15:00 · it closes</text>
+
+          <!-- the finished candle -->
+          <line x1="712" y1="132" x2="712" y2="242" stroke="var(--live)" stroke-width="2" />
+          <rect x="698" y="158" width="28" height="62" rx="2" fill="color-mix(in srgb, var(--live) 30%, var(--panel))" stroke="var(--live)" stroke-width="2" />
+          <text x="712" y="266" font-family="var(--sans)" font-size="12" fill="var(--ink)" text-anchor="middle">finished</text>
+
+          <!-- the request -->
+          <path d="M648 300 L712 300 L712 282" fill="none" stroke="var(--live)" stroke-width="2" />
+          <text x="648" y="318" font-family="var(--mono)" font-size="11" fill="var(--live)">15:00:03 · one request, one answer, done</text>
+
+          <!-- onward -->
+          <line x1="740" y1="186" x2="782" y2="186" stroke="var(--live)" stroke-width="2" />
+          <rect x="782" y="122" width="180" height="128" rx="9" fill="color-mix(in srgb, var(--live) 9%, var(--panel))" stroke="var(--live)" />
+          <text x="872" y="148" font-family="var(--sans)" font-size="13.5" font-weight="600" fill="var(--ink)" text-anchor="middle">the analysis</text>
+          <text x="872" y="168" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="middle">swings · candle types</text>
+          <text x="872" y="185" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="middle">structure · your levels</text>
+          <line x1="802" y1="198" x2="942" y2="198" stroke="var(--rule)" />
+          <text x="872" y="219" font-family="var(--sans)" font-size="12" font-weight="600" fill="var(--ink)" text-anchor="middle">↓ your strategies</text>
+          <text x="872" y="238" font-family="var(--sans)" font-size="11.5" fill="var(--live)" text-anchor="middle">a match → signal</text>
+
+          <!-- footnote -->
+          <text x="70" y="356" font-family="var(--sans)" font-size="12.5" fill="var(--ink-soft)">Nothing is computed. The orange line is the price, live. The candle is the broker's own, asked for once.</text>
+          <text x="70" y="378" font-family="var(--sans)" font-size="12.5" fill="var(--ink-soft)">The watcher covers the hour the analysis is blind to — which is exactly why the analysis is allowed to be blind to it.</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The whole thing</h2>
+    <p class="note">
+      One connection in, behind one door so a second broker is a config change.
+      Two lanes out.
+    </p>
+
+    <div class="stage">
+      <div class="scroller">
+        <svg class="chart" viewBox="0 0 1100 470" role="img"
+             aria-label="Brokers sit behind one door. Every price tick goes to the price watcher, which checks your levels and sends alerts. Separately, one request per candle close on the weekly, daily, 4-hour and 1-hour feeds the analysis, which combines measured facts with your hand-drawn levels; the strategies read that analysis and any match becomes a signal. Both alerts and signals then pass one last gate — the days you trade — before reaching Telegram.">
+
+          <rect x="10" y="176" width="132" height="112" rx="9" fill="var(--sunk)" stroke="var(--rule)" />
+          <text x="76" y="200" font-family="var(--mono)" font-size="10" letter-spacing="1.2" fill="var(--ink-faint)" text-anchor="middle">FEEDS</text>
+          <text x="76" y="224" font-family="var(--sans)" font-size="13" fill="var(--ink)" text-anchor="middle">data provider</text>
+          <text x="76" y="246" font-family="var(--sans)" font-size="13" fill="var(--ink-soft)" text-anchor="middle">IBKR</text>
+          <text x="76" y="268" font-family="var(--sans)" font-size="13" fill="var(--ink-soft)" text-anchor="middle">OANDA</text>
+
+          <line x1="142" y1="232" x2="176" y2="232" stroke="var(--ink-faint)" stroke-width="2" />
+
+          <rect x="176" y="196" width="116" height="72" rx="9" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5" />
+          <text x="234" y="222" font-family="var(--sans)" font-size="13.5" font-weight="600" fill="var(--ink)" text-anchor="middle">one door</text>
+          <text x="234" y="242" font-family="var(--mono)" font-size="10" fill="var(--ink-faint)" text-anchor="middle">swap broker,</text>
+          <text x="234" y="256" font-family="var(--mono)" font-size="10" fill="var(--ink-faint)" text-anchor="middle">nothing else moves</text>
+
+          <path d="M292 232 L322 232 L322 96 L358 96" fill="none" stroke="var(--watch)" stroke-width="2" />
+          <path d="M292 232 L322 232 L322 368 L358 368" fill="none" stroke="var(--live)" stroke-width="2" />
+
+          <!-- price lane -->
+          <rect x="358" y="60" width="150" height="72" rx="8" fill="var(--sunk)" stroke="var(--rule)" />
+          <text x="433" y="84" font-family="var(--sans)" font-size="13" fill="var(--ink)" text-anchor="middle">websocket</text>
+          <text x="433" y="102" font-family="var(--mono)" font-size="10" fill="var(--watch)" text-anchor="middle">always on</text>
+          <text x="433" y="120" font-family="var(--mono)" font-size="10" fill="var(--ink-faint)" text-anchor="middle">one per pair</text>
+
+          <line x1="508" y1="96" x2="546" y2="96" stroke="var(--watch)" stroke-width="2" />
+
+          <rect x="546" y="60" width="176" height="72" rx="8" fill="color-mix(in srgb, var(--watch) 10%, var(--panel))" stroke="var(--watch)" />
+          <text x="634" y="86" font-family="var(--sans)" font-size="13.5" font-weight="600" fill="var(--ink)" text-anchor="middle">price watcher</text>
+          <text x="634" y="106" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="middle">has price reached a zone</text>
+          <text x="634" y="121" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="middle">you trade?</text>
+
+          <path d="M722 96 L900 96 L900 226" fill="none" stroke="var(--watch)" stroke-width="2" />
+          <text x="808" y="86" font-family="var(--mono)" font-size="10.5" fill="var(--watch)" text-anchor="middle">alert · your zone is live</text>
+
+          <line x1="358" y1="176" x2="358" y2="330" stroke="var(--stop)" stroke-width="2" stroke-dasharray="4 3" />
+          <text x="366" y="250" font-family="var(--mono)" font-size="10.5" fill="var(--stop)">the gate</text>
+          <text x="366" y="266" font-family="var(--sans)" font-size="11" fill="var(--ink-soft)">closed</text>
+          <text x="366" y="280" font-family="var(--sans)" font-size="11" fill="var(--ink-soft)">candles only</text>
+
+          <!-- candle lane -->
+          <rect x="358" y="332" width="150" height="72" rx="8" fill="var(--sunk)" stroke="var(--rule)" />
+          <text x="433" y="356" font-family="var(--sans)" font-size="13" fill="var(--ink)" text-anchor="middle">one request</text>
+          <text x="433" y="374" font-family="var(--mono)" font-size="10" fill="var(--live)" text-anchor="middle">per close</text>
+          <text x="433" y="392" font-family="var(--mono)" font-size="10" fill="var(--ink-faint)" text-anchor="middle">W1 · D1 · H4 · H1</text>
+
+          <line x1="508" y1="368" x2="546" y2="368" stroke="var(--live)" stroke-width="2" />
+
+          <rect x="546" y="300" width="176" height="136" rx="8" fill="color-mix(in srgb, var(--live) 10%, var(--panel))" stroke="var(--live)" />
+          <text x="634" y="324" font-family="var(--sans)" font-size="13.5" font-weight="600" fill="var(--ink)" text-anchor="middle">the analysis</text>
+          <text x="634" y="341" font-family="var(--mono)" font-size="9.5" letter-spacing="0.8" fill="var(--ink-faint)" text-anchor="middle">WHAT IS ON THE CHART</text>
+          <line x1="566" y1="350" x2="702" y2="350" stroke="var(--rule)" />
+          <text x="634" y="368" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="middle">swings</text>
+          <text x="634" y="386" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="middle">candle types</text>
+          <text x="634" y="404" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="middle">structure</text>
+          <text x="634" y="424" font-family="var(--sans)" font-size="11.5" font-weight="600" fill="var(--ink)" text-anchor="middle">your levels</text>
+
+          <path d="M634 458 L634 442" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" stroke-dasharray="3 3" />
+          <text x="634" y="466" font-family="var(--mono)" font-size="10" fill="var(--ink-faint)" text-anchor="middle">drawn by you, loaded from config</text>
+
+          <line x1="722" y1="368" x2="740" y2="368" stroke="var(--live)" stroke-width="2" />
+
+          <rect x="740" y="304" width="140" height="120" rx="8" fill="var(--panel)" stroke="var(--live)" />
+          <text x="810" y="326" font-family="var(--sans)" font-size="13" font-weight="600" fill="var(--ink)" text-anchor="middle">your strategies</text>
+          <line x1="756" y1="334" x2="864" y2="334" stroke="var(--rule)" />
+          <text x="810" y="354" font-family="var(--sans)" font-size="12" fill="var(--ink)" text-anchor="middle">reversal</text>
+          <text x="810" y="374" font-family="var(--sans)" font-size="12" fill="var(--ink)" text-anchor="middle">breakout</text>
+          <text x="810" y="394" font-family="var(--sans)" font-size="12" fill="var(--ink)" text-anchor="middle">trend</text>
+          <text x="810" y="415" font-family="var(--mono)" font-size="9.5" fill="var(--ink-faint)" text-anchor="middle">each one is six rules</text>
+
+          <path d="M880 368 L900 368 L900 238" fill="none" stroke="var(--live)" stroke-width="2" />
+          <text x="908" y="330" font-family="var(--mono)" font-size="10.5" fill="var(--live)">signal</text>
+
+          <line x1="900" y1="232" x2="936" y2="232" stroke="var(--ink-soft)" stroke-width="2" />
+          <path d="M900 96 L900 232" fill="none" stroke="var(--watch)" stroke-width="2" />
+
+          <rect x="936" y="192" width="150" height="80" rx="9" fill="var(--panel)" stroke="var(--ink-soft)" stroke-width="1.5" />
+          <text x="1011" y="214" font-family="var(--sans)" font-size="13" font-weight="600" fill="var(--ink)" text-anchor="middle">when you trade</text>
+          <text x="1011" y="234" font-family="var(--sans)" font-size="11" fill="var(--ink-soft)" text-anchor="middle">no Mondays</text>
+          <text x="1011" y="250" font-family="var(--sans)" font-size="11" fill="var(--ink-soft)" text-anchor="middle">nothing new on Fridays</text>
+          <text x="1011" y="266" font-family="var(--mono)" font-size="9.5" fill="var(--ink-faint)" text-anchor="middle">applies to alerts too</text>
+
+          <line x1="1011" y1="272" x2="1011" y2="310" stroke="var(--ink-soft)" stroke-width="2" />
+
+          <rect x="936" y="310" width="150" height="72" rx="9" fill="var(--sunk)" stroke="var(--rule)" />
+          <text x="1011" y="338" font-family="var(--sans)" font-size="14" font-weight="600" fill="var(--ink)" text-anchor="middle">Telegram</text>
+          <text x="1011" y="358" font-family="var(--mono)" font-size="10.5" fill="var(--ink-faint)" text-anchor="middle">your channel</text>
+        </svg>
+      </div>
+
+      <div class="gate">
+        <div class="lane is-watch">
+          <h3><i style="background: var(--watch)"></i> The price watcher</h3>
+          <p>Sees <strong>every tick</strong>, including candles still forming.</p>
+          <p>It watches the levels you drew — which is where your strategies live. So the alert is not a vague "go and look". It means <strong>your zone is live</strong>: price has arrived where you would be waiting for a setup.</p>
+          <p><strong>It still may not produce a signal.</strong> Arriving at the level is not the setup. The setup is what the candle does there.</p>
+        </div>
+
+        <div class="lane is-live">
+          <h3><i style="background: var(--live)"></i> The analysis and the strategies</h3>
+          <p>Sees <strong>closed candles only</strong>. A candle still forming does not exist to it.</p>
+          <p>The analysis says what is on the chart. The strategies say what to do about it. Keeping them apart is what lets several strategies read one analysis.</p>
+          <p>Any match becomes a signal, with the sentence explaining it.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What sits inside each stage</h2>
+    <p class="note">
+      The same seven stages, with no arrows — just what each one has to contain
+      before it can be called finished. Nothing here talks to anything else on
+      this page; it is a parts list.
+    </p>
+
+    <div class="stages">
+
+      <article class="stagecard">
+        <div class="sc-rail"></div>
+        <div class="sc-body">
+          <p class="sc-num">Stage 1</p>
+          <h3>The feed</h3>
+          <p class="sc-job">Getting prices and candles onto your machine, from any broker.</p>
+          <ul>
+            <li>One door every broker hides behind <span>— swap the broker, nothing else moves</span></li>
+            <li>Websocket, one live price per pair</li>
+            <li>One candle request per timeframe close</li>
+            <li>Reconnect on its own when the line drops</li>
+            <li>Logins kept out of the code</li>
+            <li>Four timeframes <span>— W1, D1, H4, H1</span></li>
+            <li>Forex pairs and gold <span>— nothing else</span></li>
+            <li>Twelve Data to start <span>— IBKR and OANDA behind the same door later</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="stagecard">
+        <div class="sc-rail"></div>
+        <div class="sc-body">
+          <p class="sc-num">Stage 2</p>
+          <h3>Keeping it</h3>
+          <p class="sc-job">So a restart costs you nothing and a backtest has something to read.</p>
+          <ul>
+            <li>Candles <span>— one row per closed candle, per timeframe</span></li>
+            <li>Alerts sent</li>
+            <li>Signals sent</li>
+            <li>Setups rejected, and which layer rejected them</li>
+            <li>Outcomes <span>— did it reach the stop or the target</span></li>
+            <li>Your 👍 and 👎 on each signal</li>
+            <li>A scan that says whether a history is complete</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="stagecard c-watch">
+        <div class="sc-rail"></div>
+        <div class="sc-body">
+          <p class="sc-num">Stage 3</p>
+          <h3>The price watcher</h3>
+          <p class="sc-job">Telling you when price reaches a zone you trade.</p>
+          <ul>
+            <li>Your levels, loaded from config</li>
+            <li>The live price for each pair</li>
+            <li>A touch test <span>— is price inside a level's band</span></li>
+            <li>Fire once per touch, not once per tick</li>
+            <li>Arm again only after price leaves the band</li>
+            <li>Never produces a signal</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="stagecard c-live">
+        <div class="sc-rail"></div>
+        <div class="sc-body">
+          <p class="sc-num">Stage 4</p>
+          <h3>The analysis</h3>
+          <p class="sc-job">Measuring what is on the chart. Facts only, no opinions.</p>
+          <ul>
+            <li>Swings <span>— highs and lows, and the candle that confirmed each</span></li>
+            <li>Candle types <span>— rejection, engulfing, inside bar</span></li>
+            <li>Structure <span>— higher highs, lower highs</span></li>
+            <li>ATR <span>— the size of a normal candle</span></li>
+            <li>Your levels, and how far price is from each, in ATR</li>
+            <li>Trend on each timeframe</li>
+            <li>The lookahead guard <span>— kills the run if it reads a candle too early</span></li>
+            <li>Hands over one sheet of facts</li>
+            <li>Draws the chart it just read <span>— candles, your levels in your colours, the swing it found</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="stagecard c-live">
+        <div class="sc-rail"></div>
+        <div class="sc-body">
+          <p class="sc-num">Stage 5</p>
+          <h3>A strategy</h3>
+          <p class="sc-job">Six questions asked of that sheet. One set per strategy — reversal, breakout, trend.</p>
+          <ul>
+            <li>Direction <span>— which way may we trade at all</span></li>
+            <li>Place <span>— is price where you would take it</span></li>
+            <li>Trigger <span>— what has to happen before you act</span></li>
+            <li>Stop <span>— where it goes, in ATR</span></li>
+            <li>Target <span>— where it aims, and the reward ratio</span></li>
+            <li>Skip <span>— reasons to bin it anyway</span></li>
+            <li>The one sentence that explains it</li>
+            <li>Rejections saved, not dropped</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="stagecard">
+        <div class="sc-rail"></div>
+        <div class="sc-body">
+          <p class="sc-num">Stage 6</p>
+          <h3>When you trade</h3>
+          <p class="sc-job">Whether you get told at all. Applies to every strategy, and to alerts.</p>
+          <ul>
+            <li>No Mondays</li>
+            <li>Nothing new on Fridays <span>— open trades still tracked</span></li>
+            <li>Tuesday to Thursday, normal</li>
+            <li>Not the same setup twice</li>
+            <li>One message when two strategies agree, not two</li>
+            <li class="sc-open">A cap on signals per day <span>— your call</span></li>
+            <li class="sc-open">Nothing through news <span>— your call</span></li>
+            <li class="sc-open">A minimum reward ratio <span>— your call</span></li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="stagecard">
+        <div class="sc-rail"></div>
+        <div class="sc-body">
+          <p class="sc-num">Stage 7</p>
+          <h3>Telegram</h3>
+          <p class="sc-job">The only interface. There is no dashboard.</p>
+          <ul>
+            <li>The alert message <span>— your zone is live</span></li>
+            <li>The signal message <span>— entry, stop, target, reward, why</span></li>
+            <li>A chart picture with it <span>— what the bot actually saw</span></li>
+            <li>👍 and 👎 on each signal</li>
+            <li>A note when a trade reaches its stop or target</li>
+            <li>Says when a check was skipped rather than passing quietly</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="stagecard">
+        <div class="sc-rail"></div>
+        <div class="sc-body">
+          <p class="sc-num">Stage 8</p>
+          <h3>Proving it</h3>
+          <p class="sc-job">Running the stored history through the same code the bot runs.</p>
+          <ul>
+            <li>Replay, one candle at a time</li>
+            <li>The same strategy code as live <span>— never a backtest branch</span></li>
+            <li>The lookahead guard on, always</li>
+            <li>Marked ambiguous when stop and target were both hit in one candle</li>
+            <li>Win rate, average win, average loss, worst run</li>
+            <li>Which layer rejected the most setups</li>
+          </ul>
+        </div>
+      </article>
+
+    </div>
+
+    <div class="legend">
+      <span><i></i> decided</span>
+      <span><i class="hollow"></i> still your call</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Two moments, not one</h2>
+    <p class="note">
+      This is the part that was missing. Price <em>arriving</em> at your level
+      and the setup <em>forming</em> there are different events, minutes or
+      hours apart, and they should reach you as different messages.
+    </p>
+
+    <div class="stage">
+      <div class="scroller">
+        <table>
+          <thead>
+            <tr><th></th><th>Price arrives</th><th>The setup forms</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>What happened</strong></td>
+              <td>Gold traded up into 4520 — your weekly resistance.</td>
+              <td>The 4-hour closed as a rejection off 4520.</td>
+            </tr>
+            <tr>
+              <td><strong>Who saw it</strong></td>
+              <td>The price watcher, on a tick.</td>
+              <td>The analysis, on a closed candle.</td>
+            </tr>
+            <tr>
+              <td><strong>What it means</strong></td>
+              <td><em>Your zone is live.</em> Go and watch it.</td>
+              <td><em>Your rules matched.</em> Here is the trade.</td>
+            </tr>
+            <tr>
+              <td><strong>Certainty</strong></td>
+              <td>None. Price at a level is not a setup — it may cut straight through.</td>
+              <td>Full. Every layer of your rules said yes, and the sentence explains why.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin: 1.3rem 0 0; font-size: 0.95rem; color: var(--ink-soft);">
+        <strong style="color: var(--ink)">The watcher only watches your levels.</strong>
+        It is not scanning the whole chart for anything interesting. It knows
+        the handful of prices you drew, and it tells you when one of them is
+        reached — because that is where your strategies live.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Where your rules live</h2>
+    <p class="note">
+      The analysis hands over facts. A strategy is six questions asked of those
+      facts, in order — and a setup has to survive all six. Reversal, breakout
+      and trend are the same six with different answers.
+    </p>
+
+    <div class="stage">
+      <div class="scroller">
+        <svg class="chart" viewBox="0 0 1000 500" role="img"
+             aria-label="Facts from the analysis enter at the top. One strategy is six layers asked in order: direction, place, trigger, stop, target and skip. Reversal is the one shown; breakout and trend have their own six. A setup rejected at any layer is saved with the name of the layer that rejected it. Whatever survives all six becomes a signal, which then passes the house rules before reaching Telegram.">
+
+          <!-- in -->
+          <rect x="300" y="16" width="400" height="42" rx="8" fill="color-mix(in srgb, var(--live) 10%, var(--panel))" stroke="var(--live)" />
+          <text x="500" y="43" font-family="var(--sans)" font-size="13.5" font-weight="600" fill="var(--ink)" text-anchor="middle">the facts · swings, candle types, structure, your levels</text>
+          <line x1="500" y1="58" x2="500" y2="74" stroke="var(--live)" stroke-width="2" />
+
+          <!-- layer 1 -->
+          <rect x="300" y="74" width="400" height="52" rx="7" fill="var(--sunk)" stroke="var(--rule)" />
+          <text x="318" y="97" font-family="var(--mono)" font-size="10" letter-spacing="1.1" fill="var(--ink-faint)">DIRECTION</text>
+          <text x="318" y="116" font-family="var(--sans)" font-size="12.5" fill="var(--ink)">Which way are we allowed to trade at all?</text>
+          <text x="682" y="116" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="end">weekly says down → longs are off</text>
+
+          <!-- layer 2 -->
+          <rect x="300" y="134" width="400" height="52" rx="7" fill="var(--sunk)" stroke="var(--rule)" />
+          <text x="318" y="157" font-family="var(--mono)" font-size="10" letter-spacing="1.1" fill="var(--ink-faint)">PLACE</text>
+          <text x="318" y="176" font-family="var(--sans)" font-size="12.5" fill="var(--ink)">Is price where you would take it?</text>
+          <text x="682" y="176" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="end">at a level you drew, not near it</text>
+
+          <!-- layer 3 -->
+          <rect x="300" y="194" width="400" height="52" rx="7" fill="var(--sunk)" stroke="var(--rule)" />
+          <text x="318" y="217" font-family="var(--mono)" font-size="10" letter-spacing="1.1" fill="var(--ink-faint)">TRIGGER</text>
+          <text x="318" y="236" font-family="var(--sans)" font-size="12.5" fill="var(--ink)">What has to happen before you act?</text>
+          <text x="682" y="236" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="end">a 4-hour rejection closes</text>
+
+          <!-- layer 4 -->
+          <rect x="300" y="254" width="400" height="52" rx="7" fill="var(--sunk)" stroke="var(--rule)" />
+          <text x="318" y="277" font-family="var(--mono)" font-size="10" letter-spacing="1.1" fill="var(--ink-faint)">STOP</text>
+          <text x="318" y="296" font-family="var(--sans)" font-size="12.5" fill="var(--ink)">Where does it go, and is that survivable?</text>
+          <text x="682" y="296" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="end">beyond the level, measured in ATR</text>
+
+          <!-- layer 5 -->
+          <rect x="300" y="314" width="400" height="52" rx="7" fill="var(--sunk)" stroke="var(--rule)" />
+          <text x="318" y="337" font-family="var(--mono)" font-size="10" letter-spacing="1.1" fill="var(--ink-faint)">TARGET</text>
+          <text x="318" y="356" font-family="var(--sans)" font-size="12.5" fill="var(--ink)">Where does it aim, and is it worth it?</text>
+          <text x="682" y="356" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="end">the next level, and the reward ratio</text>
+
+          <!-- layer 6 -->
+          <rect x="300" y="374" width="400" height="52" rx="7" fill="var(--sunk)" stroke="var(--rule)" />
+          <text x="318" y="397" font-family="var(--mono)" font-size="10" letter-spacing="1.1" fill="var(--ink-faint)">SKIP</text>
+          <text x="318" y="416" font-family="var(--sans)" font-size="12.5" fill="var(--ink)">Any reason to throw it away anyway?</text>
+          <text x="682" y="416" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)" text-anchor="end">news due, already signalled</text>
+
+          <!-- rejections -->
+          <g stroke="var(--stop)" stroke-width="1.5" stroke-dasharray="4 3">
+            <line x1="700" y1="100" x2="812" y2="100" />
+            <line x1="700" y1="160" x2="812" y2="160" />
+            <line x1="700" y1="220" x2="812" y2="220" />
+            <line x1="700" y1="280" x2="812" y2="280" />
+            <line x1="700" y1="340" x2="812" y2="340" />
+            <line x1="700" y1="400" x2="812" y2="400" />
+          </g>
+          <line x1="812" y1="100" x2="812" y2="400" stroke="var(--stop)" stroke-width="1.5" stroke-dasharray="4 3" />
+          <rect x="828" y="216" width="158" height="72" rx="8" fill="var(--panel)" stroke="var(--stop)" />
+          <text x="907" y="240" font-family="var(--sans)" font-size="12.5" font-weight="600" fill="var(--ink)" text-anchor="middle">rejected, and saved</text>
+          <text x="907" y="259" font-family="var(--sans)" font-size="11" fill="var(--ink-soft)" text-anchor="middle">with the layer that</text>
+          <text x="907" y="274" font-family="var(--sans)" font-size="11" fill="var(--ink-soft)" text-anchor="middle">said no</text>
+
+          <!-- out -->
+          <line x1="500" y1="426" x2="500" y2="444" stroke="var(--live)" stroke-width="2" />
+          <rect x="300" y="444" width="400" height="42" rx="8" fill="color-mix(in srgb, var(--live) 16%, var(--panel))" stroke="var(--live)" stroke-width="2" />
+          <text x="500" y="471" font-family="var(--sans)" font-size="13.5" font-weight="600" fill="var(--ink)" text-anchor="middle">a signal, and the one sentence that explains it</text>
+
+          <!-- left rail -->
+          <text x="16" y="120" font-family="var(--mono)" font-size="10" letter-spacing="1.2" fill="var(--ink-faint)">ONE</text>
+          <text x="16" y="138" font-family="var(--mono)" font-size="10" letter-spacing="1.2" fill="var(--ink-faint)">STRATEGY</text>
+          <line x1="60" y1="74" x2="60" y2="426" stroke="var(--live)" stroke-width="2.5" />
+          <text x="76" y="212" font-family="var(--sans)" font-size="12.5" font-weight="600" fill="var(--ink)">reversal</text>
+          <text x="76" y="236" font-family="var(--sans)" font-size="12.5" fill="var(--ink-faint)">breakout</text>
+          <text x="76" y="260" font-family="var(--sans)" font-size="12.5" fill="var(--ink-faint)">trend</text>
+          <text x="76" y="290" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)">each has its own</text>
+          <text x="76" y="306" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)">six, filled in</text>
+          <text x="76" y="322" font-family="var(--sans)" font-size="11.5" fill="var(--ink-soft)">differently</text>
+          <text x="76" y="348" font-family="var(--mono)" font-size="10" fill="var(--ink-faint)">shown: reversal</text>
+        </svg>
+      </div>
+
+      <div class="gate">
+        <div class="lane is-live">
+          <h3><i style="background: var(--live)"></i> Your strategies are these six, filled in differently</h3>
+          <p><strong>Reversal, breakout and trend each get their own copy of the six.</strong> Reversal's <em>place</em> is at a level; breakout's is just beyond one. Same six questions, different answers — and that is all a strategy family <em>is</em>.</p>
+          <p>All three read the same facts, so the swing reversal sees is the swing breakout sees. <strong>Nothing is measured twice.</strong> Each lives in its own file in <code>config/strategies/</code>.</p>
+        </div>
+
+        <div class="lane">
+          <h3><i style="background: var(--ink-soft)"></i> When you trade sits outside all of them</h3>
+          <p>Not "is this a good setup" but <strong>"may you be told at all"</strong>. <strong>No Mondays. No new trades on Fridays.</strong> Tuesday is fine. Plus: not the same setup twice, not fifteen in one morning.</p>
+          <p>It applies to alerts as well. Keeping it out of the six means changing your Monday rule cannot quietly change what counts as a setup.</p>
+        </div>
+      </div>
+
+      <p style="margin: 1.5rem 0 0; font-size: 0.95rem; color: var(--ink-soft);">
+        <strong style="color: var(--ink)">Rejected setups get saved, not dropped</strong>,
+        along with the name of the layer that rejected them. Those rows answer
+        "why did nothing fire this week?" — and later they are the
+        <em>don't-take-this</em> examples a model would learn from.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>What the analysis hands over</h2>
+    <p class="note">
+      The arrow between the two boxes had nothing written on it. This is what
+      travels along it — one sheet of measured facts, the moment a candle
+      closes. Every strategy reads this same sheet.
+    </p>
+
+    <div class="stage">
+      <div class="sheet"><b>XAUUSD · 4-hour · closed 15:00 UTC</b>
+
+price          4512.40
+ATR              18.20      <b>the size of a normal candle</b>
+
+your levels    weekly  4520.00    0.4 ATR away   <em>← price is in it</em>
+               daily   4602.00    4.9 ATR away
+               daily   4438.00    4.1 ATR away
+
+swings         high    4521.60    confirmed 15:00
+               low     4455.20    confirmed 07:00
+
+structure      lower highs since 04:00
+this candle    rejection off the high
+
+weekly         down
+daily          down</div>
+
+      <div class="gate">
+        <div class="lane is-live">
+          <h3><i style="background: var(--live)"></i> Facts only</h3>
+          <p>Nothing on that sheet is an opinion. Every line is measured, and every distance is in <strong>ATR</strong> — a multiple of a normal candle — so the same number means the same thing on gold as on EURUSD.</p>
+          <p>No strategy measures anything itself. It reads the sheet and answers yes or no.</p>
+        </div>
+        <div class="lane">
+          <h3><i style="background: var(--ink-soft)"></i> Why it matters that it is one sheet</h3>
+          <p>Reversal, breakout and trend all read <strong>the same</strong> swing high, the same ATR, the same distance to your level.</p>
+          <p>If each measured its own, two of them would eventually disagree — and there would be no way to say which was right.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>What actually lands on your phone</h2>
+    <p class="note">
+      Two different messages, from the two lanes. Same gold, same level, a few
+      hours apart.
+    </p>
+
+    <div class="phone">
+
+      <div class="bubble is-alert">
+        <div class="head">🔔 XAUUSD — your zone is live</div>
+        <p>Price is at your <strong>weekly</strong> level, 4520.</p>
+        <div class="nums">now      4519.80
+level    4520.00  (weekly)</div>
+        <p>Nothing has formed yet. Go and watch it.</p>
+        <div class="stamp">15:42 UTC · from the price watcher</div>
+      </div>
+
+      <div class="bubble is-signal">
+        <div class="head">📉 XAUUSD — SELL · reversal</div>
+        <div class="nums">entry    4512.40
+stop     4534.00   1.2 ATR
+target   4438.00   next daily level
+reward   3.4 : 1</div>
+        <div class="why">
+          Price reached your weekly level at 4520, the 4-hour closed as a
+          rejection off it, and the weekly is down.
+        </div>
+        <div class="stamp">19:00 UTC · 4-hour close · reversal</div>
+      </div>
+
+    </div>
+
+    <p class="note" style="margin: 1.5rem 0 0;">
+      From step 5 the signal also carries a <strong>picture of the chart the
+      bot read</strong> — the candles, your levels in your colours, and the
+      swing it found. It is our drawing of the broker's candles, not a photo of
+      your platform, so the spacing and styling will not match exactly. If a
+      <em>price</em> differs from your chart that is a real problem worth
+      chasing. If the <em>look</em> differs, that is just us.
+    </p>
+
+    <p class="note" style="margin: 1rem 0 0;">
+      The alert has no entry, no stop, no target — because there is no trade
+      yet. The signal has all three, plus <strong>one sentence you could argue
+      with</strong>. If that sentence cannot be written, the rules are too
+      loose, and that is a rules problem rather than a wording one.
+    </p>
+  </section>
+
+  <section>
+    <h2>Three things I have been calling "rules"</h2>
+    <p class="note">
+      This is where the confusion came from, and it is mine. They are three
+      different things and they live in three different places.
+    </p>
+
+    <div class="stage">
+      <table class="naming">
+        <thead>
+          <tr><th>The name</th><th>What it is</th><th>Lives in</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>A strategy</b></td>
+            <td>A named way of trading. Reversal, breakout, trend. <b>Three of them, and you can add more.</b></td>
+            <td><code>config/strategies/reversal.toml</code></td>
+          </tr>
+          <tr>
+            <td><b>The six layers</b></td>
+            <td>What a strategy is <em>made of</em> — direction, place, trigger, stop, target, skip. Every strategy has all six, answered differently. <b>This is not a separate thing from the strategy; it is the strategy's insides.</b></td>
+            <td>the same file</td>
+          </tr>
+          <tr>
+            <td><b>When you trade</b></td>
+            <td>Applies to <em>everything</em>, whatever the strategy. No Mondays. Nothing new on Fridays. Not the same setup twice.</td>
+            <td><code>config/app.toml</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="margin: 1.4rem 0 0; font-size: 0.95rem; color: var(--ink-soft);">
+        <strong style="color: var(--ink)">If you meant a fourth kind, say so.</strong>
+        Things like a maximum risk per trade, a minimum reward ratio, no
+        trading through news, or a cap on how many signals in a day are none of
+        the three above — they would sit alongside <em>when you trade</em> as
+        limits that apply to every strategy at once. Worth naming them now
+        rather than discovering them one at a time.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>What that costs, per pair</h2>
+    <p class="note">
+      Worth seeing the numbers, because they are the reason this design is
+      simple rather than clever.
+    </p>
+
+    <div class="stage">
+      <table>
+        <thead>
+          <tr><th>Road</th><th>How often</th><th class="num">Per pair, per day</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Websocket — the live price</td><td>constant, one connection</td><td class="num">1 stream</td></tr>
+          <tr><td>Request — the 1-hour candle</td><td>at each hour close</td><td class="num">24</td></tr>
+          <tr><td>Request — the 4-hour candle</td><td>at each 4-hour close</td><td class="num">6</td></tr>
+          <tr><td>Request — the daily candle</td><td>17:00 New York</td><td class="num">1</td></tr>
+          <tr><td>Request — the weekly candle</td><td>Friday 17:00 New York</td><td class="num">0.2</td></tr>
+        </tbody>
+      </table>
+      <p style="margin: 1.2rem 0 0; font-size: 0.95rem; color: var(--ink-soft);">
+        About <strong style="color: var(--ink)">31 requests a day per pair</strong>.
+        Eight pairs is roughly 250 in twenty-four hours. Providers rate-limit in
+        the hundreds per minute — there is no pressure here at all.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Three things settled, one to go</h2>
+
+    <div class="changes">
+
+      <article class="change is-ok">
+        <h3>Price has no timeframe</h3>
+        <p>
+          The watcher does not need to watch four timeframes. <strong>Price is
+          one number.</strong> Gold at 4312 is 4312 on the weekly, the daily,
+          the 4-hour and the 1-hour at the same moment.
+        </p>
+        <p>
+          One price stream per pair. It checks each tick against every level you
+          drew, whatever timeframe you drew it on — a weekly line and a 1-hour
+          line are both just a price band to it.
+        </p>
+      </article>
+
+      <article class="change is-ok">
+        <h3>Nothing computes a candle</h3>
+        <p>
+          The websocket sends a price and nothing else — no open, no high, no
+          low, no close. It does not know what a 1-hour candle is.
+        </p>
+        <p>
+          So candles are <strong>asked for, once, a few seconds after each
+          close</strong>. The broker built it; we just fetch it. Build one from
+          ticks instead and it would come out slightly different — a different
+          first tick, a high a few cents off — and then your chart and the bot
+          would disagree with nobody able to say which was right.
+        </p>
+      </article>
+
+      <article class="change is-ok">
+        <h3>Rules are not part of the analysis</h3>
+        <div class="swap">
+          <div><dt>The analysis</dt><dd>What <em>is</em> on the chart. Swings, candle types, structure, your levels, distances. Facts, measured.</dd></div>
+          <div><dt>The strategies</dt><dd>What to <em>do</em> about it. Reversal, breakout, trend — each reading the same facts.</dd></div>
+        </div>
+        <p>
+          That separation is the whole reason several strategies can exist. Mix
+          rules into the analysis and each strategy needs its own copy of the
+          swing finder — and the day two copies disagree, you cannot tell which
+          was right.
+        </p>
+      </article>
+
+      <article class="change is-ok">
+        <h3>The days you trade</h3>
+        <p>
+          Not a setup rule — a rule about whether you are told at all. It sits
+          after every strategy, and it applies to the price watcher's alerts as
+          well as to signals.
+        </p>
+        <div class="swap">
+          <div><dt>Monday</dt><dd>Nothing. No signals, no alerts.</dd></div>
+          <div><dt>Tuesday to Thursday</dt><dd>Normal.</dd></div>
+          <div><dt>Friday</dt><dd>No new trades. A trade already open is still tracked to its stop or target.</dd></div>
+        </div>
+        <p>
+          That Friday rule is the interesting one, because it means the bot has
+          to know the difference between <strong>opening something</strong> and
+          <strong>following something already open</strong> — which is a thing
+          it needs anyway for tracking outcomes.
+        </p>
+      </article>
+
+      <article class="change">
+        <h3>Still open: when is a repeat not news?</h3>
+        <p>
+          A 4-hour reversal that fires at 13:00 is usually still there at 17:00,
+          and at 21:00. Without a rule that is one setup and three identical
+          messages, and by the second week you stop reading the channel.
+        </p>
+        <p>
+          Same when two strategies match the same setup — one message listing
+          both, not two messages. <strong>Cheap to decide now, painful to
+          retrofit</strong> once signals are flowing.
+        </p>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Twelve Data, and the two things to check first</h2>
+    <p class="note">
+      Settled: Twelve Data to start. IBKR and OANDA come later behind the same
+      door, which is exactly why the door exists.
+    </p>
+
+    <div class="stage">
+      <table>
+        <thead>
+          <tr><th>What we need</th><th>What they call it</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>The live price, for the watcher</td><td>the websocket price stream</td></tr>
+          <tr><td>A finished candle, once per close</td><td>a time series request</td></tr>
+          <tr><td>History, for testing rules</td><td>the same request, asking further back</td></tr>
+          <tr><td>Our pairs</td><td>written with a slash — <code>EUR/USD</code>, <code>XAU/USD</code></td></tr>
+          <tr><td>Our timeframes</td><td><code>1h</code> · <code>4h</code> · <code>1day</code> · <code>1week</code></td></tr>
+        </tbody>
+      </table>
+
+      <div class="gate">
+        <div class="lane">
+          <h3><i style="background: var(--stop)"></i> Check one: is the websocket on your plan?</h3>
+          <p>Candles are a plain request and work on any plan. The <strong>live price stream is the part that is usually paid-only</strong>.</p>
+          <p>Without it there is no price watcher — no "your zone is live" message at all. Everything else still works. Worth knowing which of the two you are building before you start, rather than finding out in week two.</p>
+        </div>
+
+        <div class="lane">
+          <h3><i style="background: var(--stop)"></i> Check two: where does their day end?</h3>
+          <p>We said the broker's chart is the truth. <strong>Twelve Data is not your broker.</strong> Its daily candle may not close at 17:00 New York, and its week may run Monday to Friday rather than Sunday evening to Friday evening.</p>
+          <p>Your hand-drawn levels are safe either way — they are prices, and a price does not care where a candle starts. What would shift is the <em>swings, structure and trend</em> read off the daily and weekly.</p>
+          <p><strong>Ten minutes settles it:</strong> pull one daily gold candle, put it next to the same one on your chart, and see whether the open matches.</p>
+        </div>
+      </div>
+
+      <p style="margin: 1.5rem 0 0; font-size: 0.95rem; color: var(--ink-soft);">
+        <strong style="color: var(--ink)">The request budget is not a problem.</strong>
+        About 31 requests a day per pair. Two pairs is 62, eight pairs is around
+        250 — comfortably inside even a free daily allowance. The websocket is
+        the only thing that might cost money.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>The build order</h2>
+    <p class="note">
+      Each step ends with something you can see working. Nothing starts until
+      the one before it does what it says.
+    </p>
+
+    <div class="steps">
+
+      <article class="step is-first">
+        <div>
+          <h3>The thin pipe</h3>
+          <p class="what">
+            Connect to Twelve Data. Take the price stream for
+            <strong>one</strong> pair. Fetch its 1-hour candle when the hour
+            closes and send the four numbers to your Telegram channel. No
+            storage, no analysis, no rules.
+          </p>
+          <dl>
+            <dt>Proves</dt>
+            <dd>Login, price stream, candle fetch and Telegram delivery. <strong>Four things that each eat a week</strong> — and they eat it whether they are first or last.</dd>
+            <dt>Done when</dt>
+            <dd>Gold's 1-hour candle closes and your phone buzzes with its open, high, low and close.</dd>
+            <dt>Also gives</dt>
+            <dd>The real message shapes, written down from what actually arrives rather than from the documentation.</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="step">
+        <div>
+          <h3>Every pair, behind one door</h3>
+          <p class="what">
+            All the pairs plus gold. Four timeframes — weekly, daily, 4-hour,
+            1-hour. And the broker hidden behind one interface, so adding IBKR
+            or OANDA later is a config change rather than a rewrite.
+          </p>
+          <dl>
+            <dt>Proves</dt>
+            <dd>The provider's real limits — how many price streams at once, and how hard the request limit bites.</dd>
+            <dt>Done when</dt>
+            <dd>It runs a full trading day without dropping a stream or missing a candle.</dd>
+            <dt>Why the door now</dt>
+            <dd>Two brokers are already planned. Building the door afterwards means unpicking it out of everything written in between.</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="step">
+        <div>
+          <h3>Keep it</h3>
+          <p class="what">
+            Postgres. One table of candles. Every closed bar written the moment
+            it arrives.
+          </p>
+          <dl>
+            <dt>Proves</dt>
+            <dd>A restart does not cost you the week.</dd>
+            <dt>Done when</dt>
+            <dd>You kill the process, start it again, and the only hole in the table is exactly as long as it was down.</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="step">
+        <div>
+          <h3>The past</h3>
+          <p class="what">
+            Download history, one call per timeframe. Then scan it: are any
+            candles missing, and does the weekend or gold's nightly break
+            account for them?
+          </p>
+          <dl>
+            <dt>Proves</dt>
+            <dd>You have something honest to test rules against.</dd>
+            <dt>Done when</dt>
+            <dd>Two years of gold at all four timeframes, and the scan reports <strong>zero unexplained holes</strong>.</dd>
+            <dt>Known already</dt>
+            <dd>Gold stops every weekday from 20:45 to 22:00 UTC — its nightly hour off. Spot forex does not stop at all. Measured, not guessed, and now the only exception left.</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="step">
+        <div>
+          <h3>Reading the chart</h3>
+          <p class="what">
+            Swings, candle types, structure — and your hand-drawn levels loaded
+            from config. All measured on closed candles only.
+          </p>
+          <dl>
+            <dt>Proves</dt>
+            <dd>The code sees what you see.</dd>
+            <dt>Done when</dt>
+            <dd>A chart printout puts lines where you drew them, in your colours — black weekly, blue daily, yellow 4-hour.</dd>
+            <dt>And a picture</dt>
+            <dd>The bot draws the chart it read — candles, your levels in your colours, the swing it found — and sends it with the message. <strong>Not a screenshot of your platform</strong>, which would need a browser running and would show their lines rather than yours.</dd>
+            <dt>Why it earns its place</dt>
+            <dd>A level in the wrong spot, a candle that should not exist, a swing where you see none — you spot all of that in a glance and never in a table of numbers. <strong>Every signal becomes a check on the code.</strong></dd>
+            <dt>Boundary</dt>
+            <dd>Here the analysis gets its own crate, with <strong>no network dependency in its manifest</strong>. Enforced by the build, not by memory.</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="step">
+        <div>
+          <h3>The price watcher</h3>
+          <p class="what">
+            The other lane. Every tick checked against every level you drew.
+            Price touches one, you get told.
+          </p>
+          <dl>
+            <dt>Proves</dt>
+            <dd>The alert path works and stays separate from the signal path.</dd>
+            <dt>Done when</dt>
+            <dd>Gold touches 4520 and you are told — on a candle that has not closed.</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="step">
+        <div>
+          <h3>The strategies <span class="flag">one at a time</span></h3>
+          <p class="what">
+            One family first, not three. Direction, place, trigger, stop, target,
+            and the reasons to skip. Then the next one, reading the same
+            analysis.
+          </p>
+          <dl>
+            <dt>Proves</dt>
+            <dd>A setup can be described in one sentence. If it cannot, the rules are too loose — a rules problem, not a wording problem.</dd>
+            <dt>Done when</dt>
+            <dd>A 4-hour signal arrives with the sentence that explains it, and does not arrive again four hours later for the same setup.</dd>
+          </dl>
+        </div>
+      </article>
+
+      <article class="step">
+        <div>
+          <h3>Proving it</h3>
+          <p class="what">
+            Replay the stored history through <em>the same code the bot runs</em>,
+            one candle at a time, with the lookahead guard on.
+          </p>
+          <dl>
+            <dt>Proves</dt>
+            <dd>The rules are worth following — and that the backtest describes the bot rather than something better.</dd>
+            <dt>Done when</dt>
+            <dd>A year of gold replays and the guard stays quiet.</dd>
+            <dt>Non-negotiable</dt>
+            <dd>Never <em>"if we're backtesting, do this instead"</em>. The moment that exists, the backtest tests something the bot does not do — and it makes results look better, not broken.</dd>
+          </dl>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>Crates arrive when they are needed</h2>
+    <p class="note">
+      Twelve empty crates was the last version's mistake. Start with one and
+      split when a second thing needs the same code.
+    </p>
+
+    <div class="stage">
+      <table>
+        <thead>
+          <tr><th>From step</th><th>Crate</th><th>Why then</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>1</code></td><td><code>nsc-live</code></td><td>One binary. Feed in, Telegram out. That is the whole program.</td></tr>
+          <tr><td><code>2</code></td><td><code>nsc-data</code></td><td>The one door every broker hides behind. It exists the moment a second broker is planned, which it already is.</td></tr>
+          <tr><td><code>5</code></td><td><code>nsc-core</code> · <code>nsc-ta</code></td><td>The split that is not optional. Shared types, and chart reading that <strong>cannot</strong> reach the network, because its manifest lists nothing that can.</td></tr>
+          <tr><td><code>7</code></td><td><code>nsc-strategy</code></td><td>Rules applied in exactly one place, run by the live bot and the backtester alike.</td></tr>
+          <tr><td><code>8</code></td><td><code>nsc-backtest</code></td><td>The second thing that consumes the strategy. Its existence is what makes the purity rule earn its keep.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Not in phase one</h2>
+    <div class="stage">
+      <ul class="plain">
+        <li><strong>Anything but forex pairs and gold.</strong> No indices, no oil, no silver or copper. That also removes the 16:00 New York problem, which only ever affected the indices.</li>
+        <li><strong>Placing trades.</strong> Signals only. Not a gap waiting to be helpfully filled in.</li>
+        <li><strong>The AI check.</strong> It can only lower confidence or block — never rescue a setup the rules rejected. It comes after the rules are worth trusting.</li>
+        <li><strong>The news filter and the trained model.</strong> Both need a record of signals that does not exist yet.</li>
+        <li><strong>A web dashboard.</strong> Telegram is the interface.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <h2>Still open</h2>
+    <div class="asks">
+      <div class="ask">
+        <h3>Does your Twelve Data plan include the websocket?</h3>
+        <p>The candle side is a plain request and works on any plan. The <em>live price</em> stream is the part that is usually paid-only — and the price watcher is nothing without it. Check before step one.</p>
+      </div>
+      <div class="ask">
+        <h3>Where does their day end?</h3>
+        <p>Twelve Data is a data provider, not your broker. If its daily candle does not close at 17:00 New York, its daily chart is not your daily chart. One candle, compared by eye, settles it.</p>
+      </div>
+      <div class="ask">
+        <h3>How many pairs to start?</h3>
+        <p>Two would prove everything eight would, and cost a lot less to get wrong. Gold plus one major.</p>
+      </div>
+      <div class="ask">
+        <h3>When is a repeat not news?</h3>
+        <p>Same setup, next candle. One message or three? Cheap now, painful later.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      <strong>This is a plan, not a result.</strong> Every step here is
+      achievable and none of it is proof that the rules make money. That needs
+      step 8 and a year of history.
+    </p>
+    <p>
+      The previous version reached 15,000 lines and 286 passing tests before it
+      was cleared, on one wrong assumption made before the data layer was
+      settled: that the big timeframes would be <em>built</em> from a small one.
+      It is all in git at <code>a4a2170</code> and can be read back — but
+      nothing gets copied in until the questions above are answered.
+    </p>
+  </footer>
+
+</div>

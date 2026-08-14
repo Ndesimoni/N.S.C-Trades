@@ -1,0 +1,35 @@
+# ── nsc-live ───────────────────────────────────────────────────────────────
+# The bot. Right now it does one thing: ask Twelve Data for a candle and print
+# it.
+#
+# It is a binary, not a library, so it uses anyhow for errors — something went
+# wrong, here is the trail, stop. Libraries will use thiserror instead, because
+# a caller needs to tell a bad API key from a dropped connection.
+# ───────────────────────────────────────────────────────────────────────────
+[package]
+name              = "nsc-work-man"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+
+# Waiting on the network without freezing everything else.
+tokio   = { workspace = true }
+reqwest = { workspace = true }
+
+# Turning the JSON that comes back into types we can use.
+serde      = { workspace = true }
+serde_json = { workspace = true }
+
+# Candle times.
+chrono = { workspace = true }
+
+# Prices.
+rust_decimal = { workspace = true }
+
+# Cutting the white strip off Chrome's screenshot.
+image = { workspace = true }
+
+# Errors, and reading .env.
+anyhow  = { workspace = true }
+dotenvy = { workspace = true }

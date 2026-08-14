@@ -1,0 +1,81 @@
+//! The candle itself.
+
+use anyhow::{Context, Result};
+use chrono::{DateTime, NaiveDateTime, TimeDelta, Utc};
+use rust_decimal::Decimal;
+use serde::Deserialize;
+
+use crate::settings::INTERVAL_MINUTES;
+
+/// What Twelve Data sends back for a time series request.
+///
+/// Only the part we need. Serde skips the `meta` block and anything else they
+/// add later, so a new field on their side cannot break this.
+#[derive(Debug, Deserialize)]
+pub struct Series {
+    pub values: Vec<Bar>,
+}
+
+/// One candle, in the feed's own words.
+///
+/// No volume field, because spot forex and gold have none — there is no
+/// central exchange to count it. No rule in this project may ever use volume.
+#[derive(Debug, Clone, Deserialize)]
+pub struct Bar {
+    pub datetime: String,
+
+    // Prices arrive as text — "4394.68931" — and go straight into Decimal.
+    // They never touch a float, not even for a moment.
+    #[serde(with = "rust_decimal::serde::str")]
+    pub open: Decimal,
+    #[serde(with = "rust_decimal::serde::str")]
+    pub high: Decimal,
+    #[serde(with = "rust_decimal::serde::str")]
+    pub low: Decimal,
+    #[serde(with = "rust_decimal::serde::str")]
+    pub close: Decimal,
+}
+
+impl Bar {
+    /// When this candle opened.
+    ///
+    /// True for hourly candles. **Not true for daily ones** — a daily stamp is
+    /// the date the candle *ends* on. Same field, two meanings, and it is
+    /// written down in `docs/worksheets/twelve-data.md` for that reason.
+    pub fn opened_at(&self) -> Result<DateTime<Utc>> {
+        let naive = NaiveDateTime::parse_from_str(&self.datetime, "%Y-%m-%d %H:%M:%S")
+            .with_context(|| format!("'{}' is not a time this program can read", self.datetime))?;
+
+        Ok(naive.and_utc())
+    }
+
+    /// Has this candle finished?
+    ///
+    /// **Asked of the clock, never of position in the list.**
+    ///
+    /// The newest candle is usually the one still running — but not always.
+    /// Ask at 16:00:02 and you get either the 16:00 candle already open, if a
+    /// price has landed, or the 15:00 one now finished, if none has. Counting
+    /// from the top would be right most of the time and wrong the rest, which
+    /// is worse than being wrong always, because you stop checking.
+    pub fn is_finished(&self, now: DateTime<Utc>) -> Result<bool> {
+        let one_step = TimeDelta::try_minutes(INTERVAL_MINUTES)
+            .context("the interval is not a length of time chrono can hold")?;
+
+        Ok(self.opened_at()? + one_step <= now)
+    }
+
+    /// How far this candle moved, and which way.
+    pub fn change(&self) -> Decimal {
+        self.close - self.open
+    }
+
+    /// The move as a percentage of where it opened.
+    pub fn change_percent(&self) -> Decimal {
+        if self.open == Decimal::ZERO {
+            return Decimal::ZERO;
+        }
+
+        (self.change() / self.open * Decimal::from(100)).round_dp(2)
+    }
+}

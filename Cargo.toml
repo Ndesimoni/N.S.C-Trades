@@ -1,70 +1,51 @@
 # ── nsc_trades ─────────────────────────────────────────────────────────────
-# Virtual workspace root. Owns no code itself; it pins shared dependency
-# versions so every crate below agrees on one version of tokio, serde, etc.
+# The workspace root. It holds no code of its own.
 #
-# Build order of importance:
-#   nsc-core     domain vocabulary        (pure)
-#   nsc-ta       technical analysis       (pure)  ← the crown jewel
-#   nsc-strategy your strategy, encoded   (pure)
-#   everything else is plumbing around those three.
+# Its job is to pin one version of every outside library. When a second crate
+# appears, it takes its versions from here rather than choosing its own — so
+# two parts of the program can never end up on two versions of the same thing.
 # ───────────────────────────────────────────────────────────────────────────
 [workspace]
 resolver = "3"
-members  = ["crates/*"]
+members  = ["crates/nsc-work-man"]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
 
 [workspace.dependencies]
-# --- internal crates -------------------------------------------------------
-nsc-core     = { path = "crates/nsc-core" }
-nsc-ta       = { path = "crates/nsc-ta" }
-nsc-strategy = { path = "crates/nsc-strategy" }
-nsc-data     = { path = "crates/nsc-data" }
-nsc-risk     = { path = "crates/nsc-risk" }
-nsc-news     = { path = "crates/nsc-news" }
-nsc-ai       = { path = "crates/nsc-ai" }
-nsc-chart    = { path = "crates/nsc-chart" }
-nsc-telegram = { path = "crates/nsc-telegram" }
-nsc-backtest = { path = "crates/nsc-backtest" }
 
-# --- async runtime & web ---------------------------------------------------
-tokio             = { version = "1",    features = ["full"] }
-tokio-tungstenite = { version = "0.30", features = ["native-tls"] }
-axum              = { version = "0.8",  features = ["macros"] }
-tower-http        = { version = "0.7",  features = ["trace", "limit"] }
-reqwest           = { version = "0.12", features = ["json", "rustls-tls"] }
-futures           = "0.3"
-async-trait       = "0.1"
+# ── Talking to the outside world ──
+tokio   = { version = "1", features = ["macros", "rt-multi-thread", "time"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "multipart"] }
 
-# --- storage ---------------------------------------------------------------
-sqlx  = { version = "0.8", features = ["runtime-tokio", "postgres", "chrono", "uuid", "rust_decimal", "macros"] }
-redis = { version = "1", features = ["tokio-comp", "connection-manager"] }
-
-# --- serialisation & config ------------------------------------------------
+# ── Reading what comes back ──
 serde      = { version = "1", features = ["derive"] }
 serde_json = "1"
-toml       = "0.8"
-figment    = { version = "0.10", features = ["toml", "env"] }
-csv        = "1"
 
-# --- domain primitives -----------------------------------------------------
-chrono       = { version = "0.4", features = ["serde"] }
-# Named timezones, so "5pm New York" survives the clocks changing. A compiled-in
-# table of timezone rules — no internet, no files, no clock. Safe for nsc-core.
-chrono-tz    = { version = "0.10", features = ["serde"] }
-rust_decimal = { version = "1",   features = ["serde-with-float"] }
-uuid         = { version = "1",   features = ["v4", "serde"] }
+# ── Times. Everything in this project is UTC. ──
+chrono = { version = "0.4", features = ["serde"] }
 
-# --- errors & logging ------------------------------------------------------
-anyhow            = "1"
-thiserror         = "2"
-tracing           = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+# ── Prices. Never f64. ──
+#
+# 0.1 + 0.2 is not 0.3 in floating point. On one candle nobody notices. Across
+# a year of them the error piles up, and a level that should sit at 4520.00
+# ends up at 4519.9999998 — so the test for "did price touch the level" starts
+# answering no when your eye says yes.
+rust_decimal = { version = "1", features = ["serde-with-str"] }
 
-# --- misc ------------------------------------------------------------------
-teloxide  = { version = "0.17", features = ["macros"] }
-plotters  = "0.3"
-clap      = { version = "4", features = ["derive"] }
-rayon     = "1"
+# ── Errors ──
+#
+# Binaries use anyhow: something went wrong, here is the trail, stop.
+# Libraries will use thiserror: a named error the caller can act on, because
+# a bad API key and a dropped connection need opposite responses.
+anyhow    = "1"
+thiserror = "2"
+
+# Trimming the screenshot. Chrome's headless mode always leaves a strip of
+# white below the page, and the mode that did not do that has been removed from
+# Chrome, so the strip gets cut off afterwards.
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+# ── Secrets, kept out of the code ──
+dotenvy = "0.15"

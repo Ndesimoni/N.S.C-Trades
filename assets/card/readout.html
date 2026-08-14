@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>readout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* How tall this card is. Chrome shoots a window, not a page, so this
+       number is the card's height and Rust reads it straight out of here.
+       Change it here and nowhere else. */
+    --card-height:612px;
+
+    --vault:#0E1216;
+    --panel:#151A1F;
+    --panel-2:#11161A;
+    --rule:#232B32;
+    --ink:#EDEFF1;
+    --mute:#79848D;
+    --brass:#CBA35C;
+    --down:#C4564C;
+    --up:#56A184;
+    --dir:var(--down);
+    --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+    --data:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+
+  *{box-sizing:border-box}
+  html,body{
+    margin:0;height:var(--card-height);overflow:hidden;
+    background:linear-gradient(180deg,var(--panel) 0%,var(--panel-2) 100%);
+  }
+  body{
+    color:var(--ink);
+    font-family:var(--data);
+    width:860px;
+    padding:0;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .quote{
+    width:100%;
+    padding:36px 40px 28px;
+  }
+
+  .quote__head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:12px;
+    padding-bottom:18px;
+    border-bottom:1px solid var(--rule);
+  }
+  .quote__pair{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:22px;
+    letter-spacing:-.015em;
+    margin:0;
+  }
+  .quote__pair span{color:var(--mute);font-weight:400;margin:0 1px}
+  .quote__stamp{
+    font-size:13px;
+    letter-spacing:.09em;
+    text-transform:uppercase;
+    color:var(--mute);
+    text-align:right;
+    line-height:1.6;
+  }
+  .quote__stamp b{color:var(--brass);font-weight:500}
+
+  .price{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:14px;
+    padding:26px 0 8px;
+  }
+  .price__last{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:68px;
+    line-height:.9;
+    letter-spacing:-.035em;
+    font-variant-numeric:tabular-nums;
+    margin:0;
+  }
+  .price__delta{
+    font-size:17px;
+    line-height:1.2;
+    color:var(--dir);
+    text-align:right;
+    white-space:nowrap;
+    font-variant-numeric:tabular-nums;
+  }
+  .price__delta i{font-style:normal;opacity:.85;margin-right:3px}
+  .price__delta u{display:block;text-decoration:none;color:var(--mute);font-size:14px;margin-top:5px}
+  .price__note{
+    font-size:16px;
+    color:var(--mute);
+    letter-spacing:.02em;
+    padding:24px 0 28px;
+    margin:0;
+  }
+  .price__note b{color:var(--ink);font-weight:400}
+
+  .readout{
+    display:grid;
+    grid-template-columns:52px 74px 1fr;
+    align-items:start;
+    padding-bottom:22px;
+  }
+  .axis{position:relative}
+  .axis__wick{position:absolute;left:25px;width:2px;background:var(--rule)}
+  .axis__body{position:absolute;left:14px;width:24px;border-radius:3px;background:var(--dir);opacity:.92}
+  .axis__tick{position:absolute;left:6px;width:40px;height:1px;background:var(--rule)}
+  .axis__tick--c{left:2px;width:48px;background:var(--brass)}
+  .axis__dot{
+    position:absolute;left:21px;width:10px;height:10px;border-radius:50%;
+    background:var(--brass);box-shadow:0 0 0 5px rgba(203,163,92,.14);
+  }
+
+  .leaders{display:block;overflow:visible}
+  .leaders path{fill:none;stroke:var(--rule);stroke-width:1.4}
+  .leaders path.is-close{stroke:rgba(203,163,92,.5)}
+
+  .rows{position:relative}
+  .row{
+    position:absolute;left:0;right:0;
+    display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+    transform:translateY(-50%);
+    padding:5px 10px 5px 12px;border-radius:8px;
+  }
+  .row__label{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+  .row__label b{
+    font-family:var(--display);font-weight:600;font-size:16px;
+    letter-spacing:0;color:var(--ink);margin-right:10px;
+  }
+  .row__value{
+    font-family:var(--display);font-weight:400;font-size:26px;
+    letter-spacing:-.01em;font-variant-numeric:tabular-nums;
+  }
+  .row.is-close .row__label b{color:var(--brass)}
+  .row.is-close .row__value{font-weight:600}
+
+  .quote__foot{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding-top:18px;border-top:1px solid var(--rule);
+    font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);
+  }
+  .quote__foot b{color:var(--ink);font-weight:400;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+<article class="quote">
+  <header class="quote__head">
+    <h1 class="quote__pair" id="pair"></h1>
+    <div class="quote__stamp"><b id="interval"></b><br><span id="stamp"></span></div>
+  </header>
+
+  <p class="price__note" id="note"></p>
+
+  <div class="readout">
+    <div class="axis" id="axis"></div>
+    <svg class="leaders" id="leaders" aria-hidden="true"></svg>
+    <div class="rows" id="rows"></div>
+  </div>
+
+  <footer class="quote__foot">
+    <span>Range <b id="range"></b></span>
+    <span id="unit"></span>
+  </footer>
+</article>
+
+<script>
+// Rust replaces this line. Everything below is worked out from it.
+const candle = /*__CANDLE__*/;
+
+const fmt = n => n.toLocaleString("en-US",{minimumFractionDigits:candle.digits,maximumFractionDigits:candle.digits});
+
+function render(){
+  const {open:o, high:h, low:l, close:c} = candle;
+  const range = h - l;
+  const delta = c - o;
+  const pct   = range === 0 ? 0 : (delta / o) * 100;
+  const down  = delta < 0;
+  const posInRange = range === 0 ? 50 : ((c - l) / range) * 100;
+
+  document.documentElement.style.setProperty("--dir", down ? "var(--down)" : "var(--up)");
+
+  document.getElementById("pair").innerHTML  = candle.symbol.replace("/", '<span>/</span>');
+  document.getElementById("interval").textContent = candle.interval;
+  document.getElementById("stamp").textContent    = candle.stamp;
+  document.getElementById("range").textContent    = fmt(range);
+  document.getElementById("unit").textContent     = candle.unit;
+
+  document.getElementById("note").innerHTML =
+    `Closed <b>${posInRange.toFixed(0)}%</b> up the ${candle.interval}'s range — ` +
+    `${fmt(c - l)} above the low, ${fmt(h - c)} below the high.`;
+
+  const H = 340;
+  const y = v => range === 0 ? H/2 : (1 - (v - l) / range) * H;
+
+  const axis = document.getElementById("axis");
+  const rows = document.getElementById("rows");
+  const svg  = document.getElementById("leaders");
+  axis.style.height = rows.style.height = H + "px";
+  svg.setAttribute("height", H);
+  svg.setAttribute("width", 74);
+  svg.setAttribute("viewBox", `0 0 74 ${H}`);
+
+  const wick = document.createElement("div");
+  wick.className = "axis__wick";
+  wick.style.top = y(h) + "px";
+  wick.style.height = (y(l) - y(h)) + "px";
+  axis.appendChild(wick);
+
+  const body = document.createElement("div");
+  body.className = "axis__body";
+  body.style.top = Math.min(y(o), y(c)) + "px";
+  body.style.height = Math.max(Math.abs(y(c) - y(o)), 3) + "px";
+  axis.appendChild(body);
+
+  const points = [
+    {key:"H", name:"High",  value:h},
+    {key:"O", name:"Open",  value:o},
+    {key:"C", name:"Close", value:c},
+    {key:"L", name:"Low",   value:l}
+  ].sort((a,b) => b.value - a.value);
+
+  points.forEach(p => {
+    const t = document.createElement("div");
+    t.className = "axis__tick" + (p.key === "C" ? " axis__tick--c" : "");
+    t.style.top = y(p.value) + "px";
+    axis.appendChild(t);
+    if(p.key === "C"){
+      const d = document.createElement("div");
+      d.className = "axis__dot";
+      d.style.top = (y(p.value) - 5) + "px";
+      axis.appendChild(d);
+    }
+  });
+
+  const GAP = 58;
+  const ys = points.map(p => y(p.value));
+  for(let i = 1; i < ys.length; i++)
+    if(ys[i] - ys[i-1] < GAP) ys[i] = ys[i-1] + GAP;
+  const overflow = ys[ys.length-1] - H;
+  if(overflow > 0) for(let i = ys.length-1; i >= 0; i--){
+    ys[i] -= overflow;
+    if(i > 0 && ys[i] - ys[i-1] >= GAP) break;
+  }
+  ys.forEach((v,i) => ys[i] = Math.max(14, Math.min(H - 14, v)));
+
+  points.forEach((p,i) => {
+    const row = document.createElement("div");
+    row.className = "row" + (p.key === "C" ? " is-close" : "");
+    row.style.top = ys[i] + "px";
+    row.innerHTML =
+      `<span class="row__label"><b>${p.key}</b>${p.name}</span>` +
+      `<span class="row__value">${fmt(p.value)}</span>`;
+    rows.appendChild(row);
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    path.setAttribute("d", `M0 ${y(p.value)} H20 L52 ${ys[i]} H74`);
+    if(p.key === "C") path.setAttribute("class","is-close");
+    svg.appendChild(path);
+  });
+}
+
+render();
+</script>
+</body>
+</html>

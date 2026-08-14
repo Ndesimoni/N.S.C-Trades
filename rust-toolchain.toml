@@ -7,4 +7,8 @@
 # `edition = "2024"` in Cargo.toml needs 1.85 or newer.
 [toolchain]
 channel    = "1.89.0"
-components = ["rustfmt", "clippy"]
+#
+# rust-src is for the editor, not the build. Without it rust-analyzer cannot
+# read the standard library, and it starts underlining `format!` and every
+# other prelude macro as unresolved — while cargo builds perfectly happily.
+components = ["rustfmt", "clippy", "rust-src"]

@@ -14,8 +14,11 @@
   "rust-analyzer.check.allTargets": true,
   "rust-analyzer.check.extraArgs": ["--workspace"],
 
-  // Run tests and see results from the editor gutter.
-  "rust-analyzer.cargo.features": "all",
+  // Analyse the crate the way it is actually built. "all" turns on every
+  // feature of every dependency, including combinations this project never
+  // compiles — and when one of those does not resolve, rust-analyzer starts
+  // underlining things that are perfectly fine.
+  "rust-analyzer.cargo.features": [],
 
   // ── General tidiness ─────────────────────────────────────────────────────
   "files.trimTrailingWhitespace": true,

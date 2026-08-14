@@ -1,0 +1,437 @@
+<title>The clock, not the stamp</title>
+
+<style>
+  :root {
+    --ground:   #F5F6F9;
+    --panel:    #FFFFFF;
+    --ink:      #14181F;
+    --ink-soft: #5B6472;
+    --rule:     #DDE1E9;
+    --grid:     #EAEDF3;
+    --accent:   #1E3FA8;
+    --worn:     #A2665C;
+    --chip-bg:  #ECEFF5;
+
+    --field:      #FCFCFD;
+    --field-rule: #E4E8EF;
+    --field-ink:  #3A4150;
+
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans:  ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #0E1116;
+      --panel:    #161A21;
+      --ink:      #E8EBF1;
+      --ink-soft: #98A1B0;
+      --rule:     #262C36;
+      --grid:     #1D232C;
+      --accent:   #7C9BFF;
+      --worn:     #C98B7F;
+      --chip-bg:  #1E242E;
+
+      --field:      #12161C;
+      --field-rule: #232A34;
+      --field-ink:  #A9B2C0;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground:   #0E1116;
+    --panel:    #161A21;
+    --ink:      #E8EBF1;
+    --ink-soft: #98A1B0;
+    --rule:     #262C36;
+    --grid:     #1D232C;
+    --accent:   #7C9BFF;
+    --worn:     #C98B7F;
+    --chip-bg:  #1E242E;
+
+    --field:      #12161C;
+    --field-rule: #232A34;
+    --field-ink:  #A9B2C0;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    padding: clamp(1.5rem, 5vw, 3.5rem) 1.25rem 4rem;
+  }
+
+  .wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 2.5rem; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--ink-soft); margin: 0 0 0.6rem;
+  }
+
+  h1 {
+    font-family: var(--serif); font-weight: 600;
+    font-size: clamp(1.7rem, 3.4vw, 2.35rem); line-height: 1.15;
+    letter-spacing: -0.015em; text-wrap: balance; margin: 0 0 0.9rem;
+  }
+
+  .standfirst { max-width: 64ch; color: var(--ink-soft); margin: 0 0 1.1rem; }
+
+  .madeup {
+    display: inline-block;
+    font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid var(--worn); border-left-width: 3px; border-radius: 5px;
+    padding: 0.45rem 0.75rem; color: var(--worn);
+  }
+
+  h2 {
+    font-family: var(--serif); font-size: 1.35rem; font-weight: 600;
+    letter-spacing: -0.01em; margin: 0 0 0.4rem;
+  }
+  .section-note { color: var(--ink-soft); margin: 0 0 1.4rem; max-width: 64ch; font-size: 0.95rem; }
+
+  .stage {
+    background: var(--panel); border: 1px solid var(--rule);
+    border-radius: 10px; padding: 1.4rem;
+  }
+  .scroller { overflow-x: auto; }
+  .chart { display: block; width: 100%; min-width: 640px; height: auto; }
+
+  .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 1.5rem; }
+
+  .panel {
+    background: var(--panel); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 1.4rem; display: flex; flex-direction: column; gap: 1rem;
+  }
+  .panel.is-answer { border-color: var(--accent); }
+
+  .panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
+  h3 { font-size: 1.05rem; font-weight: 600; margin: 0; letter-spacing: -0.005em; }
+
+  .chip {
+    font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.09em;
+    text-transform: uppercase; padding: 0.24rem 0.55rem; border-radius: 4px;
+    background: var(--chip-bg); color: var(--ink-soft); white-space: nowrap;
+  }
+  .chip.is-answer { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+  .chip.is-wrong  { background: color-mix(in srgb, var(--worn) 16%, transparent); color: var(--worn); }
+
+  .panel p { margin: 0; font-size: 0.92rem; color: var(--ink-soft); }
+  .panel p strong { color: var(--ink); font-weight: 600; }
+
+  .verdict {
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.5;
+    border-left: 3px solid var(--worn); padding: 0.55rem 0 0.55rem 0.85rem;
+    color: var(--ink);
+  }
+  .verdict.is-answer { border-left-color: var(--accent); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.6rem 0.9rem 0.6rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; }
+  td code { font-family: var(--mono); font-size: 0.82rem; color: var(--ink); }
+  td:last-child { color: var(--ink-soft); }
+
+  .note {
+    border-top: 1px solid var(--rule); padding-top: 1.4rem;
+    color: var(--ink-soft); font-size: 0.92rem; max-width: 70ch;
+  }
+  .note strong { color: var(--ink); }
+  .note code { font-family: var(--mono); font-size: 0.85rem; }
+
+  .key { display: flex; flex-wrap: wrap; gap: 1.1rem; font-family: var(--mono); font-size: 0.76rem; color: var(--ink-soft); margin-top: 1rem; }
+  .key span { display: inline-flex; align-items: center; gap: 0.4rem; }
+  .key i { width: 22px; height: 3px; border-radius: 2px; display: inline-block; }
+</style>
+
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Phase 0 · the lookahead guard</p>
+    <h1>The clock, not the stamp</h1>
+    <p class="standfirst">
+      Every candle in this project is labelled with the time it <em>opened</em>.
+      A 4-hour candle that runs 21:00 to 01:00 is labelled 21:00 — and so is
+      every swing it confirms. But nobody knew what that candle would do until
+      01:00. Judge by the label and the backtest reads four hours into the
+      future without a single error message.
+    </p>
+    <p class="madeup">Drawn by hand — this shows a rule, not a result</p>
+  </header>
+
+  <section>
+    <h2>One evening, two clocks</h2>
+    <p class="section-note">
+      Sixteen 15-minute candles make one 4-hour candle. The 4-hour candle
+      carries the label of the first of them and finishes with the last.
+    </p>
+
+    <div class="stage">
+      <div class="scroller">
+        <svg class="chart" viewBox="0 0 1000 330" role="img"
+             aria-label="A timeline from 21:00 to 01:15. A 4-hour candle spans 21:00 to 01:00 and is labelled 21:00. Its label sits four hours before the moment it finished.">
+
+          <!-- hour grid -->
+          <g stroke="var(--field-rule)" stroke-width="1">
+            <line x1="70"  y1="40" x2="70"  y2="250" />
+            <line x1="263" y1="40" x2="263" y2="250" />
+            <line x1="456" y1="40" x2="456" y2="250" />
+            <line x1="650" y1="40" x2="650" y2="250" />
+            <line x1="843" y1="40" x2="843" y2="250" />
+          </g>
+
+          <g font-family="var(--mono)" font-size="12" fill="var(--ink-soft)" text-anchor="middle">
+            <text x="70"  y="272">21:00</text>
+            <text x="263" y="272">22:00</text>
+            <text x="456" y="272">23:00</text>
+            <text x="650" y="272">00:00</text>
+            <text x="843" y="272">01:00</text>
+          </g>
+
+          <!-- the 4-hour candle -->
+          <rect x="70" y="58" width="773" height="42" rx="5"
+                fill="color-mix(in srgb, var(--accent) 10%, var(--field))"
+                stroke="var(--accent)" stroke-width="1.5" />
+          <text x="456" y="84" font-family="var(--sans)" font-size="14"
+                fill="var(--ink)" text-anchor="middle">
+            one 4-hour candle
+          </text>
+
+          <!-- the 15-minute candles inside it -->
+          <g fill="var(--field-ink)" opacity="0.55">
+            <rect x="76"  y="130" width="36" height="26" rx="3" />
+            <rect x="124" y="130" width="36" height="26" rx="3" />
+            <rect x="172" y="130" width="36" height="26" rx="3" />
+            <rect x="221" y="130" width="36" height="26" rx="3" />
+            <rect x="269" y="130" width="36" height="26" rx="3" />
+            <rect x="318" y="130" width="36" height="26" rx="3" />
+            <rect x="366" y="130" width="36" height="26" rx="3" />
+            <rect x="414" y="130" width="36" height="26" rx="3" />
+            <rect x="463" y="130" width="36" height="26" rx="3" />
+            <rect x="511" y="130" width="36" height="26" rx="3" />
+            <rect x="559" y="130" width="36" height="26" rx="3" />
+            <rect x="608" y="130" width="36" height="26" rx="3" />
+            <rect x="656" y="130" width="36" height="26" rx="3" />
+            <rect x="704" y="130" width="36" height="26" rx="3" />
+            <rect x="753" y="130" width="36" height="26" rx="3" />
+            <rect x="801" y="130" width="36" height="26" rx="3" />
+          </g>
+          <text x="456" y="177" font-family="var(--sans)" font-size="13"
+                fill="var(--ink-soft)" text-anchor="middle">
+            sixteen 15-minute candles
+          </text>
+
+          <!-- the label -->
+          <line x1="70" y1="30" x2="70" y2="250" stroke="var(--worn)"
+                stroke-width="2" stroke-dasharray="5 4" />
+          <text x="80" y="26" font-family="var(--mono)" font-size="12" fill="var(--worn)">
+            the label it carries
+          </text>
+
+          <!-- the truth -->
+          <line x1="843" y1="30" x2="843" y2="250" stroke="var(--accent)" stroke-width="2.5" />
+          <text x="833" y="26" font-family="var(--mono)" font-size="12"
+                fill="var(--accent)" text-anchor="end">
+            the moment anyone knew
+          </text>
+
+          <!-- the gap -->
+          <g stroke="var(--worn)" stroke-width="1.5">
+            <line x1="70" y1="215" x2="843" y2="215" />
+            <line x1="70" y1="209" x2="70" y2="221" />
+            <line x1="843" y1="209" x2="843" y2="221" />
+          </g>
+          <rect x="392" y="203" width="130" height="24" rx="4" fill="var(--panel)" />
+          <text x="457" y="220" font-family="var(--mono)" font-size="12"
+                fill="var(--worn)" text-anchor="middle">
+            four hours apart
+          </text>
+
+          <text x="70" y="310" font-family="var(--sans)" font-size="13" fill="var(--ink-soft)">
+            A swing this candle confirms is stamped 21:00 too — and that stamp is the only thing a naive check has to go on.
+          </text>
+        </svg>
+      </div>
+
+      <div class="key">
+        <span><i style="background: var(--worn)"></i> what the stamp says</span>
+        <span><i style="background: var(--accent)"></i> what the clock says</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Two ways to ask "did this happen yet?"</h2>
+    <p class="section-note">
+      Both are one line of code. One of them makes every backtest better than
+      anything you could have traded.
+    </p>
+
+    <div class="panels">
+
+      <article class="panel">
+        <div class="panel-head">
+          <h3>Compare the stamps</h3>
+          <span class="chip is-wrong">wrong, both ways</span>
+        </div>
+
+        <div class="scroller">
+          <svg class="chart" viewBox="0 0 460 240" role="img"
+               aria-label="Comparing stamps lets a 4-hour reading in four hours early and throws out a 15-minute swing that had already happened.">
+            <text x="0" y="16" font-family="var(--mono)" font-size="11"
+                  fill="var(--ink-soft)">STANDING AT 23:00</text>
+
+            <rect x="0" y="34" width="460" height="1" fill="var(--field-rule)" />
+
+            <text x="0" y="60" font-family="var(--sans)" font-size="13" fill="var(--ink)">
+              a 4-hour swing, stamped 21:00
+            </text>
+            <rect x="0" y="70" width="460" height="30" rx="5"
+                  fill="color-mix(in srgb, var(--worn) 13%, transparent)" />
+            <text x="12" y="90" font-family="var(--mono)" font-size="12" fill="var(--worn)">
+              21:00 is before 23:00 → let through
+            </text>
+            <text x="12" y="118" font-family="var(--sans)" font-size="12.5" fill="var(--ink-soft)">
+              Its candle has two hours left to run. Nobody knew.
+            </text>
+
+            <text x="0" y="160" font-family="var(--mono)" font-size="11"
+                  fill="var(--ink-soft)">STANDING AT 01:00</text>
+            <rect x="0" y="172" width="460" height="1" fill="var(--field-rule)" />
+
+            <text x="0" y="196" font-family="var(--sans)" font-size="13" fill="var(--ink)">
+              a 15-minute swing, stamped 00:45
+            </text>
+            <rect x="0" y="206" width="460" height="30" rx="5"
+                  fill="color-mix(in srgb, var(--worn) 13%, transparent)" />
+            <text x="12" y="226" font-family="var(--mono)" font-size="12" fill="var(--worn)">
+              00:45 is inside the 4-hour bar → thrown out
+            </text>
+          </svg>
+        </div>
+
+        <p>
+          It fails in <strong>both directions</strong>. The 4-hour reading
+          arrives four hours early. The 15-minute swing that plainly happened
+          gets refused, because the bar being processed is stamped 21:00.
+        </p>
+        <p class="verdict">the run finishes<br />the numbers are not real</p>
+      </article>
+
+      <article class="panel is-answer">
+        <div class="panel-head">
+          <h3>Work out when it closed</h3>
+          <span class="chip is-answer">this is what it does</span>
+        </div>
+
+        <div class="scroller">
+          <svg class="chart" viewBox="0 0 460 240" role="img"
+               aria-label="Working out each thing's closing time lets the 15-minute swing through and stops the 4-hour reading until 01:00.">
+            <text x="0" y="16" font-family="var(--mono)" font-size="11"
+                  fill="var(--ink-soft)">STANDING AT 23:00</text>
+            <rect x="0" y="34" width="460" height="1" fill="var(--field-rule)" />
+
+            <text x="0" y="60" font-family="var(--sans)" font-size="13" fill="var(--ink)">
+              a 4-hour swing, stamped 21:00
+            </text>
+            <rect x="0" y="70" width="460" height="30" rx="5"
+                  fill="color-mix(in srgb, var(--accent) 13%, transparent)" />
+            <text x="12" y="90" font-family="var(--mono)" font-size="12" fill="var(--accent)">
+              its candle closes 01:00 → run killed
+            </text>
+            <text x="12" y="118" font-family="var(--sans)" font-size="12.5" fill="var(--ink-soft)">
+              Caught at the first touch, not in the equity curve.
+            </text>
+
+            <text x="0" y="160" font-family="var(--mono)" font-size="11"
+                  fill="var(--ink-soft)">STANDING AT 01:00</text>
+            <rect x="0" y="172" width="460" height="1" fill="var(--field-rule)" />
+
+            <text x="0" y="196" font-family="var(--sans)" font-size="13" fill="var(--ink)">
+              a 15-minute swing, stamped 00:45
+            </text>
+            <rect x="0" y="206" width="460" height="30" rx="5"
+                  fill="color-mix(in srgb, var(--accent) 13%, transparent)" />
+            <text x="12" y="226" font-family="var(--mono)" font-size="12" fill="var(--accent)">
+              its candle closed 01:00 → let through
+            </text>
+          </svg>
+        </div>
+
+        <p>
+          The guard holds the clock time the bar <strong>finished</strong>, and
+          works the same out for whatever it is handed. That is why you pass the
+          timeframe in — <strong>a stamp on its own does not say when it became
+          true</strong>.
+        </p>
+        <p class="verdict is-answer">the run stops dead<br />no number comes out</p>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <h2>What walks through the gate</h2>
+    <p class="section-note">
+      Everything the analysis reads goes through the guard, and the guard hands
+      it back. "Check it, then use it" is two lines, and the day somebody
+      deletes the first one the run goes quiet instead of loud.
+    </p>
+
+    <div class="stage">
+      <table>
+        <thead>
+          <tr><th>Handed in</th><th>Let through when</th><th>Otherwise</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>swing, timeframe</code></td>
+            <td>the candle that confirmed it has closed</td>
+            <td>run killed</td>
+          </tr>
+          <tr>
+            <td><code>level</code></td>
+            <td>same, on the chart the level came from</td>
+            <td>run killed — a level knows its own timeframe, so it needs no second argument</td>
+          </tr>
+          <tr>
+            <td><code>candle, timeframe</code></td>
+            <td>it has closed, and is not still marked as forming</td>
+            <td>run killed — a forming candle's high and low have not happened</td>
+          </tr>
+          <tr>
+            <td><code>a hand-drawn level</code></td>
+            <td>the day it was drawn has arrived</td>
+            <td>run killed — a line drawn today knows what price did last year</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer class="note">
+    <p>
+      <strong>This was found by reading the code back, not by a failing test.</strong>
+      Every test passed with the stamp comparison in place. Two now fail without
+      the fix — <code>a_four_hour_swing_is_not_knowable_until_its_candle_closes</code>
+      and <code>a_fresh_smaller_swing_survives_a_bigger_bars_guard</code> — and
+      that was checked by putting the old code back, not assumed.
+    </p>
+    <p>
+      <strong>Nothing calls the guard yet.</strong> It is a gate, not a search:
+      it only sees what walks through it. Wiring it into the run is
+      <code>harness.rs</code>, and until then this page describes a rule that is
+      ready rather than one that is running.
+    </p>
+    <p>
+      Source: <code>crates/nsc-backtest/src/guards/</code> · 21 tests · there is
+      no off switch, because a check you can turn off is a check that is off on
+      the one run whose number you end up believing.
+    </p>
+  </footer>
+
+</div>

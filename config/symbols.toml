@@ -45,6 +45,9 @@ pip_size        = 0.0001
 digits          = 5
 max_spread_pips = 2.0
 sessions        = ["London", "NewYork"]
+# Spot forex never shuts mid-week. It runs straight through from Sunday
+# evening to Friday evening, so a missing candle is always a fault.
+daily_break_minutes = 0
 
 [[symbol]]
 name            = "GBPUSD"
@@ -53,6 +56,9 @@ pip_size        = 0.0001
 digits          = 5
 max_spread_pips = 2.5
 sessions        = ["London", "NewYork"]
+# Spot forex never shuts mid-week. It runs straight through from Sunday
+# evening to Friday evening, so a missing candle is always a fault.
+daily_break_minutes = 0
 
 [[symbol]]
 name            = "USDJPY"
@@ -61,6 +67,9 @@ pip_size        = 0.01
 digits          = 3
 max_spread_pips = 2.0
 sessions        = ["Tokyo", "London", "NewYork"]
+# Spot forex never shuts mid-week. It runs straight through from Sunday
+# evening to Friday evening, so a missing candle is always a fault.
+daily_break_minutes = 0
 
 [[symbol]]
 name            = "AUDUSD"
@@ -69,6 +78,9 @@ pip_size        = 0.0001
 digits          = 5
 max_spread_pips = 2.5
 sessions        = ["Tokyo", "London"]
+# Spot forex never shuts mid-week. It runs straight through from Sunday
+# evening to Friday evening, so a missing candle is always a fault.
+daily_break_minutes = 0
 
 [[symbol]]
 name            = "USDCAD"
@@ -77,6 +89,9 @@ pip_size        = 0.0001
 digits          = 5
 max_spread_pips = 3.0
 sessions        = ["London", "NewYork"]
+# Spot forex never shuts mid-week. It runs straight through from Sunday
+# evening to Friday evening, so a missing candle is always a fault.
+daily_break_minutes = 0
 
 [[symbol]]
 name            = "USDCHF"
@@ -85,6 +100,9 @@ pip_size        = 0.0001
 digits          = 5
 max_spread_pips = 3.0
 sessions        = ["London", "NewYork"]
+# Spot forex never shuts mid-week. It runs straight through from Sunday
+# evening to Friday evening, so a missing candle is always a fault.
+daily_break_minutes = 0
 
 [[symbol]]
 name            = "NZDUSD"
@@ -93,6 +111,9 @@ pip_size        = 0.0001
 digits          = 5
 max_spread_pips = 3.0
 sessions        = ["Tokyo", "London"]
+# Spot forex never shuts mid-week. It runs straight through from Sunday
+# evening to Friday evening, so a missing candle is always a fault.
+daily_break_minutes = 0
 
 
 # ═══ METALS ════════════════════════════════════════════════════════════════
@@ -112,6 +133,10 @@ digits          = 2
 # your live spread over a normal London morning and set it from what you see.
 max_spread_pips = 5.0
 sessions        = ["London", "NewYork"]
+# It shuts for an hour every weekday at 17:00 New York and reopens at 18:00.
+# Measured in the real export, not assumed: the 15-minute gold file stops at
+# 20:45 UTC and restarts at 22:00 UTC on every single weekday.
+daily_break_minutes = 60
 
 # Silver.
 #
@@ -132,6 +157,10 @@ digits          = 3
 # outside London and New York.
 max_spread_pips = 30.0
 sessions        = ["London", "NewYork"]
+# An hour's break at 17:00 New York, the same as gold. NOT MEASURED — copied
+# from gold, which was. Export a week of 15-minute candles and check before
+# you trust a data report on this one.
+daily_break_minutes = 60
 
 # Copper.
 #
@@ -150,6 +179,10 @@ digits          = 4
 # Roughly $0.003 per pound. VERIFY.
 max_spread_pips = 30.0
 sessions        = ["London", "NewYork"]
+# An hour's break at 17:00 New York, the same as gold. NOT MEASURED — copied
+# from gold, which was. Export a week of 15-minute candles and check before
+# you trust a data report on this one.
+daily_break_minutes = 60
 
 
 # ═══ INDICES ═══════════════════════════════════════════════════════════════
@@ -164,6 +197,12 @@ digits          = 1
 # 4 points. VERIFY — this is a guess at a typical spread, not your spread.
 max_spread_pips = 4.0
 sessions        = ["NewYork"]
+# NOT MEASURED, AND PROBABLY WRONG. Equity indices settle at 16:00 New York,
+# an hour before everything else here, so their break almost certainly does
+# not start where app.toml says the day does. Until someone exports a week and
+# looks, a data report on US30 or SPX500 will show a fault every weekday that
+# is really just this setting.
+daily_break_minutes = 60
 
 # S&P 500.
 [[symbol]]
@@ -175,6 +214,12 @@ digits          = 1
 # 0.6 of a point. VERIFY.
 max_spread_pips = 6.0
 sessions        = ["NewYork"]
+# NOT MEASURED, AND PROBABLY WRONG. Equity indices settle at 16:00 New York,
+# an hour before everything else here, so their break almost certainly does
+# not start where app.toml says the day does. Until someone exports a week and
+# looks, a data report on US30 or SPX500 will show a fault every weekday that
+# is really just this setting.
+daily_break_minutes = 60
 
 
 # ═══ ENERGY ════════════════════════════════════════════════════════════════
@@ -188,6 +233,10 @@ digits          = 2
 # 4 cents. VERIFY.
 max_spread_pips = 4.0
 sessions        = ["London", "NewYork"]
+# An hour's break at 17:00 New York, the same as gold. NOT MEASURED — copied
+# from gold, which was. Export a week of 15-minute candles and check before
+# you trust a data report on this one.
+daily_break_minutes = 60
 
 
 # ── Instruments that are really the same bet ───────────────────────────────

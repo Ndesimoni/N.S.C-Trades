@@ -54,6 +54,27 @@ pub enum DataError {
         detail: String,
     },
 
+    /// Asked to find holes in candles that are not a fixed number of minutes
+    /// apart.
+    ///
+    /// Daily and weekly candles are not. Clocks change and weekends are three
+    /// days long, so "one step along" is not a subtraction. Guessing would
+    /// report a hole at every weekend and miss the real ones.
+    #[error(
+        "{timeframe} candles are not a fixed number of minutes apart, so holes in them cannot be found by subtracting"
+    )]
+    NotAFixedStep { timeframe: String },
+
+    /// Two candles at the same time, or one before the one in front of it.
+    ///
+    /// Not a hole — a broken file. Everything that reads candles assumes they
+    /// are in order, so this has to stop rather than be scanned past.
+    #[error("the candles are not in time order: {at} comes after {previous}")]
+    OutOfOrder {
+        previous: chrono::DateTime<chrono::Utc>,
+        at: chrono::DateTime<chrono::Utc>,
+    },
+
     /// A timestamp could not be understood.
     #[error("{path} line {line}: '{text}' is not a time this program can read")]
     BadTimestamp {

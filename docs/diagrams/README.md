@@ -5,6 +5,19 @@ thing.
 
 ## The diagrams
 
+### [The clock, not the stamp →](https://claude.ai/code/artifact/9088bc46-0abf-4d19-b33e-7f3ba4d2895a)
+
+Every candle is labelled with the time it *opened*. A 4-hour candle running
+21:00 to 01:00 is labelled 21:00, and so is every swing it confirms — but
+nobody knew what it would do until 01:00.
+
+**Settled** — the lookahead guard judges by the clock time a candle closed, not
+the label it carries. Comparing labels fails both ways: 4-hour readings arrive
+four hours early, and 15-minute swings that plainly happened get thrown out.
+Found by reading the code back; two tests fail without the fix.
+
+Source: [`clock-not-stamp.html`](clock-not-stamp.html)
+
 ### [How thick should a band be? →](https://claude.ai/code/artifact/bd6f98cf-a63a-458f-9cdd-a99430cb9b3a)
 
 Six USDCAD levels drawn twice at different thicknesses. One pen width across

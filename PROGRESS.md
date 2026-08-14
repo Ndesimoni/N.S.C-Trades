@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**245 tests passing · clippy clean · ~7,000 lines of real code**
+**286 tests passing · clippy clean · ~8,000 lines of real code**
 
 One thing to know before reading: **most of the work so far is Phase 1, not
 Phase 0.** That was deliberate — reading a chart is the part that could have
@@ -33,7 +33,18 @@ checks stay quiet.*
       impossible candles, spacing all accounted for
 - [ ] Broker connection — no IBKR contracts filled in, nothing connects
 - [ ] `backfill.rs` — automatic download
-- [ ] `gaps.rs` — spotting holes that are not weekends
+- [x] `gaps/` — two different faults, kept apart. `holes.rs` finds candles
+      missing from the file and says whether the weekend or the instrument's
+      nightly break accounts for them. `flat.rs` finds runs of candles that
+      are present but never moved — not missing data, but what invented a
+      swing at the left edge of every history once already.
+- [x] Gold's nightly hour off, measured rather than guessed: the 15-minute
+      export stops 20:45 UTC and restarts 22:00 UTC every weekday. Now
+      `daily_break_minutes` in `config/symbols.toml` — 60 for metals and oil,
+      0 for spot forex, and marked unmeasured on the two indices.
+- [x] Ran on all three real exports: **every hole accounted for, none
+      unexplained, no flat runs**
+- [ ] Nothing calls it yet — it runs from a test
 
 Exports are done by hand. Enough for now.
 
@@ -49,26 +60,36 @@ Every run re-reads a 4 MB CSV.
 
 ### Build the backtester — [ ]
 
-- [ ] `events.rs` — `BarClosed`, the one place the backtester and bot meet
-- [ ] `replay.rs` — walk a history one candle at a time
+- [x] `events/` — `BarClosed`, the one place the backtester and bot meet.
+      Refuses an unfinished candle, and owns the single answer to "what time
+      is it" that every lookahead check uses.
+- [x] `replay/` — walks a history one candle at a time, building the bigger
+      timeframes as it goes and emitting a bar for each that finishes,
+      biggest first. Proven to give the same candles as building them in bulk.
 - [ ] `harness.rs` · `metrics.rs` · `report.rs` · `sweep.rs` — all empty
 - [x] `bin/chart` — reads a file and prints everything the analysis sees
 
 The chart tool does most of what replay needs. The gap is doing it **one candle
 at a time with the guards watching**.
 
-### Lookahead checks — [~]
-
-Half done, and it is the half that matters.
+### Lookahead checks — [x]
 
 - [x] `Swing::new` refuses a swing knowable before its own candle
 - [x] `Level::new` refuses a level built from unconfirmed swings
 - [x] Incomplete candles refused by ATR, swings and levels
 - [x] The swing finder **cannot** emit an unconfirmed swing — none exists to misuse
 - [x] Tested throughout
-- [ ] `guards.rs` — the run-level watcher that kills a whole backtest
+- [x] `guards/` — the run-level watcher. Stands at the clock time a bar
+      finished and refuses any swing, level or candle that was not knowable
+      by then. `LookaheadDetected` kills the run — no number comes out.
+- [x] It judges by **clock time, not stamp**. A 4-hour candle stamped 21:00
+      is not knowable until 01:00. Getting this wrong let 4-hour readings in
+      four hours early and threw out 15-minute swings that had happened.
+      Found on the second read, and two tests fail without the fix.
+- [ ] Nothing calls it yet — `harness.rs` is where it gets wired in
 
-Nothing to guard yet, because nothing replays.
+The types refuse a bad thing one at a time. This is the watcher over a whole
+run, and it is the piece that lets a backtest be believed.
 
 ---
 
@@ -182,8 +203,6 @@ levels are where a big move **ended**; the finder looks for prices where swings
 
 | | Size |
 |---|---|
-| `events.rs` — `BarClosed` | small |
-| `replay.rs` — one candle at a time | medium |
 | `guards.rs` — kill the run on lookahead | small |
 | `gaps.rs` — holes that are not weekends | small |
 | `store/candles.rs` — Postgres in and out | medium |

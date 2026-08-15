@@ -1,0 +1,59 @@
+/* ── armed.html ─────────────────────────────────────────────────────────────
+   A RECEIPT, not a report. He has just sent a level and wants one thing back:
+   yes, it is live.
+
+   So it is short, calm and green, and it names nothing — the inbox has already
+   sent him a picture of where the bands landed, with the pair on it. The only
+   thing this adds is that they are being WATCHED. */
+
+:root{
+  --card-height:290px;
+  --good:#1F9E7A;
+  --goodwash:#EAF6F2;
+}
+
+body{ background:var(--vault); }
+
+.top{
+  background:var(--goodwash);
+  padding:34px 40px 32px;
+  display:flex;align-items:center;gap:22px;
+  border-bottom:1px solid color-mix(in srgb,var(--good) 20%,transparent);
+}
+
+/* The ring is drawn rather than typed. A tick in a font sits on a baseline and
+   never quite centres in its circle. */
+.mark{flex:0 0 auto}
+.mark circle{fill:none;stroke:var(--good);stroke-width:2.5}
+.mark path{
+  fill:none;stroke:var(--good);stroke-width:3.4;
+  stroke-linecap:round;stroke-linejoin:round;
+}
+
+.said{
+  font-family:var(--display);font-weight:800;font-size:36px;line-height:1.05;
+  letter-spacing:-.025em;margin:0 0 7px;
+}
+.said + p{
+  font-family:var(--display);font-weight:400;font-size:18px;
+  letter-spacing:-.006em;color:var(--ink);margin:0;
+}
+
+.body{ padding:28px 40px 0; }
+
+.count{
+  display:flex;align-items:baseline;justify-content:space-between;gap:20px;
+  padding-bottom:22px;border-bottom:1px solid var(--rule);
+}
+.count span{
+  font-size:11.5px;letter-spacing:.17em;text-transform:uppercase;color:var(--mute);
+}
+.count b{
+  font-family:var(--display);font-weight:600;font-size:30px;
+  letter-spacing:-.025em;font-variant-numeric:tabular-nums;
+}
+
+.next{
+  font-family:var(--display);font-weight:400;font-size:17.5px;line-height:1.4;
+  letter-spacing:-.006em;color:var(--ink);margin:22px 0 0;
+}

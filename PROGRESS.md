@@ -93,6 +93,7 @@ assets/card/
   alert.html     price at one of his zones
   close.html     a finished candle at a zone, named by what it did
   heartbeat.html what is being watched, on a day nothing happened
+  armed.html     a level he just sent is now being watched
   trouble.html   the bot itself has a problem — severity in the colour
 
 The close card ZOOMS TO THE CANDLE, because a 1-hour candle inside a weekly
@@ -177,11 +178,10 @@ to build in now, annoying to retrofit.
 - [x] **Only the changed pair costs a request.** A pair whose levels are
       untouched keeps the `Watch` it had; rebuilt, it would forget which zones
       price is in and announce them all again
-- [x] **He gets one line back — *Got it. Your levels are being watched from
-      now.*** No pair names, no counts: he has just sent it, and the inbox
-      already sent back a picture of where the bands landed. What that picture
-      cannot say is that they are being *watched*, and that is this line's
-      whole job
+- [x] **He gets a card back — a tick, *Got it. Your levels are live*, and the
+      count.** No pair names: he has just sent it, and the inbox already sent
+      back a picture of where the bands landed. What that picture cannot say
+      is that they are being *watched*, and that is this card's whole job
 - [x] **He is told when something breaks**, and when it is fixed. Nothing is
       said for the first five minutes — most drops fix themselves in seconds,
       and a buzz for each teaches him the buzz means nothing

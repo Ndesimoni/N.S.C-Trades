@@ -137,7 +137,7 @@ async fn armed(
     let (fresh, armed) = reload::again(client, thickness, watching).await?;
 
     if armed {
-        reload::say_it_is_armed(client, pulse).await?;
+        reload::say_it_is_armed(client, &fresh, pulse).await?;
     }
 
     Ok(fresh)

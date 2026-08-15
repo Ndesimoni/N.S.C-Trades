@@ -12,6 +12,7 @@ mod chrome;
 mod error;
 mod facts;
 mod fill;
+mod live;
 mod wrong;
 mod zone;
 
@@ -21,5 +22,6 @@ mod tests;
 pub use alive::{Alive, heartbeat};
 pub use error::CardError;
 pub use fill::render;
+pub use live::armed;
 pub use wrong::{Wrong, caption, trouble};
 pub use zone::{alert, closed};

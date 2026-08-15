@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>armed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /*__STYLE__*/
+
+  /*__OWN__*/
+</style>
+</head>
+<body>
+
+<header class="top">
+  <svg class="mark" width="56" height="56" viewBox="0 0 56 56" aria-hidden="true">
+    <circle cx="28" cy="28" r="25"></circle>
+    <path d="M17 29 L24.5 36.5 L39 21"></path>
+  </svg>
+  <div>
+    <h1 class="said">Got it.</h1>
+    <p>Your levels are live.</p>
+  </div>
+</header>
+
+<section class="body">
+  <div class="count">
+    <span>Now watching</span>
+    <b id="count"></b>
+  </div>
+  <p class="next">You will hear the moment price reaches one of them.</p>
+</section>
+
+<script>
+// Rust replaces this line.
+const armed = /*__ARMED__*/;
+
+const many = (n, one) => `${n} ${one}${n === 1 ? "" : "s"}`;
+
+document.getElementById("count").textContent =
+  `${many(armed.pairs, "pair")} · ${many(armed.zones, "zone")}`;
+</script>
+</body>
+</html>

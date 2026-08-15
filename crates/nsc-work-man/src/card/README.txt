@@ -24,6 +24,8 @@ THE FILES
   alive.rs    The heartbeat card. Works out its own height, because it grows
               a row per pair.
 
+  live.rs     The armed card — a level he just sent is being watched.
+
   wrong.rs    The trouble card — the bot itself, not the market.
 
   zone.rs     THE ZONE CARDS, and the facts they are told. What a zone card

@@ -12,8 +12,10 @@ use std::time::SystemTime;
 use anyhow::Result;
 use nsc_core::levels::{Thickness, Watch, known, load_pair};
 
-use super::{OWNER, PAIRS, Watching, bands, pulse};
-use crate::telegram;
+use std::path::PathBuf;
+
+use super::{OWNER, PAIRS, PREVIEW, Watching, bands, pulse};
+use crate::{card, telegram};
 
 /// Remembers how the levels folder looked, so a change can be spotted.
 ///
@@ -129,13 +131,23 @@ pub async fn again(
 /// telling him something he already had.
 pub async fn say_it_is_armed(
     client: &reqwest::Client,
+    watching: &HashMap<String, Watching>,
     pulse: &mut pulse::Pulse,
 ) -> anyhow::Result<()> {
-    let words = "📐 <b>Got it.</b>\n\n\
-                 Your levels are being watched from now. \
-                 You will hear the moment price reaches one.";
+    let pairs = watching.len();
+    let zones: usize = watching.values().map(|seen| seen.watch.count()).sum();
 
-    telegram::send_words(client, &OWNER.to_string(), words).await?;
+    let out = PathBuf::from(PREVIEW).join("armed.png");
+    let picture = card::armed(pairs, zones, &out)?;
+
+    telegram::send_to(
+        client,
+        &OWNER.to_string(),
+        &[&picture],
+        "📐 <b>Got it.</b> Your levels are live.",
+    )
+    .await?;
+
     pulse.spoke(chrono::Utc::now());
 
     Ok(())

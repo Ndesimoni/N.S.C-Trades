@@ -90,6 +90,17 @@ THE FILES
 
                 ITS HEIGHT IS WORKED OUT, not typed — see below.
 
+  armed.html    A LEVEL HE JUST SENT IS BEING WATCHED. A receipt, not a
+                report: a tick, "Got it", and the count.
+
+                IT NAMES NOTHING. The inbox has already sent him a picture of
+                where the bands landed with the pair on it in his colours —
+                repeating that is a second message telling him what he already
+                had.
+
+                The count is the useful part: he sees the number went up
+                without being told which pair, which he knows.
+
   trouble.html  SOMETHING HAS GONE WRONG WITH THE BOT. No pair, no price, no
                 chart — it must never be mistaken for a signal.
 

@@ -106,7 +106,9 @@ pub async fn trouble(client: &reqwest::Client, which: Option<String>) -> Result<
 
 /// The line he gets when a level he just sent goes live.
 pub async fn armed(client: &reqwest::Client) -> Result<()> {
-    nsc_work_man::watch::say_it_is_armed(client).await?;
+    let thickness = levels::load_thickness(Path::new("config/levels.toml"))?;
+
+    nsc_work_man::watch::say_it_is_armed(client, thickness).await?;
     println!("Sent.");
 
     Ok(())

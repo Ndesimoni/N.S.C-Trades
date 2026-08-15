@@ -52,6 +52,7 @@ const NO: &str = "✗ Keep it";
 
 mod conversation;
 mod picture;
+mod stopping;
 mod talking;
 
 use conversation::{Adding, handle};

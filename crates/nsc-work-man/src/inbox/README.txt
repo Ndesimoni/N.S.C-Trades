@@ -4,7 +4,7 @@ inbox/ — the bot listening
 
 WHAT THIS FOLDER IS FOR
 
-  The other side of Telegram. telegram.rs talks; this listens.
+  The other side of Telegram. telegram/ talks; this listens.
 
   He sends a level from his phone and it lands in config/pairs/. Then it
   draws the pair and sends the picture back, so he can see where the band
@@ -48,17 +48,18 @@ STOPPING A PAIR
 
 THE FILES
 
-  main.rs           The waiting. Asks Telegram "anything new?", checks it
-                    came from him, hands the words to the conversation.
+  mod.rs        The front door, and the long poll that never gives up.
 
-  conversation.rs   Working out what he meant. Which pair, which timeframe,
-                    which prices — and what to say back.
+  conversation.rs  Working out what he meant, and what to say back.
 
-  picture.rs        Drawing the pair and sending it.
+  stopping.rs   The two-tap conversation for stopping a pair.
 
-  talking.rs        Saying things to Telegram, with buttons or without.
+  picture.rs    Drawing where the levels landed.
 
-  README.txt        This file.
+  talking.rs    Saying it, with buttons.
+
+  README.txt    This file.
+
 
 
 HOW IT GOES

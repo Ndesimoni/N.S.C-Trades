@@ -3,13 +3,14 @@
 use std::path::Path;
 
 use anyhow::Result;
-use nsc_core::levels::{Timeframe, digits_for, known, load_pair, retire, save, undo, with_slash};
+use nsc_core::levels::{Timeframe, digits_for, known, save, undo, with_slash};
 use rust_decimal::Decimal;
 use serde_json::json;
 
 use super::picture::show;
+use super::stopping;
 use super::talking::say;
-use super::{NEW_PAIR, NO, PAIRS, TIMEFRAMES, UNDO, YES};
+use super::{NEW_PAIR, PAIRS, TIMEFRAMES, UNDO};
 
 /// Where he is in the flow.
 ///
@@ -24,10 +25,12 @@ pub struct Adding {
     just_added: Option<(String, usize)>,
 
     /// He has sent /remove and is picking which pair.
-    removing: bool,
+    ///
+    /// Reachable from `stopping`, which owns that whole conversation.
+    pub(super) removing: bool,
 
     /// The pair he has asked to stop watching, waiting on a second tap.
-    stopping: Option<String>,
+    pub(super) stopping: Option<String>,
 }
 
 /// Works out what he meant and answers.
@@ -39,54 +42,8 @@ pub async fn handle(
 ) -> Result<()> {
     let folder = Path::new(PAIRS);
 
-    if text == "/remove" {
-        *adding = Adding::default();
-        adding.removing = true;
-
-        let pairs = known(folder);
-        if pairs.is_empty() {
-            return say(client, token, "There are no pairs to remove", None).await;
-        }
-
-        let buttons: Vec<Vec<String>> = pairs.chunks(2).map(<[String]>::to_vec).collect();
-
-        return say(
-            client,
-            token,
-            "Which pair should I stop watching?",
-            Some(json!(buttons)),
-        )
-        .await;
-    }
-
-    // **The second tap.** Stopping a pair throws away every level he drew for
-    // it, and this is a button on a phone.
-    if text == YES {
-        let Some(name) = adding.stopping.take() else {
-            return say(client, token, "Nothing waiting to be removed", None).await;
-        };
-
-        let landed = retire(folder, &name)?;
-
-        let words = format!(
-            "<b>{}</b> · stopped\n\n\
-             Nothing will be watched on it. Its levels are not gone — they are in\n\
-             <code>{}</code>\n\n\
-             Move that file back and it starts again.",
-            with_slash(&name),
-            landed.display(),
-        );
-
-        return say(client, token, &words, None).await;
-    }
-
-    if text == NO {
-        let Some(name) = adding.stopping.take() else {
-            return say(client, token, "Nothing waiting to be removed", None).await;
-        };
-
-        let words = format!("<b>{}</b> · kept", with_slash(&name));
-        return say(client, token, &words, None).await;
+    if let Some(answer) = stopping::heard(client, token, folder, text, adding).await {
+        return answer;
     }
 
     if text == "/level" {
@@ -131,7 +88,7 @@ pub async fn handle(
         && let Some(name) = tapped.cloned()
     {
         adding.removing = false;
-        return ask_before_stopping(client, token, folder, name, adding).await;
+        return stopping::ask_first(client, token, folder, name, adding).await;
     }
 
     if tapped.is_some() || adding.naming {
@@ -254,32 +211,4 @@ pub fn prices_in(text: &str) -> Vec<Decimal> {
     text.split_whitespace()
         .filter_map(|word| word.replace(',', "").parse::<Decimal>().ok())
         .collect()
-}
-
-/// Shows what stopping a pair would throw away, and asks again.
-///
-/// **Two taps, not one.** It is months of chart work, and the first tap is
-/// made on a phone while doing something else.
-async fn ask_before_stopping(
-    client: &reqwest::Client,
-    token: &str,
-    folder: &Path,
-    name: String,
-    adding: &mut Adding,
-) -> Result<()> {
-    let held = load_pair(&folder.join(format!("{name}.toml")))
-        .map(|pair| pair.levels.len())
-        .unwrap_or(0);
-
-    let words = format!(
-        "<b>{}</b> — stop watching it?\n\n\
-         It has <b>{held}</b> level{} on it. Nothing will be watched on this pair \
-         until you send it again.",
-        with_slash(&name),
-        if held == 1 { "" } else { "s" },
-    );
-
-    adding.stopping = Some(name);
-
-    say(client, token, &words, Some(json!([[YES, NO]]))).await
 }

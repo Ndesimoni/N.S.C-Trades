@@ -1,5 +1,7 @@
 //! Saving what he sends, and starting a pair's file when it is new.
 //!
+//! **Adding only.** Taking away — a level, or a whole pair — is `remove.rs`.
+//!
 //! **Levels are appended as text, not by rewriting the file.** These files have
 //! comments in them explaining what a level is and where the numbers came from,
 //! and rewriting would quietly delete all of it. He is meant to be able to open
@@ -119,7 +121,7 @@ pub fn save(
     })
 }
 
-fn read(file: &Path) -> Result<String, LevelError> {
+pub(super) fn read(file: &Path) -> Result<String, LevelError> {
     std::fs::read_to_string(file).map_err(|trouble| LevelError::CannotRead {
         path: file.display().to_string(),
         detail: trouble.to_string(),
@@ -136,7 +138,7 @@ fn read(file: &Path) -> Result<String, LevelError> {
 /// watcher could read a file halfway through being replaced and find half a
 /// level. It would recover on the next look, but "recovers in ten minutes" is
 /// not the same as "cannot happen".
-fn write(file: &Path, text: &str) -> Result<(), LevelError> {
+pub(super) fn write(file: &Path, text: &str) -> Result<(), LevelError> {
     let trouble_at = |path: &Path, trouble: std::io::Error| LevelError::CannotWrite {
         path: path.display().to_string(),
         detail: trouble.to_string(),
@@ -176,86 +178,4 @@ fn opening(name: &str, digits: u32) -> String {
          # in config/levels.toml — 0.35 of a weekly candle, 0.46 of a daily.\n\
          # ───────────────────────────────────────────────────────────────────\n"
     )
-}
-
-/// Where a pair goes when he stops watching it.
-///
-/// A folder, not a delete. `known` only looks at `.toml` files, so anything in
-/// here is invisible to the bot — and still on disk.
-pub const RETIRED: &str = "removed";
-
-/// Stops watching a pair, by moving its file out of the way.
-///
-/// **Moved, not deleted.** This is done by tapping a button on a phone, and it
-/// throws away every level he has drawn for that pair — months of chart work
-/// in one tap. It goes to `config/pairs/removed/` and comes back by being
-/// moved out again.
-///
-/// Gives back where it went, so the reply can say.
-pub fn retire(folder: &Path, name: &str) -> Result<std::path::PathBuf, LevelError> {
-    let file = folder.join(format!("{name}.toml"));
-    let away = folder.join(RETIRED);
-
-    std::fs::create_dir_all(&away).map_err(|trouble| LevelError::CannotWrite {
-        path: away.display().to_string(),
-        detail: trouble.to_string(),
-    })?;
-
-    // Numbered, so retiring the same pair twice does not overwrite the first
-    // set of levels with the second. He may add a pair back, draw it again,
-    // and drop it again — and the first set is still the one he spent an
-    // evening on.
-    let landed = free_name(&away, name);
-
-    std::fs::rename(&file, &landed).map_err(|trouble| LevelError::CannotWrite {
-        path: file.display().to_string(),
-        detail: trouble.to_string(),
-    })?;
-
-    Ok(landed)
-}
-
-/// A name in `away` that is not taken.
-///
-/// **Counted, not timestamped.** `nsc-core` may not ask what time it is — that
-/// is the rule that lets the backtester run this code — so it counts what is
-/// already there instead.
-fn free_name(away: &Path, name: &str) -> std::path::PathBuf {
-    let first = away.join(format!("{name}.toml"));
-
-    if !first.exists() {
-        return first;
-    }
-
-    (2..)
-        .map(|nth| away.join(format!("{name}-{nth}.toml")))
-        .find(|path| !path.exists())
-        .unwrap_or(first)
-}
-
-/// Takes the last `count` levels back off a pair.
-///
-/// **Cuts the text, does not rewrite the file** — same reason as `save`. The
-/// comments in these files explain what a level is, and rewriting would delete
-/// them without a word.
-pub fn undo(folder: &Path, name: &str, count: usize) -> Result<Pair, LevelError> {
-    let file = folder.join(format!("{name}.toml"));
-
-    let text = read(&file)?;
-
-    // Every level is one `[[level]]` block. Cut from the start of the last
-    // `count` of them to the end.
-    let starts: Vec<usize> = text
-        .match_indices("\n[[level]]")
-        .map(|(at, _)| at)
-        .collect();
-
-    let keep = match starts.len().checked_sub(count) {
-        Some(remaining) => starts.get(remaining).copied().unwrap_or(text.len()),
-        None => starts.first().copied().unwrap_or(text.len()),
-    };
-
-    write(&file, &text[..keep])?;
-
-    load_pair(&file)
 }

@@ -21,8 +21,10 @@ THE FILES
 
   read.rs     Reading config/levels.toml and config/pairs/*.toml.
 
-  write.rs    Putting a level into a pair's file, starting the file if the
-              pair is new, taking levels back off again, and stopping a pair
+  write.rs    ADDING. Putting a level into a pair's file, and starting the
+              file if the pair is new.
+
+  remove.rs   TAKING AWAY. Undoing the last levels, and stopping a pair
               altogether.
 
   naming.rs   What a pair's name tells you — how many decimals, whether it
@@ -53,7 +55,8 @@ THE FILES
                 closing.rs  what a finished candle did at a zone
                 pips.rs     one pip from the pair's digits, and a pair
                             asking for its own approach distance
-                saving.rs   levels arriving from his phone, and going back off
+                saving.rs   levels arriving from his phone
+                removing.rs undo, and stopping a pair
                 watching.rs firing once per touch, not once per price
                 support.rs  what they share
 

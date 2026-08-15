@@ -215,6 +215,11 @@ without waiting for it to happen. That was the last plain-text message going.
 - [x] **It reconnects**, keeping what it knew: which candles were reported,
       which zones were announced, when it last spoke
 - [x] **On a silent day it does not open the line at all**
+- [x] **The subscription reply is read.** They answer per symbol with a
+      `success` list and a `fails` list, and nothing looked at it — a pair
+      they will not serve is refused while the socket stays open, so no prices
+      arrive for it and nothing errors. Every pair refused is now an error;
+      some refused says so and watches the rest
 - [x] **A line that opens and shuts without a price counts as broken.** A key
       over its quota does exactly that
 - [x] **Quiet about hiccups, loud about outages** — nothing said for five
@@ -297,8 +302,11 @@ config/
 - [x] **Doc comments say `text` when they mean text.** An indented block in a
       doc comment is Rust to rustdoc, so a table and a list of commands were
       being compiled — and failing. See below
-- [ ] Eight files sit between 200 and 250 lines and want watching:
-      `watch/run.rs`, `close.html`, `card/tests.rs`, `levels/alert.rs`,
+- [x] **Every file is inside the 250-line limit**, every `mod.rs` is a front
+      door with no types or logic in it, and every folder with code has a
+      `README.txt` that names the files actually in it
+- [ ] Eight files sit between 200 and 250 and want watching: `close.html`,
+      `card/tests.rs`, `levels/alert.rs`, `inbox/conversation.rs`,
       `chart.html`, `watch/closes.rs`, `levels/tests/watching.rs`,
       `card/zone.rs`
 
@@ -341,15 +349,17 @@ end on the same second.
 
 Agreed 16 August, before anything new is added.
 
-1. **Read the code back for bugs.** The last week added the calendar, rungs 1
+1. ~~**Go over the file structure.**~~ Done 16 August — four files were over
+   the 250-line limit, `watch/mod.rs` had an `impl` in it, `bin/cards/` had no
+   README, and two READMEs named files that had become folders. Reading
+   `watch/run.rs` for it turned up a real bug: **the subscription reply was
+   never read**
+2. **Read the rest of the code back for bugs.** The last week added the calendar, rungs 1
    and 2, the heartbeat, trouble handling, the reconnect and the inbox fold-in
    — and every careful read-back so far has found something. Two failing
    doc-tests, a spin loop, a secret in an error message, a silent reconnect
    loop, and a level that armed but was never watched were all found this way
    rather than by a test going red.
-2. **Go over the file structure again.** It drifted past the line limits once
-   already and was pulled back; `watch/run.rs` is at 248 and four other files
-   are over 200.
 3. **`/restore`** — put a stopped pair back from his phone. Removing is a
    one-way door at the moment: he can stop a pair with two taps and needs his
    Mac to undo it.

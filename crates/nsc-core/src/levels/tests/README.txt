@@ -12,7 +12,9 @@ THE FILES
                decimals is 0.10, the euro to five is 0.0001. Also a pair
                asking for its own approach distance instead of the shared one.
 
-  saving.rs    Levels arriving from his phone, and going back off again.
+  saving.rs    Levels arriving from his phone.
+
+  removing.rs  Undo, and stopping a pair altogether.
 
   watching.rs  Firing once per touch, not once per price — and the two
                different distances for arriving and leaving.

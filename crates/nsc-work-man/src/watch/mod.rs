@@ -21,6 +21,8 @@
 
 mod bands;
 mod closes;
+mod kit;
+mod line;
 mod prices;
 mod pulse;
 mod reload;
@@ -29,9 +31,9 @@ mod run;
 mod say;
 mod trouble;
 
-use nsc_core::levels::{Pair, Watch};
-
 pub use run::run;
+
+pub(crate) use kit::{Kit, Watching};
 pub use trouble::dying;
 
 /// The line he gets when a level he sent goes live.
@@ -73,9 +75,3 @@ pub(crate) const PREVIEW: &str = "preview";
 /// exactly, and both the startup sizing and the candle-close checks go through
 /// it.
 pub(crate) const BREATHE: std::time::Duration = std::time::Duration::from_millis(7_500);
-
-/// Everything being watched for one pair.
-pub(crate) struct Watching {
-    pub pair: Pair,
-    pub watch: Watch,
-}

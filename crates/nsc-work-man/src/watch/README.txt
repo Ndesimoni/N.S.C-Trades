@@ -32,10 +32,15 @@ WHY IT IS NOT A BINARY
 
 THE FILES
 
-  mod.rs      The front door, and the few things every file here shares.
+  mod.rs      The front door.
 
-  run.rs      Loading, the calendar, the socket, and the two things that can
-              happen, joined together. Start here.
+  kit.rs      What the watcher carries, and what has to survive the line
+              dropping.
+
+  run.rs      THE SUPERVISION LOOP. Loading, the calendar, and what to do
+              when the line ends. Start here.
+
+  line.rs     Holding the price line open, and everything that can end it.
 
   bands.rs    Sizing a pair's bands, once, at startup.
 

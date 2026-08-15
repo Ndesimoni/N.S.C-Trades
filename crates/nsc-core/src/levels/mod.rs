@@ -18,6 +18,7 @@ mod close;
 mod error;
 mod naming;
 mod read;
+mod remove;
 mod watch;
 mod write;
 
@@ -30,5 +31,6 @@ pub use close::{Action, AtZone, action, gapped_in, how_deep, what_it_did};
 pub use error::LevelError;
 pub use naming::{digits_for, unit_for, with_slash};
 pub use read::{Pair, Thickness, load_pair, load_thickness};
+pub use remove::{RETIRED, retire, undo};
 pub use watch::{Nearness, Watch, nearness};
-pub use write::{RETIRED, Saved, known, retire, save, undo};
+pub use write::{Saved, known, save};

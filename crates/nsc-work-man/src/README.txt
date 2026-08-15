@@ -23,7 +23,7 @@ THE FILES
   main.rs       The flow, and nothing else. Read this first — it is short on
                 purpose, and every line of it hands off to one of the others.
 
-  feed.rs       Asking Twelve Data. One request, one answer.
+  feed/         Asking Twelve Data. One request, one answer.
 
   retry/        Doing a job again when the trouble says it is worth it. Here
                 and not in nsc-core because it SLEEPS — waiting is doing.
@@ -33,7 +33,7 @@ THE FILES
                 turning candles into numbers, and driving Chrome — and because
                 it has tests.
 
-  telegram.rs   Sending. Several pictures go as one media group so the phone
+  telegram/     Sending. Several pictures go as one media group so the phone
                 buzzes once and each picture still opens on its own.
 
   review.rs     Drawing a pair's levels, so he can see where they landed.

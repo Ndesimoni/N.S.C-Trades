@@ -21,7 +21,11 @@ THE FILES
 
   beat.rs     THE HEARTBEAT — whether it is due, and what it says.
 
-  tests.rs    Fifteen tests, most of them on the boundary.
+  tests/      Fifteen tests, most of them on the boundary.
+                boundary.rs  which trading day a moment belongs to
+                allowing.rs  the three states
+                beating.rs   the heartbeat
+                support.rs   the calendar they run against
 
   README.txt  This file.
 

@@ -22,13 +22,26 @@ WHY PICTURES AND NOT TEXT
 
 THE FILES
 
-  style.css     The palette, the typefaces and the page box. Rust drops it
-                into every template where the template says __STYLE__, so a
+  style.css     THE PALETTE, THE TYPEFACES AND THE PAGE BOX — what every card
+                agrees on. Dropped in where a template says __STYLE__, so a
                 colour is changed in ONE place and every card follows.
 
                 Inlined rather than linked, because the filled page is written
                 next to the picture and a link would break the moment the two
                 are not in the same folder.
+
+  <name>.css    EACH CARD'S OWN STYLING, beside its template. Dropped in where
+                the template says __OWN__.
+
+                Split out because a card was a 350-line file — a thing you
+                scroll rather than read. The markup and the script are what
+                change; the CSS mostly sits still.
+
+                A card with nothing of its own needs no file. Missing is not
+                an error.
+
+                A CARD'S HEIGHT LIVES HERE TOO, and it comes after style.css,
+                so it wins.
 
   chart.html    The candle chart. Header band with the pair and the price, an
                 accent bar tinted with the move, the candles with the price

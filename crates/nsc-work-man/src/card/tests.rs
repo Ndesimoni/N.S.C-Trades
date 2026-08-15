@@ -46,22 +46,58 @@ fn a_templates_own_height_beats_the_shared_one() {
     );
 }
 
-// The alert card is shorter than the chart cards on purpose, and it is the
-// first template to overrule the shared height. If this stops being true the
-// card gets sent with a field of white under it.
+/// A card, assembled the way `draw` assembles one: the shared styling, then
+/// the card\'s own, then its markup.
+///
+/// **Composed rather than read from one file**, because that is what actually
+/// runs. Reading only the `.html` was what these tests did until the card
+/// styling moved into `<name>.css` beside it, and both of them then passed on
+/// a file that no longer held the number they were checking.
+fn assembled(name: &str) -> (String, String) {
+    let read = |file: &str| {
+        std::fs::read_to_string(format!("../../assets/card/{file}"))
+            .unwrap_or_else(|_| panic!("{file} should be there"))
+    };
+
+    let own = read(&format!("{name}.css"));
+    let page = format!(
+        "{}{own}{}",
+        read("style.css"),
+        read(&format!("{name}.html"))
+    );
+
+    (own, page)
+}
+
+// The alert card is shorter than the chart cards on purpose. If this stops
+// being true the card goes out with a field of white under it.
 #[test]
 fn the_alert_card_asks_for_its_own_height() {
     let shared = std::fs::read_to_string("../../assets/card/style.css").expect("style.css");
-    let card = std::fs::read_to_string("../../assets/card/alert.html").expect("alert.html");
-
-    let together = format!("{shared}{card}");
+    let (own, page) = assembled("alert");
 
     assert_ne!(
         height_of(&shared),
-        height_of(&card),
+        height_of(&own),
         "it wants a different one"
     );
-    assert_eq!(height_of(&together), height_of(&card), "and it gets it");
+    assert_eq!(height_of(&page), height_of(&own), "and it gets it");
+}
+
+// Every card that asks for its own height has to actually get it. One that
+// quietly fell back on the shared 647 would be sent with white under it, and
+// nothing would say so.
+#[test]
+fn every_card_that_wants_its_own_height_gets_it() {
+    for name in ["alert", "close", "heartbeat"] {
+        let (own, page) = assembled(name);
+
+        assert!(
+            own.contains("--card-height"),
+            "{name}.css should set its own height"
+        );
+        assert_eq!(height_of(&page), height_of(&own), "{name}");
+    }
 }
 
 // ── Rounding on the way out ──
@@ -119,16 +155,14 @@ fn the_candles_keep_the_order_they_were_given() {
 // typed. Two things have to hold for that to be safe.
 #[test]
 fn the_heartbeat_card_is_told_how_tall_to_be() {
-    let shared = std::fs::read_to_string("../../assets/card/style.css").expect("style.css");
-    let card = std::fs::read_to_string("../../assets/card/heartbeat.html").expect("heartbeat.html");
+    let (own, page) = assembled("heartbeat");
 
-    assert!(card.contains("/*__TALL__*/"), "it asks to be told");
+    assert!(own.contains("/*__TALL__*/"), "it asks to be told");
 
     // Unfilled, it gives NOTHING rather than falling back on the shared 647.
     // A silent fallback would clip the last pair off every heartbeat he gets.
-    assert_eq!(height_of(&format!("{shared}{card}")), None);
+    assert_eq!(height_of(&page), None);
 
     // Filled, the number it was given wins over the shared one above it.
-    let filled = format!("{shared}{}", card.replace("/*__TALL__*/", "376"));
-    assert_eq!(height_of(&filled), Some(376));
+    assert_eq!(height_of(&page.replace("/*__TALL__*/", "376")), Some(376));
 }

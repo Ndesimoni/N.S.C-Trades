@@ -15,6 +15,7 @@
 
 mod bands;
 mod closes;
+mod prices;
 mod pulse;
 mod resumed;
 mod say;
@@ -25,9 +26,8 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use chrono::Utc;
 use futures_util::{SinkExt, StreamExt};
-use nsc_core::levels::{News, Pair, Thickness, Watch, known, load_pair, load_thickness};
+use nsc_core::levels::{Pair, Thickness, Watch, known, load_pair, load_thickness};
 use nsc_core::when::{self, Allowed, Rules};
-use rust_decimal::Decimal;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 
@@ -145,7 +145,7 @@ async fn listen(
                 }
 
                 awake.greet(client, watching, thickness, &mut pulse).await?;
-                on_price(client, watching, thickness, &heard, &mut pulse).await?;
+                prices::heard(client, watching, thickness, &heard, &mut pulse).await?;
             }
 
             _ = closes.next_check() => {
@@ -167,51 +167,4 @@ async fn listen(
 
     println!("the other side hung up.");
     Ok(())
-}
-
-async fn on_price(
-    client: &reqwest::Client,
-    watching: &mut HashMap<String, Watching>,
-    thickness: Thickness,
-    heard: &Message,
-    pulse: &mut pulse::Pulse,
-) -> Result<()> {
-    let Ok(said) = serde_json::from_str::<serde_json::Value>(&heard.to_string()) else {
-        return Ok(());
-    };
-
-    if said["event"] != "price" {
-        return Ok(());
-    }
-
-    let (Some(symbol), Some(price)) = (said["symbol"].as_str(), price_in(&said)) else {
-        return Ok(());
-    };
-
-    let Some(seen) = watching.get_mut(symbol) else {
-        return Ok(());
-    };
-
-    let reach = seen.pair.reach(thickness);
-
-    for (band, near) in seen.watch.arrive(price) {
-        println!("{symbol} reached {}", band.price);
-
-        say::alert(client, &seen.pair, &band, near, News::Fresh, price, reach).await?;
-        pulse.spoke(Utc::now());
-    }
-
-    Ok(())
-}
-
-/// The price out of a message, as a Decimal — never through a float.
-fn price_in(said: &serde_json::Value) -> Option<Decimal> {
-    said["price"]
-        .as_str()
-        .and_then(|text| text.parse().ok())
-        .or_else(|| {
-            said["price"]
-                .as_f64()
-                .and_then(|number| Decimal::try_from(number).ok())
-        })
 }

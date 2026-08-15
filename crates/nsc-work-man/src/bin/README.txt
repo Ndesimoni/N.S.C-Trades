@@ -30,22 +30,26 @@ THE FILES
 
                   cargo run -p nsc-work-man --bin levels -- GBPUSD
 
-  alert.rs    Draws ONE zone card and sends it, without waiting for the
-              market to do anything.
+  cards/      Draws ANY card and sends it, without waiting for the market to
+              do anything.
 
-                  --bin alert -- XAUUSD                approaching
-                  --bin alert -- XAUUSD 4120           in the zone
-                  --bin alert -- XAUUSD 4120 found     already in
-                  --bin alert -- XAUUSD close          a candle's close
-                  --bin alert -- XAUUSD close 4375.6   ...against a made-up
+                  --bin cards -- XAUUSD                approaching
+                  --bin cards -- XAUUSD 4120           in the zone
+                  --bin cards -- XAUUSD 4120 found     already in
+                  --bin cards -- XAUUSD close          a candle's close
+                  --bin cards -- XAUUSD close 4375.6   ...against a made-up
                                                        level it actually met
-                  --bin alert -- heartbeat             the quiet-day line
+                  --bin cards -- XAUUSD close 4375.6 sofar   still running
+                  --bin cards -- heartbeat             the quiet-day card
 
               The design loop. Changing how a card looks means looking at it,
               and the market reaches a level when it feels like it.
 
               With no price it puts one just outside the pair's first band —
               the state hardest to draw, where the labels crowd.
+
+              It was called `alert` while that was all it drew. It draws every
+              card now, and a folder named after one of them was a lie.
 
   listen.rs   Opens Twelve Data's live price stream, asks for one symbol, and
               prints whatever comes down the line. Kept as the proof.

@@ -24,19 +24,23 @@ THE FILES
   alive.rs    The heartbeat card. Works out its own height, because it grows
               a row per pair.
 
-  zone.rs     THE ZONE CARDS. Price arriving at one of his zones (rung 1),
+  zone.rs     THE ZONE CARDS, and the facts they are told. What a zone card
+              needs is nothing like a candle chart — a band, and either a
+              price or one candle — so it keeps its own.
+
+              THE ZONE CARDS. Price arriving at one of his zones (rung 1),
               and a candle that touched one having finished (rung 2). Their
               own file because what they are told is nothing like a chart: a
               band, and either a price or one candle.
 
-  facts.rs    Turns candles into the numbers a template can read. Nothing in
+  facts.rs    Turns CANDLES into the numbers a template can read. Nothing in
               here knows about colours or layout, and nothing in a template
               works out a price.
 
   chrome.rs   Runs Chrome headless, then cuts the white strip off the
               bottom.
 
-  tests.rs    Ten tests, on the two things that have actually gone wrong.
+  tests.rs    Eleven tests, on the two things that have actually gone wrong.
 
   README.txt  This file.
 
@@ -49,9 +53,17 @@ TWO THINGS THAT HAVE CAUGHT US, BOTH NOW PINNED BY TESTS
 
          --card-height:647px;
 
-     fill.rs reads that line straight out of the file, AFTER the facts have
-     gone in — which is what lets heartbeat.html have a height that depends on
-     how many pairs are on it.
+     It is in the card's OWN CSS — assets/card/<name>.css — which is dropped
+     in after style.css and therefore wins.
+
+     fill.rs reads it AFTER the facts have gone in, which is what lets the
+     heartbeat have a height that depends on how many pairs are on it.
+
+     The tests assemble a card the same way fill.rs does, style then own then
+     markup. They used to read the .html alone, and when the styling moved
+     into <name>.css they both passed on a file that no longer held the number
+     they were checking. Two failed the moment the move happened, which is
+     what they are for.
 
      Chrome screenshots a WINDOW, not a page, so something has to say how
      tall. The file being designed is the honest place for it — two numbers

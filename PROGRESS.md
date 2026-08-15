@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 106 tests · clippy clean · it watches his levels and says when price arrives.**
+**Two crates · 107 tests · clippy clean · it watches his levels and says when price arrives.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -76,17 +76,19 @@ crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
 crates/nsc-work-man/      EVERYTHING THAT REACHES
   feed/         asking Twelve Data.                       5 tests
   telegram/     sending — words, pictures, media groups.  3 tests
-  card/         filling a template, letting Chrome draw. 10 tests
+  card/         filling a template, letting Chrome draw. 11 tests
   retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests
   main.rs       the hourly chart card
   review.rs     one pair's levels, drawn
   bin/inbox/    levels arriving from his phone
   bin/watch/    the price watcher — rungs 1 and 2
-  bin/alert.rs  draw any zone card without waiting for the market
+  bin/cards/    draw any card without waiting for the market
   bin/levels.rs draw a pair's bands without waiting for one to be touched
   bin/listen.rs the raw price stream, kept as proof it works
 
 assets/card/
+  style.css      the palette, the typefaces, the page box — shared by all
+  <name>.css     each card's own styling, and its height
   chart.html     the candle chart. Carries its own open, high, low and range
   readout.html   where price sat inside the candle
   alert.html     price at one of his zones
@@ -99,9 +101,10 @@ kept in view, anything off the edge gets an arrow, and the stretch of wick
 inside the zone is picked out in the level's colour.
 ```
 
-**Every folder with code in it has a `README.txt`.** Every file is inside the
-250-line limit; `bin/watch/main.rs` at 206 and `when/tests.rs` at 195 are the
-ones to watch.
+**Every folder with code in it has a `README.txt`, and every file — Rust, HTML
+and CSS — is under the 250-line limit.** Five sit between 200 and 225 and are
+the ones to watch: `close.html`, `chart.html`, `bin/watch/closes.rs`,
+`levels/tests/watching.rs` and `card/zone.rs`.
 
 **The design lives in HTML, not in Rust.** Open the file, change it, and the
 next message picks it up — no rebuild. Chrome draws it headlessly.
@@ -248,7 +251,7 @@ somewhere near one — so "price is at the level" means price is inside a band.
       band with price marked on it and a dashed line where the alert fires.
       Three numbers in a message have to be compared in his head; a band with
       a dot on it does not
-- [x] **`--bin alert` draws any of them on demand**, so a design can be
+- [x] **`--bin cards` draws any of them on demand**, so a design can be
       changed without waiting for the market to do anything
 - [x] **Rung 2 — a candle that touched a zone reports at its close.** Inside,
       above or below, and **a wick counts**: a candle that only reached in and

@@ -25,6 +25,9 @@ THE FILES
 
   bands.rs    Sizing a pair's bands, once, at startup.
 
+  prices.rs   Every price off the line, against the bands. Says nothing on the
+              overwhelming majority of them, which is the point.
+
   closes.rs   Rung 2 — what a candle at a zone is doing, and what it did.
 
   pulse.rs    The heartbeat. Remembers when anything was last said, so a busy

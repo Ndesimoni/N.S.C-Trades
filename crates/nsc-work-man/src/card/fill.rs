@@ -13,6 +13,10 @@ const TEMPLATES: &str = "assets/card";
 
 /// The styling every card shares — the palette, the typefaces, the page box.
 ///
+/// A card's own styling sits beside its template as `<name>.css` and goes in
+/// where the template says `__OWN__`. Missing is not an error: a card with
+/// nothing of its own simply has none.
+///
 /// Dropped in where a template says `__STYLE__`, so a colour is changed in one
 /// place and every card follows. Inlined rather than linked because the filled
 /// page is written next to the picture, and a link would break the moment the
@@ -81,7 +85,15 @@ pub(super) fn draw(
         }
     })?;
 
-    let mut filled = html.replace("/*__STYLE__*/", &style);
+    // The card's own styling, from a file beside the template. It keeps the
+    // HTML a thing that can be read end to end rather than scrolled — the
+    // markup and the script are what change; the CSS mostly sits still.
+    let own = template.replace(".html", ".css");
+    let own = std::fs::read_to_string(Path::new(TEMPLATES).join(&own)).unwrap_or_default();
+
+    let mut filled = html
+        .replace("/*__STYLE__*/", &style)
+        .replace("/*__OWN__*/", &own);
 
     for (marker, value) in fills {
         filled = filled.replace(marker, value);

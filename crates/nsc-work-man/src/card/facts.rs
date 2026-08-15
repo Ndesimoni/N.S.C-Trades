@@ -11,10 +11,10 @@ use serde_json::{Value, json};
 
 use crate::candle::Bar;
 use crate::levels::Band;
-use crate::settings::{INTERVAL_MINUTES, SYMBOL, timeframe_name, unit_for};
+use crate::settings::{INTERVAL_MINUTES, timeframe_name, unit_for};
 
 /// The one candle the card is about.
-pub fn one(bar: &Bar, interval: &str, digits: u32) -> Result<Value> {
+pub fn one(bar: &Bar, symbol: &str, interval: &str, digits: u32) -> Result<Value> {
     // When it FINISHED, not when it opened. "20:00" is the moment this became
     // true, and that is the number a trader looks for.
     //
@@ -32,10 +32,10 @@ pub fn one(bar: &Bar, interval: &str, digits: u32) -> Result<Value> {
     };
 
     Ok(json!({
-        "symbol":   SYMBOL,
+        "symbol":   symbol,
         "interval": timeframe_name(interval),
         "stamp":    stamp,
-        "unit":     unit_for(SYMBOL),
+        "unit":     unit_for(symbol),
         "digits":   digits,
         "open":     rounded(bar.open, digits),
         "high":     rounded(bar.high, digits),

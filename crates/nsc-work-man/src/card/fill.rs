@@ -17,13 +17,18 @@ const TEMPLATES: &str = "assets/card";
 /// oldest first — the newest of them is the one the card describes.
 ///
 /// Gives back the absolute path of the picture.
-/// `interval` is the timeframe these candles are, in the feed's own spelling —
-/// `1h`, `1week`. The card says it out loud, so it has to be told rather than
-/// assume: the levels chart is weekly and spent a render claiming to be hourly.
+/// **The card is told everything it says out loud.** It reads no constants.
+///
+/// It assumed both at different times and lied about both — a weekly chart
+/// headed `1 HOUR`, and GBPUSD candles headed `XAU/USD`. A picture with the
+/// wrong name on it is believed exactly like a wrong number.
+///
+/// `interval` is the feed's own spelling — `1h`, `1week`.
 pub fn render(
     template: &str,
     bars: &[&Bar],
     bands: &[Band],
+    symbol: &str,
     interval: &str,
     digits: u32,
     out: &Path,
@@ -42,7 +47,7 @@ pub fn render(
     let filled = html
         .replace(
             "/*__CANDLE__*/",
-            &facts::one(latest, interval, digits)?.to_string(),
+            &facts::one(latest, symbol, interval, digits)?.to_string(),
         )
         .replace("/*__BARS__*/", &facts::all(bars, digits).to_string())
         .replace("/*__LEVELS__*/", &facts::levels(bands, digits).to_string());

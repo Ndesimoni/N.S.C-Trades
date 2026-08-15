@@ -25,7 +25,12 @@ async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
 
     let client = reqwest::Client::new();
-    let pair = load_pair(Path::new("config/pairs/XAUUSD.toml"))?;
+    // Which pair, from the command line. `cargo run --bin levels -- GBPUSD`.
+    let wanted = std::env::args().nth(1).unwrap_or_else(|| "XAUUSD".into());
+    let file = Path::new("config/pairs").join(format!("{wanted}.toml"));
+
+    let pair = load_pair(&file)
+        .with_context(|| format!("no levels for {wanted} — is there a {}?", file.display()))?;
     let thickness = load_thickness(Path::new("config/levels.toml"))?;
 
     // Weekly for the chart itself and for how big a weekly candle is; daily
@@ -38,7 +43,15 @@ async fn main() -> Result<()> {
     let daily_candle = normal_candle(&daily.iter().collect::<Vec<_>>(), NORMAL_OVER)
         .context("no daily candles")?;
 
-    println!("a normal weekly candle is {weekly_candle:.2}, a daily one {daily_candle:.2}\n");
+    // Rounded to THE PAIR'S OWN precision. Two decimals says everything about
+    // gold and nothing at all about the pound.
+    let show = |value: rust_decimal::Decimal| value.round_dp(pair.digits).to_string();
+
+    println!(
+        "a normal weekly candle is {}, a daily one {}\n",
+        show(weekly_candle),
+        show(daily_candle)
+    );
 
     let bands = pair.bands(
         thickness,
@@ -55,12 +68,12 @@ async fn main() -> Result<()> {
 
     for band in &bands {
         println!(
-            "{:7} {:>10}   band {:.2} to {:.2}   ({:.2} thick)",
+            "{:7} {:>10}   band {} to {}   ({} thick)",
             band.timeframe.name(),
-            band.price.to_string(),
-            band.bottom,
-            band.top,
-            band.thickness()
+            show(band.price),
+            show(band.bottom),
+            show(band.top),
+            show(band.thickness())
         );
     }
 
@@ -70,6 +83,7 @@ async fn main() -> Result<()> {
         "levels.html",
         &drawn,
         &bands,
+        &pair.symbol,
         "1week",
         pair.digits,
         &picture,

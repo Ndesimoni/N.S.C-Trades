@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**One crate · 15 tests · clippy clean · a message arrives every time it runs.**
+**One crate · 28 tests · clippy clean · levels arrive from his phone and stick.**
 
 ---
 
@@ -179,9 +179,18 @@ somewhere near one — so "price is at the level" means price is inside a band.
       with the evidence in `docs/worksheets/levels.md`
 - [ ] **The 4-hour thickness has never been measured** — 0.55 is a guess
       sitting between the other two
-- [ ] **The level prices themselves.** Five weekly and two daily on gold are
-      visible on his chart; only three have exact numbers so far
-- [ ] Nothing loads them, and nothing draws them
+- [x] **He sends them from Telegram and they save themselves.** Tap the pair,
+      tap the timeframe, send the numbers. A pair he has never sent creates its
+      own file, with `digits` and the nightly break worked out from the name and
+      marked as unchecked
+- [x] **The buttons are the files in `config/pairs/`**, not a list in the code —
+      that was the `settings.rs` mistake, and two lists always disagree
+- [x] **They draw**, and they land where he drew them.
+      `cargo run -p nsc-work-man --bin levels -- GBPUSD`
+- [x] `XAUUSD` has 3, `GBPUSD` has 4
+- [ ] **Five gold levels are still missing** — they are pixel estimates off a
+      screenshot and stay out until he reads them off
+- [ ] Nothing watches them yet. That is the price watcher
 
 ---
 

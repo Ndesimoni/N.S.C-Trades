@@ -1,0 +1,40 @@
+# ── The pound against the dollar ────────────────────────────────────────────
+#
+# THIS FILE IS WHY THE PAIR IS WATCHED. Add a file, the pair gets pulled.
+# Delete it, it stops.
+# ───────────────────────────────────────────────────────────────────────────
+
+symbol = "GBP/USD"
+
+# Spot forex majors are quoted to five decimals — 1.35264.
+digits = 5
+
+# Spot forex never shuts mid-week. It runs straight through from Sunday
+# evening to Friday evening, so a missing candle is always a fault.
+nightly_break_minutes = 0
+
+
+# ── The levels ──────────────────────────────────────────────────────────────
+#
+# ONE PRICE EACH. He draws a line; the band is worked out from it using the
+# thicknesses in config/levels.toml — 0.35 of a weekly candle, 0.46 of a daily.
+#
+# Sent from Telegram on 15 August 2026. The bot did not save them itself yet;
+# these were read off the terminal it printed them to.
+# ───────────────────────────────────────────────────────────────────────────
+
+[[level]]
+timeframe = "weekly"
+price = "1.14000"
+
+[[level]]
+timeframe = "weekly"
+price = "1.21279"
+
+[[level]]
+timeframe = "weekly"
+price = "1.28000"
+
+[[level]]
+timeframe = "daily"
+price = "1.37053"

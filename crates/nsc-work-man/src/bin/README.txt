@@ -52,23 +52,6 @@ THE FILES
   README.txt  This file.
 
 
-HOW watch/ SPENDS ITS REQUESTS
-
-  IT COSTS NOTHING TO RUN. One request per pair per timeframe at startup to
-  size the bands, and after that every price arrives on the socket for free.
-
-  That is what killed the earlier design, where a candle was fetched on every
-  close on every pair whether anything had happened or not.
-
-  Two things keep the startup inside the limit of 8 requests a minute:
-
-      - 7.5 seconds between requests, which is 8 a minute exactly
-      - a timeframe a pair has no levels on is never asked about
-
-  Four pairs across three timeframes would be twelve requests. Skipping the
-  empty ones makes it seven.
-
-
 WHY listen.rs EXISTS
 
   The whole design hangs on the websocket. Prices come down it for free, and

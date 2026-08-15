@@ -38,21 +38,33 @@ THE FILES
 
   review.rs     Drawing a pair's levels, so he can see where they landed.
 
-  bin/          Small programs that are not the bot. inbox/ listens for
-                levels, listen.rs watches the live price stream, levels.rs
-                draws a pair on demand.
+  watch/        THE BOT. Rungs 1 and 2 — price reaching one of his zones, and
+                what a candle there did. The calendar, the heartbeat, and the
+                line that has to survive being dropped.
+
+  bin/          Small programs that are NOT the bot. inbox/ listens for
+                levels, cards/ draws any card on demand, levels.rs draws a
+                pair, listen.rs is the raw price stream kept as proof.
 
   README.txt    This file.
 
 
 HOW THEY CONNECT
 
-  main.rs
-    -> feed::candles          ask for the last 120 hourly candles
-    -> Bar::is_finished       drop the hour still running
-    -> message::build         the caption
-    -> card::render           the picture
-    -> telegram::send         out
+  main.rs is four lines. It calls watch::run, and that is the whole bot.
+
+    watch::run
+      -> bands::for_pair       size every band, once, at startup
+      -> the websocket         prices, free, about one a second
+         -> watch::prices      is price at a zone? -> say::alert
+         -> watch::closes      what did the candle do? -> say::closed
+         -> watch::pulse       said nothing today? -> the heartbeat
+
+  Only the first line costs requests unless price is actually at a zone.
+
+  main.rs used to be step one — fetch gold's last hourly candle, draw a card,
+  send it, every time it ran. That is the opposite of silence-by-default, and
+  it was what the obvious command did.
 
 
 THE RULE THAT RUNS THROUGH ALL OF IT

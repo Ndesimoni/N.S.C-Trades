@@ -20,7 +20,7 @@ THE FILES
   bar.rs      Bar and Series. What the feed sends, and what can be asked of
               it.
 
-  tests.rs    Eight tests. Read the last one in the first group first.
+  tests.rs    Nine tests. Read the last one in the first group first.
 
   README.txt  This file.
 

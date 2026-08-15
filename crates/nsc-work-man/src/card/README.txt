@@ -40,7 +40,7 @@ THE FILES
   chrome.rs   Runs Chrome headless, then cuts the white strip off the
               bottom.
 
-  tests.rs    Eleven tests, on the two things that have actually gone wrong.
+  tests.rs    Ten tests, on the two things that have actually gone wrong.
 
   README.txt  This file.
 

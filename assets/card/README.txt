@@ -90,7 +90,17 @@ THE FILES
 
                 ITS HEIGHT IS WORKED OUT, not typed — see below.
 
-  readout.html  Where price sat inside the candle. The candle drawn tall on
+  readout.html  NOT SENT BY ANYTHING RIGHT NOW. Where price sat inside one
+                candle, drawn tall with leader lines out to High, Open, Close
+                and Low.
+
+                It was the caption card for the hourly message in step one,
+                and that message is gone — silence is the default. close.html
+                does the same job better, on a band.
+
+                Kept because the leader-line treatment was worked out here and
+                rung 3 may want it. If it is still unsent when rung 3 lands,
+                delete it. The candle drawn tall on
                 the left, with leader lines out to High, Open, Close and Low.
                 Sent when the detail is wanted, not every hour.
 

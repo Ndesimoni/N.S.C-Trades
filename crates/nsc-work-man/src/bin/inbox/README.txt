@@ -42,7 +42,8 @@ FOUR THINGS THAT ARE DELIBERATE
   1. THE BUTTONS ARE THE FILES.
 
      Whatever is in config/pairs/ becomes a button. Not a list in this code —
-     that was the mistake settings.rs made, and two lists always disagree in
+     that was the mistake the old settings.rs made, and two lists always
+     disagree in
      the end. A pair exists because its file exists.
 
   2. IT ONLY OBEYS HIM.

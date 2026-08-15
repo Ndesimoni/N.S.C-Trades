@@ -89,7 +89,7 @@ assets/card/
   style.css      the palette, the typefaces, the page box — shared by all
   <name>.css     each card's own styling, and its height
   chart.html     the candle chart. Carries its own open, high, low and range
-  readout.html   where price sat inside the candle
+  readout.html   where price sat inside the candle — NOT SENT by anything
   alert.html     price at one of his zones
   close.html     a finished candle at a zone, named by what it did
   heartbeat.html what is being watched, on a day nothing happened
@@ -160,6 +160,10 @@ to build in now, annoying to retrofit.
       close. See `crates/nsc-work-man/src/bin/README.txt`
 - [ ] **Gold specifically has not been watched ticking** — it was shut for the
       weekend, so the test ran on BTC/USD. Change one word back on Sunday
+- [x] **The line dropping is no longer the end of it.** The socket closing
+      used to return `Ok` and the process exited *successfully* — and the
+      heartbeat went with it, so a dead bot and a quiet day looked identical.
+      It reconnects now, and on a silent day it does not open the line at all
 - [ ] **`--card-height` is measured by hand.** Each template says how tall it
       is and Rust reads that line, but the number comes from measuring the page
       once and typing it in. It will go stale when the design changes

@@ -21,7 +21,7 @@ THE FILES
 
   beat.rs     THE HEARTBEAT — whether it is due, and what it says.
 
-  tests/      Fifteen tests, most of them on the boundary.
+  tests/      Sixteen tests, most of them on the boundary.
                 boundary.rs  which trading day a moment belongs to
                 allowing.rs  the three states
                 beating.rs   the heartbeat

@@ -14,7 +14,7 @@
 //! ```
 //!
 //! **The buttons are the files in `config/pairs/`.** Not a list in this file —
-//! that was the mistake `settings.rs` made, and two lists always disagree in
+//! that was the mistake the old `settings.rs` made, and two lists disagree in
 //! the end.
 
 use anyhow::{Context, Result};

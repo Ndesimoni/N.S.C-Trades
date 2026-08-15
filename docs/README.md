@@ -68,7 +68,7 @@ Comparing stamps fails **both ways**: 4-hour readings arrive four hours early,
 and 15-minute swings that plainly happened get thrown out.
 
 **Still true.** It was drawn for the version of this project that was cleared
-out, and the rule it argues is the one `Bar::is_finished` obeys today.
+out, and the rule it argues is the one `Bar::finished_by` obeys today.
 
 Source: [`diagrams/clock-not-stamp.html`](diagrams/clock-not-stamp.html)
 
@@ -92,14 +92,24 @@ noise.
 
 Written fresh every time the bot runs. Not in git — they are output.
 
+Every card is written twice: as the picture that went to Telegram, and as the
+same page with real numbers in it.
+
 | | |
 |---|---|
-| [`preview/chart.png`](../preview/chart.png) | the picture that went to Telegram |
-| [`preview/chart.html`](../preview/chart.html) | the same card as a web page, with real numbers in it |
+| `preview/alert-XAUUSD.png` | price reaching a zone |
+| `preview/close-1h-XAUUSD.png` | what a candle did there |
+| `preview/heartbeat.png` | a day that said nothing else |
 
-**Open the `.html` one in Chrome.** Edit
-[`assets/card/chart.html`](../assets/card/chart.html), refresh, see the change
-— no rebuild, no Rust, no running the bot.
+**Open the matching `.html` in Chrome.** Edit the template and its
+`assets/card/<name>.css`, refresh, see the change — no rebuild, no Rust, no
+waiting for the market.
+
+Or draw one on demand, which is faster:
+
+```sh
+cargo run -p nsc-work-man --bin cards -- XAUUSD 4120
+```
 
 That loop is the whole reason the design lives in HTML.
 

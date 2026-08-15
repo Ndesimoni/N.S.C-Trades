@@ -5,7 +5,7 @@
 //! whether the level did anything.
 //!
 //! Nothing here asks whether the candle has finished. It is handed a finished
-//! one, and `Bar::is_finished` is the single place that decides. Reading a
+//! one, and `Bar::finished_by` is the single place that decides. Reading a
 //! candle that is still forming would make every backtest look better than the
 //! bot, which is the one mistake in this project that hides.
 

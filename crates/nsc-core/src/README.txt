@@ -34,16 +34,17 @@ WHY THAT MATTERS MORE THAN IT SOUNDS
 THE FOLDERS
 
   candle/     One candle, and the only question that matters about it: has it
-              finished?
+              finished? Also how long a timeframe is, which is what that
+              question needs and used to be a hardcoded hour.
 
-  levels/     The lines he drew, and the bands they become.
+  levels/     The lines he drew, the bands they become, what a candle did at
+              one, and what to say about it.
+
+  when/       Whether the bot may speak at all — the trading day, the silent
+              days, and the heartbeat.
 
   error/      Everything that can go wrong, and the one question each answers:
               try again, or give up?
-
-  settings.rs What to fetch, until step 2 moves it into config/.
-
-  message.rs  The one line under a picture — the notification banner.
 
 
 WHERE THE LINE FELL, AND WHO DECIDED IT
@@ -59,7 +60,8 @@ WHERE THE LINE FELL, AND WHO DECIDED IT
                     CandleError, which says GIVE UP: a stamp that cannot be
                     read now cannot be read in three seconds either.
 
-    message::build  it returned a Result and could not fail. It returns a
+    message::build  (since deleted) it returned a Result and could not fail.
+                    It returned a
                     String.
 
   None of those were noticed by reading. All three were found in about a

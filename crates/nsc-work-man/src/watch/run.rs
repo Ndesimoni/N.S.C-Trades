@@ -35,6 +35,14 @@ pub async fn run() -> Result<()> {
     let thickness = load_thickness(Path::new(THICKNESS))?;
     let calendar = when::load(Path::new(CALENDAR))?;
 
+    // **The inbox runs beside the watcher**, so one command is the whole bot.
+    // It was a second program, which meant two terminals and remembering both
+    // — and if it was not up, a level he sent went nowhere and nothing said so.
+    //
+    // They do not talk to each other. The inbox writes a file and the watcher
+    // notices it changed, which is how it already worked.
+    tokio::spawn(crate::inbox::run(client.clone()));
+
     // The same reading used when he sends a level mid-run. One way of turning
     // the files into bands, so the two cannot drift.
     let (mut watching, _) = reload::again(&client, thickness, HashMap::new()).await?;
@@ -158,6 +166,8 @@ fn say_what_the_calendar_allows(calendar: &Rules) {
             println!("\nListening. Nothing will be said unless price reaches a level.\n")
         }
     }
+
+    println!("Send the bot /level to add levels, or /remove to stop a pair.\n");
 }
 
 /// Holds the line open and watches every price that comes down it.

@@ -126,11 +126,28 @@ fn read(file: &Path) -> Result<String, LevelError> {
     })
 }
 
+/// Writes a pair's file **in one move**.
+///
+/// The text goes to a file beside it and is then renamed over the top, which
+/// the filesystem does as a single step.
+///
+/// **Because two things read these files now.** The inbox writes them while
+/// the watcher is reading them, and a plain write is not one step — the
+/// watcher could read a file halfway through being replaced and find half a
+/// level. It would recover on the next look, but "recovers in ten minutes" is
+/// not the same as "cannot happen".
 fn write(file: &Path, text: &str) -> Result<(), LevelError> {
-    std::fs::write(file, text).map_err(|trouble| LevelError::CannotWrite {
-        path: file.display().to_string(),
+    let trouble_at = |path: &Path, trouble: std::io::Error| LevelError::CannotWrite {
+        path: path.display().to_string(),
         detail: trouble.to_string(),
-    })
+    };
+
+    // Beside it, not in a temp folder — a rename is only one step when both
+    // ends are on the same filesystem.
+    let part = file.with_extension("toml.part");
+
+    std::fs::write(&part, text).map_err(|trouble| trouble_at(&part, trouble))?;
+    std::fs::rename(&part, file).map_err(|trouble| trouble_at(file, trouble))
 }
 
 /// A brand new pair's file, with what can be worked out from its name.

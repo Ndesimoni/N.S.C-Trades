@@ -8,6 +8,7 @@
 
 pub mod card;
 pub mod feed;
+pub mod inbox;
 pub mod retry;
 pub mod review;
 pub mod telegram;

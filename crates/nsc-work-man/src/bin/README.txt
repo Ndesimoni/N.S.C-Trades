@@ -17,9 +17,6 @@ WHAT THIS FOLDER IS FOR
 
 THE FILES
 
-  inbox/      Listens to Telegram and saves the levels he sends from his
-              phone. Buttons rather than typing. Has its own README.
-
   levels.rs   Draws a pair's levels on its weekly chart and sends the
               picture. For checking that our band sits where his does.
 

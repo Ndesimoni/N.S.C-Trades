@@ -42,9 +42,12 @@ THE FILES
                 what a candle there did. The calendar, the heartbeat, and the
                 line that has to survive being dropped.
 
-  bin/          Small programs that are NOT the bot. inbox/ listens for
-                levels, cards/ draws any card on demand, levels.rs draws a
-                pair, listen.rs is the raw price stream kept as proof.
+  inbox/        The other side of Telegram. Listens for the levels he sends,
+                and for /remove. RUNS INSIDE THE BOT, beside the watcher.
+
+  bin/          Small programs that are NOT the bot. cards/ draws any card on
+                demand, levels.rs draws a pair, listen.rs is the raw price
+                stream kept as proof.
 
   README.txt    This file.
 
@@ -54,6 +57,7 @@ HOW THEY CONNECT
   main.rs is four lines. It calls watch::run, and that is the whole bot.
 
     watch::run
+      -> inbox::run            spawned beside it — levels from his phone
       -> bands::for_pair       size every band, once, at startup
       -> the websocket         prices, free, about one a second
          -> watch::prices      is price at a zone? -> say::alert

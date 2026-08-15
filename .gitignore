@@ -23,3 +23,10 @@ research/**/*.onnx
 
 # The last cards the bot drew. Handy to look at, not worth keeping.
 preview/
+
+# Pairs he has stopped watching. His levels, kept aside so a tap on a phone is
+# not final — but not part of the project.
+config/pairs/removed/
+
+# The half-written file an atomic save leaves if the machine dies mid-write.
+*.toml.part

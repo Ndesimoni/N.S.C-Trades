@@ -6,9 +6,9 @@
 
 use std::path::Path;
 
+use crate::{review, telegram};
 use anyhow::Result;
 use nsc_core::levels::{Pair, load_thickness};
-use nsc_work_man::{review, telegram};
 
 use super::OWNER;
 use super::talking::say;

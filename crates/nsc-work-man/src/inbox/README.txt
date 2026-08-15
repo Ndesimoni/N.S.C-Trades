@@ -11,6 +11,22 @@ WHAT THIS FOLDER IS FOR
   actually sat.
 
 
+IT RUNS INSIDE THE BOT
+
+  Spawned beside the watcher, so `cargo run -p nsc-work-man` is the whole
+  thing.
+
+  It was a second program for a while. That meant two terminals and
+  remembering both — and if it was not up, a level he sent went NOWHERE and
+  nothing said so. He would find out days later when it never fired.
+
+  The two do not talk to each other. The inbox writes a pair's file and the
+  watcher notices the folder changed, which is how it already worked.
+
+  IT CANNOT STOP. If this task ends, levels go nowhere again — so it catches
+  its own trouble, waits fifteen seconds and listens again.
+
+
 STOPPING A PAIR
 
       /remove   ->  which pair?  ->  [pair]  ->  stop it? / keep it
@@ -58,7 +74,23 @@ HOW IT GOES
 
 FOUR THINGS THAT ARE DELIBERATE
 
-  1. THE BUTTONS ARE STOPPING A PAIR
+  1. THE BUTTONS ARE IT RUNS INSIDE THE BOT
+
+  Spawned beside the watcher, so `cargo run -p nsc-work-man` is the whole
+  thing.
+
+  It was a second program for a while. That meant two terminals and
+  remembering both — and if it was not up, a level he sent went NOWHERE and
+  nothing said so. He would find out days later when it never fired.
+
+  The two do not talk to each other. The inbox writes a pair's file and the
+  watcher notices the folder changed, which is how it already worked.
+
+  IT CANNOT STOP. If this task ends, levels go nowhere again — so it catches
+  its own trouble, waits fifteen seconds and listens again.
+
+
+STOPPING A PAIR
 
       /remove   ->  which pair?  ->  [pair]  ->  stop it? / keep it
 

@@ -1,6 +1,10 @@
 //! Listen to what he sends the bot, and save it.
 //!
-//! The other side of Telegram. `telegram.rs` talks; this listens.
+//! The other side of Telegram. `telegram/` talks; this listens.
+//!
+//! **It runs inside the bot**, alongside the watcher. It was a second program
+//! for a while, and that meant two terminals and remembering both — and if the
+//! inbox was not up, a level he sent went nowhere and nothing said so.
 //!
 //! Buttons are not set up anywhere — the bot sends them with a message, and
 //! tapping one sends that word back as an ordinary message. A button is a
@@ -53,16 +57,28 @@ mod talking;
 use conversation::{Adding, handle};
 use talking::say;
 
-#[tokio::main]
-async fn main() -> Result<()> {
-    dotenvy::dotenv().ok();
+/// How long to wait before listening again after a failure.
+const AGAIN: std::time::Duration = std::time::Duration::from_secs(15);
 
+/// Listens forever, and never gives up.
+///
+/// **It is spawned beside the watcher, so it must not be able to stop.** If it
+/// ends, levels he sends go nowhere and nothing says so — which is the exact
+/// failure that made it worth folding in.
+pub async fn run(client: reqwest::Client) {
+    loop {
+        if let Err(trouble) = listen(&client).await {
+            eprintln!("The inbox stopped listening: {trouble:#}");
+        }
+
+        tokio::time::sleep(AGAIN).await;
+    }
+}
+
+async fn listen(client: &reqwest::Client) -> Result<()> {
     let token = std::env::var("TELEGRAM_BOT_TOKEN").context("TELEGRAM_BOT_TOKEN is not set")?;
-    let client = reqwest::Client::new();
     let mut adding = Adding::default();
     let mut seen_up_to: i64 = 0;
-
-    println!("Listening. Send your bot /level, or /remove\n");
 
     loop {
         // `timeout=30` makes Telegram hold the line open rather than answering
@@ -97,10 +113,10 @@ async fn main() -> Result<()> {
 
             println!("You said: {text}");
 
-            if let Err(trouble) = handle(&client, &token, text.trim(), &mut adding).await {
+            if let Err(trouble) = handle(client, &token, text.trim(), &mut adding).await {
                 println!("  -> {trouble:#}");
                 say(
-                    &client,
+                    client,
                     &token,
                     &format!("Could not do that:\n{trouble}"),
                     None,

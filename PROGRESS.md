@@ -42,8 +42,7 @@ last version of this project cleared out on 14 August 2026.
 ## Running it
 
 ```sh
-cargo run -p nsc-work-man                    # THE BOT
-cargo run -p nsc-work-man --bin inbox        # listen for levels from his phone
+cargo run -p nsc-work-man                    # THE BOT — watcher and inbox both
 cargo run -p nsc-work-man --bin cards -- …   # draw any card without waiting
 cargo run -p nsc-work-man --bin levels -- GBPUSD
 ```
@@ -53,6 +52,12 @@ cargo run -p nsc-work-man --bin levels -- GBPUSD
       exact opposite of silence-by-default
 - [x] **The watcher is library code**, not a binary, so `main.rs` is four lines
       and the whole bot is reachable from a test
+- [x] **The inbox runs inside it.** It was a second program: two terminals,
+      remembering both, and if it was not up a level he sent went nowhere with
+      nothing to say so
+- [x] **Level files are written in one move** — to a file beside it, then
+      renamed over the top. Two things read these files now, and a plain write
+      is not one step
 
 ---
 
@@ -254,12 +259,13 @@ crates/nsc-work-man/      EVERYTHING THAT REACHES
   watch/        THE BOT. Rungs 1 and 2, the calendar, the
                 heartbeat, reconnecting, and picking up a
                 level he sends while it runs
+  inbox/        the other side of Telegram — his levels, and
+                stopping a pair. Spawned beside the watcher
   card/         filling a template, letting Chrome draw   12 tests
   feed/         asking Twelve Data                         5 tests
   telegram/     sending — words, pictures, media groups    3 tests
   retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests
   review.rs     one pair's levels, drawn
-  bin/inbox/    levels arriving from his phone
   bin/cards/    draw ANY card without waiting for anything
   bin/levels.rs draw a pair's bands on demand
   bin/listen.rs the raw price stream, kept as proof

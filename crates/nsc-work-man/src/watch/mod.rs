@@ -21,6 +21,7 @@ mod bands;
 mod closes;
 mod prices;
 mod pulse;
+mod reload;
 mod resumed;
 mod run;
 mod say;

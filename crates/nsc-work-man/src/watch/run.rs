@@ -9,12 +9,12 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use chrono::Utc;
 use futures_util::{SinkExt, StreamExt};
-use nsc_core::levels::{Thickness, Watch, known, load_pair, load_thickness};
+use nsc_core::levels::{Thickness, load_thickness};
 use nsc_core::when::{self, Allowed, Rules};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 
-use super::{CALENDAR, PAIRS, THICKNESS, Watching, bands, closes, prices, pulse, resumed, trouble};
+use super::{CALENDAR, THICKNESS, Watching, closes, prices, pulse, reload, resumed, trouble};
 
 /// How long to wait before opening the line again after it drops.
 ///
@@ -35,7 +35,13 @@ pub async fn run() -> Result<()> {
     let thickness = load_thickness(Path::new(THICKNESS))?;
     let calendar = when::load(Path::new(CALENDAR))?;
 
-    let mut watching = load(&client, thickness).await?;
+    // The same reading used when he sends a level mid-run. One way of turning
+    // the files into bands, so the two cannot drift.
+    let (mut watching, _) = reload::again(&client, thickness, HashMap::new()).await?;
+
+    if watching.is_empty() {
+        anyhow::bail!("no pairs have levels — send some with the inbox program");
+    }
 
     // These outlive the socket. Rebuilt on every reconnect, a dropped line
     // would re-announce every zone price is already at and forget which
@@ -44,6 +50,7 @@ pub async fn run() -> Result<()> {
     let mut awake = resumed::Awake::new();
     let mut pulse = pulse::Pulse::new();
     let mut trouble = trouble::Trouble::new();
+    let mut files = reload::Files::look();
 
     say_what_the_calendar_allows(&calendar);
 
@@ -56,6 +63,16 @@ pub async fn run() -> Result<()> {
             // Nothing to watch, so nothing is opened. The heartbeat still
             // goes out — that is the whole point of it on a quiet day.
             pulse.maybe(&client, &watching, &calendar).await?;
+
+            // **And levels are still picked up.** The weekend is exactly when
+            // he does his chart work, and the check used to live inside the
+            // socket loop — which does not run on a quiet day. A level sent on
+            // Sunday would have sat there unarmed until Tuesday.
+            if files.changed() {
+                println!("The levels changed. Reading them again.");
+                watching = armed(&client, thickness, watching, &mut pulse).await?;
+            }
+
             tokio::time::sleep(WHILE_QUIET).await;
             continue;
         }
@@ -68,11 +85,25 @@ pub async fn run() -> Result<()> {
             &mut closes,
             &mut awake,
             &mut pulse,
+            &mut files,
         )
         .await
         {
-            // The line closed cleanly, or the session did. Nothing is wrong.
-            Ok(()) => trouble.mended(&client, &mut pulse).await?,
+            // The line closed cleanly, the session did, or he sent a level.
+            // Nothing is wrong.
+            Ok(Closed::Line) => trouble.mended(&client, &mut pulse).await?,
+
+            // **He sent a level.** Read them again and open the line to the
+            // new set — the subscription is fixed when the socket opens, so a
+            // pair added to a live one would never be asked about.
+            Ok(Closed::LevelsChanged) => {
+                trouble.mended(&client, &mut pulse).await?;
+                watching = armed(&client, thickness, watching, &mut pulse).await?;
+
+                // Straight back, no thirty-second pause. He is standing there
+                // having just sent it.
+                continue;
+            }
 
             Err(broke) => {
                 eprintln!("The price line broke: {broke:#}");
@@ -87,34 +118,33 @@ pub async fn run() -> Result<()> {
     }
 }
 
-/// Every pair that has a levels file, with its bands sized.
-///
-/// **The only fetching that happens no matter what.** After this nothing is
-/// asked for unless price is actually at one of them.
-async fn load(client: &reqwest::Client, thickness: Thickness) -> Result<HashMap<String, Watching>> {
-    let mut watching: HashMap<String, Watching> = HashMap::new();
+/// Why the line stopped being held open.
+enum Closed {
+    /// The other side hung up, or the session ended.
+    Line,
 
-    for name in known(Path::new(PAIRS)) {
-        let pair = load_pair(&Path::new(PAIRS).join(format!("{name}.toml")))?;
-        let found = bands::for_pair(client, &pair, thickness).await?;
-
-        if found.is_empty() {
-            println!("{name} — no levels, skipping");
-            continue;
-        }
-
-        println!("{} — watching {} level(s)", pair.symbol, found.len());
-        let watch = Watch::over(found, pair.reach(thickness));
-        watching.insert(pair.symbol.clone(), Watching { pair, watch });
-    }
-
-    if watching.is_empty() {
-        anyhow::bail!("no pairs have levels — send some with the inbox program");
-    }
-
-    Ok(watching)
+    /// A levels file changed. He has sent something.
+    LevelsChanged,
 }
 
+/// Reads the levels again and tells him which are now being watched.
+async fn armed(
+    client: &reqwest::Client,
+    thickness: Thickness,
+    watching: HashMap<String, Watching>,
+    pulse: &mut pulse::Pulse,
+) -> Result<HashMap<String, Watching>> {
+    let (fresh, armed) = reload::again(client, thickness, watching).await?;
+
+    if !armed.is_empty() {
+        reload::say_it_is_armed(client, &armed, pulse).await?;
+    }
+
+    Ok(fresh)
+}
+
+/// Says out loud what the calendar is allowing, so the terminal is not silent
+/// for reasons he cannot see.
 fn say_what_the_calendar_allows(calendar: &Rules) {
     match when::allowed(Utc::now(), calendar) {
         Allowed::Silence => println!(
@@ -132,8 +162,8 @@ fn say_what_the_calendar_allows(calendar: &Rules) {
 
 /// Holds the line open and watches every price that comes down it.
 ///
-/// **Returns when the line closes, or when the session goes quiet.** Either
-/// way the caller decides what happens next; this does not.
+/// **Returns when the line closes, when the session goes quiet, or when he
+/// sends a level.** The caller decides what happens next; this does not.
 #[allow(clippy::too_many_arguments)]
 async fn listen(
     client: &reqwest::Client,
@@ -143,7 +173,8 @@ async fn listen(
     closes: &mut closes::Closes,
     awake: &mut resumed::Awake,
     pulse: &mut pulse::Pulse,
-) -> Result<()> {
+    files: &mut reload::Files,
+) -> Result<Closed> {
     let key = std::env::var("TWELVE_DATA_API_KEY").context("TWELVE_DATA_API_KEY is not set")?;
     let url = format!("wss://ws.twelvedata.com/v1/quotes/price?apikey={key}");
 
@@ -178,7 +209,7 @@ async fn listen(
                     }
 
                     println!("The other side hung up.");
-                    return Ok(());
+                    return Ok(Closed::Line);
                 };
 
                 let heard = heard.context("the price line broke")?;
@@ -200,7 +231,14 @@ async fn listen(
                 // reading.
                 if when::allowed(Utc::now(), calendar) == Allowed::Silence {
                     println!("The session has closed. Standing down.");
-                    return Ok(());
+                    return Ok(Closed::Line);
+                }
+
+                // Checked by the clock on the files, so the normal answer —
+                // nothing happened — costs one look at a folder.
+                if files.changed() {
+                    println!("The levels changed. Reading them again.");
+                    return Ok(Closed::LevelsChanged);
                 }
 
                 closes.look(client, watching, thickness, calendar, pulse).await?;

@@ -42,6 +42,8 @@ THE FILES
   prices.rs   Every price off the line, against the bands. Says nothing on the
               overwhelming majority of them, which is the point.
 
+  reload.rs   Noticing he has sent a level, without being restarted.
+
   closes.rs   Rung 2 — what a candle at a zone is doing, and what it did.
 
   pulse.rs    The heartbeat. Remembers when anything was last said, so a busy
@@ -128,6 +130,38 @@ IT WATCHES NOTHING ON A MONDAY
 
   See nsc-core::when. Sunday evening is already Monday's session, which is not
   something the UTC calendar knows.
+
+
+A LEVEL SENT WHILE IT IS RUNNING IS PICKED UP
+
+  The levels used to be read ONCE, at startup. He would send one from his
+  phone, the inbox would save it correctly, the file would be right — and the
+  watcher would never look again. Nothing said so. The level simply did
+  nothing until the next restart, which might be days.
+
+  Now the folder is checked every ten minutes, BY THE CLOCK ON THE FILES.
+  Parsing every pair file to find out that nothing happened is work done for
+  nothing, and nothing is the normal answer. The count is checked too — a file
+  deleted leaves every remaining timestamp exactly as it was.
+
+  A PAIR WHOSE LEVELS ARE UNTOUCHED KEEPS THE WATCH IT ALREADY HAD. Rebuilt,
+  it would forget which zones price is sitting in and announce every one of
+  them again as though it had just arrived. Only the changed pair costs a
+  request.
+
+  The line is then closed and opened again, because THE SUBSCRIPTION IS FIXED
+  WHEN THE SOCKET OPENS — a pair added to a live one would never be asked
+  about. No thirty-second pause on that path; he is standing there having just
+  sent it.
+
+  IT ALSO HAPPENS ON QUIET DAYS. The weekend is exactly when he does his chart
+  work, and the check lived inside the socket loop at first — which does not
+  run on a quiet day. A level sent on Sunday sat unarmed until Tuesday.
+
+  He gets one line back: "Armed. Now watching: USD/CAD · 3 levels". The inbox
+  already drew him where they landed; this says the different thing, that they
+  are being WATCHED. Saved and armed were two states and nothing said which
+  one he had.
 
 
 WHAT TUESDAY SAYS

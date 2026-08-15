@@ -169,6 +169,16 @@ to build in now, annoying to retrofit.
       it is trying, green it is back, red it has stopped. Red is the only one
       that asks him to do anything. No pair, no price, no chart, so it can
       never be mistaken for a signal
+- [x] **A level sent while it is running is picked up**, without a restart.
+      They used to be read once at startup: the inbox saved it, the file was
+      right, and the level did nothing until the next restart. Checked every
+      ten minutes by the clock on the files, on quiet days too — the weekend
+      is when he does his chart work
+- [x] **Only the changed pair costs a request.** A pair whose levels are
+      untouched keeps the `Watch` it had; rebuilt, it would forget which zones
+      price is in and announce them all again
+- [x] **He gets one line back — *Armed. Now watching…*** The inbox drew where
+      they landed; this says the different thing, that they are being watched
 - [x] **He is told when something breaks**, and when it is fixed. Nothing is
       said for the first five minutes — most drops fix themselves in seconds,
       and a buzz for each teaches him the buzz means nothing

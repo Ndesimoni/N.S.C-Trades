@@ -77,7 +77,11 @@ pub struct Pair {
 
 /// One line he drew. A price and which chart it was on — nothing else, because
 /// nothing else is his to decide.
-#[derive(Debug, Clone, Deserialize)]
+///
+/// **Comparable**, so the watcher can tell whether a file it has already read
+/// actually changed. Re-sizing a band costs a request, and re-building a
+/// `Watch` forgets which zones price was already sitting in.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
 pub struct Line {
     pub timeframe: Timeframe,
     /// Text on purpose, so a price survives the trip through a file exactly.

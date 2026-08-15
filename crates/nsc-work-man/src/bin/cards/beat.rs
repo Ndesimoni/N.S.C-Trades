@@ -96,10 +96,10 @@ pub async fn trouble(client: &reqwest::Client, which: Option<String>) -> Result<
         client,
         &OWNER.to_string(),
         &[&picture],
-        "a trouble card, for looking at",
+        "🎨 <b>Preview.</b> This is what a trouble card looks like — nothing is wrong.",
     )
     .await?;
-    println!("{wrong:?} drawn to {} and sent.", out.display());
+    println!("{wrong:?} — drawn to {} and sent.", out.display());
 
     Ok(())
 }

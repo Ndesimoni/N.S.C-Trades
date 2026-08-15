@@ -75,14 +75,14 @@ pub async fn run() -> Result<()> {
             Ok(()) => trouble.mended(&client, &mut pulse).await?,
 
             Err(broke) => {
-                eprintln!("the price line broke: {broke:#}");
+                eprintln!("The price line broke: {broke:#}");
                 trouble
                     .broke(&client, &format!("{broke:#}"), &calendar, &mut pulse)
                     .await?;
             }
         }
 
-        eprintln!("opening it again in {} seconds.", AGAIN.as_secs());
+        eprintln!("Opening it again in {} seconds.", AGAIN.as_secs());
         tokio::time::sleep(AGAIN).await;
     }
 }
@@ -118,12 +118,14 @@ async fn load(client: &reqwest::Client, thickness: Thickness) -> Result<HashMap<
 fn say_what_the_calendar_allows(calendar: &Rules) {
     match when::allowed(Utc::now(), calendar) {
         Allowed::Silence => println!(
-            "\ntoday is quiet. Nothing is watched and nothing is fetched.\n\
-             It will open the line when the next session does."
+            "\nToday is quiet. Nothing is watched and nothing is fetched.\n\
+             It will open the line when the next session does.\n"
         ),
-        Allowed::WatchOnly => println!("\nlistening. Reporting only — no trade suggested yet.\n"),
+        Allowed::WatchOnly => {
+            println!("\nListening. Reporting only — no trade is suggested yet.\n")
+        }
         Allowed::Anything => {
-            println!("\nlistening. Nothing will be said unless price reaches a level.\n")
+            println!("\nListening. Nothing will be said unless price reaches a level.\n")
         }
     }
 }
@@ -175,7 +177,7 @@ async fn listen(
                         anyhow::bail!("the line opened and shut without sending anything");
                     }
 
-                    println!("the other side hung up.");
+                    println!("The other side hung up.");
                     return Ok(());
                 };
 
@@ -197,7 +199,7 @@ async fn listen(
                 // put the socket away rather than draining a line nobody is
                 // reading.
                 if when::allowed(Utc::now(), calendar) == Allowed::Silence {
-                    println!("the session has closed. Standing down.");
+                    println!("The session has closed. Standing down.");
                     return Ok(());
                 }
 

@@ -62,6 +62,18 @@ Range   10.89
   equal width keep it, even in a proportional font.
 - **One idea per block**, with a blank line between.
 
+## One way of writing a number, everywhere
+
+The card and the caption under it are the same message. If the card says
+**4,094.00** and the caption says **4094**, he has been shown one number twice,
+written two ways — and the second one looks like a different price.
+
+Same for the timeframe: `1h` in a caption under a card headed `1 HOUR`.
+
+`nsc-core::levels::pretty` is the one way. Rounded to the pair, grouped in
+thousands, trailing zeros kept. `round_dp` alone is not enough — it drops the
+zeros, so 4094 comes back as "4,094".
+
 ## Round to the instrument, always
 
 Twelve Data sends gold as `4385.59525`. Five decimals is the raw feed. **Gold

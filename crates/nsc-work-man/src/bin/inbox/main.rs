@@ -54,7 +54,7 @@ async fn main() -> Result<()> {
     let mut adding = Adding::default();
     let mut seen_up_to: i64 = 0;
 
-    println!("listening. Send your bot /level\n");
+    println!("Listening. Send your bot /level\n");
 
     loop {
         // `timeout=30` makes Telegram hold the line open rather than answering
@@ -87,7 +87,7 @@ async fn main() -> Result<()> {
                 continue;
             };
 
-            println!("he said: {text}");
+            println!("You said: {text}");
 
             if let Err(trouble) = handle(&client, &token, text.trim(), &mut adding).await {
                 println!("  -> {trouble:#}");

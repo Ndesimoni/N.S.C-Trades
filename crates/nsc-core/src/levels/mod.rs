@@ -24,7 +24,7 @@ mod write;
 #[cfg(test)]
 mod tests;
 
-pub use alert::{News, caption, closed_caption, gap, happening, happening_words, note};
+pub use alert::{News, caption, closed_caption, gap, happening, happening_words, note, pretty};
 pub use band::{Band, Timeframe};
 pub use close::{Action, AtZone, action, gapped_in, how_deep, what_it_did};
 pub use error::LevelError;

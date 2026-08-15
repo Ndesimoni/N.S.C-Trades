@@ -126,14 +126,14 @@ pub async fn dying(client: &reqwest::Client, what: &str) {
     let sent = match draw(Wrong::Stopped, None, what) {
         Ok(picture) => telegram::send_to(client, &OWNER.to_string(), &[&picture], caption).await,
         Err(trouble) => {
-            eprintln!("could not draw the card: {trouble}");
+            eprintln!("Could not draw the card: {trouble}");
             telegram::send_words(client, &OWNER.to_string(), caption).await
         }
     };
 
     match sent {
-        Ok(()) => eprintln!("told him it stopped."),
-        Err(trouble) => eprintln!("could not even tell him it stopped: {trouble}"),
+        Ok(()) => eprintln!("Sent you the message."),
+        Err(trouble) => eprintln!("Could not even send that message: {trouble}"),
     }
 }
 

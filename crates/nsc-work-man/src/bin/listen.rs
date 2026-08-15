@@ -34,13 +34,13 @@ async fn main() -> Result<()> {
     // address, so never print this.
     let url = format!("wss://ws.twelvedata.com/v1/quotes/price?apikey={key}");
 
-    println!("opening the line...");
+    println!("Opening the line...");
 
     let (mut socket, reply) = connect_async(&url)
         .await
         .context("the line would not open")?;
 
-    println!("open. Twelve Data answered {}\n", reply.status());
+    println!("Open. Twelve Data answered {}\n", reply.status());
 
     // Opening the line gets us nothing on its own. You have to say what you
     // want to hear about.
@@ -49,7 +49,7 @@ async fn main() -> Result<()> {
         "params": { "symbols": SYMBOL }
     });
 
-    println!("asking for {SYMBOL}...");
+    println!("Asking for {SYMBOL}...");
 
     socket
         .send(Message::Text(ask.to_string()))
@@ -62,7 +62,7 @@ async fn main() -> Result<()> {
     };
 
     println!("\n{}\n", answer.context("the reply could not be read")?);
-    println!("listening...\n");
+    println!("Listening...\n");
 
     // Then the prices arrive on their own. Nobody asks for them — that is the
     // whole difference between a line and a request.
@@ -72,11 +72,11 @@ async fn main() -> Result<()> {
     while seen < ENOUGH {
         match tokio::time::timeout(PATIENCE, socket.next()).await {
             Err(_) => {
-                println!("\nnothing for 30 seconds. Is the market open?");
+                println!("\nNothing for 30 seconds. Is the market open?");
                 break;
             }
             Ok(None) => {
-                println!("\nthe other side hung up.");
+                println!("\nThe other side hung up.");
                 break;
             }
             Ok(Some(message)) => {

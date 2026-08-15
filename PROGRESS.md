@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 108 tests · clippy clean · it watches his levels and says when price arrives.**
+**Two crates · 110 tests · clippy clean · it watches his levels and says when price arrives.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -161,6 +161,10 @@ to build in now, annoying to retrofit.
       close. See `crates/nsc-work-man/src/bin/README.txt`
 - [ ] **Gold specifically has not been watched ticking** — it was shut for the
       weekend, so the test ran on BTC/USD. Change one word back on Sunday
+- [x] **Every line it says is written properly** — captions and terminal both.
+      One way of writing a price (`levels::pretty`: rounded to the pair,
+      grouped in thousands, trailing zeros kept) and one way of naming a
+      timeframe, so a card saying *4,094.00* is never captioned *4094*
 - [x] **Trouble goes as a card too**, with the severity in the colour — amber
       it is trying, green it is back, red it has stopped. Red is the only one
       that asks him to do anything. No pair, no price, no chart, so it can

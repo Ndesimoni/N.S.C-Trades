@@ -30,13 +30,16 @@ pub async fn show(client: &reqwest::Client, token: &str, pair: &Pair) -> Result<
                 client,
                 &OWNER.to_string(),
                 &[&picture],
-                &format!("<b>{}</b> · where they landed", pair.symbol),
+                &format!(
+                    "📍 <b>{}</b> — here is where your levels landed.",
+                    pair.symbol
+                ),
             )
             .await
             .map_err(Into::into)
         }
         Err(trouble) => {
-            println!("  -> could not draw it: {trouble:#}");
+            println!("  -> Could not draw it: {trouble:#}");
             say(
                 client,
                 token,

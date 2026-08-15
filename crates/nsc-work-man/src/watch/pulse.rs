@@ -81,7 +81,7 @@ impl Pulse {
 
         let pairs = watching.len();
         let zones: usize = watching.values().map(|seen| seen.watch.count()).sum();
-        println!("heartbeat: {pairs} pairs, {zones} zones, nothing said");
+        println!("Heartbeat — {pairs} pairs, {zones} zones, nothing said today.");
 
         telegram::send_to(
             client,

@@ -33,14 +33,14 @@ async fn main() -> Result<()> {
     review::picture_of(&client, &pair, thickness, &picture).await?;
 
     let caption = format!(
-        "<b>{}</b> · weekly · {} level{} you drew",
+        "📐 <b>{}</b> — the {} level{} you drew, on the weekly chart.",
         pair.symbol,
         pair.levels.len(),
         if pair.levels.len() == 1 { "" } else { "s" }
     );
 
     telegram::send(&client, &[&picture], &caption).await?;
-    println!("\nsent to your channel.");
+    println!("\nSent to your channel.");
 
     Ok(())
 }

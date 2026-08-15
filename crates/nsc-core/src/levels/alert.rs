@@ -12,6 +12,7 @@ use rust_decimal::Decimal;
 
 use super::{Action, AtZone, Band, Nearness, Pair};
 use crate::candle::Bar;
+use crate::candle::timeframe_name;
 
 /// Whether we watched this happen or found it already so.
 ///
@@ -34,12 +35,44 @@ pub enum News {
     Already,
 }
 
+/// A price the way the cards write it.
+///
+/// **Rounded to the pair, and grouped in thousands.** The cards have done both
+/// since the beginning; the captions did neither, so gold arrived as 4094.00
+/// under a picture calling it 4,094.00.
+pub fn pretty(value: Decimal, digits: u32) -> String {
+    // `{:.*}` rather than `round_dp`. Rounding alone drops trailing zeros, so
+    // a level typed as 4094 came out "4,094" beneath a card saying "4,094.00"
+    // — the same number twice, written two ways.
+    let text = format!("{:.*}", digits as usize, value);
+    let (whole, rest) = text.split_once('.').unwrap_or((text.as_str(), ""));
+
+    let (sign, digits_only) = match whole.strip_prefix('-') {
+        Some(rest) => ("-", rest),
+        None => ("", whole),
+    };
+
+    let grouped: String = digits_only
+        .as_bytes()
+        .rchunks(3)
+        .rev()
+        .map(|chunk| String::from_utf8_lossy(chunk).into_owned())
+        .collect::<Vec<_>>()
+        .join(",");
+
+    if rest.is_empty() {
+        format!("{sign}{grouped}")
+    } else {
+        format!("{sign}{grouped}.{rest}")
+    }
+}
+
 /// The one line that goes under the picture.
 ///
 /// **Short on purpose.** The card carries the numbers; this is what Telegram
 /// shows in the notification banner, where only the first few words survive.
 pub fn caption(pair: &Pair, band: &Band, near: Nearness, news: News, price: Decimal) -> String {
-    let show = |value: Decimal| value.round_dp(pair.digits).to_string();
+    let show = |value: Decimal| pretty(value, pair.digits);
 
     let (mark, doing) = match (news, near) {
         (News::Already, Nearness::Inside) => ("📍", "is already in"),
@@ -52,7 +85,7 @@ pub fn caption(pair: &Pair, band: &Band, near: Nearness, news: News, price: Deci
     };
 
     format!(
-        "{} <b>{}</b> {} your <b>{}</b> zone at {} — now {}",
+        "{} <b>{}</b> {} your <b>{}</b> zone at {}. Now {}.",
         mark,
         pair.symbol,
         doing,
@@ -107,13 +140,14 @@ pub fn closed_caption(
     interval: &str,
     forming: bool,
 ) -> String {
-    let show = |value: Decimal| value.round_dp(pair.digits).to_string();
+    let show = |value: Decimal| pretty(value, pair.digits);
+    let each = timeframe_name(interval);
 
     if forming {
         return format!(
-            "⏳ <b>{}</b> — the {} candle is still running and <b>so far</b> {} your {} zone at {}. Now {}.",
+            "⏳ <b>{}</b> — the {} candle is still running. So far it has <b>{}</b> your {} zone at {}. Price is {}.",
             pair.symbol,
-            interval,
+            each,
             happening(was, did),
             band.timeframe.name(),
             show(band.price),
@@ -122,9 +156,9 @@ pub fn closed_caption(
     }
 
     format!(
-        "🕯 <b>{}</b> — the {} candle <b>{}</b> your {} zone at {}. Closed {}.",
+        "🕯 <b>{}</b> — the {} candle <b>{}</b> your {} zone at {}. It closed at {}.",
         pair.symbol,
-        interval,
+        each,
         happening(was, did),
         band.timeframe.name(),
         show(band.price),

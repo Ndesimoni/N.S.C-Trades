@@ -36,7 +36,7 @@ pub async fn draw_alert(
 
     let near = nearness(band, price, reach);
     if near == Nearness::Away {
-        println!("note: {price} is outside the zone and its reach — drawing it anyway");
+        println!("Note — {price} is outside the zone and its reach. Drawing it anyway.");
     }
 
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
@@ -53,8 +53,8 @@ pub async fn draw_alert(
         band.bottom,
         band.top
     );
-    println!("price {price} · fires {reach} out · {near:?} · {news:?}");
-    println!("\ndrawn to {} and sent to you.", out.display());
+    println!("Price {price} · fires {reach} out · {near:?} · {news:?}");
+    println!("\nDrawn to {} and sent to you.", out.display());
 
     Ok(())
 }
@@ -106,7 +106,7 @@ pub async fn draw_close(
         "{} candle {} — {was:?} ({did:?})",
         pair.symbol, bar.datetime
     );
-    println!("\ndrawn to {} and sent to you.", out.display());
+    println!("\nDrawn to {} and sent to you.", out.display());
 
     Ok(())
 }

@@ -133,3 +133,29 @@ price = "1.15000"
     assert_eq!(pair.approach_pips, None);
     assert_eq!(pair.reach(thickness("4.0")), d("0.0004"));
 }
+
+// ── Writing a price the way the cards write it ──
+
+// The cards have grouped thousands and held the trailing zeros since the
+// beginning. The captions did neither, so gold arrived as 4094.00 underneath a
+// picture calling it 4,094.00 — the same number, twice, differently.
+#[test]
+fn a_price_in_a_caption_reads_like_it_does_on_the_card() {
+    use super::super::pretty;
+
+    assert_eq!(pretty(d("4094"), 2), "4,094.00");
+    assert_eq!(pretty(d("4132.5736"), 2), "4,132.57");
+    assert_eq!(pretty(d("1.15"), 5), "1.15000");
+    assert_eq!(pretty(d("999"), 2), "999.00");
+    assert_eq!(pretty(d("1234567.5"), 2), "1,234,567.50");
+}
+
+// Nothing quoted in whole numbers exists here, but a price with no decimals
+// must not come out with a stray dot on the end.
+#[test]
+fn a_whole_number_keeps_no_stray_point() {
+    use super::super::pretty;
+
+    assert_eq!(pretty(d("4094"), 0), "4,094");
+    assert_eq!(pretty(d("-4094.5"), 2), "-4,094.50");
+}

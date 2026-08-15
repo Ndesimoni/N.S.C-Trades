@@ -23,6 +23,10 @@
     --ink:#131A1F;
     --mute:#6C777E;
     --brass:#A6790C;
+
+    /* A leader line — the dotted run that carries the eye across a gap from
+       a name to its number. Quiet on purpose: it is a guide, not a mark. */
+    --lead:#C6CFD5;
     --down:#E04B45;
     --up:#1F9E7A;
     --dir:var(--down);

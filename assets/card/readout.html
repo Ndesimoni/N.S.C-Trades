@@ -69,7 +69,7 @@
   .price__delta u{display:block;text-decoration:none;color:var(--mute);font-size:14px;margin-top:5px}
   .price__note{
     font-size:16px;
-    color:var(--mute);
+    color:var(--ink);
     letter-spacing:.02em;
     padding:24px 0 28px;
     margin:0;
@@ -83,18 +83,21 @@
     padding-bottom:22px;
   }
   .axis{position:relative}
-  .axis__wick{position:absolute;left:25px;width:2px;background:var(--rule)}
-  .axis__body{position:absolute;left:14px;width:24px;border-radius:3px;background:var(--dir);opacity:.92}
-  .axis__tick{position:absolute;left:6px;width:40px;height:1px;background:var(--rule)}
-  .axis__tick--c{left:2px;width:48px;background:var(--brass)}
+  .axis__wick{position:absolute;left:25px;width:3px;background:#8B959C;border-radius:2px}
+  .axis__body{
+    position:absolute;left:13px;width:26px;border-radius:3px;
+    background:var(--dir);border:1px solid rgba(0,0,0,.18);
+  }
+  .axis__tick{position:absolute;left:4px;width:44px;height:1px;background:#AEB8BE}
+  .axis__tick--c{left:0;width:52px;height:2px;background:var(--brass)}
   .axis__dot{
     position:absolute;left:21px;width:10px;height:10px;border-radius:50%;
-    background:var(--brass);box-shadow:0 0 0 5px rgba(203,163,92,.14);
+    background:var(--brass);box-shadow:0 0 0 5px rgba(166,121,12,.18);
   }
 
   .leaders{display:block;overflow:visible}
-  .leaders path{fill:none;stroke:var(--rule);stroke-width:1.4}
-  .leaders path.is-close{stroke:rgba(203,163,92,.5)}
+  .leaders path{fill:none;stroke:#B6C0C6;stroke-width:1.4}
+  .leaders path.is-close{stroke:var(--brass);stroke-width:1.8}
 
   .rows{position:relative}
   .row{
@@ -108,6 +111,17 @@
     font-family:var(--display);font-weight:600;font-size:16px;
     letter-spacing:0;color:var(--ink);margin-right:10px;
   }
+  /* The run of dots from the name to the number.
+     An empty box, so its baseline is its bottom edge — which puts the dots
+     ON the text baseline rather than under the descenders. */
+  .row__lead{
+    flex:1;
+    align-self:baseline;
+    border-bottom:1px dotted var(--lead);
+    margin:0 18px;
+  }
+  .row.is-close .row__lead{border-bottom-color:var(--brass);border-bottom-style:solid;opacity:.55}
+
   .row__value{
     font-family:var(--display);font-weight:400;font-size:26px;
     letter-spacing:-.01em;font-variant-numeric:tabular-nums;
@@ -229,8 +243,12 @@ function render(){
     const row = document.createElement("div");
     row.className = "row" + (p.key === "C" ? " is-close" : "");
     row.style.top = ys[i] + "px";
+    // label · · · · · · · · · · · value
+    // The dots carry the eye across, and join the leader coming out of the
+    // candle — so the run is unbroken from the place on the wick to the price.
     row.innerHTML =
       `<span class="row__label"><b>${p.key}</b>${p.name}</span>` +
+      `<span class="row__lead"></span>` +
       `<span class="row__value">${fmt(p.value)}</span>`;
     rows.appendChild(row);
 

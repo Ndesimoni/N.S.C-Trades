@@ -5,8 +5,28 @@
 //! price**, or one visit to a level becomes twenty alerts and he stops
 //! reading them.
 //!
-//! So this holds one fact per band: is price at it *now*? An alert is the
-//! moment that turns from no to yes, and nothing else.
+//! So this holds one fact per band: **how deep price has got this visit.** An
+//! alert is the moment that gets deeper, and nothing else.
+//!
+//! ## Deeper, not different
+//!
+//! Away, then approaching, then inside. Each step down speaks once:
+//!
+//! ```text
+//!   4,132.97   price arrives near the zone   ->  "approaching"
+//!   4,132.57   it enters the zone            ->  "in the zone"
+//!   4,120.00   it goes further in            ->  nothing
+//!   4,133.00   it drifts back to the edge    ->  nothing
+//!   4,120.00   and back in again             ->  nothing
+//! ```
+//!
+//! **Entering is the thing he actually wanted to know**, and it used to say
+//! nothing at all: the band was marked "at it" the moment price came near, so
+//! walking in was not a change. He heard "coming up on your zone" and then had
+//! to wait for a candle, which on the hourly is up to an hour.
+//!
+//! Wobbling at the edge still says nothing, because it never gets deeper than
+//! it already was.
 //!
 //! ## Arriving and leaving are measured differently, on purpose
 //!
@@ -39,8 +59,12 @@ const CLEAR_BY: Decimal = Decimal::from_parts(10, 0, 0, false, 2); // 0.10
 
 /// Watches a set of bands, and says when price has just arrived at one.
 pub struct Watch {
-    /// Each band, and whether price is at it now.
-    seen: Vec<(Band, bool)>,
+    /// Each band, and **the deepest price has got this visit**.
+    ///
+    /// Not "where price is" — where it has BEEN, since it last left properly.
+    /// That is what makes wobbling at the edge silent while walking further in
+    /// still speaks.
+    seen: Vec<(Band, Nearness)>,
 
     /// How close counts as arriving — **a price, not a share**. A pip on this
     /// pair, worked out by [`Pair::reach`](super::Pair::reach).
@@ -72,7 +96,10 @@ pub enum Nearness {
 impl Watch {
     pub fn over(bands: Vec<Band>, reach: Decimal) -> Self {
         Watch {
-            seen: bands.into_iter().map(|band| (band, false)).collect(),
+            seen: bands
+                .into_iter()
+                .map(|band| (band, Nearness::Away))
+                .collect(),
             reach,
             last: None,
             started: false,
@@ -90,22 +117,25 @@ impl Watch {
 
         let mut arrived = Vec::new();
 
-        for (band, at_it) in &mut self.seen {
+        for (band, deepest) in &mut self.seen {
             let near = nearness(band, price, self.reach);
-            let now_at_it = near != Nearness::Away;
 
             if first {
                 // Only note where price is. Arriving is a change, and there is
                 // nothing yet to have changed from.
-                *at_it = now_at_it;
+                *deepest = near;
                 continue;
             }
 
-            if now_at_it && !*at_it {
-                *at_it = true;
+            // Properly gone. The visit is over and the next one starts fresh.
+            if *deepest != Nearness::Away && clear_of(band, price) {
+                *deepest = Nearness::Away;
+                continue;
+            }
+
+            if depth(near) > depth(*deepest) {
+                *deepest = near;
                 arrived.push((*band, near));
-            } else if !now_at_it && *at_it && clear_of(band, price) {
-                *at_it = false;
             }
         }
 
@@ -132,13 +162,25 @@ impl Watch {
         self.last
     }
 
-    /// Which bands price is sitting at. For a heartbeat, not an alert.
+    /// Which bands price is at. For a heartbeat, not an alert.
     pub fn resting_at(&self) -> Vec<Band> {
         self.seen
             .iter()
-            .filter(|(_, at_it)| *at_it)
+            .filter(|(_, deepest)| *deepest != Nearness::Away)
             .map(|(band, _)| *band)
             .collect()
+    }
+}
+
+/// How far in each state counts as being.
+///
+/// **Away, then approaching, then inside.** Each step down is worth one
+/// message; the same step twice is not.
+fn depth(near: Nearness) -> u8 {
+    match near {
+        Nearness::Away => 0,
+        Nearness::Approaching => 1,
+        Nearness::Inside => 2,
     }
 }
 

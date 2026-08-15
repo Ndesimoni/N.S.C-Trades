@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 121 tests · clippy clean · it watches his levels, says what
+**Two crates · 123 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -69,7 +69,8 @@ one that mattered.
 
 | | When | What arrives |
 |---|---|---|
-| **1** | price comes within a pip of a zone | an **alert card** — the zone drawn, price on it, and the line it had to cross to fire |
+| **1** | price comes near a zone | an **alert card** — *approaching* |
+| **1** | and again when it goes **in** | the same card — *in the zone* |
 | **2** | a candle that **touched** a zone finishes | a **close card** — the candle drawn on the band, named by what it did |
 | **·** | a third of the way into that candle | the same card, marked *so far* — hollow chip, hollow candle, *not a close* |
 | **3** | it closed there **and** a strategy matched | **not built.** Needs `nsc-strategy`, which needs his answers |
@@ -100,6 +101,12 @@ without waiting for it to happen. That was the last plain-text message going.
       about 8 points on gold. Easy to trigger, hard to reset
 - [x] **The first price never fires.** It says where price *is*, not that it
       arrived — it may have been sitting there for hours
+- [x] **It speaks when price gets DEEPER** — near, then in. Two messages per
+      visit and never more. Entering used to say nothing at all: coming near
+      marked the band as reached, so walking in was not a change, and he heard
+      *"coming up on your zone"* then waited up to an hour for a candle
+- [x] **Wobbling at the edge is still silent**, because it never gets deeper
+      than it already was
 - [x] **Three states, and the card says which**: *approaching*, *in the zone*,
       and *already in the zone* — the last for what it **found** on waking, so
       a Monday move never gets a Tuesday clock

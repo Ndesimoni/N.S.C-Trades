@@ -86,19 +86,59 @@ fn how_close_counts_is_a_setting() {
 // ── Once per touch ──
 
 // The reason the type exists. Prices come about once a second and barely move.
+//
+// Once price is INSIDE, going further in says nothing — it is already as deep
+// as it gets.
 #[test]
-fn sitting_at_a_band_fires_nothing_more() {
+fn sitting_inside_fires_nothing_more() {
     let mut watch = watching();
 
     watch.arrive(d("4300"));
-    watch.arrive(d("4132.60"));
+    assert_eq!(watch.arrive(d("4132.50")).len(), 1, "it went in");
 
-    for price in ["4132.55", "4120", "4100", "4060", "4135"] {
+    for price in ["4130", "4120", "4100", "4060"] {
         assert!(
             watch.arrive(d(price)).is_empty(),
-            "{price} was already at it"
+            "{price} was already inside"
         );
     }
+}
+
+// THE ONE HE ASKED FOR. Price drifts up to the zone, then walks into it.
+//
+// Coming near used to mark the band as reached, so walking IN was not a change
+// and said nothing at all — he heard "coming up on your zone" and then waited
+// for a candle, which on the hourly is up to an hour. Entering is the thing he
+// actually wanted to know.
+#[test]
+fn coming_near_and_then_going_in_are_two_different_messages() {
+    let mut watch = watching();
+    watch.arrive(d("4300"));
+
+    let near = watch.arrive(d("4132.60"));
+    assert_eq!(near.len(), 1);
+    assert_eq!(near[0].1, Nearness::Approaching, "first, that it is close");
+
+    let inside = watch.arrive(d("4132.50"));
+    assert_eq!(inside.len(), 1);
+    assert_eq!(inside[0].1, Nearness::Inside, "then, that it is in");
+}
+
+// And never more than those two. Drifting back out to the edge and in again is
+// one visit, however many times it happens.
+#[test]
+fn going_in_and_out_of_the_edge_is_still_one_visit() {
+    let mut watch = watching();
+    watch.arrive(d("4300"));
+    watch.arrive(d("4132.60"));
+    watch.arrive(d("4132.50"));
+
+    let mut fired = 0;
+    for price in ["4132.60", "4132.50", "4132.65", "4130", "4132.62"] {
+        fired += watch.arrive(d(price)).len();
+    }
+
+    assert_eq!(fired, 0, "in and out of the same edge, five times");
 }
 
 #[test]
@@ -125,8 +165,10 @@ fn hovering_at_the_edge_does_not_fire_over_and_over() {
         "the first touch counts"
     );
 
+    // All still OUTSIDE the band and inside its reach — the same depth it
+    // already reported, five times over.
     let mut fired = 0;
-    for price in ["4134", "4132.50", "4136", "4133", "4139"] {
+    for price in ["4132.65", "4132.62", "4132.67", "4132.58", "4132.61"] {
         fired += watch.arrive(d(price)).len();
     }
 

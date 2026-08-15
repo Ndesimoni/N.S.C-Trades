@@ -179,6 +179,27 @@ ARRIVING IS A TOUCH. LEAVING IS A REAL DISTANCE.
   numbers.
 
 
+IT SPEAKS WHEN PRICE GETS DEEPER
+
+  Away, then approaching, then inside. Each step down is worth one message.
+
+      4,132.97   price arrives near the zone   ->  "approaching"
+      4,132.57   it enters the zone            ->  "in the zone"
+      4,120.00   it goes further in            ->  nothing
+      4,133.00   it drifts back to the edge    ->  nothing
+      4,120.00   and back in again             ->  nothing
+
+  ENTERING IS THE THING HE ACTUALLY WANTED TO KNOW, and it used to say nothing
+  at all. The band was marked "at it" the moment price came NEAR, so walking in
+  was not a change — he heard "coming up on your zone" and then had to wait for
+  a candle, which on the hourly is up to an hour.
+
+  What the band remembers is not where price is. It is HOW DEEP PRICE HAS GOT
+  since it last left properly. That is what keeps wobbling at the edge silent
+  while walking further in still speaks: the wobble never gets deeper than it
+  already was.
+
+
 FIRE ONCE PER TOUCH, NOT ONCE PER PRICE
 
   Prices come down the websocket about once a second and barely move —

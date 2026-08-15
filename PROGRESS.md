@@ -163,6 +163,28 @@ the only sign of life.
 
 ---
 
+## His levels — [~]
+
+**A level is a band, not a line.** Price does not stop at a number, it turns
+somewhere near one — so "price is at the level" means price is inside a band.
+
+- [x] **Weekly bands are 0.35 of a weekly candle.** Measured off his own gold
+      chart from two bands drawn months apart at 4,094 and 3,343 — 76.11 and
+      79.93 points, giving 0.35 and 0.36. Two independent draws landing on the
+      same number is why this one is trusted.
+- [x] **Daily bands are 0.46 of a daily candle.** 32.28 points, measured the
+      same day. An older note said 0.60; that came from USDCAD before the
+      reset, and his own hand wins.
+- [x] **The same on every pair**, whatever he sends. In `config/levels.toml`,
+      with the evidence in `docs/worksheets/levels.md`
+- [ ] **The 4-hour thickness has never been measured** — 0.55 is a guess
+      sitting between the other two
+- [ ] **The level prices themselves.** Five weekly and two daily on gold are
+      visible on his chart; only three have exact numbers so far
+- [ ] Nothing loads them, and nothing draws them
+
+---
+
 ## Step 2 — every pair, behind one door — [ ]
 
 **Designed:** [One Door, Eight Pairs](https://claude.ai/code/artifact/475ba411-e3c9-4d1e-8bb1-83591bd4e47e)

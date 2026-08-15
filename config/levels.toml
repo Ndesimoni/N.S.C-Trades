@@ -1,0 +1,36 @@
+# ── How thick a level's band is ─────────────────────────────────────────────
+#
+# A level is not a line, it is a band. These say how thick.
+#
+# NOT A PRICE. A share of a normal candle on that timeframe — so 0.35 gives
+# about 78 points on gold and about 0.004 on EURUSD, and both look the same on
+# a chart.
+#
+# Written as a price it would be right on one pair and wrong on every other.
+# 78 points is a normal week on gold and the whole year on EURUSD.
+#
+# THE SAME ON EVERY PAIR. Whatever he sends, these are the thicknesses.
+# ───────────────────────────────────────────────────────────────────────────
+
+# Measured off his own weekly gold chart, 15 August 2026, from two bands he
+# drew months apart at very different prices:
+#
+#     4132.020 - 4055.913  =  76.11   ->  0.35 of a weekly candle
+#     3383.480 - 3303.553  =  79.93   ->  0.36 of a weekly candle
+#
+# Two independent draws landing on the same number is why this one is trusted.
+weekly = 0.35
+
+# Measured the same day, from the blue band on gold:
+#
+#     3000.463 - 2968.181  =  32.28   ->  0.46 of a daily candle
+#
+# An older note said 0.60. That came from a different set of levels on USDCAD.
+# HIS OWN HAND SAYS 0.46, and his hand wins.
+daily = 0.46
+
+# NOT MEASURED. He draws 4-hour levels in yellow but none were on the chart
+# used for the two above. This is a guess sitting between the other two, and
+# it should be replaced the first time he sends a 4-hour level with its edges
+# visible.
+h4 = 0.55

@@ -3,7 +3,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use anyhow::{Context, Result, bail};
+use crate::error::CardError;
 
 const CHROME: &str = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
@@ -34,9 +34,9 @@ const PIXELS_PER_POINT: u32 = 2;
 ///
 /// Both paths must already be absolute — see the note in `fill.rs` about what
 /// happens when they are not.
-pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<()> {
+pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
     if !Path::new(CHROME).exists() {
-        bail!("Chrome is not at {CHROME}, and the card is drawn by Chrome");
+        return Err(CardError::NoChrome(CHROME.into()));
     }
 
     let done = Command::new(CHROME)
@@ -51,24 +51,25 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<()> {
             &format!("file://{}", page.display()),
         ])
         .output()
-        .context("could not start Chrome")?;
+        .map_err(|trouble| CardError::DrewNothing(trouble.to_string()))?;
 
     // Chrome answers 0 whether it drew the card or its own error page, so the
     // only honest check is whether a file appeared.
     if !out.exists() {
-        bail!(
-            "Chrome ran but wrote no picture:\n{}",
-            String::from_utf8_lossy(&done.stderr)
-        );
+        return Err(CardError::DrewNothing(
+            String::from_utf8_lossy(&done.stderr).into_owned(),
+        ));
     }
 
     trim(out, height * PIXELS_PER_POINT)
 }
 
 /// Cuts the white strip off the bottom.
-fn trim(picture: &Path, keep: u32) -> Result<()> {
-    let shot =
-        image::open(picture).with_context(|| format!("could not open {}", picture.display()))?;
+fn trim(picture: &Path, keep: u32) -> Result<(), CardError> {
+    let shot = image::open(picture).map_err(|trouble| CardError::CannotWrite {
+        path: picture.display().to_string(),
+        detail: trouble.to_string(),
+    })?;
 
     if shot.height() <= keep {
         return Ok(());
@@ -77,7 +78,10 @@ fn trim(picture: &Path, keep: u32) -> Result<()> {
     image::imageops::crop_imm(&shot, 0, 0, shot.width(), keep)
         .to_image()
         .save(picture)
-        .with_context(|| format!("could not save the trimmed {}", picture.display()))?;
+        .map_err(|trouble| CardError::CannotWrite {
+            path: picture.display().to_string(),
+            detail: trouble.to_string(),
+        })?;
 
     Ok(())
 }

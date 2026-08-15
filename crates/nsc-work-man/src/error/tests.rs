@@ -1,8 +1,8 @@
 use std::sync::atomic::{AtomicU32, Ordering};
 
 use super::{Answer, Knows, keep_trying};
-use crate::feed::FeedError;
-use crate::telegram::SendError;
+use crate::error::FeedError;
+use crate::error::SendError;
 
 // ── The distinction the whole thing exists for ──
 

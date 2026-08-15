@@ -30,9 +30,10 @@ THE FILES
 
   feed.rs       Asking Twelve Data. One request, one answer.
 
-  trouble/      Try again, or give up? Every failure answers that one
-                question, so a dropped line and a wrong key get opposite
-                treatment instead of both looking like a dead connection.
+  error/        Everything that can go wrong, in one place, and the one
+                question each answers: try again, or give up? So a dropped
+                line and a wrong key get opposite treatment instead of both
+                looking like a dead connection.
 
   card/         Filling in an HTML template and letting Chrome screenshot it.
                 A folder because it holds three jobs — putting the numbers in,

@@ -7,7 +7,7 @@
 
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use crate::error::LevelError;
 use rust_decimal::Decimal;
 
 use super::naming::{nightly_break, with_slash};
@@ -40,19 +40,19 @@ pub fn save(
     timeframe: Timeframe,
     prices: &[Decimal],
     digits: u32,
-) -> Result<Pair> {
+) -> Result<Pair, LevelError> {
     let file = folder.join(format!("{name}.toml"));
 
     if !file.exists() {
-        std::fs::create_dir_all(folder)
-            .with_context(|| format!("could not make {}", folder.display()))?;
+        std::fs::create_dir_all(folder).map_err(|trouble| LevelError::CannotWrite {
+            path: folder.display().to_string(),
+            detail: trouble.to_string(),
+        })?;
 
-        std::fs::write(&file, opening(name, digits))
-            .with_context(|| format!("could not start {}", file.display()))?;
+        write(&file, &opening(name, digits))?;
     }
 
-    let mut text = std::fs::read_to_string(&file)
-        .with_context(|| format!("could not read {}", file.display()))?;
+    let mut text = read(&file)?;
 
     for price in prices {
         text.push_str(&format!(
@@ -61,9 +61,23 @@ pub fn save(
         ));
     }
 
-    std::fs::write(&file, text).with_context(|| format!("could not write {}", file.display()))?;
+    write(&file, &text)?;
 
     load_pair(&file)
+}
+
+fn read(file: &Path) -> Result<String, LevelError> {
+    std::fs::read_to_string(file).map_err(|trouble| LevelError::CannotRead {
+        path: file.display().to_string(),
+        detail: trouble.to_string(),
+    })
+}
+
+fn write(file: &Path, text: &str) -> Result<(), LevelError> {
+    std::fs::write(file, text).map_err(|trouble| LevelError::CannotWrite {
+        path: file.display().to_string(),
+        detail: trouble.to_string(),
+    })
 }
 
 /// A brand new pair's file, with what can be worked out from its name.
@@ -99,11 +113,10 @@ fn opening(name: &str, digits: u32) -> String {
 /// **Cuts the text, does not rewrite the file** — same reason as `save`. The
 /// comments in these files explain what a level is, and rewriting would delete
 /// them without a word.
-pub fn undo(folder: &Path, name: &str, count: usize) -> Result<Pair> {
+pub fn undo(folder: &Path, name: &str, count: usize) -> Result<Pair, LevelError> {
     let file = folder.join(format!("{name}.toml"));
 
-    let text = std::fs::read_to_string(&file)
-        .with_context(|| format!("could not read {}", file.display()))?;
+    let text = read(&file)?;
 
     // Every level is one `[[level]]` block. Cut from the start of the last
     // `count` of them to the end.
@@ -117,8 +130,7 @@ pub fn undo(folder: &Path, name: &str, count: usize) -> Result<Pair> {
         None => starts.first().copied().unwrap_or(text.len()),
     };
 
-    std::fs::write(&file, &text[..keep])
-        .with_context(|| format!("could not write {}", file.display()))?;
+    write(&file, &text[..keep])?;
 
     load_pair(&file)
 }

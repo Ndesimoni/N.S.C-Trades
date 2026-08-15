@@ -1,5 +1,5 @@
-trouble/ — try again, or give up?
-=================================
+error/ — what went wrong, and what to do about it
+=================================================
 
 
 WHAT THIS FOLDER IS FOR
@@ -31,12 +31,31 @@ THE FILES
 
   mod.rs        The front door.
 
+  kinds.rs      The named troubles themselves — one per thing that can fail,
+                each knowing whether it is worth another go.
+
+                  FeedError    asking Twelve Data for candles
+                  SendError    sending to Telegram
+                  CardError    drawing a card
+                  LevelError   reading or writing his levels
+
   answer.rs     Answer — try again after this long, or give up. And
                 keep_trying, which does a job and respects the answer.
 
   tests.rs      Twelve tests. The first six are the distinction itself.
 
   README.txt    This file.
+
+
+ONE PLACE, NOT SCATTERED
+
+  Every trouble this crate can have is in kinds.rs. That is a rule here: one
+  error module per crate, so "what can go wrong" is a single page rather than
+  a hunt through nine files.
+
+  The programs in bin/ still use anyhow — something went wrong, here is the
+  trail, stop. That is right for a program with a person watching it. The
+  library uses these, because a caller has to decide.
 
 
 WHAT COUNTS AS WHICH

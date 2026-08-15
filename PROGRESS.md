@@ -198,8 +198,9 @@ somewhere near one — so "price is at the level" means price is inside a band.
 
 Every failure now answers one question: **is it worth trying again?**
 
-- [x] `trouble/` — `Answer::TryAgain(how long)` or `Answer::GiveUp`, and
-      `keep_trying`, which respects it and still stops after a few goes
+- [x] `error/` — every trouble this crate can have, in one place. Each answers
+      `Answer::TryAgain(how long)` or `Answer::GiveUp`, and `keep_trying`
+      respects it while still stopping after a few goes
 - [x] The feed and Telegram have **named troubles**, not one catch-all. A
       dropped line waits 3 seconds; being told to slow down waits a minute; a
       wrong key stops on the first go rather than looking like a dead
@@ -207,8 +208,9 @@ Every failure now answers one question: **is it worth trying again?**
 - [x] Both feeds **refuse politely** — Twelve Data answers 200 with
       `{"code": 401}` in the body, Telegram answers 200 with `ok: false`. Both
       are read out of the body, and both are tested
-- [ ] The card and the level files still use `anyhow` — no caller has needed
-      to tell their failures apart yet
+- [x] **The whole library speaks named troubles** — `FeedError`, `SendError`,
+      `CardError`, `LevelError`. The programs in `bin/` still use `anyhow`,
+      which is right: a program with a person watching it only needs the trail
 - [ ] Nothing survives a *restart* yet. Retrying handles a hiccup; a crash
       still loses the run
 

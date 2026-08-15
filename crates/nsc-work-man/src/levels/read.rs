@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use crate::error::LevelError;
 use rust_decimal::Decimal;
 use serde::Deserialize;
 
@@ -79,17 +79,30 @@ impl Pair {
     }
 }
 
-pub fn load_thickness(path: &Path) -> Result<Thickness> {
-    let text = std::fs::read_to_string(path)
-        .with_context(|| format!("could not read {}", path.display()))?;
-
-    toml::from_str(&text)
-        .with_context(|| format!("{} is not readable as thicknesses", path.display()))
+pub fn load_thickness(path: &Path) -> Result<Thickness, LevelError> {
+    read_toml(path, "thicknesses")
 }
 
-pub fn load_pair(path: &Path) -> Result<Pair> {
-    let text = std::fs::read_to_string(path)
-        .with_context(|| format!("could not read {}", path.display()))?;
+pub fn load_pair(path: &Path) -> Result<Pair, LevelError> {
+    read_toml(path, "a pair")
+}
 
-    toml::from_str(&text).with_context(|| format!("{} is not readable as a pair", path.display()))
+/// Reads a file and turns it into whatever was asked for.
+///
+/// **Gives up rather than guessing.** A levels file that half-parses would put
+/// bands at prices he never drew, and every signal after that inherits it.
+fn read_toml<T: serde::de::DeserializeOwned>(
+    path: &Path,
+    expected: &'static str,
+) -> Result<T, LevelError> {
+    let text = std::fs::read_to_string(path).map_err(|trouble| LevelError::CannotRead {
+        path: path.display().to_string(),
+        detail: trouble.to_string(),
+    })?;
+
+    toml::from_str(&text).map_err(|trouble| LevelError::NotReadable {
+        path: path.display().to_string(),
+        expected,
+        detail: trouble.to_string(),
+    })
 }

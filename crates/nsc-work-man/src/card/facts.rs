@@ -4,7 +4,7 @@
 //! knows about colours, fonts or layout, and nothing in the template works out
 //! a price.
 
-use anyhow::{Context, Result};
+use crate::error::CardError;
 use chrono::TimeDelta;
 use rust_decimal::Decimal;
 use serde_json::{Value, json};
@@ -14,7 +14,7 @@ use crate::levels::Band;
 use crate::settings::{INTERVAL_MINUTES, timeframe_name, unit_for};
 
 /// The one candle the card is about.
-pub fn one(bar: &Bar, symbol: &str, interval: &str, digits: u32) -> Result<Value> {
+pub fn one(bar: &Bar, symbol: &str, interval: &str, digits: u32) -> Result<Value, CardError> {
     // When it FINISHED, not when it opened. "20:00" is the moment this became
     // true, and that is the number a trader looks for.
     //
@@ -24,7 +24,7 @@ pub fn one(bar: &Bar, symbol: &str, interval: &str, digits: u32) -> Result<Value
     let stamp = match bar.opened_at() {
         Ok(opened) => {
             let one_step = TimeDelta::try_minutes(INTERVAL_MINUTES)
-                .context("the interval is not a length of time chrono can hold")?;
+                .unwrap_or_else(|| TimeDelta::try_minutes(60).unwrap_or_default());
 
             (opened + one_step).format("%-d %b · %H:%M UTC").to_string()
         }

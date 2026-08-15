@@ -22,7 +22,7 @@ use anyhow::{Result, bail};
 use chrono::Utc;
 
 use nsc_work_man::candle::Bar;
-use nsc_work_man::trouble::keep_trying;
+use nsc_work_man::error::keep_trying;
 use nsc_work_man::{card, feed, message, settings, telegram};
 
 #[tokio::main]

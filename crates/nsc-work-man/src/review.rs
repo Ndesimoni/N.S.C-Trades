@@ -13,9 +13,9 @@ use anyhow::{Context, Result};
 
 use crate::candle::{Bar, normal_candle};
 use crate::card;
+use crate::error::keep_trying;
 use crate::feed;
 use crate::levels::{Pair, Thickness, Timeframe};
-use crate::trouble::keep_trying;
 
 /// How many candles back. Enough weeks to hold levels drawn years apart.
 const HISTORY: usize = 150;
@@ -55,7 +55,7 @@ pub async fn picture_of(
 
     let drawn: Vec<&Bar> = weekly.iter().collect();
 
-    card::render(
+    let picture = card::render(
         "chart.html",
         &drawn,
         &bands,
@@ -63,7 +63,9 @@ pub async fn picture_of(
         "1week",
         pair.digits,
         out,
-    )
+    )?;
+
+    Ok(picture)
 }
 
 /// Candles, oldest first — the direction a chart is read in.

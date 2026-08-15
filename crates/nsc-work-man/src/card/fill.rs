@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result, bail};
+use crate::error::CardError;
 
 use super::{chrome, facts};
 use crate::candle::Bar;
@@ -40,22 +40,27 @@ pub fn render(
     interval: &str,
     digits: u32,
     out: &Path,
-) -> Result<PathBuf> {
+) -> Result<PathBuf, CardError> {
     let Some(latest) = bars.last() else {
-        bail!("there are no candles to draw");
+        return Err(CardError::NothingToDraw);
     };
 
     let source = Path::new(TEMPLATES).join(template);
-    let html = std::fs::read_to_string(&source)
-        .with_context(|| format!("could not read the card template at {}", source.display()))?;
+    let html = std::fs::read_to_string(&source).map_err(|trouble| CardError::NoTemplate {
+        path: source.display().to_string(),
+        detail: trouble.to_string(),
+    })?;
 
-    let style = std::fs::read_to_string(Path::new(TEMPLATES).join(STYLE))
-        .context("could not read the shared card styling")?;
+    let style = std::fs::read_to_string(Path::new(TEMPLATES).join(STYLE)).map_err(|trouble| {
+        CardError::NoTemplate {
+            path: STYLE.into(),
+            detail: trouble.to_string(),
+        }
+    })?;
 
     let html = html.replace("/*__STYLE__*/", &style);
 
-    let height = height_of(&html)
-        .with_context(|| format!("{template} has no --card-height line in its CSS"))?;
+    let height = height_of(&html).ok_or_else(|| CardError::NoHeight(template.into()))?;
 
     let filled = html
         .replace(
@@ -71,18 +76,25 @@ pub fn render(
     // design living in HTML.
     let page = out.with_extension("html");
     make_room_for(&page)?;
-    std::fs::write(&page, filled).context("could not write the filled-in template")?;
+    std::fs::write(&page, filled).map_err(|trouble| CardError::CannotWrite {
+        path: page.display().to_string(),
+        detail: trouble.to_string(),
+    })?;
     make_room_for(out)?;
 
     // Absolute, both of them, always. Chrome runs with its own working folder,
     // so `file://preview/chart.html` makes it read `preview` as a HOSTNAME —
     // and it quietly screenshots its own error page, which then goes out
     // looking like a real card.
-    let page = std::fs::canonicalize(&page)
-        .with_context(|| format!("could not resolve {}", page.display()))?;
+    let page = std::fs::canonicalize(&page).map_err(|trouble| CardError::CannotWrite {
+        path: page.display().to_string(),
+        detail: trouble.to_string(),
+    })?;
 
-    let picture =
-        std::path::absolute(out).with_context(|| format!("could not resolve {}", out.display()))?;
+    let picture = std::path::absolute(out).map_err(|trouble| CardError::CannotWrite {
+        path: out.display().to_string(),
+        detail: trouble.to_string(),
+    })?;
 
     chrome::shoot(&page, height, &picture)?;
 
@@ -106,10 +118,13 @@ pub fn height_of(html: &str) -> Option<u32> {
     digits.parse().ok()
 }
 
-fn make_room_for(file: &Path) -> Result<()> {
+fn make_room_for(file: &Path) -> Result<(), CardError> {
     let Some(folder) = file.parent() else {
         return Ok(());
     };
 
-    std::fs::create_dir_all(folder).with_context(|| format!("could not make {}", folder.display()))
+    std::fs::create_dir_all(folder).map_err(|trouble| CardError::CannotWrite {
+        path: folder.display().to_string(),
+        detail: trouble.to_string(),
+    })
 }

@@ -22,11 +22,23 @@ WHY PICTURES AND NOT TEXT
 
 THE FILES
 
+  style.css     The palette, the typefaces and the page box. Rust drops it
+                into every template where the template says __STYLE__, so a
+                colour is changed in ONE place and every card follows.
+
+                Inlined rather than linked, because the filled page is written
+                next to the picture and a link would break the moment the two
+                are not in the same folder.
+
   chart.html    The candle chart. Header band with the pair and the price, an
                 accent bar tinted with the move, the candles with the price
                 scale on the right, and the open, high, low and range along
-                the bottom. THIS ONE STANDS UP ALONE — it is what a candle
-                close sends.
+                the bottom. THIS ONE STANDS UP ALONE.
+
+                It draws his levels as bands when it is given any, and nothing
+                when it is not — so the hourly card the bot sends and the
+                weekly one with his levels on it are THE SAME FILE. They were
+                two, and 87% of the second was a copy of the first.
 
   readout.html  Where price sat inside the candle. The candle drawn tall on
                 the left, with leader lines out to High, Open, Close and Low.

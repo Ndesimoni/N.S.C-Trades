@@ -13,6 +13,7 @@
 //! about a year on EURUSD.
 
 mod band;
+mod naming;
 mod read;
 mod write;
 
@@ -20,5 +21,6 @@ mod write;
 mod tests;
 
 pub use band::{Band, Timeframe};
+pub use naming::{digits_for, with_slash};
 pub use read::{Pair, Thickness, load_pair, load_thickness};
-pub use write::{digits_for, known, save, undo, with_slash};
+pub use write::{known, save, undo};

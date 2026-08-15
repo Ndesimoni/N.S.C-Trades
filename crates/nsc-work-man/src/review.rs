@@ -54,7 +54,7 @@ pub async fn picture_of(
     let drawn: Vec<&Bar> = weekly.iter().collect();
 
     card::render(
-        "levels.html",
+        "chart.html",
         &drawn,
         &bands,
         &pair.symbol,

@@ -1,0 +1,51 @@
+/* ── Shared by every card ────────────────────────────────────────────────
+   Rust drops this file in where a template says __STYLE__, so a colour or a
+   typeface is changed in ONE place and every card follows.
+
+   Card-specific styling stays in the card. This is only what they all agree
+   on. */
+
+  :root{
+    /* How tall this card is. Chrome shoots a window, not a page, so this
+       number is the card's height and Rust reads it straight out of here.
+       Change it here and nowhere else. */
+    --card-height:647px;
+
+    /* A WHITE CHART, like his.
+       His levels are black, blue and yellow — a specification, not a design
+       choice — and black only means "the heaviest thing here" on a white
+       ground. The card was dark first and the weekly levels vanished into it. */
+    --vault:#FFFFFF;
+    --panel:#F5F7F8;
+    --panel-2:#FFFFFF;
+    --rule:#E2E7EA;
+    --grid:#EDF1F3;
+    --ink:#131A1F;
+    --mute:#6C777E;
+    --brass:#A6790C;
+    --down:#E04B45;
+    --up:#1F9E7A;
+    --dir:var(--down);
+
+    /* HIS COLOURS. Unchanged, and now on the ground they were meant for. */
+    --weekly:#000000;
+    --daily:#2962FF;
+    --yellow:#E6A400;
+
+    --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+    --data:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+
+  *{box-sizing:border-box}
+
+  html,body{
+    margin:0;height:var(--card-height);overflow:hidden;
+    background:var(--vault);
+  }
+  body{
+    color:var(--ink);
+    font-family:var(--data);
+    width:860px;
+    padding:0;
+    -webkit-font-smoothing:antialiased;
+  }

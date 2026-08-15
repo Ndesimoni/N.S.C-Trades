@@ -11,6 +11,14 @@ use crate::levels::Band;
 /// Where the templates live.
 const TEMPLATES: &str = "assets/card";
 
+/// The styling every card shares — the palette, the typefaces, the page box.
+///
+/// Dropped in where a template says `__STYLE__`, so a colour is changed in one
+/// place and every card follows. Inlined rather than linked because the filled
+/// page is written next to the picture, and a link would break the moment the
+/// two are not in the same folder.
+const STYLE: &str = "style.css";
+
 /// Fills in a template and screenshots it.
 ///
 /// `template` is a file in `assets/card/`. `bars` are the finished candles,
@@ -40,6 +48,11 @@ pub fn render(
     let source = Path::new(TEMPLATES).join(template);
     let html = std::fs::read_to_string(&source)
         .with_context(|| format!("could not read the card template at {}", source.display()))?;
+
+    let style = std::fs::read_to_string(Path::new(TEMPLATES).join(STYLE))
+        .context("could not read the shared card styling")?;
+
+    let html = html.replace("/*__STYLE__*/", &style);
 
     let height = height_of(&html)
         .with_context(|| format!("{template} has no --card-height line in its CSS"))?;

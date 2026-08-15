@@ -11,6 +11,20 @@ WHAT THIS FOLDER IS FOR
   actually sat.
 
 
+A REFUSED MESSAGE IS NOT A SENT MESSAGE
+
+  Telegram answers 200 with `ok: false` when it will not take a message. That
+  was printed to a terminal he is not watching, and `say` returned Ok — so
+  everything upstream believed he had been replied to.
+
+  He would have seen nothing, and had no way to tell that from a dead bot.
+
+  It is an error now. And the text of what went wrong is ESCAPED before it
+  goes in, because every message here is parsed as HTML: a stray `<` in an
+  error is an unclosed tag, and Telegram refuses the whole message. The reply
+  that says what went wrong is exactly the one that has to arrive.
+
+
 IT RUNS INSIDE THE BOT
 
   Spawned beside the watcher, so `cargo run -p nsc-work-man` is the whole
@@ -75,7 +89,21 @@ HOW IT GOES
 
 FOUR THINGS THAT ARE DELIBERATE
 
-  1. THE BUTTONS ARE IT RUNS INSIDE THE BOT
+  1. THE BUTTONS ARE A REFUSED MESSAGE IS NOT A SENT MESSAGE
+
+  Telegram answers 200 with `ok: false` when it will not take a message. That
+  was printed to a terminal he is not watching, and `say` returned Ok — so
+  everything upstream believed he had been replied to.
+
+  He would have seen nothing, and had no way to tell that from a dead bot.
+
+  It is an error now. And the text of what went wrong is ESCAPED before it
+  goes in, because every message here is parsed as HTML: a stray `<` in an
+  error is an unclosed tag, and Telegram refuses the whole message. The reply
+  that says what went wrong is exactly the one that has to arrive.
+
+
+IT RUNS INSIDE THE BOT
 
   Spawned beside the watcher, so `cargo run -p nsc-work-man` is the whole
   thing.

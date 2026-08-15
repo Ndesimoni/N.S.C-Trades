@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 123 tests · clippy clean · it watches his levels, says what
+**Two crates · 124 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -163,6 +163,9 @@ without waiting for it to happen. That was the last plain-text message going.
       weekly line off the daily chart has not changed anything about it, and a
       62-pip band and a 29-pip band round one line fire twice as price passes.
       It keeps the chart he first drew it on
+- [x] **A pair whose file will not read says so** before asking him to stop
+      it. It said *"it has 0 levels on it"*, which is the one sentence that
+      would make him tap yes without thinking
 - [x] **He can stop a pair from his phone** — `/remove`, pick it, then confirm.
       **Two taps**, because it throws away every level he drew for that pair
       and the first tap happens while he is doing something else. The second
@@ -233,6 +236,14 @@ without waiting for it to happen. That was the last plain-text message going.
       it drew your card or its own error page, so "a file appeared" is the only
       check — and one was already there. A failed draw would have sent today's
       caption on yesterday's chart
+- [x] **A refused Telegram message is an error.** It printed the refusal to a
+      terminal he is not watching and answered Ok, so everything upstream
+      believed he had been replied to. He would have seen nothing and had no
+      way to tell that from a dead bot
+- [x] **What went wrong is escaped before it goes in a message.** Every one is
+      parsed as HTML, so a `<` in an error is an unclosed tag and Telegram
+      refuses the whole thing — the reply that says what broke is exactly the
+      one that has to arrive
 - [x] **The subscription reply is read.** They answer per symbol with a
       `success` list and a `fails` list, and nothing looked at it — a pair
       they will not serve is refused while the socket stays open, so no prices
@@ -372,9 +383,9 @@ Agreed 16 August, before anything new is added.
    README, and two READMEs named files that had become folders. Reading
    `watch/run.rs` for it turned up a real bug: **the subscription reply was
    never read**
-2. ~~**Read the code back for bugs.**~~ Done 16 August — six found, all of
-   them things that lose a message rather than crash. Written up under
-   "when something goes wrong" below The last week added the calendar, rungs 1
+2. ~~**Read the code back for bugs.**~~ Done 16 August, twice. Ten found, and
+   every one of them loses a message rather than crashing — which is the only
+   kind of bug this project has The last week added the calendar, rungs 1
    and 2, the heartbeat, trouble handling, the reconnect and the inbox fold-in
    — and every careful read-back so far has found something. Two failing
    doc-tests, a spin loop, a secret in an error message, a silent reconnect

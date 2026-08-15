@@ -97,17 +97,27 @@ pub async fn ask_first(
     name: String,
     adding: &mut Adding,
 ) -> Result<()> {
-    let held = load_pair(&folder.join(format!("{name}.toml")))
-        .map(|pair| pair.levels.len())
-        .unwrap_or(0);
+    // **How many it holds is the whole point of asking twice**, so a file that
+    // cannot be read says so rather than saying nought. "It has 0 levels on
+    // it" is the one sentence that would make him tap yes without thinking.
+    let words = match load_pair(&folder.join(format!("{name}.toml"))) {
+        Ok(pair) => format!(
+            "<b>{}</b> — stop watching it?\n\n\
+             It has <b>{}</b> level{} on it. Nothing will be watched on this pair \
+             until you send it again.",
+            with_slash(&name),
+            pair.levels.len(),
+            if pair.levels.len() == 1 { "" } else { "s" },
+        ),
 
-    let words = format!(
-        "<b>{}</b> — stop watching it?\n\n\
-         It has <b>{held}</b> level{} on it. Nothing will be watched on this pair \
-         until you send it again.",
-        with_slash(&name),
-        if held == 1 { "" } else { "s" },
-    );
+        Err(_) => format!(
+            "<b>{}</b> — stop watching it?\n\n\
+             <b>Its file will not read</b>, so I cannot tell you how many levels \
+             are on it. Stopping moves the file rather than deleting it, so \
+             nothing is lost either way.",
+            with_slash(&name),
+        ),
+    };
 
     adding.stopping = Some(name);
 

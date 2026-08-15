@@ -247,3 +247,24 @@ fn the_last_picture_is_cleared_before_anything_draws() {
     // kind since the bot started.
     super::chrome::clear_the_way(&out).expect("nothing to clear is fine");
 }
+
+// ── Text that goes into a message he must receive ──
+
+// Every message the inbox sends is parsed as HTML. A stray `<` in an error is
+// not a stray `<` — it is an unclosed tag, and Telegram refuses the WHOLE
+// message.
+//
+// The one place carrying text nobody wrote on purpose is the reply that says
+// what went wrong, which is exactly the message that has to arrive.
+#[test]
+fn what_went_wrong_survives_being_put_in_a_message() {
+    use crate::inbox::plainly;
+
+    let raw = "could not read <config/pairs/EUR&USD.toml>";
+    let safe = plainly(raw);
+
+    assert!(!safe.contains('<'), "{safe}");
+    assert!(!safe.contains('>'), "{safe}");
+    assert_eq!(safe.matches("&amp;").count(), 1, "the & is escaped once");
+    assert!(safe.contains("EUR&amp;USD"), "{safe}");
+}

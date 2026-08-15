@@ -20,9 +20,9 @@ impl Timeframe {
     /// Drawing every level in one colour was done once already and the chart
     /// looked nothing like his.
     ///
-    /// The card turns `black` into white, because the card is dark and his
-    /// chart is white. **Same role, other background** — the weekly is meant to
-    /// be the heaviest mark on the chart, and on a dark ground that is white.
+    /// **The cards use these as they are.** They were dark once, and black
+    /// vanished into them — which is why the cards are white now rather than
+    /// why the colours changed. His colours never move.
     pub fn colour(self) -> &'static str {
         match self {
             Timeframe::Weekly => "black",

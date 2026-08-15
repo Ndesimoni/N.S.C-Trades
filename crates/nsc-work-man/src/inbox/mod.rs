@@ -58,6 +58,8 @@ mod talking;
 use conversation::{Adding, handle};
 use talking::say;
 
+pub use talking::plainly;
+
 /// How long to wait before listening again after a failure.
 const AGAIN: std::time::Duration = std::time::Duration::from_secs(15);
 
@@ -119,7 +121,7 @@ async fn listen(client: &reqwest::Client) -> Result<()> {
                 say(
                     client,
                     &token,
-                    &format!("Could not do that:\n{trouble}"),
+                    &format!("Could not do that:\n{}", plainly(&format!("{trouble:#}"))),
                     None,
                 )
                 .await?;

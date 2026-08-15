@@ -39,12 +39,29 @@ pub async fn say(
         .await
         .context("Telegram answered, but not with JSON")?;
 
+    // **Refused is not sent.** This printed the refusal to a terminal he is
+    // not watching and answered Ok, so everything upstream believed he had
+    // been replied to. He would have seen nothing at all and had no way to
+    // tell that from the bot being dead.
     if reply["ok"] != true {
-        println!(
+        return Err(anyhow!(
             "Telegram refused: {}",
             reply["description"].as_str().unwrap_or("no reason given")
-        );
+        ));
     }
 
     Ok(())
+}
+
+/// Makes text safe to put in a message.
+///
+/// **Every message here is parsed as HTML**, so a stray `<` in an error is not
+/// a stray `<` — it is an unclosed tag, and Telegram refuses the whole
+/// message. The one place that carries text nobody wrote on purpose is the
+/// reply that says what went wrong, which is exactly the message that must
+/// arrive.
+pub fn plainly(text: &str) -> String {
+    text.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
 }

@@ -11,6 +11,25 @@ WHAT THIS FOLDER IS FOR
   actually sat.
 
 
+STOPPING A PAIR
+
+      /remove   ->  which pair?  ->  [pair]  ->  stop it? / keep it
+
+  TWO TAPS, NOT ONE. It throws away every level he has drawn for that pair —
+  months of chart work — and the first tap is made on a phone while he is
+  doing something else. The second one tells him how many levels are on it
+  before he confirms.
+
+  AND IT IS MOVED, NOT DELETED. The file goes to config/pairs/removed/ and
+  comes back by being moved out again. The reply says where it went.
+
+  Retiring the same pair twice does not overwrite the first set. He may add it
+  back, draw it again and drop it again, and the first set is still the one he
+  spent an evening on.
+
+  The watcher notices within ten minutes, on its own, and stops watching it.
+
+
 THE FILES
 
   main.rs           The waiting. Asks Telegram "anything new?", checks it
@@ -39,7 +58,26 @@ HOW IT GOES
 
 FOUR THINGS THAT ARE DELIBERATE
 
-  1. THE BUTTONS ARE THE FILES.
+  1. THE BUTTONS ARE STOPPING A PAIR
+
+      /remove   ->  which pair?  ->  [pair]  ->  stop it? / keep it
+
+  TWO TAPS, NOT ONE. It throws away every level he has drawn for that pair —
+  months of chart work — and the first tap is made on a phone while he is
+  doing something else. The second one tells him how many levels are on it
+  before he confirms.
+
+  AND IT IS MOVED, NOT DELETED. The file goes to config/pairs/removed/ and
+  comes back by being moved out again. The reply says where it went.
+
+  Retiring the same pair twice does not overwrite the first set. He may add it
+  back, draw it again and drop it again, and the first set is still the one he
+  spent an evening on.
+
+  The watcher notices within ten minutes, on its own, and stops watching it.
+
+
+THE FILES.
 
      Whatever is in config/pairs/ becomes a button. Not a list in this code —
      that was the mistake the old settings.rs made, and two lists always

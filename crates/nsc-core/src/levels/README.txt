@@ -22,7 +22,8 @@ THE FILES
   read.rs     Reading config/levels.toml and config/pairs/*.toml.
 
   write.rs    Putting a level into a pair's file, starting the file if the
-              pair is new, and taking levels back off again.
+              pair is new, taking levels back off again, and stopping a pair
+              altogether.
 
   naming.rs   What a pair's name tells you — how many decimals, whether it
               shuts at night. Worked out, not checked.
@@ -47,7 +48,7 @@ THE FILES
               band — is price at it now — and an alert is the moment that
               turns from no to yes.
 
-  tests/      Sixty-five tests.
+  tests/      Sixty-eight tests.
                 bands.rs    does our band land where his landed
                 closing.rs  what a finished candle did at a zone
                 pips.rs     one pip from the pair's digits, and a pair
@@ -93,6 +94,14 @@ THE RULE WAS CHECKED AGAINST HIS OWN HAND
 A PAIR EXISTS BECAUSE ITS FILE EXISTS
 
   config/pairs/XAUUSD.toml is why gold is watched. Delete it and it stops.
+
+  So STOPPING a pair is moving its file — `retire` puts it in
+  config/pairs/removed/, which `known` cannot see because it only looks at
+  .toml FILES and that is a folder.
+
+  MOVED, NOT DELETED. He does this by tapping a button on a phone, and it
+  throws away every level he has drawn for that pair. Moving it back starts
+  the pair again, and the reply tells him where it went.
 
   There is no second list. The buttons in Telegram are these files, and a
   pair with no levels is a pair the bot has nothing to say about anyway.

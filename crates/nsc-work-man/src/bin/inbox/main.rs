@@ -38,6 +38,14 @@ const TIMEFRAMES: [(&str, Timeframe); 3] = [
 const NEW_PAIR: &str = "+ new pair";
 const UNDO: &str = "↩ Undo";
 
+/// Stopping a pair takes two taps, not one.
+///
+/// It throws away every level he has drawn for that pair — months of chart
+/// work — and it is done by tapping a button on a phone while doing something
+/// else.
+const YES: &str = "✓ Yes, stop it";
+const NO: &str = "✗ Keep it";
+
 mod conversation;
 mod picture;
 mod talking;
@@ -54,7 +62,7 @@ async fn main() -> Result<()> {
     let mut adding = Adding::default();
     let mut seen_up_to: i64 = 0;
 
-    println!("Listening. Send your bot /level\n");
+    println!("Listening. Send your bot /level, or /remove\n");
 
     loop {
         // `timeout=30` makes Telegram hold the line open rather than answering

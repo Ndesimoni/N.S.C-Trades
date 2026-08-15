@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 117 tests · clippy clean · it watches his levels, says what
+**Two crates · 120 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -151,6 +151,13 @@ without waiting for it to happen. That was the last plain-text message going.
       weekly line off the daily chart has not changed anything about it, and a
       62-pip band and a 29-pip band round one line fire twice as price passes.
       It keeps the chart he first drew it on
+- [x] **He can stop a pair from his phone** — `/remove`, pick it, then confirm.
+      **Two taps**, because it throws away every level he drew for that pair
+      and the first tap happens while he is doing something else. The second
+      one tells him how many levels are on it first
+- [x] **Stopped is moved, not deleted.** The file goes to
+      `config/pairs/removed/` and comes back by being moved out. Retiring the
+      same pair twice keeps both sets. The watcher notices within ten minutes
 - [x] **The reply names what he already had, and which chart it is on** —
       *"1.15000 is already a weekly level"*. He may have expected it to move;
       silence would leave him thinking it had. And undo is told what was

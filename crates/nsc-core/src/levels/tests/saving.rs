@@ -264,3 +264,59 @@ fn it_keeps_the_chart_he_first_drew_it_on() {
 
     assert_eq!(after.pair.levels[0].timeframe, Timeframe::Weekly);
 }
+
+// ── Stopping a pair ──
+
+// MOVED, NOT DELETED. It is done by tapping a button on a phone and it throws
+// away every level he has drawn for that pair — months of chart work in one
+// tap. It has to be possible to get it back.
+#[test]
+fn stopping_a_pair_puts_its_levels_somewhere_they_can_be_found() {
+    use super::super::{RETIRED, retire};
+
+    let folder = scratch("retire");
+    save(&folder, "GBPUSD", Timeframe::Weekly, &[d("1.28")], 5).expect("saved");
+
+    let landed = retire(&folder, "GBPUSD").expect("retired");
+
+    assert!(landed.exists(), "the file is still on disk");
+    assert!(landed.starts_with(folder.join(RETIRED)));
+    assert!(
+        !folder.join("GBPUSD.toml").exists(),
+        "and out of the watched folder"
+    );
+}
+
+// The bot must stop seeing it the moment it moves. `known` looks at .toml
+// files, and a folder is not one — but that is worth pinning, because the day
+// it starts recursing, every retired pair comes back to life.
+#[test]
+fn a_stopped_pair_is_not_in_the_list_any_more() {
+    use super::super::retire;
+
+    let folder = scratch("retire-hidden");
+    save(&folder, "GBPUSD", Timeframe::Weekly, &[d("1.28")], 5).expect("saved");
+    save(&folder, "EURUSD", Timeframe::Weekly, &[d("1.15")], 5).expect("saved");
+
+    retire(&folder, "GBPUSD").expect("retired");
+
+    assert_eq!(known(&folder), vec!["EURUSD".to_string()]);
+}
+
+// He may add a pair back, draw it again, and drop it again. The first set is
+// still the one he spent an evening on.
+#[test]
+fn stopping_the_same_pair_twice_keeps_both_sets() {
+    use super::super::retire;
+
+    let folder = scratch("retire-twice");
+
+    save(&folder, "GBPUSD", Timeframe::Weekly, &[d("1.28")], 5).expect("saved");
+    let first = retire(&folder, "GBPUSD").expect("retired");
+
+    save(&folder, "GBPUSD", Timeframe::Weekly, &[d("1.31")], 5).expect("saved again");
+    let second = retire(&folder, "GBPUSD").expect("retired again");
+
+    assert_ne!(first, second, "the second must not land on the first");
+    assert!(first.exists() && second.exists(), "both are still there");
+}

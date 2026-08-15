@@ -27,8 +27,8 @@ THE FILES
   naming.rs   What a pair's name tells you — how many decimals, whether it
               shuts at night. Worked out, not checked.
 
-  watch.rs    Watching bands for price ARRIVING in one. Holds one fact per
-              band — is price inside it now — and an alert is the moment that
+  watch.rs    Watching bands for price ARRIVING at one. Holds one fact per
+              band — is price at it now — and an alert is the moment that
               turns from no to yes.
 
   tests/      Nineteen tests.
@@ -88,6 +88,27 @@ TWO THINGS ABOUT THE FILES THEMSELVES
   PRICES ARE STORED AS TEXT — price = "1.21279". Written as a TOML number it
   would go through a float and stop being exactly that. There is a test that
   saves one and reads it back.
+
+
+"AT IT" IS WIDER THAN "INSIDE IT"
+
+  A BAND IS A ZONE, NOT A WALL. Price at 4133 when the top is 4132.57 is at
+  that level in every way that matters, and waiting for it to cross by half a
+  dollar is arbitrary.
+
+  There is a second reason and it may be the bigger one: AN ALERT THAT ONLY
+  FIRES ONCE PRICE IS INSIDE ARRIVES TOO LATE TO USE. Told it is coming, he
+  can get to his chart before the reaction starts.
+
+  How close counts is `approach` in config/levels.toml — a share of the band's
+  own thickness, so it travels between instruments the same way the band does.
+
+      0.25 on gold weekly   fires about 19 points out
+      0.25 on gold daily    fires about 8 points out
+      0.25 on the pound     fires about 15 pips out
+
+  The alert says which it is — price IS IN the zone, or is COMING UP ON it.
+  Different things, and he should not have to work it out from the numbers.
 
 
 FIRE ONCE PER TOUCH, NOT ONCE PER PRICE

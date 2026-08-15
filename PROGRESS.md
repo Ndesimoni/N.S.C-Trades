@@ -198,6 +198,12 @@ somewhere near one — so "price is at the level" means price is inside a band.
 - [x] **They are watched.** `cargo run -p nsc-work-man --bin watch` holds the
       price stream open for every pair with a file and says when price arrives
       in one of his bands. Rung 1 of the ladder
+- [x] **A band is a zone, not a wall.** It fires when price comes *near*, not
+      only when it is strictly inside — because an alert that waits for price
+      to be inside arrives too late to be any use. `approach` in
+      `config/levels.toml`, a quarter of the band's thickness, which is about
+      19 points on gold. The alert says whether price is in the zone or coming
+      up on it
 - [x] It fires **once per touch, not once per price** — prices come about once
       a second and barely move, so without that rule one visit becomes twenty
       alerts. The first price never fires, and hovering on a band's edge does

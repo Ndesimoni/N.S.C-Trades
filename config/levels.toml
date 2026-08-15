@@ -34,3 +34,20 @@ daily = 0.46
 # it should be replaced the first time he sends a 4-hour level with its edges
 # visible.
 h4 = 0.55
+
+# ── How close counts as arriving ────────────────────────────────────────────
+#
+# A band is a ZONE, not a wall. Price at 4133 when the top is 4132.57 is at the
+# level in every way that matters, and waiting for it to cross by half a dollar
+# is arbitrary.
+#
+# There is a second reason, and it may be the bigger one: an alert that only
+# fires once price is INSIDE gives him no time. Told it is coming, he can get
+# to his chart before the reaction starts.
+#
+# A share of the band's own thickness, so it travels between instruments the
+# same way the band does. 0.25 on gold is about 19 points — roughly an hour of
+# movement, which is the right amount of warning.
+#
+# Turn it up for more notice and more false starts. Down for the opposite.
+approach = 0.25

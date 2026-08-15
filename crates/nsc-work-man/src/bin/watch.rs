@@ -17,7 +17,9 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use futures_util::{SinkExt, StreamExt};
 use nsc_core::candle::normal_candle;
-use nsc_core::levels::{Band, Pair, Thickness, Timeframe, Watch, known, load_pair, load_thickness};
+use nsc_core::levels::{
+    Band, Nearness, Pair, Thickness, Timeframe, Watch, known, load_pair, load_thickness,
+};
 use nsc_work_man::{feed, retry::keep_trying, telegram};
 use rust_decimal::Decimal;
 use tokio_tungstenite::connect_async;
@@ -69,7 +71,8 @@ async fn main() -> Result<()> {
         }
 
         println!("{} — watching {} level(s)", pair.symbol, bands.len());
-        watching.insert(pair.symbol.clone(), (pair, Watch::over(bands)));
+        let watch = Watch::over(bands, thickness.approach);
+        watching.insert(pair.symbol.clone(), (pair, watch));
     }
 
     if watching.is_empty() {
@@ -163,8 +166,8 @@ async fn listen(
             continue;
         };
 
-        for band in watch.arrive(price) {
-            let words = alert(pair, &band, price);
+        for (band, near) in watch.arrive(price) {
+            let words = alert(pair, &band, near, price);
             println!("{symbol} reached {}", band.price);
 
             telegram::send_words(client, &OWNER.to_string(), &words).await?;
@@ -191,15 +194,23 @@ fn price_in(said: &serde_json::Value) -> Option<Decimal> {
 ///
 /// No entry, no stop, no target — because there is no trade. Price has
 /// arrived where he would be waiting, and nothing has formed yet.
-fn alert(pair: &Pair, band: &Band, price: Decimal) -> String {
+fn alert(pair: &Pair, band: &Band, near: Nearness, price: Decimal) -> String {
     let show = |value: Decimal| value.round_dp(pair.digits).to_string();
+
+    // Inside the band, or on its way in. Different things, and he should not
+    // have to work out which from the numbers.
+    let standing = match near {
+        Nearness::Inside => "is <b>in</b>",
+        _ => "is coming up on",
+    };
 
     format!(
         "🔔 <b>{}</b> — your zone is live\n\n\
-         Price is at your <b>{}</b> level, {}.\n\n\
-         <i>now {} · band {} to {}</i>\n\n\
+         Price {} your <b>{}</b> level at {}.\n\n\
+         <i>now {} · zone {} to {}</i>\n\n\
          Nothing has formed yet. Go and watch it.",
         pair.symbol,
+        standing,
         band.timeframe.name(),
         show(band.price),
         show(price),

@@ -26,5 +26,5 @@ pub use band::{Band, Timeframe};
 pub use error::LevelError;
 pub use naming::{digits_for, with_slash};
 pub use read::{Pair, Thickness, load_pair, load_thickness};
-pub use watch::Watch;
+pub use watch::{Nearness, Watch, nearness};
 pub use write::{known, save, undo};

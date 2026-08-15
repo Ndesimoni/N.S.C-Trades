@@ -14,6 +14,19 @@ pub struct Thickness {
     pub weekly: Decimal,
     pub daily: Decimal,
     pub h4: Decimal,
+
+    /// How close to a band counts as arriving at it, as a share of the band's
+    /// own thickness.
+    ///
+    /// A band is a zone rather than a wall, and an alert that waits for price
+    /// to be strictly inside arrives too late to be any use.
+    #[serde(default = "a_quarter")]
+    pub approach: Decimal,
+}
+
+/// What `approach` is when a file predates it.
+fn a_quarter() -> Decimal {
+    Decimal::from_parts(25, 0, 0, false, 2)
 }
 
 impl Thickness {

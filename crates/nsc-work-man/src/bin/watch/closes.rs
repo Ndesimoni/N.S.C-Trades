@@ -20,7 +20,7 @@ use std::collections::HashMap;
 use anyhow::{Context, Result};
 use chrono::Utc;
 use nsc_core::candle::Bar;
-use nsc_core::levels::what_it_did;
+use nsc_core::levels::{Thickness, action, what_it_did};
 use nsc_work_man::{feed, retry::keep_trying};
 use tokio::time::{Duration, Instant, sleep_until};
 
@@ -65,6 +65,7 @@ impl Closes {
         &mut self,
         client: &reqwest::Client,
         watching: &HashMap<String, Watching>,
+        thickness: Thickness,
     ) -> Result<()> {
         self.next = Instant::now() + LOOK_EVERY;
 
@@ -93,12 +94,14 @@ impl Closes {
                         continue;
                     }
 
+                    let was = action(band, &bar, thickness.kiss_depth);
+
                     println!(
-                        "{} {interval} candle {} — {did:?} at {}",
+                        "{} {interval} candle {} — {was:?} at {}",
                         seen.pair.symbol, bar.datetime, band.price
                     );
 
-                    say::closed(client, &seen.pair, band, &bar, did, interval).await?;
+                    say::closed(client, &seen.pair, band, &bar, did, was, interval).await?;
                 }
             }
         }

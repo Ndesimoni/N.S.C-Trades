@@ -14,7 +14,7 @@
 
      THIS WINS over the one in style.css because it comes after it — the same
      way CSS itself resolves it, and Rust reads the last one for that reason. */
-  :root{ --card-height:462px; }
+  :root{ --card-height:534px; }
 
   /* His colours, by name. facts.rs hands over the word, never a hex — the
      mapping is a design decision and belongs on this side. */
@@ -78,23 +78,45 @@
     font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--mute);
     margin:0 0 10px;
   }
-  .now{
-    font-family:var(--display);font-weight:600;font-size:62px;line-height:.88;
-    letter-spacing:-.035em;font-variant-numeric:tabular-nums;margin:0 0 14px;
+  /* WHERE PRICE IS, as a shape. Schematic and always the same size — NOT to
+     scale. The drawing on the right is the measured one; this is the one the
+     eye reads in a glance, and it can only do that if approaching looks like
+     approaching every single time. */
+  .shape{display:block;margin:0 0 16px}
+  .shape .fill{fill:var(--level);opacity:.13}
+  .shape .spine{fill:var(--level)}
+  .shape .line{stroke:var(--level);stroke-width:2.4}
+  .shape .reach{stroke:var(--brass);stroke-width:1.2;stroke-dasharray:3 4;opacity:.8}
+  .shape .mark{fill:var(--brass)}
+  .shape .halo{fill:var(--brass);opacity:.2}
+  .shape .mark.is-found,
+  .shape .halo.is-found{fill:var(--mute)}
+  .shape text{
+    font-family:var(--data);font-size:10.5px;letter-spacing:.13em;fill:var(--mute);
   }
-  .gap{
-    font-size:17px;color:var(--brass);font-variant-numeric:tabular-nums;margin:0;
+
+  .did{
+    font-family:var(--display);font-weight:600;font-size:40px;line-height:.95;
+    letter-spacing:-.03em;margin:0 0 12px;text-transform:lowercase;
   }
-  .gap u{text-decoration:none;color:var(--mute)}
 
   /* The display face, not the data face. This is the one sentence on the card
      meant to be READ rather than looked up, and mono reads like a printout. */
   .say{
     font-family:var(--display);font-weight:400;
-    margin:24px 0 0;padding-top:22px;border-top:1px solid var(--rule);
-    font-size:21px;line-height:1.42;letter-spacing:-.008em;color:var(--ink);
+    margin:0;font-size:17.5px;line-height:1.4;
+    letter-spacing:-.008em;color:var(--ink);
   }
-  .say b{font-weight:600}
+
+  .now{
+    display:flex;align-items:baseline;gap:22px;
+    margin:20px 0 0;padding-top:16px;border-top:1px solid var(--rule);
+  }
+  .now b{
+    font-family:var(--display);font-weight:600;font-size:34px;line-height:1;
+    letter-spacing:-.03em;font-variant-numeric:tabular-nums;
+  }
+  .now i{font-style:normal;font-size:15px;color:var(--brass);font-variant-numeric:tabular-nums}
 
   .zone{display:block;overflow:visible}
   .zone .fill{fill:var(--level);opacity:.11}
@@ -144,10 +166,11 @@
 
 <section class="body">
   <div>
-    <p class="label">Price now</p>
-    <p class="now" id="now"></p>
-    <p class="gap" id="gap"></p>
+    <p class="label">Where price is</p>
+    <svg class="shape" id="shape" aria-hidden="true"></svg>
+    <p class="did" id="did"></p>
     <p class="say" id="say"></p>
+    <p class="now"><b id="now"></b><i id="gap"></i></p>
   </div>
   <svg class="zone" id="zone" aria-hidden="true"></svg>
 </section>
@@ -178,9 +201,12 @@ function draw(){
   // may have walked in during Monday's silence, and calling that an arrival
   // would put a Monday move on a Tuesday clock.
   const chip = document.getElementById("chip");
-  chip.textContent = alert.already
+  const state = alert.already
     ? (inside ? "already in the zone" : "already at the zone")
     : (inside ? "in the zone"         : "approaching");
+
+  chip.textContent = state;
+  document.getElementById("did").textContent = state;
 
   if(inside || alert.already) chip.classList.add("is-inside");
   if(alert.already) chip.classList.add("is-found");
@@ -188,9 +214,11 @@ function draw(){
   document.getElementById("stamp").textContent = alert.stamp;
   document.getElementById("now").textContent   = fmt(alert.price);
 
-  document.getElementById("gap").innerHTML = inside
-    ? `inside &nbsp;<u>·</u>&nbsp; ${fmt(alert.from_line)} from your line`
+  document.getElementById("gap").textContent = inside
+    ? `${fmt(alert.from_line)} from your line`
     : `${fmt(alert.gap)} from the zone`;
+
+  shape(inside);
 
   document.getElementById("say").innerHTML = alert.note;
 
@@ -199,9 +227,60 @@ function draw(){
   document.getElementById("range").textContent = `${fmt(alert.reach)} outside the zone`;
   document.getElementById("unit").textContent  = alert.unit;
 
-  // ── the zone, drawn ────────────────────────────────────────────────────
-  // The point of a picture rather than a line of text: he SEES how far price
-  // is from the band, on the same shape he drew.
+  zone(inside);
+}
+
+// ── where price is, as a shape ────────────────────────────────────────────
+//
+// A PICTOGRAM, not a measurement. Fixed size, fixed positions, so approaching
+// looks the same on gold as on the euro and the same as it did last week. The
+// drawing on the right carries the real numbers.
+function shape(inside){
+  const W = 300, H = 96, TOP = 34, BOT = 80, MID = 57;
+  const svg = document.getElementById("shape");
+  svg.setAttribute("width", W);
+  svg.setAttribute("height", H);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  const add = (tag, attrs, text) => {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for(const k in attrs) el.setAttribute(k, attrs[k]);
+    if(text !== undefined) el.textContent = text;
+    svg.appendChild(el);
+  };
+
+  add("rect", {class:"fill",  x:0, y:TOP, width:196, height:BOT - TOP, rx:3});
+  add("rect", {class:"spine", x:0, y:TOP, width:3.5, height:BOT - TOP, rx:2});
+  add("line", {class:"line",  x1:0, y1:MID, x2:196, y2:MID});
+  add("text", {x:206, y:MID - 3}, "YOUR");
+  add("text", {x:206, y:MID + 11}, "ZONE");
+
+  // Drawn as if price came from ABOVE, then flipped if it came from below.
+  const above = alert.side !== "below";
+  const flip  = v => above ? v : H - v;
+
+  const found = alert.already ? " is-found" : "";
+  const x = 98;
+
+  // Coming from outside gets the dashed line it has to cross to fire. Inside
+  // gets only the dot. THAT is the whole difference between the two states,
+  // so it is the only thing the picture changes.
+  //
+  // No arrow. It was tried and it sat on top of the dot — and the chip and the
+  // heading both already say "approaching".
+  if(!inside){
+    add("line", {class:"reach", x1:0, y1:flip(22), x2:206, y2:flip(22)});
+  }
+
+  const at = inside ? flip(TOP + 12) : flip(9);
+  add("circle", {class:"halo" + found, cx:x, cy:at, r:10});
+  add("circle", {class:"mark" + found, cx:x, cy:at, r:4.5});
+}
+
+// ── the zone, drawn to scale ──────────────────────────────────────────────
+//
+// The measured one. The pictogram says WHAT is happening; this says how far.
+function zone(inside){
   const W = 340, H = 286, PAD = 18;
   const svg = document.getElementById("zone");
   svg.setAttribute("width", W);

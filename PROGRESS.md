@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 94 tests · clippy clean · it watches his levels and says when price arrives.**
+**Two crates · 100 tests · clippy clean · it watches his levels and says when price arrives.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -66,7 +66,7 @@ crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
   candle/       one candle, and whether it has finished.  9 tests
   levels/       his lines, the bands round them, the
                 watching, what a candle did at one, and
-                what to say about it.                    53 tests
+                what to say about it.                    59 tests
   when/         whether the bot may speak at all.        10 tests
   error/        retry or give up — Answer and Knows.      3 tests
   settings.rs   pair, timeframe, digits — step 2 replaces this with config
@@ -88,8 +88,12 @@ crates/nsc-work-man/      EVERYTHING THAT REACHES
 assets/card/
   chart.html     the candle chart. Carries its own open, high, low and range
   readout.html   where price sat inside the candle
-  alert.html     price at one of his zones, with the zone drawn
-  close.html     a finished candle drawn inside the zone it touched
+  alert.html     price at one of his zones
+  close.html     a finished candle at a zone, named by what it did
+
+Both zone cards draw the band twice on purpose: a fixed-size PICTOGRAM on the
+left, so the shape is recognisable at a glance, and the MEASURED drawing on
+the right for how far and how deep.
 ```
 
 **Every folder with code in it has a `README.txt`.** Every file is inside the
@@ -247,6 +251,13 @@ somewhere near one — so "price is at the level" means price is inside a band.
       above or below, and **a wick counts**: a candle that only reached in and
       closed back out is the rejection he is waiting for, and treating that as
       a miss would throw it away
+- [x] **The card names what happened** — *kissed it*, *pushed back*, *closed
+      inside*, *cut through*. A wick that grazed the edge and a candle that
+      drove a third of the way in both "closed above", and they are not the
+      same event. `kiss_depth` in `config/levels.toml` is where the line is
+- [x] **Cutting through is never called a rejection.** It is deep and it
+      closed outside, which is the exact shape of a rejection — but the level
+      broke, and the card would have said it held
 - [x] **A 4-hour candle does not exist until its last hour has closed.** Three
       hourly closes can pass with the 4-hour silent; the fourth is when it
       speaks. `Bar::finished_by` is the one place that decides

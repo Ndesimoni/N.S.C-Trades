@@ -151,7 +151,7 @@ async fn listen(
                     continue;
                 }
 
-                closes.look(client, watching).await?;
+                closes.look(client, watching, thickness).await?;
             }
         }
     }

@@ -10,7 +10,7 @@ use std::path::PathBuf;
 use anyhow::{Context, Result};
 use chrono::Utc;
 use nsc_core::candle::Bar;
-use nsc_core::levels::{self, AtZone, Band, Nearness, News, Pair};
+use nsc_core::levels::{self, Action, AtZone, Band, Nearness, News, Pair};
 use nsc_work_man::{card, telegram};
 use rust_decimal::Decimal;
 
@@ -49,18 +49,19 @@ pub async fn closed(
     band: &Band,
     bar: &Bar,
     did: AtZone,
+    was: Action,
     interval: &str,
 ) -> Result<()> {
     let out = card_for(pair, &format!("close-{interval}"));
 
-    let picture = card::closed(pair, band, bar, did, interval, &out)
+    let picture = card::closed(pair, band, bar, did, was, interval, &out)
         .with_context(|| format!("could not draw the close for {}", pair.symbol))?;
 
     telegram::send_to(
         client,
         &OWNER.to_string(),
         &[&picture],
-        &levels::closed_caption(pair, band, bar, did, interval),
+        &levels::closed_caption(pair, band, bar, did, was, interval),
     )
     .await
     .context("could not send the close")

@@ -41,9 +41,8 @@ THE FILES
                 two, and 87% of the second was a copy of the first.
 
   alert.html    PRICE HAS REACHED ONE OF HIS ZONES. The pair, a chip saying
-                whether price is approaching or in it, the price now, and the
-                zone DRAWN — his band with price marked on it and a dashed
-                line showing where the alert fires.
+                whether price is approaching, in it, or was already in it, and
+                the zone drawn TWICE — see below.
 
                 Shorter than the others and says so in its own CSS. An alert
                 has one thing to say.
@@ -52,13 +51,10 @@ THE FILES
                 numbers in a message have to be compared in his head; a band
                 with a dot on it does not.
 
-  close.html    A CANDLE THAT TOUCHED ONE OF HIS ZONES HAS FINISHED. The
-                candle drawn ON the band, with its open, high and low, and a
-                chip saying where it ended — inside, above or below.
-
-                The drawing is the point. A wick deep into the band with the
-                body closing back out is a rejection, and no arrangement of
-                numbers says that as fast as the shape does.
+  close.html    A CANDLE THAT TOUCHED ONE OF HIS ZONES HAS FINISHED. Named
+                by WHAT IT DID — kissed it, pushed back, closed inside, cut
+                through — with the candle drawn on the band and its open,
+                high, low and close.
 
   readout.html  Where price sat inside the candle. The candle drawn tall on
                 the left, with leader lines out to High, Open, Close and Low.
@@ -81,6 +77,26 @@ THEY ARE PIECES, NOT A SET
 
   Several pictures go as one media group. The phone buzzes once and each
   picture still opens on its own when tapped.
+
+
+TWO PICTURES OF THE SAME THING, ON PURPOSE
+
+  Both zone cards draw the band twice, and the two drawings are not
+  duplicates. They answer different questions.
+
+  ON THE LEFT, A PICTOGRAM. Fixed size, fixed positions, NOT to scale. A kiss
+  looks like a kiss on gold and on the euro and on the card he saw last week.
+  That is the whole point: the eye reads it without measuring anything.
+
+  ON THE RIGHT, THE MEASURED DRAWING. Real proportions, leader lines out to
+  real numbers. How far, how deep, exactly where.
+
+  What happened, then how much. Try to make one drawing do both and it does
+  neither — either the shapes stop being recognisable or the numbers stop
+  being true.
+
+  The left one is drawn from ONE FACT: the action name, worked out in
+  nsc-core::levels::close. Nothing on the card decides what happened.
 
 
 TWO THINGS THAT WILL CATCH YOU

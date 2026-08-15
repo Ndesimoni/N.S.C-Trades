@@ -10,7 +10,7 @@ use rust_decimal::Decimal;
 use serde_json::{Value, json};
 
 use nsc_core::candle::Bar;
-use nsc_core::levels::{self, AtZone, Band, Nearness, News, Pair};
+use nsc_core::levels::{self, Action, AtZone, Band, Nearness, News, Pair};
 use nsc_core::settings::{INTERVAL_MINUTES, timeframe_name, unit_for};
 
 /// The one candle the card is about.
@@ -84,6 +84,15 @@ pub fn alert(
         // Did anybody watch this happen? The card must not call a Monday move
         // a Tuesday arrival.
         "already":   news == News::Already,
+        // Which side price is on, so the little picture puts it on the right
+        // side of the line.
+        "side":      if price > band.top {
+            "above"
+        } else if price < band.bottom {
+            "below"
+        } else {
+            "inside"
+        },
         "timeframe": band.timeframe.name(),
         "colour":    band.timeframe.colour(),
         "note":      levels::note(near, news),
@@ -105,16 +114,19 @@ pub fn alert(
 /// **The candle is handed over finished.** Nothing here asks whether it is —
 /// `Bar::finished_by` is the single place that decides, and a card drawn from
 /// a candle still running would show a close that has not happened.
+#[allow(clippy::too_many_arguments)]
 pub fn closed(
     pair: &Pair,
     band: &Band,
     bar: &Bar,
     did: AtZone,
+    was: Action,
     interval: &str,
     stamp: &str,
 ) -> Value {
     let digits = pair.digits;
     let deep = levels::how_deep(band, bar);
+    let (name, means) = levels::happening_words(was, did);
 
     json!({
         "symbol":     pair.symbol,
@@ -127,7 +139,15 @@ pub fn closed(
         "timeframe":  band.timeframe.name(),
         "colour":     band.timeframe.colour(),
         "interval":   timeframe_name(interval),
-        "note":       closed_note(did),
+        "action":     name,
+        "note":       means,
+        // Which way the candle came from, so the little picture on the left
+        // puts it on the right side of the line.
+        "side":       match did {
+            AtZone::ClosedAbove => "above",
+            AtZone::ClosedBelow => "below",
+            _ => "inside",
+        },
         "stamp":      stamp,
         "digits":     digits,
         "open":       rounded(bar.open, digits),
@@ -151,19 +171,6 @@ fn deep_words(deep: Decimal) -> String {
         "barely at all".into()
     } else {
         format!("{percent}%")
-    }
-}
-
-/// What the close means, in one sentence.
-///
-/// **Never what to do about it.** A close back out of a zone is a fact; whether
-/// it is a trade is rung 3, and these two must not start looking alike.
-fn closed_note(did: AtZone) -> &'static str {
-    match did {
-        AtZone::ClosedInside => "Price is still in the zone. Nothing is settled yet.",
-        AtZone::ClosedAbove => "It reached into the zone and closed back above it.",
-        AtZone::ClosedBelow => "It reached into the zone and closed back below it.",
-        AtZone::Missed => "It never reached the zone.",
     }
 }
 

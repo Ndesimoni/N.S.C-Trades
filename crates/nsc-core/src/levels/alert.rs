@@ -10,7 +10,7 @@
 
 use rust_decimal::Decimal;
 
-use super::{AtZone, Band, Nearness, Pair};
+use super::{Action, AtZone, Band, Nearness, Pair};
 use crate::candle::Bar;
 
 /// Whether we watched this happen or found it already so.
@@ -98,27 +98,74 @@ pub fn gap(band: &Band, price: Decimal) -> Decimal {
 ///
 /// **Still not a signal.** It says what the candle did, not what to do about
 /// it. A close above his zone is a fact; whether it is a trade is rung 3.
-pub fn closed_caption(pair: &Pair, band: &Band, bar: &Bar, did: AtZone, interval: &str) -> String {
+pub fn closed_caption(
+    pair: &Pair,
+    band: &Band,
+    bar: &Bar,
+    did: AtZone,
+    was: Action,
+    interval: &str,
+) -> String {
     let show = |value: Decimal| value.round_dp(pair.digits).to_string();
 
-    let (mark, doing) = match did {
-        AtZone::ClosedInside => ("🕯", "closed inside"),
-        AtZone::ClosedAbove => ("🕯", "reached in and closed above"),
-        AtZone::ClosedBelow => ("🕯", "reached in and closed below"),
-
-        // Never sent — a miss is not worth saying, and `worth_saying` is
-        // checked before anything gets here.
-        AtZone::Missed => ("🕯", "did nothing at"),
-    };
-
     format!(
-        "{} <b>{}</b> — the {} candle {} your <b>{}</b> zone at {}. Closed {}.",
-        mark,
+        "🕯 <b>{}</b> — the {} candle <b>{}</b> your {} zone at {}. Closed {}.",
         pair.symbol,
         interval,
-        doing,
+        happening(was, did),
         band.timeframe.name(),
         show(band.price),
         show(bar.close),
     )
+}
+
+/// The action in three or four words, with the side it happened on.
+///
+/// **The side matters as much as the action.** "Kissed it" says nothing about
+/// whether the level held support or resistance; "kissed it and held above"
+/// says both.
+pub fn happening(was: Action, did: AtZone) -> &'static str {
+    let above = did == AtZone::ClosedAbove;
+
+    match was {
+        Action::Kissed if above => "kissed it and held above",
+        Action::Kissed => "kissed it and held below",
+        Action::Rejected if above => "was pushed back above",
+        Action::Rejected => "was pushed back below",
+        Action::Settled => "closed inside",
+        Action::CutThrough if above => "cut straight up through",
+        Action::CutThrough => "cut straight down through",
+
+        // Never sent — `worth_saying` is checked before anything gets here.
+        Action::Missed => "did nothing at",
+    }
+}
+
+/// The action as a short name for the card, and one line saying what it means.
+pub fn happening_words(was: Action, did: AtZone) -> (&'static str, &'static str) {
+    let above = did == AtZone::ClosedAbove;
+
+    match was {
+        Action::Kissed => (
+            "kissed it",
+            "It grazed the zone and closed straight back out. A touch, not a fight.",
+        ),
+        Action::Rejected if above => (
+            "pushed back",
+            "It drove into the zone and was sold back out above it.",
+        ),
+        Action::Rejected => (
+            "pushed back",
+            "It drove into the zone and was bought back out below it.",
+        ),
+        Action::Settled => (
+            "closed inside",
+            "Price is sitting in the zone. Nothing is settled yet.",
+        ),
+        Action::CutThrough => (
+            "cut through",
+            "It went in one side and out the other. The level did not hold.",
+        ),
+        Action::Missed => ("no touch", "It never reached the zone."),
+    }
 }

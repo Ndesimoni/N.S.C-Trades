@@ -88,3 +88,61 @@ pub fn how_deep(band: &Band, bar: &Bar) -> Decimal {
 
     ((top - bottom) / thickness).max(Decimal::ZERO)
 }
+
+/// What the candle did, in the words a trader would use.
+///
+/// [`AtZone`] says *where it ended* — above, below, inside. This says *what
+/// kind of thing happened*, which is the part he reads first. A wick that
+/// grazed the edge and a candle that drove halfway in both "closed above";
+/// they are not the same event.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Action {
+    /// Never reached it.
+    Missed,
+
+    /// Grazed it. A shallow wick in, and it closed back out the way it came.
+    Kissed,
+
+    /// Pushed well in and still closed back out. The rejection he waits for.
+    Rejected,
+
+    /// Ended inside. Nothing is settled — price is sitting in his level.
+    Settled,
+
+    /// In one side and out the other. The level did not hold.
+    CutThrough,
+}
+
+impl Action {
+    pub fn worth_saying(self) -> bool {
+        self != Action::Missed
+    }
+}
+
+/// What kind of thing this candle did at this band.
+///
+/// `kiss_depth` is how far in stops being a graze, as a share of the band —
+/// `config/levels.toml`. It is a share rather than a price for the same reason
+/// everything else here is: 8 points is a graze on gold and the whole band on
+/// the euro.
+pub fn action(band: &Band, bar: &Bar, kiss_depth: Decimal) -> Action {
+    match what_it_did(band, bar) {
+        AtZone::Missed => Action::Missed,
+        AtZone::ClosedInside => Action::Settled,
+
+        AtZone::ClosedAbove | AtZone::ClosedBelow => {
+            // Opened one side and closed the other. The band is behind it now,
+            // and calling that a rejection would have it exactly backwards.
+            let through = (bar.open < band.bottom && bar.close > band.top)
+                || (bar.open > band.top && bar.close < band.bottom);
+
+            if through {
+                Action::CutThrough
+            } else if how_deep(band, bar) < kiss_depth {
+                Action::Kissed
+            } else {
+                Action::Rejected
+            }
+        }
+    }
+}

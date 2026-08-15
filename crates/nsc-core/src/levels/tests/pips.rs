@@ -27,6 +27,7 @@ fn thickness(approach_pips: &str) -> Thickness {
         daily: d("0.46"),
         h4: d("0.55"),
         approach_pips: d(approach_pips),
+        kiss_depth: d("0.25"),
     }
 }
 

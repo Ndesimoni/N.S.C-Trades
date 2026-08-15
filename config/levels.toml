@@ -61,3 +61,19 @@ h4 = 0.55
 # ANY PAIR CAN OVERRIDE THIS with its own `approach_pips` under config/pairs/.
 # Gold needs a much bigger number than the euro to feel like the same warning.
 approach_pips = 4.0
+
+
+# ── A graze, or a real push ─────────────────────────────────────────────────
+#
+# How far into a band stops being a KISS and becomes a REJECTION, as a share of
+# the band's own thickness.
+#
+# A wick that touched the top edge and a candle that drove a third of the way
+# in both "closed above". They are not the same event, and the one he acts on
+# is the second.
+#
+# A share rather than a price, for the same reason as everything else here: 8
+# points is a graze on gold and the whole band on the euro.
+#
+# 0.25 on his gold weekly band is about 19 points in.
+kiss_depth = 0.25

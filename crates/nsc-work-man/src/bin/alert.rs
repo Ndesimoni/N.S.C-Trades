@@ -18,7 +18,7 @@ use anyhow::{Context, Result};
 use chrono::Utc;
 use nsc_core::candle::{Bar, normal_candle};
 use nsc_core::levels::{
-    self, Band, Nearness, News, Pair, Thickness, Timeframe, nearness, what_it_did,
+    self, Band, Nearness, News, Pair, Thickness, Timeframe, action, nearness, what_it_did,
 };
 use nsc_work_man::{card, feed, retry::keep_trying, telegram};
 use rust_decimal::Decimal;
@@ -45,7 +45,7 @@ async fn main() -> Result<()> {
     let asked = std::env::args().nth(2);
 
     if asked.as_deref() == Some("close") {
-        return draw_close(&client, &pair, &band, &bars).await;
+        return draw_close(&client, &pair, &band, &bars, thickness).await;
     }
 
     draw_alert(&client, &pair, &band, thickness, asked).await
@@ -103,6 +103,7 @@ async fn draw_close(
     pair: &Pair,
     band: &Band,
     bars: &[Bar],
+    thickness: Thickness,
 ) -> Result<()> {
     let now = Utc::now();
 
@@ -130,14 +131,18 @@ async fn draw_close(
     };
 
     let did = what_it_did(&band, bar);
+    let was = action(&band, bar, thickness.kiss_depth);
     let out = PathBuf::from("preview").join("close.png");
 
-    let picture = card::closed(pair, &band, bar, did, "1h", &out)?;
-    let caption = levels::closed_caption(pair, &band, bar, did, "1h");
+    let picture = card::closed(pair, &band, bar, did, was, "1h", &out)?;
+    let caption = levels::closed_caption(pair, &band, bar, did, was, "1h");
 
     telegram::send_to(client, &OWNER.to_string(), &[&picture], &caption).await?;
 
-    println!("{} candle {} — {did:?}", pair.symbol, bar.datetime);
+    println!(
+        "{} candle {} — {was:?} ({did:?})",
+        pair.symbol, bar.datetime
+    );
     println!("\ndrawn to {} and sent to you.", out.display());
 
     Ok(())

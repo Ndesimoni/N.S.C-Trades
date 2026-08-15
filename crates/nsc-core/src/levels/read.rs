@@ -22,6 +22,19 @@ pub struct Thickness {
     /// react — see the note in `config/levels.toml`.
     #[serde(default = "one_pip")]
     pub approach_pips: Decimal,
+
+    /// How far into a band stops being a graze and becomes a real push, as a
+    /// share of the band's own thickness.
+    ///
+    /// A wick that touched the edge and a candle that drove halfway in are not
+    /// the same event, and the card says which.
+    #[serde(default = "a_quarter")]
+    pub kiss_depth: Decimal,
+}
+
+/// What `kiss_depth` is when a file predates it.
+fn a_quarter() -> Decimal {
+    Decimal::new(25, 2)
 }
 
 /// What `approach_pips` is when a file predates it.

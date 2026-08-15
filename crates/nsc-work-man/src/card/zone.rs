@@ -12,7 +12,7 @@ use rust_decimal::Decimal;
 
 use super::{CardError, facts, fill};
 use nsc_core::candle::Bar;
-use nsc_core::levels::{AtZone, Band, Nearness, News, Pair};
+use nsc_core::levels::{Action, AtZone, Band, Nearness, News, Pair};
 
 /// The templates these cards are drawn from.
 const ALERT: &str = "alert.html";
@@ -51,11 +51,13 @@ pub fn alert(
 /// The candle is drawn ON the band, because a wick deep in with the body
 /// closing back out is a rejection and no arrangement of numbers says that as
 /// fast as the shape does.
+#[allow(clippy::too_many_arguments)]
 pub fn closed(
     pair: &Pair,
     band: &Band,
     bar: &Bar,
     did: AtZone,
+    was: Action,
     interval: &str,
     out: &Path,
 ) -> Result<PathBuf, CardError> {
@@ -63,7 +65,7 @@ pub fn closed(
         CLOSE,
         &[(
             "/*__CLOSE__*/",
-            facts::closed(pair, band, bar, did, interval, &bar.datetime).to_string(),
+            facts::closed(pair, band, bar, did, was, interval, &bar.datetime).to_string(),
         )],
         out,
     )

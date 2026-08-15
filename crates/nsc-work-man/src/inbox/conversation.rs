@@ -7,10 +7,10 @@ use nsc_core::levels::{Timeframe, digits_for, known, save, undo, with_slash};
 use rust_decimal::Decimal;
 use serde_json::json;
 
-use super::pairs;
 use super::picture::show;
 use super::talking::say;
 use super::{NEW_PAIR, PAIRS, TIMEFRAMES, UNDO};
+use super::{one, pairs};
 
 /// Where he is in the flow.
 ///
@@ -18,8 +18,10 @@ use super::{NEW_PAIR, PAIRS, TIMEFRAMES, UNDO};
 /// numbers — the pair and the timeframe are never typed twice.
 #[derive(Default)]
 pub struct Adding {
-    pair: Option<String>,
-    timeframe: Option<Timeframe>,
+    /// Reachable from `one`, which hands him into this flow when he taps
+    /// "add levels" on a pair's page.
+    pub(super) pair: Option<String>,
+    pub(super) timeframe: Option<Timeframe>,
     naming: bool,
     /// What the last message added, so Undo knows how much to take back off.
     just_added: Option<(String, usize)>,
@@ -34,6 +36,15 @@ pub struct Adding {
 
     /// He has sent /restore and is picking which set to bring back.
     pub(super) restoring: bool,
+
+    /// He has sent /pairs and is picking which one to look at.
+    pub(super) browsing: bool,
+
+    /// The pair whose page he is on, from /pairs.
+    pub(super) chosen: Option<String>,
+
+    /// He is picking which level to take off that pair.
+    pub(super) dropping: bool,
 }
 
 /// Works out what he meant and answers.
@@ -46,6 +57,10 @@ pub async fn handle(
     let folder = Path::new(PAIRS);
 
     if let Some(answer) = pairs::heard(client, token, folder, text, adding).await {
+        return answer;
+    }
+
+    if let Some(answer) = one::heard(client, token, folder, text, adding).await {
         return answer;
     }
 
@@ -85,6 +100,14 @@ pub async fn handle(
     // A pair: either one he tapped, or one he has just typed the name of.
     let existing = known(folder);
     let tapped = existing.iter().find(|name| name.eq_ignore_ascii_case(text));
+
+    // Tapped off /pairs, so he wants to see it rather than add to it.
+    if adding.browsing
+        && let Some(name) = tapped.cloned()
+    {
+        adding.browsing = false;
+        return one::show(client, token, folder, &name, adding).await;
+    }
 
     // He is part-way through removing one, and has just named it.
     if adding.removing

@@ -80,3 +80,13 @@ impl Band {
         self.top - self.bottom
     }
 }
+
+/// His charts, in the order he thinks about them.
+///
+/// **Biggest first.** A weekly level is the one that decides whether a trade
+/// exists at all; the 4-hour is where it is taken.
+pub const TIMEFRAMES_ORDER: [(&str, Timeframe); 3] = [
+    ("Weekly", Timeframe::Weekly),
+    ("Daily", Timeframe::Daily),
+    ("4-hour", Timeframe::H4),
+];

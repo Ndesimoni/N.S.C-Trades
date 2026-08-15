@@ -40,6 +40,11 @@ const TIMEFRAMES: [(&str, Timeframe); 3] = [
 ];
 
 const NEW_PAIR: &str = "+ new pair";
+
+/// What he can do to one pair, from its own page.
+const ADD: &str = "+ Add levels";
+const DROP: &str = "− Take one off";
+const STOP: &str = "✗ Stop watching";
 const UNDO: &str = "↩ Undo";
 
 /// Stopping a pair takes two taps, not one.
@@ -51,6 +56,7 @@ const YES: &str = "✓ Yes, stop it";
 const NO: &str = "✗ Keep it";
 
 mod conversation;
+mod one;
 mod pairs;
 mod picture;
 mod talking;

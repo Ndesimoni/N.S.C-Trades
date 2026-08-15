@@ -142,5 +142,5 @@ fn say_what_the_calendar_allows(calendar: &Rules) {
         }
     }
 
-    println!("Send the bot /level, /remove or /restore. See docs/telegram.md.\n");
+    println!("Send the bot /pairs to see them, or /level to add. docs/telegram.md.\n");
 }

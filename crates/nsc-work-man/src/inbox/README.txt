@@ -41,6 +41,28 @@ IT RUNS INSIDE THE BOT
   its own trouble, waits fifteen seconds and listens again.
 
 
+ONE PAIR, AND WHAT HE CAN DO TO IT
+
+      /pairs      ->  every pair he has
+      tap GBPUSD  ->  what it holds, and three things:
+                      [+ Add levels] [− Take one off] [✗ Stop watching]
+
+  THIS IS WHERE A LEVEL GETS TAKEN OFF. Undo only ever reached what the last
+  message added — which covers a typo the moment it happens, and does nothing
+  at all for "that 1.15 from last week was wrong". That was the gap.
+
+  The levels come back as buttons, one each, written exactly as they are in the
+  file. Tapping one hands back what is there rather than anything having to be
+  guessed at.
+
+  The price is matched AS A NUMBER, the same way saving refuses a duplicate. He
+  may tap 1.15000 having typed 1.15, and as text those are two different
+  levels.
+
+  The comments in the file survive it. He is meant to be able to open one and
+  read it.
+
+
 PUTTING ONE BACK
 
       /restore  ->  which one?  ->  [pair]  ->  back
@@ -133,6 +155,28 @@ IT RUNS INSIDE THE BOT
 
   IT CANNOT STOP. If this task ends, levels go nowhere again — so it catches
   its own trouble, waits fifteen seconds and listens again.
+
+
+ONE PAIR, AND WHAT HE CAN DO TO IT
+
+      /pairs      ->  every pair he has
+      tap GBPUSD  ->  what it holds, and three things:
+                      [+ Add levels] [− Take one off] [✗ Stop watching]
+
+  THIS IS WHERE A LEVEL GETS TAKEN OFF. Undo only ever reached what the last
+  message added — which covers a typo the moment it happens, and does nothing
+  at all for "that 1.15 from last week was wrong". That was the gap.
+
+  The levels come back as buttons, one each, written exactly as they are in the
+  file. Tapping one hands back what is there rather than anything having to be
+  guessed at.
+
+  The price is matched AS A NUMBER, the same way saving refuses a duplicate. He
+  may tap 1.15000 having typed 1.15, and as text those are two different
+  levels.
+
+  The comments in the file survive it. He is meant to be able to open one and
+  read it.
 
 
 PUTTING ONE BACK

@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 129 tests · clippy clean · it watches his levels, says what
+**Two crates · 133 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -176,6 +176,12 @@ without waiting for it to happen. That was the last plain-text message going.
       **Two taps**, because it throws away every level he drew for that pair
       and the first tap happens while he is doing something else. The second
       one tells him how many levels are on it first
+- [x] **`/pairs` shows them all, and one at a time.** Tap a pair to see what
+      it holds and what can be done to it — add, take one off, stop watching
+- [x] **One level can be taken off.** Undo only ever reached what the last
+      message added: fine for a typo, useless for *"that 1.15 from last week
+      was wrong"*. Matched on the price as a NUMBER, and the comments in the
+      file survive it
 - [x] **`/restore` puts a stopped pair back**, one tap, under the pair's own
       name whatever the file is called
 - [x] **It refuses to land on a pair he is already watching.** He may have

@@ -1,0 +1,35 @@
+# ── EUR/USD ─────────────────────────────────────────────────────
+#
+# THIS FILE IS WHY THE PAIR IS WATCHED. Delete it and it stops.
+#
+# Started by the bot when he first sent a level for it. The two
+# settings below were WORKED OUT FROM THE NAME, not checked — correct
+# them if the pair behaves differently.
+# ───────────────────────────────────────────────────────────────────
+
+symbol = "EUR/USD"
+digits = 5
+nightly_break_minutes = 0
+
+
+# ── The levels ──────────────────────────────────────────────────────
+#
+# ONE PRICE EACH. He draws a line; the band comes from the thicknesses
+# in config/levels.toml — 0.35 of a weekly candle, 0.46 of a daily.
+# ───────────────────────────────────────────────────────────────────
+
+[[level]]
+timeframe = "weekly"
+price = "1.15000"
+
+[[level]]
+timeframe = "weekly"
+price = "1.17000"
+
+[[level]]
+timeframe = "weekly"
+price = "1.18600"
+
+[[level]]
+timeframe = "weekly"
+price = "1.35000"

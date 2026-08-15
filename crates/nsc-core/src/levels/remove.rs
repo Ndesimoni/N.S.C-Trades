@@ -8,6 +8,8 @@ use std::path::Path;
 
 use super::LevelError;
 use super::write::{read, write};
+use rust_decimal::Decimal;
+
 use super::{Pair, load_pair};
 
 /// Where a pair goes when he stops watching it.
@@ -90,6 +92,57 @@ pub fn undo(folder: &Path, name: &str, count: usize) -> Result<Pair, LevelError>
     write(&file, &text[..keep])?;
 
     load_pair(&file)
+}
+
+/// Takes one particular level off a pair.
+///
+/// **Undo only reaches what the last message added.** That covers a typo the
+/// moment it happens; it does nothing for "that 1.15 from last week was
+/// wrong", which is the one he actually needs.
+///
+/// Matched on the PRICE AS A NUMBER, the same way saving refuses a duplicate —
+/// he may have typed 1.15 where the file says 1.15000, and as text those are
+/// two different levels.
+///
+/// Cuts the one block, and leaves everything else in the file exactly as it
+/// was, comments and all.
+pub fn take_off(folder: &Path, name: &str, price: Decimal) -> Result<Pair, LevelError> {
+    let file = folder.join(format!("{name}.toml"));
+    let text = read(&file)?;
+
+    let head_ends = text.find("\n[[level]]").unwrap_or(text.len());
+    let (head, blocks) = text.split_at(head_ends);
+
+    let kept: String = blocks
+        .split_inclusive("\n[[level]]")
+        .scan(String::new(), |carry, piece| {
+            // `split_inclusive` puts the marker at the END of each piece, so a
+            // block is the tail of one piece and the head of the next. Carrying
+            // the marker forward keeps each block whole.
+            let block = format!("{carry}{}", piece.trim_end_matches("[[level]]"));
+            *carry = if piece.ends_with("[[level]]") {
+                "[[level]]".to_string()
+            } else {
+                String::new()
+            };
+
+            Some(block)
+        })
+        .filter(|block| !says_price(block, price))
+        .collect();
+
+    write(&file, &format!("{head}{kept}"))?;
+
+    load_pair(&file)
+}
+
+/// Is this the block for that price?
+fn says_price(block: &str, price: Decimal) -> bool {
+    block
+        .lines()
+        .filter_map(|line| line.trim().strip_prefix("price = "))
+        .filter_map(|value| value.trim().trim_matches('"').parse::<Decimal>().ok())
+        .any(|written| written == price)
 }
 
 /// Every pair he has stopped, newest name first.

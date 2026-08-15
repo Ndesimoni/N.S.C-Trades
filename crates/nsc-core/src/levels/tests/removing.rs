@@ -201,3 +201,81 @@ fn the_second_set_comes_back_under_the_pairs_own_name() {
     let back = load_pair(&folder.join("GBPUSD.toml")).expect("readable");
     assert_eq!(back.levels[0].price, d("1.31"));
 }
+
+// ── Taking one particular level off ──
+
+// UNDO ONLY REACHES THE LAST MESSAGE. That covers a typo the moment it
+// happens, and does nothing for "that 1.15 from last week was wrong".
+#[test]
+fn one_level_can_be_taken_off_by_its_price() {
+    use super::super::take_off;
+
+    let folder = scratch("take-off");
+    save(
+        &folder,
+        "GBPUSD",
+        Timeframe::Weekly,
+        &[d("1.14"), d("1.21279"), d("1.28")],
+        5,
+    )
+    .expect("saved");
+
+    let left = take_off(&folder, "GBPUSD", d("1.21279")).expect("taken off");
+
+    assert_eq!(left.levels.len(), 2);
+    let prices: Vec<_> = left.levels.iter().map(|line| line.price).collect();
+    assert_eq!(
+        prices,
+        vec![d("1.14"), d("1.28")],
+        "and the others keep order"
+    );
+}
+
+// He may tap a level written 1.15000 and mean the one he typed as 1.15. As
+// text those are two different levels; as numbers they are one.
+#[test]
+fn it_matches_the_price_as_a_number() {
+    use super::super::take_off;
+
+    let folder = scratch("take-off-text");
+    save(&folder, "EURUSD", Timeframe::Weekly, &[d("1.15000")], 5).expect("saved");
+
+    let left = take_off(&folder, "EURUSD", d("1.15")).expect("taken off");
+    assert!(left.levels.is_empty());
+}
+
+// The comments explain what a level is and where the numbers came from. He is
+// meant to be able to open one of these files and read it.
+#[test]
+fn taking_one_off_keeps_the_comments() {
+    use super::super::take_off;
+
+    let folder = scratch("take-off-comments");
+    save(
+        &folder,
+        "GBPUSD",
+        Timeframe::Weekly,
+        &[d("1.28"), d("1.31")],
+        5,
+    )
+    .expect("saved");
+
+    take_off(&folder, "GBPUSD", d("1.28")).expect("taken off");
+
+    let text = std::fs::read_to_string(folder.join("GBPUSD.toml")).expect("readable");
+    assert!(text.contains('#'), "the comments are still there");
+    assert!(text.contains("1.31"), "and so is the other level");
+    assert!(!text.contains("1.28"), "but not the one taken off");
+}
+
+// A price that is not on the pair changes nothing. He may tap a stale button.
+#[test]
+fn taking_off_something_that_is_not_there_changes_nothing() {
+    use super::super::take_off;
+
+    let folder = scratch("take-off-missing");
+    save(&folder, "GBPUSD", Timeframe::Weekly, &[d("1.28")], 5).expect("saved");
+
+    let left = take_off(&folder, "GBPUSD", d("9.99")).expect("no trouble");
+    assert_eq!(left.levels.len(), 1);
+}

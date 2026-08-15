@@ -15,6 +15,35 @@ you send goes anywhere, and nothing tells you.
 
 ---
 
+## `/pairs` — see everything, and change one
+
+```
+/pairs          →  every pair you have
+tap GBPUSD      →  what it holds, and what you can do
+```
+
+> **GBP/USD** — 4 levels
+>
+> **Weekly** — 1.14000 · 1.21279 · 1.28000
+> **Daily** — 1.37053
+>
+> `[+ Add levels]` `[− Take one off]` `[✗ Stop watching]`
+
+**`− Take one off`** is the one that was missing. It shows each level as its own
+button; tap one and it goes.
+
+Undo only ever reached what the *last message* added. That covers a typo the
+moment it happens — it does nothing for *"that 1.15 from last week was wrong"*.
+
+The price is matched **as a number**, so tapping `1.15000` works whether you
+typed 1.15 or 1.15000. And the comments in the file survive it, because you are
+meant to be able to open one and read it.
+
+There is no "change a price". Take the old one off and send the new one — two
+taps and a number, and nothing can half-happen.
+
+---
+
 ## `/level` — add a level
 
 ```

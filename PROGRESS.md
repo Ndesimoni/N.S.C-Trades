@@ -337,6 +337,28 @@ end on the same second.
 
 ---
 
+## Next, in this order
+
+Agreed 16 August, before anything new is added.
+
+1. **Read the code back for bugs.** The last week added the calendar, rungs 1
+   and 2, the heartbeat, trouble handling, the reconnect and the inbox fold-in
+   — and every careful read-back so far has found something. Two failing
+   doc-tests, a spin loop, a secret in an error message, a silent reconnect
+   loop, and a level that armed but was never watched were all found this way
+   rather than by a test going red.
+2. **Go over the file structure again.** It drifted past the line limits once
+   already and was pulled back; `watch/run.rs` is at 248 and four other files
+   are over 200.
+3. **`/restore`** — put a stopped pair back from his phone. Removing is a
+   one-way door at the moment: he can stop a pair with two taps and needs his
+   Mac to undo it.
+
+**`EURUSD` is sitting in `config/pairs/removed/`** with all four levels,
+stopped from his phone on 16 August. Not put back — that is his call.
+
+---
+
 ## Still open
 
 - [ ] **Rung 3 — the strategy.** Needs `nsc-strategy`, and needs two answers

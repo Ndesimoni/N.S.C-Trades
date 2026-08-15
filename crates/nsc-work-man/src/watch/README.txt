@@ -86,6 +86,11 @@ A CARD THAT WILL NOT SEND IS NOT THE PRICE LINE BREAKING
   Half-sent counts as not sent. A repeat on the next look is far better than
   the one that failed never arriving.
 
+  BUT NOT RETRIED ON EVERY PRICE. The waking report is asked for on every
+  price that arrives, and prices arrive about once a second — so leaving it
+  unmarked turned one failed send into a request a second at Telegram for as
+  long as it stayed broken. It waits a minute between goes.
+
 
 THE TWO RUNGS FIRE ON DIFFERENT RULES, ON PURPOSE
 

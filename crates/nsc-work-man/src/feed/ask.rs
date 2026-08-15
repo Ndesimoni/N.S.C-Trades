@@ -53,18 +53,34 @@ pub async fn for_pair(
         });
     }
 
-    serde_json::from_str(&body).map_err(|_| FeedError::NotCandles(body))
+    serde_json::from_str(&body).map_err(|_| FeedError::NotCandles(shortened(body)))
 }
 
 /// A network failure, with the address taken off it.
 ///
-/// **THE TOKEN IS IN THE URL**, and `reqwest` puts the URL it was trying into
-/// the message. So "could not reach Twelve Data" arrived in the terminal with the
-/// bot token printed in full — and from there into any log, any screenshot,
-/// any paste of what went wrong.
+/// **THE API KEY IS IN THE URL**, and `reqwest` puts the URL it was trying
+/// into its message. So "could not reach Twelve Data" carried the key in full
+/// — into the terminal, and from there into any log or screenshot of what went
+/// wrong.
 ///
-/// It is the same rule already followed for the URL, which was written
-/// down as "never print the url" and then not applied to the error path.
+/// The rule was already written three lines up: never print the url, the key
+/// is in it. It was followed on the way out and never applied to the way it
+/// fails, which is the path that actually prints.
 fn quietly(trouble: reqwest::Error) -> String {
     trouble.without_url().to_string()
+}
+
+/// Enough of a reply to recognise it, and no more.
+///
+/// **What comes back when it is not candles can be a whole web page.** That
+/// string is the error, and the error ends up on a trouble card and in the
+/// terminal. The first line of an HTML error page says what it is; the other
+/// four thousand characters do not.
+pub(super) fn shortened(body: String) -> String {
+    const ENOUGH: usize = 300;
+
+    match body.char_indices().nth(ENOUGH) {
+        None => body,
+        Some((at, _)) => format!("{}…", &body[..at]),
+    }
 }

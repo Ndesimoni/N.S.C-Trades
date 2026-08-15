@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 124 tests · clippy clean · it watches his levels, says what
+**Two crates · 126 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -236,6 +236,13 @@ without waiting for it to happen. That was the last plain-text message going.
       it drew your card or its own error page, so "a file appeared" is the only
       check — and one was already there. A failed draw would have sent today's
       caption on yesterday's chart
+- [x] **The waking report waits a minute between goes.** It is asked for on
+      every price, and prices arrive about once a second — so leaving it
+      unmarked after a failure turned one bad send into a request a second at
+      Telegram. That one was introduced by the fix before it
+- [x] **A reply that is not candles is cut short.** What comes back can be a
+      whole web page, and that string becomes the error on a trouble card. Cut
+      by characters, not bytes, or their `£` splits in half and panics
 - [x] **A refused Telegram message is an error.** It printed the refusal to a
       terminal he is not watching and answered Ok, so everything upstream
       believed he had been replied to. He would have seen nothing and had no
@@ -383,9 +390,10 @@ Agreed 16 August, before anything new is added.
    README, and two READMEs named files that had become folders. Reading
    `watch/run.rs` for it turned up a real bug: **the subscription reply was
    never read**
-2. ~~**Read the code back for bugs.**~~ Done 16 August, twice. Ten found, and
-   every one of them loses a message rather than crashing — which is the only
-   kind of bug this project has The last week added the calendar, rungs 1
+2. ~~**Read the code back for bugs.**~~ Done 16 August, three passes over
+   every file. Thirteen found. Every one loses or corrupts a message rather
+   than crashing, which is the only kind of bug this project has — including
+   one introduced by the pass before it The last week added the calendar, rungs 1
    and 2, the heartbeat, trouble handling, the reconnect and the inbox fold-in
    — and every careful read-back so far has found something. Two failing
    doc-tests, a spin loop, a secret in an error message, a silent reconnect

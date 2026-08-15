@@ -11,14 +11,25 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
+use chrono::{DateTime, Duration, Utc};
 use nsc_core::levels::{News, Thickness, nearness};
 
 use super::{Watching, pulse, say};
 
+/// How long to leave it before trying the greeting again.
+///
+/// **This is asked on every price**, and prices arrive about once a second. So
+/// a greeting that will not send has to wait, or one failure becomes a request
+/// a second at Telegram for as long as it stays broken.
+const BEFORE_TRYING_AGAIN: Duration = Duration::minutes(1);
+
 /// Whether this session has been greeted yet.
 pub enum Awake {
-    /// Nothing said yet. The next price triggers the report.
-    Waiting,
+    /// Nothing said yet.
+    ///
+    /// `since` is when it was last attempted, so a failure waits rather than
+    /// being retried on the next price.
+    Waiting { since: Option<DateTime<Utc>> },
 
     /// Already reported. Normal watching from here.
     Greeted,
@@ -26,7 +37,7 @@ pub enum Awake {
 
 impl Awake {
     pub fn new() -> Self {
-        Awake::Waiting
+        Awake::Waiting { since: None }
     }
 
     /// Reports every zone price is already at, once.
@@ -37,8 +48,18 @@ impl Awake {
         thickness: Thickness,
         pulse: &mut pulse::Pulse,
     ) -> Result<()> {
-        if matches!(self, Awake::Greeted) {
-            return Ok(());
+        let now = Utc::now();
+
+        match self {
+            Awake::Greeted => return Ok(()),
+
+            // Tried recently and it did not go. Leave it alone — the next
+            // price is a second away, not a new opportunity.
+            Awake::Waiting { since: Some(last) } if now - *last < BEFORE_TRYING_AGAIN => {
+                return Ok(());
+            }
+
+            Awake::Waiting { since } => *since = Some(now),
         }
 
         let mut all_said = true;
@@ -65,7 +86,7 @@ impl Awake {
                 )
                 .await
                 {
-                    Ok(()) => pulse.spoke(chrono::Utc::now()),
+                    Ok(()) => pulse.spoke(Utc::now()),
                     Err(trouble) => {
                         eprintln!("Could not say what was already there: {trouble:#}");
                         all_said = false;

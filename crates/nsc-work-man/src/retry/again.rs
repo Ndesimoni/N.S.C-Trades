@@ -8,8 +8,8 @@ use nsc_core::error::Knows;
 /// fifth go — and gives up after `attempts` even when it says otherwise,
 /// because "keep trying" is not the same as "forever".
 ///
-/// The wait doubles each time. Their end being busy is rarely fixed by asking
-/// again immediately.
+/// **The wait grows each time** — one gap, then two. Their end being busy is
+/// rarely fixed by asking again immediately.
 pub async fn keep_trying<T, E, F, Fut>(attempts: u32, mut job: F) -> Result<T, E>
 where
     E: Knows,

@@ -61,3 +61,36 @@ fn a_pair_they_do_not_carry_is_settled() {
 
     assert_eq!(trouble.answer(), Answer::GiveUp);
 }
+
+// ── A reply that is not candles ──
+
+// What comes back when it is not candles can be a whole web page. That string
+// becomes the error, and the error ends up on a trouble card and in the
+// terminal. The first line says what it is; the other four thousand characters
+// do not.
+#[test]
+fn a_reply_that_is_not_candles_is_cut_short() {
+    let page = format!("<html><body>{}</body></html>", "x".repeat(5000));
+    let short = super::ask::shortened(page.clone());
+
+    assert!(short.len() < 400, "{} characters", short.len());
+    assert!(
+        short.starts_with("<html><body>"),
+        "it still says what it was"
+    );
+    assert!(short.ends_with('…'), "and says it was cut");
+
+    // Anything already short is left exactly as it was.
+    let brief = "not json".to_string();
+    assert_eq!(super::ask::shortened(brief.clone()), brief);
+}
+
+// Cutting by bytes splits a character in half and panics. Their messages carry
+// them — a pair name, a currency sign, a quotation mark.
+#[test]
+fn cutting_it_short_does_not_split_a_character() {
+    let wide = "£".repeat(1000);
+
+    let short = super::ask::shortened(wide);
+    assert!(short.ends_with('…'));
+}

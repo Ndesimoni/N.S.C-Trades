@@ -12,6 +12,13 @@ THE FILES
                decimals is 0.10, the euro to five is 0.0001. Also a pair
                asking for its own approach distance instead of the shared one.
 
+  closing.rs   Where a finished candle ENDED at a zone — above, below,
+               inside, or nowhere near.
+
+  acting.rs    What KIND of thing it did there — kissed it, pushed back, cut
+               through. A wick that grazed the edge and a candle that drove a
+               third of the way in both "closed above".
+
   saving.rs    Levels arriving from his phone.
 
   removing.rs  Undo, and stopping a pair altogether.

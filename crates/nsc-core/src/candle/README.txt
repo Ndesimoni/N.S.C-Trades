@@ -20,6 +20,14 @@ THE FILES
   bar.rs      Bar and Series. What the feed sends, and what can be asked of
               it.
 
+  interval.rs What a timeframe is called, and how long it lasts. Worked out
+              from the feed's own spelling, so changing which timeframe a card
+              is drawn on cannot leave the wording — or the finish time —
+              behind saying something untrue.
+
+  error.rs    CandleError. A stamp that will not read now will not read in
+              three seconds either.
+
   tests.rs    Nine tests. Read the last one in the first group first.
 
   README.txt  This file.

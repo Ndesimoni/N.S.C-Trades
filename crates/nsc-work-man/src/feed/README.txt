@@ -18,7 +18,7 @@ THE FILES
   mod.rs      The front door.
   ask.rs      The asking.
   error.rs    What can go wrong, and whether another go would help.
-  tests.rs    Five tests, all on that second question.
+  tests.rs    Seven tests, all on that second question.
   README.txt  This file.
 
 

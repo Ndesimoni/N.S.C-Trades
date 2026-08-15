@@ -50,13 +50,20 @@ THE FILES
               band — is price at it now — and an alert is the moment that
               turns from no to yes.
 
-  tests/      Sixty-eight tests.
+  error.rs    LevelError. Which troubles are worth another go, and which are
+              settled — a file that will not parse, or a pair already being
+              watched.
+
+  tests/      Seventy-eight tests.
                 bands.rs    does our band land where his landed
                 closing.rs  what a finished candle did at a zone
                 pips.rs     one pip from the pair's digits, and a pair
                             asking for its own approach distance
+                bands.rs    does our band land where his landed
+                closing.rs  where a finished candle ENDED at a zone
+                acting.rs   what KIND of thing it did there
                 saving.rs   levels arriving from his phone
-                removing.rs undo, and stopping a pair
+                removing.rs undo, taking one off, stopping and restoring
                 watching.rs firing once per touch, not once per price
                 support.rs  what they share
 

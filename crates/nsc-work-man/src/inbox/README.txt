@@ -102,16 +102,20 @@ THE FILES
 
   mod.rs        The front door, and the long poll that never gives up.
 
-  conversation.rs  Working out what he meant, and what to say back.
+  conversation.rs  Working out what he meant, and what to say back. The
+                flow that ADDS levels lives here.
 
-  stopping.rs   The two-tap conversation for stopping a pair.
+  one.rs        One pair's page — what it holds, and what he can do to it.
+                Taking a single level off is here.
+
+  pairs.rs      Stopping a pair, and putting one back.
 
   picture.rs    Drawing where the levels landed.
 
-  talking.rs    Saying it, with buttons.
+  talking.rs    Saying it, with buttons. And escaping anything that goes into
+                a message, because they are parsed as HTML.
 
   README.txt    This file.
-
 
 
 HOW IT GOES

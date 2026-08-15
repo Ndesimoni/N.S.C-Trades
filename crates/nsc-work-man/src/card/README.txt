@@ -41,10 +41,13 @@ THE FILES
               here knows about colours or layout, and nothing in a template
               works out a price.
 
-  chrome.rs   Runs Chrome headless, then cuts the white strip off the
-              bottom.
+  chrome.rs   Runs Chrome headless, clears the last picture out of the way
+              first, then cuts the white strip off the bottom.
 
-  tests.rs    Ten tests, on the two things that have actually gone wrong.
+  error.rs    CardError. A missing template is settled; a disk busy for a
+              moment is not.
+
+  tests.rs    Fourteen tests, on the two things that have actually gone wrong.
 
   README.txt  This file.
 

@@ -356,8 +356,11 @@ config/
       doc comment is Rust to rustdoc, so a table and a list of commands were
       being compiled — and failing. See below
 - [x] **Every file is inside the 250-line limit**, every `mod.rs` is a front
-      door with no types or logic in it, and every folder with code has a
-      `README.txt` that names the files actually in it
+      door with no types or logic, and every folder with code has a
+      `README.txt` that names the files actually in it with the right count
+- [x] **No file holds a type and its own tests.** That is what earns a folder,
+      and the folder is the module — `levels/` holds `band.rs` and `watch.rs`
+      with `tests/` beside them, which is the shape `CLAUDE.md` draws
 - [ ] Eight files sit between 200 and 250 and want watching: `close.html`,
       `card/tests.rs`, `levels/alert.rs`, `inbox/conversation.rs`,
       `chart.html`, `watch/closes.rs`, `levels/tests/watching.rs`,

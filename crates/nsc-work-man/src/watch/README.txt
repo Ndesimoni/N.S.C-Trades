@@ -54,6 +54,9 @@ THE FILES
   pulse.rs    The heartbeat. Remembers when anything was last said, so a busy
               day stays quiet.
 
+  resumed.rs  What to say when watching starts again — what it FOUND, never
+              what arrived.
+
   say.rs      Drawing a card and sending it.
 
   trouble.rs  Telling him when something has gone wrong, and when it is

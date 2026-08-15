@@ -51,10 +51,9 @@ THE FILES
                 numbers in a message have to be compared in his head; a band
                 with a dot on it does not.
 
-  close.html    A CANDLE THAT TOUCHED ONE OF HIS ZONES HAS FINISHED. Named
-                by WHAT IT DID — kissed it, pushed back, closed inside, cut
-                through — with the candle drawn on the band and its open,
-                high, low and close.
+  close.html    A CANDLE THAT TOUCHED ONE OF HIS ZONES HAS FINISHED. The chip
+                names WHAT IT DID — kissed it, pushed back, closed inside,
+                cut through — and the drawing shows it against the band.
 
   readout.html  Where price sat inside the candle. The candle drawn tall on
                 the left, with leader lines out to High, Open, Close and Low.
@@ -79,24 +78,31 @@ THEY ARE PIECES, NOT A SET
   picture still opens on its own when tapped.
 
 
-TWO PICTURES OF THE SAME THING, ON PURPOSE
+ONE DRAWING, ZOOMED TO THE CANDLE
 
-  Both zone cards draw the band twice, and the two drawings are not
-  duplicates. They answer different questions.
+  A 1-hour candle inside a weekly zone can be a hundredth of its height. Drawn
+  to the band's scale it is a smudge, and a smudge says nothing about what the
+  candle did — which is the only thing the card is for.
 
-  ON THE LEFT, A PICTOGRAM. Fixed size, fixed positions, NOT to scale. A kiss
-  looks like a kiss on gold and on the euro and on the card he saw last week.
-  That is the whole point: the eye reads it without measuring anything.
+  So close.html zooms to the CANDLE, exactly like zooming in on his own chart.
+  Everything stays true; there is just more band than fits.
 
-  ON THE RIGHT, THE MEASURED DRAWING. Real proportions, leader lines out to
-  real numbers. How far, how deep, exactly where.
+  Three things keep that honest:
 
-  What happened, then how much. Try to make one drawing do both and it does
-  neither — either the shapes stop being recognisable or the numbers stop
-  being true.
+    - HIS LINE IS KEPT IN VIEW whenever it is anywhere near. A picture of a
+      candle with no line in it answers nothing.
 
-  The left one is drawn from ONE FACT: the action name, worked out in
-  nsc-core::levels::close. Nothing on the card decides what happened.
+    - A BOUNDARY THAT FELL OFF THE VIEW GETS AN ARROW — "↑ top 4,414.17". It
+      must never be silently missing, because the candle is being judged
+      against it.
+
+    - THE STRETCH OF WICK INSIDE THE ZONE IS PICKED OUT in the level's own
+      colour. How deep it went is the difference between a graze and a
+      rejection, and this makes it a length rather than a number to look up.
+
+  A pictogram was tried on the left of both cards and taken back out. Two
+  drawings of one thing is one too many — the measured drawing does the job
+  once it can actually be seen.
 
 
 TWO THINGS THAT WILL CATCH YOU

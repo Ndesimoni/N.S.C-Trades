@@ -73,27 +73,16 @@
     margin:0 0 12px;
   }
 
-  /* THE SHAPE OF WHAT HAPPENED. Schematic and always the same size — NOT to
-     scale. The drawing on the right is the measured one; this is the one the
-     eye reads in a glance, and it can only do that if a kiss looks like a kiss
-     every single time. */
-  .shape{display:block;margin:0 0 16px}
-  .shape .fill{fill:var(--level);opacity:.13}
-  .shape .spine{fill:var(--level)}
-  .shape .line{stroke:var(--level);stroke-width:2.4}
-  .shape .wick{stroke:#8B959C;stroke-width:3;stroke-linecap:round}
-  .shape .body{fill:var(--dir);stroke:rgba(0,0,0,.22);stroke-width:1}
-  .shape text{
-    font-family:var(--data);font-size:10.5px;letter-spacing:.13em;fill:var(--mute);
+  .close{
+    font-family:var(--display);font-weight:600;font-size:56px;line-height:.88;
+    letter-spacing:-.035em;font-variant-numeric:tabular-nums;margin:0 0 12px;
   }
+  .move{font-size:16px;color:var(--dir);font-variant-numeric:tabular-nums;margin:0}
+  .move u{text-decoration:none;color:var(--mute)}
 
-  .did{
-    font-family:var(--display);font-weight:600;font-size:40px;line-height:.95;
-    letter-spacing:-.03em;margin:0 0 12px;text-transform:lowercase;
-  }
   .say{
     font-family:var(--display);font-weight:400;
-    margin:0;font-size:17.5px;line-height:1.4;
+    margin:18px 0 0;font-size:18px;line-height:1.4;
     letter-spacing:-.008em;color:var(--ink);
   }
 
@@ -109,8 +98,6 @@
     font-family:var(--display);font-weight:400;font-size:19px;
     letter-spacing:-.01em;font-variant-numeric:tabular-nums;
   }
-  .ohl .is-close b{font-weight:600;color:var(--brass)}
-  .ohl .is-close span{color:var(--brass)}
 
   .zone{display:block;overflow:visible}
   .zone .fill{fill:var(--level);opacity:.11}
@@ -118,6 +105,15 @@
   .zone .edge{stroke:var(--level);stroke-width:1.4;opacity:.55}
   .zone .line{stroke:var(--level);stroke-width:2.6}
   .zone .wick{stroke:#8B959C;stroke-width:3;stroke-linecap:round}
+  /* The stretch of the wick that was inside the zone, in the level's own
+     colour. How deep it went is the difference between a graze and a
+     rejection, and this makes it a LENGTH rather than a number to look up. */
+  .zone .wick.is-in{stroke:var(--level);stroke-width:5;opacity:.85}
+  /* A boundary that fell off the zoomed view. It must never be silently
+     missing — the candle is being judged against it. */
+  .zone text.far{
+    font-family:var(--data);font-size:11px;letter-spacing:.04em;fill:var(--mute);
+  }
   .zone .candle{fill:var(--dir);stroke:rgba(0,0,0,.2);stroke-width:1}
   .zone .lead{stroke:var(--lead);stroke-width:1.2;fill:none}
   .zone .lead.is-close{stroke:var(--brass);stroke-width:1.6;opacity:.85}
@@ -154,16 +150,16 @@
 <section class="body">
   <div>
     <p class="label" id="what"></p>
-    <svg class="shape" id="shape" aria-hidden="true"></svg>
-    <p class="did" id="did"></p>
-    <p class="say" id="say"></p>
+    <p class="close" id="c"></p>
+    <p class="move" id="move"></p>
 
     <div class="ohl">
-      <div class="is-close"><span>C</span><b id="c"></b></div>
       <div><span>O</span><b id="o"></b></div>
       <div><span>H</span><b id="h"></b></div>
       <div><span>L</span><b id="l"></b></div>
     </div>
+
+    <p class="say" id="say"></p>
   </div>
   <svg class="zone" id="zone" aria-hidden="true"></svg>
 </section>
@@ -190,81 +186,27 @@ function draw(){
   document.getElementById("which").innerHTML =
     `${close.timeframe} level &nbsp;<b>${fmt(close.level)}</b>`;
 
-  // A miss is never SENT — closes.rs checks `worth_saying` first. It is here
-  // so the preview does not draw a card with an empty chip on it, which is
-  // what a missing word looks like and is worse than a wrong one.
-  const words = {
-    inside:"closed inside", above:"closed above",
-    below:"closed below",  missed:"never reached it",
-  };
+  // THE ACTION, not just where it ended. A wick that grazed the edge and a
+  // candle that drove a third of the way in both "closed above".
   const chip = document.getElementById("chip");
-  chip.textContent = words[close.did] || close.did;
+  chip.textContent = close.action;
   if(close.did !== "inside") chip.classList.add("is-out");
   if(close.did === "missed") chip.classList.add("is-miss");
 
   document.getElementById("stamp").textContent = close.stamp;
-  document.getElementById("what").textContent  = close.interval + " candle · what it did";
-  document.getElementById("did").textContent   = close.action;
-  document.getElementById("say").textContent   = close.note;
+  document.getElementById("what").textContent = close.interval + " close";
+  document.getElementById("say").textContent  = close.note;
 
   document.getElementById("c").textContent = fmt(close.close);
   document.getElementById("o").textContent = fmt(close.open);
   document.getElementById("h").textContent = fmt(close.high);
   document.getElementById("l").textContent = fmt(close.low);
 
-  shape();
+  document.getElementById("move").innerHTML =
+    `${down ? "▼" : "▲"} ${fmt(Math.abs(close.close - close.open))} ` +
+    `&nbsp;<u>·</u>&nbsp; range ${fmt(close.high - close.low)}`;
   zone();
   document.getElementById("deep").textContent = close.deep_words;
-}
-
-// ── the shape of what happened ────────────────────────────────────────────
-//
-// A PICTOGRAM, not a measurement. Fixed size, fixed positions, so a kiss looks
-// like a kiss on gold and on the euro and on a card he saw last week. The
-// drawing on the right is the one carrying real numbers.
-function shape(){
-  const W = 300, H = 96, TOP = 24, BOT = 72, MID = 48;
-  const svg = document.getElementById("shape");
-  svg.setAttribute("width", W);
-  svg.setAttribute("height", H);
-  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-
-  const add = (tag, attrs, text) => {
-    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
-    for(const k in attrs) el.setAttribute(k, attrs[k]);
-    if(text !== undefined) el.textContent = text;
-    svg.appendChild(el);
-  };
-
-  add("rect", {class:"fill",  x:0, y:TOP, width:196, height:BOT - TOP, rx:3});
-  add("rect", {class:"spine", x:0, y:TOP, width:3.5, height:BOT - TOP, rx:2});
-  add("line", {class:"line",  x1:0, y1:MID, x2:196, y2:MID});
-  add("text", {x:206, y:MID - 3}, "YOUR");
-  add("text", {x:206, y:MID + 11}, "ZONE");
-
-  // Every shape drawn as if price came from ABOVE, then flipped if it came
-  // from below. One set of numbers, both directions.
-  const above = close.side !== "below";
-  const flip  = v => above ? v : H - v;
-
-  //                     body top, body bottom, wick top, wick bottom
-  const shapes = {
-    "kissed it":     [  4, 18,  2, 30],   // body clear, wick just breaks in
-    "pushed back":   [  4, 20,  2, 60],   // wick well past the level
-    "closed inside": [ 34, 62, 28, 68],   // body sitting in the band
-    "cut through":   [ 10, 86,  6, 92],   // straight from one side to the other
-    "no touch":      [  2, 16,  0, 20],   // never reaches it
-  };
-
-  const [bt, bb, wt, wb] = shapes[close.action] || shapes["kissed it"];
-  const x = 98;
-
-  const y1 = flip(wt), y2 = flip(wb);
-  add("line", {class:"wick", x1:x, y1:Math.min(y1,y2), x2:x, y2:Math.max(y1,y2)});
-
-  const b1 = flip(bt), b2 = flip(bb);
-  add("rect", {class:"body", x:x - 13, y:Math.min(b1,b2),
-               width:26, height:Math.max(Math.abs(b2 - b1), 4), rx:2});
 }
 
 // ── the candle, drawn inside the zone, to scale ───────────────────────────
@@ -279,12 +221,31 @@ function zone(){
   svg.setAttribute("height", H);
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
-  const thick = close.top - close.bottom;
-  let lo = Math.min(close.bottom, close.low)  - thick * 0.14;
-  let hi = Math.max(close.top,    close.high) + thick * 0.14;
+  // ZOOMED TO THE CANDLE, not to the band.
+  //
+  // A 1-hour candle inside a weekly zone can be a hundredth of its height.
+  // Drawn to the band's scale it is a smudge, and a smudge says nothing about
+  // what it did — which is the only thing this card is for.
+  //
+  // So the view is the candle plus room around it, exactly like zooming in on
+  // his own chart. The band is still true; there is just more of it than fits,
+  // and whatever falls off the edge gets an arrow saying which way and how far.
+  const span = Math.max(close.high - close.low, (close.top - close.bottom) * 0.004);
+  const mid  = (close.high + close.low) / 2;
+  let lo = mid - span * 1.6;
+  let hi = mid + span * 1.6;
+
+  // Keep HIS LINE in view whenever it is anywhere close. It is the thing the
+  // candle is being judged against, and a picture of a candle with no line in
+  // it answers nothing.
+  if(close.level > lo - span * 3 && close.level < hi + span * 3){
+    lo = Math.min(lo, close.level - span * 0.5);
+    hi = Math.max(hi, close.level + span * 0.5);
+  }
   if(hi === lo){ hi += 1; lo -= 1; }
 
   const y = v => PAD + (1 - (v - lo) / (hi - lo)) * (H - PAD * 2);
+  const inView = v => v >= lo && v <= hi;
 
   const BAR_L = 8, BAR_R = 128, CANDLE_X = 96, LEAD_R = 162, TEXT_L = 172;
   const add = (tag, attrs, text) => {
@@ -295,14 +256,45 @@ function zone(){
     return el;
   };
 
-  const boxTop = y(close.top), boxHigh = y(close.bottom) - y(close.top);
-  add("rect", {class:"fill",  x:BAR_L, y:boxTop, width:BAR_R - BAR_L, height:boxHigh, rx:3});
-  add("rect", {class:"spine", x:BAR_L, y:boxTop, width:4, height:boxHigh, rx:2});
-  add("line", {class:"edge", x1:BAR_L, y1:y(close.top),    x2:BAR_R, y2:y(close.top)});
-  add("line", {class:"edge", x1:BAR_L, y1:y(close.bottom), x2:BAR_R, y2:y(close.bottom)});
-  add("line", {class:"line", x1:BAR_L, y1:y(close.level),  x2:BAR_R, y2:y(close.level)});
+  // The band, clipped to what is on screen.
+  const bandTop = y(Math.min(close.top, hi)), bandBot = y(Math.max(close.bottom, lo));
+  if(close.bottom < hi && close.top > lo){
+    add("rect", {class:"fill",  x:BAR_L, y:bandTop, width:BAR_R - BAR_L,
+                 height:Math.max(bandBot - bandTop, 1), rx:3});
+    add("rect", {class:"spine", x:BAR_L, y:bandTop, width:4,
+                 height:Math.max(bandBot - bandTop, 1), rx:2});
+  }
+
+  for(const edge of [close.top, close.bottom])
+    if(inView(edge))
+      add("line", {class:"edge", x1:BAR_L, y1:y(edge), x2:BAR_R, y2:y(edge)});
+
+  if(inView(close.level))
+    add("line", {class:"line", x1:BAR_L, y1:y(close.level), x2:BAR_R, y2:y(close.level)});
+
+  // Anything off screen gets an arrow, so the card never quietly hides the
+  // thing the candle is being judged against.
+  const away = [
+    {name:"top",       at:close.top},
+    {name:"your line", at:close.level},
+    {name:"bottom",    at:close.bottom},
+  ].filter(m => !inView(m.at));
+
+  away.forEach((m, i) => {
+    const up = m.at > hi;
+    const edgeY = up ? 11 + i * 15 : H - 5 - (away.length - 1 - i) * 15;
+    add("text", {class:"far", x:BAR_L, y:edgeY},
+        `${up ? "↑" : "↓"} ${m.name} ${fmt(m.at)}`);
+  });
 
   add("line", {class:"wick", x1:CANDLE_X, y1:y(close.high), x2:CANDLE_X, y2:y(close.low)});
+
+  // THE PART THAT WENT IN, picked out. How deep it reached is the difference
+  // between a graze and a rejection, and here it is a length rather than a
+  // percentage in the footer.
+  const inTop = Math.min(close.high, close.top), inBot = Math.max(close.low, close.bottom);
+  if(inTop > inBot)
+    add("line", {class:"wick is-in", x1:CANDLE_X, y1:y(inTop), x2:CANDLE_X, y2:y(inBot)});
 
   const bodyTop = Math.min(y(close.open), y(close.close));
   add("rect", {class:"candle", x:CANDLE_X - 13, y:bodyTop, width:26,

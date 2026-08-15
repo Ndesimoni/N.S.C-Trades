@@ -91,9 +91,10 @@ assets/card/
   alert.html     price at one of his zones
   close.html     a finished candle at a zone, named by what it did
 
-Both zone cards draw the band twice on purpose: a fixed-size PICTOGRAM on the
-left, so the shape is recognisable at a glance, and the MEASURED drawing on
-the right for how far and how deep.
+The close card ZOOMS TO THE CANDLE, because a 1-hour candle inside a weekly
+zone is a hundredth of its height and draws as a smudge otherwise. His line is
+kept in view, anything off the edge gets an arrow, and the stretch of wick
+inside the zone is picked out in the level's colour.
 ```
 
 **Every folder with code in it has a `README.txt`.** Every file is inside the

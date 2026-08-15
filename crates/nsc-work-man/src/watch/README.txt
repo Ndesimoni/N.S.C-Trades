@@ -158,10 +158,16 @@ A LEVEL SENT WHILE IT IS RUNNING IS PICKED UP
   work, and the check lived inside the socket loop at first — which does not
   run on a quiet day. A level sent on Sunday sat unarmed until Tuesday.
 
-  He gets one line back: "Armed. Now watching: USD/CAD · 3 levels". The inbox
-  already drew him where they landed; this says the different thing, that they
-  are being WATCHED. Saved and armed were two states and nothing said which
-  one he had.
+  He gets one line back: "Got it. Your levels are being watched from now."
+
+  NO PAIR NAMES, NO COUNTS. He has just sent it — he knows what he sent, and
+  the inbox has already sent back a picture of where the bands landed, with
+  the pair on it in his colours. Repeating that is a second message telling
+  him something he already had.
+
+  What the picture cannot say is that they are being WATCHED. Saved and armed
+  were two separate states and nothing told him which one he had. That is the
+  whole job of this line.
 
 
 WHAT TUESDAY SAYS

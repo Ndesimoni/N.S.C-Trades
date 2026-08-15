@@ -32,6 +32,16 @@ use nsc_core::levels::{Pair, Watch};
 pub use run::run;
 pub use trouble::dying;
 
+/// The line he gets when a level he sent goes live.
+///
+/// Public so `--bin cards` can show it. Everything the bot says should be
+/// something he can look at without waiting for it to happen.
+pub async fn say_it_is_armed(client: &reqwest::Client) -> anyhow::Result<()> {
+    let mut pulse = pulse::Pulse::new();
+
+    reload::say_it_is_armed(client, &mut pulse).await
+}
+
 /// Reachable from the tests, and nowhere else.
 ///
 /// The scrubbing itself is not worth making public — but a secret leaking is

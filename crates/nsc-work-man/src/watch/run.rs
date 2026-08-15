@@ -136,8 +136,8 @@ async fn armed(
 ) -> Result<HashMap<String, Watching>> {
     let (fresh, armed) = reload::again(client, thickness, watching).await?;
 
-    if !armed.is_empty() {
-        reload::say_it_is_armed(client, &armed, pulse).await?;
+    if armed {
+        reload::say_it_is_armed(client, pulse).await?;
     }
 
     Ok(fresh)

@@ -69,14 +69,14 @@ fn state() -> (Option<SystemTime>, usize) {
 /// Rebuilt, it would forget which zones price is sitting in — and then
 /// announce every one of them again as though it had just arrived.
 ///
-/// Gives back the new set, and the names of pairs that were armed or re-armed.
+/// Gives back the new set, and whether anything was actually armed.
 pub async fn again(
     client: &reqwest::Client,
     thickness: Thickness,
     mut old: HashMap<String, Watching>,
-) -> Result<(HashMap<String, Watching>, Vec<String>)> {
+) -> Result<(HashMap<String, Watching>, bool)> {
     let mut now: HashMap<String, Watching> = HashMap::new();
-    let mut fresh = Vec::new();
+    let mut armed = false;
 
     for name in known(Path::new(PAIRS)) {
         let pair = match load_pair(&Path::new(PAIRS).join(format!("{name}.toml"))) {
@@ -108,36 +108,34 @@ pub async fn again(
         }
 
         println!("{} — now watching {} level(s)", pair.symbol, found.len());
-        fresh.push(format!("{} · {} levels", pair.symbol, found.len()));
+        armed = true;
 
         let watch = Watch::over(found, pair.reach(thickness));
         now.insert(pair.symbol.clone(), Watching { pair, watch });
     }
 
-    Ok((now, fresh))
+    Ok((now, armed))
 }
 
 /// Tells him the watcher has picked the new levels up.
 ///
-/// **The inbox already drew him the picture** of where they landed. This says
-/// the different thing: that they are now being WATCHED. Saved and armed were
-/// two separate states and nothing said which one he had — the file was right
-/// and the level did nothing until the next restart.
+/// **The inbox already drew him the picture** of where they landed, with the
+/// pair on it and the bands in his colours. This says the one thing that
+/// picture cannot: that they are now being WATCHED. Saved and armed were two
+/// separate states and nothing told him which one he had.
+///
+/// No pair names, no counts. He has just sent it — he knows what he sent, and
+/// the picture that came back said so. Repeating it back is a second message
+/// telling him something he already had.
 pub async fn say_it_is_armed(
     client: &reqwest::Client,
-    armed: &[String],
     pulse: &mut pulse::Pulse,
 ) -> anyhow::Result<()> {
-    let words = format!(
-        "📐 <b>Armed.</b> Now watching:\n\n{}",
-        armed
-            .iter()
-            .map(|line| format!("· {line}"))
-            .collect::<Vec<_>>()
-            .join("\n"),
-    );
+    let words = "📐 <b>Got it.</b>\n\n\
+                 Your levels are being watched from now. \
+                 You will hear the moment price reaches one.";
 
-    telegram::send_words(client, &OWNER.to_string(), &words).await?;
+    telegram::send_words(client, &OWNER.to_string(), words).await?;
     pulse.spoke(chrono::Utc::now());
 
     Ok(())

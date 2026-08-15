@@ -177,8 +177,11 @@ to build in now, annoying to retrofit.
 - [x] **Only the changed pair costs a request.** A pair whose levels are
       untouched keeps the `Watch` it had; rebuilt, it would forget which zones
       price is in and announce them all again
-- [x] **He gets one line back — *Armed. Now watching…*** The inbox drew where
-      they landed; this says the different thing, that they are being watched
+- [x] **He gets one line back — *Got it. Your levels are being watched from
+      now.*** No pair names, no counts: he has just sent it, and the inbox
+      already sent back a picture of where the bands landed. What that picture
+      cannot say is that they are being *watched*, and that is this line's
+      whole job
 - [x] **He is told when something breaks**, and when it is fixed. Nothing is
       said for the first five minutes — most drops fix themselves in seconds,
       and a buzz for each teaches him the buzz means nothing

@@ -6,6 +6,7 @@
 //!     cargo run -p nsc-work-man --bin cards -- XAUUSD close       a close
 //!     cargo run -p nsc-work-man --bin cards -- XAUUSD close 4375.6 sofar
 //!     cargo run -p nsc-work-man --bin cards -- heartbeat          the quiet day
+//!     cargo run -p nsc-work-man --bin cards -- armed             a level went live
 //!     cargo run -p nsc-work-man --bin cards -- trouble down       the line is off
 //!     cargo run -p nsc-work-man --bin cards -- trouble back       it is back
 //!     cargo run -p nsc-work-man --bin cards -- trouble stopped    it gave up
@@ -42,6 +43,10 @@ async fn main() -> Result<()> {
 
     if wanted == "heartbeat" {
         return beat::heartbeat(&client).await;
+    }
+
+    if wanted == "armed" {
+        return beat::armed(&client).await;
     }
 
     if wanted == "trouble" {

@@ -36,6 +36,8 @@ THE FILES
                                                        level it actually met
                   --bin cards -- XAUUSD close 4375.6 sofar   still running
                   --bin cards -- heartbeat             the quiet-day card
+                  --bin cards -- armed                 a level going live
+                  --bin cards -- trouble down|back|stopped
 
               The design loop. Changing how a card looks means looking at it,
               and the market reaches a level when it feels like it.

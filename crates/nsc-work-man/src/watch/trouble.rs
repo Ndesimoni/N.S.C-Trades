@@ -16,9 +16,12 @@ use anyhow::Result;
 use chrono::{DateTime, Duration, Utc};
 use nsc_core::when::Rules;
 
+use std::path::PathBuf;
+
+use crate::card::{self, Wrong};
 use crate::telegram;
 
-use super::{OWNER, pulse};
+use super::{OWNER, PREVIEW, pulse};
 
 /// Remembers how long the line has been down, and whether he knows.
 pub struct Trouble {
@@ -63,16 +66,15 @@ impl Trouble {
 
         self.told = true;
 
-        let words = format!(
-            "⚠️ <b>The price line is down.</b>\n\n\
-             It has been {} minutes and it is still not opening.\n\
-             Nothing is being watched while this lasts.\n\n\
-             <i>{what}</i>\n\n\
-             It keeps trying. You will get a message when it is back.",
-            down.num_minutes().max(1),
-        );
-
-        say(client, &words, pulse).await
+        say(
+            client,
+            Wrong::LineDown,
+            Some(down.num_minutes().max(1)),
+            what,
+            "⚠️ <b>The price line is down.</b> Nothing is being watched.",
+            pulse,
+        )
+        .await
     }
 
     /// It is working again.
@@ -95,13 +97,15 @@ impl Trouble {
             return Ok(());
         }
 
-        let words = format!(
-            "✅ <b>The price line is back.</b>\n\n\
-             It was down {} minutes. Watching again.",
-            (Utc::now() - since).num_minutes().max(1),
-        );
-
-        say(client, &words, pulse).await
+        say(
+            client,
+            Wrong::LineBack,
+            Some((Utc::now() - since).num_minutes().max(1)),
+            "",
+            "✅ <b>The price line is back.</b> Watching again.",
+            pulse,
+        )
+        .await
     }
 }
 
@@ -113,30 +117,51 @@ impl Trouble {
 ///
 /// It gives up quietly if even this fails. There is nothing left to try.
 pub async fn dying(client: &reqwest::Client, what: &str) {
-    let words = format!(
-        "🛑 <b>The bot has stopped.</b>\n\n\
-         This one does not fix itself, so it is not trying again.\n\n\
-         <i>{what}</i>\n\n\
-         Nothing is being watched until you start it.",
-    );
+    let caption = "🛑 <b>The bot has stopped.</b> Nothing is being watched.";
 
-    // It says whether it managed to. There is nothing left to try if the
-    // message itself cannot go, but a terminal that claims it told him when it
-    // did not is worse than one that admits it.
-    match telegram::send_words(client, &OWNER.to_string(), &words).await {
+    // **Falls back to plain words if the card cannot be drawn.** Chrome may be
+    // the very thing that is broken, and the message matters more than the
+    // picture — this is the one card whose failure must not swallow its own
+    // message.
+    let sent = match draw(Wrong::Stopped, None, what) {
+        Ok(picture) => telegram::send_to(client, &OWNER.to_string(), &[&picture], caption).await,
+        Err(trouble) => {
+            eprintln!("could not draw the card: {trouble}");
+            telegram::send_words(client, &OWNER.to_string(), caption).await
+        }
+    };
+
+    match sent {
         Ok(()) => eprintln!("told him it stopped."),
         Err(trouble) => eprintln!("could not even tell him it stopped: {trouble}"),
     }
+}
+
+/// Draws one, and gives back where it landed.
+fn draw(wrong: Wrong, minutes: Option<i64>, what: &str) -> anyhow::Result<PathBuf> {
+    let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
+    let out = PathBuf::from(PREVIEW).join("trouble.png");
+
+    Ok(card::trouble(wrong, minutes, what, &stamp, &out)?)
 }
 
 /// Sends, and counts as having spoken today.
 ///
 /// **Trouble counts.** He heard from the bot, so he knows it is alive — which
 /// is the only thing the heartbeat was going to tell him.
-async fn say(client: &reqwest::Client, words: &str, pulse: &mut pulse::Pulse) -> Result<()> {
-    println!("{}", words.replace("<b>", "").replace("</b>", ""));
+async fn say(
+    client: &reqwest::Client,
+    wrong: Wrong,
+    minutes: Option<i64>,
+    what: &str,
+    caption: &str,
+    pulse: &mut pulse::Pulse,
+) -> Result<()> {
+    println!("{}", caption.replace("<b>", "").replace("</b>", ""));
 
-    telegram::send_words(client, &OWNER.to_string(), words).await?;
+    let picture = draw(wrong, minutes, what)?;
+    telegram::send_to(client, &OWNER.to_string(), &[&picture], caption).await?;
+
     pulse.spoke(Utc::now());
 
     Ok(())

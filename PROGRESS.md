@@ -93,6 +93,7 @@ assets/card/
   alert.html     price at one of his zones
   close.html     a finished candle at a zone, named by what it did
   heartbeat.html what is being watched, on a day nothing happened
+  trouble.html   the bot itself has a problem — severity in the colour
 
 The close card ZOOMS TO THE CANDLE, because a 1-hour candle inside a weekly
 zone is a hundredth of its height and draws as a smudge otherwise. His line is
@@ -160,6 +161,10 @@ to build in now, annoying to retrofit.
       close. See `crates/nsc-work-man/src/bin/README.txt`
 - [ ] **Gold specifically has not been watched ticking** — it was shut for the
       weekend, so the test ran on BTC/USD. Change one word back on Sunday
+- [x] **Trouble goes as a card too**, with the severity in the colour — amber
+      it is trying, green it is back, red it has stopped. Red is the only one
+      that asks him to do anything. No pair, no price, no chart, so it can
+      never be mistaken for a signal
 - [x] **He is told when something breaks**, and when it is fixed. Nothing is
       said for the first five minutes — most drops fix themselves in seconds,
       and a buzz for each teaches him the buzz means nothing

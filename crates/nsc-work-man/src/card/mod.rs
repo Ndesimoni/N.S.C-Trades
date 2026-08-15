@@ -12,6 +12,7 @@ mod chrome;
 mod error;
 mod facts;
 mod fill;
+mod wrong;
 mod zone;
 
 #[cfg(test)]
@@ -20,4 +21,5 @@ mod tests;
 pub use alive::{Alive, heartbeat};
 pub use error::CardError;
 pub use fill::render;
+pub use wrong::{Wrong, trouble};
 pub use zone::{alert, closed};

@@ -6,6 +6,9 @@
 //!     cargo run -p nsc-work-man --bin cards -- XAUUSD close       a close
 //!     cargo run -p nsc-work-man --bin cards -- XAUUSD close 4375.6 sofar
 //!     cargo run -p nsc-work-man --bin cards -- heartbeat          the quiet day
+//!     cargo run -p nsc-work-man --bin cards -- trouble down       the line is off
+//!     cargo run -p nsc-work-man --bin cards -- trouble back       it is back
+//!     cargo run -p nsc-work-man --bin cards -- trouble stopped    it gave up
 //!
 //! **This is the design loop, not the bot.** Changing how a card looks means
 //! looking at it, and the market reaches a level when it feels like it.
@@ -39,6 +42,10 @@ async fn main() -> Result<()> {
 
     if wanted == "heartbeat" {
         return beat::heartbeat(&client).await;
+    }
+
+    if wanted == "trouble" {
+        return beat::trouble(&client, std::env::args().nth(2)).await;
     }
 
     let file = Path::new("config/pairs").join(format!("{wanted}.toml"));

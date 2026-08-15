@@ -6,6 +6,7 @@ use anyhow::{Context, Result};
 use chrono::Utc;
 use nsc_core::candle::normal_candle;
 use nsc_core::levels::{self, Timeframe};
+use nsc_work_man::card::Wrong;
 use nsc_work_man::{card, telegram};
 
 use super::{NORMAL_OVER, OWNER, candles};
@@ -66,6 +67,39 @@ pub async fn heartbeat(client: &reqwest::Client) -> Result<()> {
         alive.len(),
         out.display()
     );
+
+    Ok(())
+}
+
+/// The three trouble cards, so they can be looked at without breaking
+/// anything to see one.
+pub async fn trouble(client: &reqwest::Client, which: Option<String>) -> Result<()> {
+    let (wrong, minutes) = match which.as_deref() {
+        Some("back") => (Wrong::LineBack, Some(12)),
+        Some("stopped") => (Wrong::Stopped, None),
+        _ => (Wrong::LineDown, Some(7)),
+    };
+
+    let detail = match wrong {
+        Wrong::Stopped => {
+            "cannot read the calendar at config/when.toml: No such file or directory (os error 2)"
+        }
+        _ => "the price line would not open: IO error: Connection refused (os error 61)",
+    };
+
+    let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
+    let out = PathBuf::from("preview").join("trouble.png");
+
+    let picture = card::trouble(wrong, minutes, detail, &stamp, &out)?;
+
+    telegram::send_to(
+        client,
+        &OWNER.to_string(),
+        &[&picture],
+        "a trouble card, for looking at",
+    )
+    .await?;
+    println!("{wrong:?} drawn to {} and sent.", out.display());
 
     Ok(())
 }

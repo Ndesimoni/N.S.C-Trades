@@ -1,0 +1,89 @@
+/* ── trouble.html ───────────────────────────────────────────────────────────
+   THIS CARD IS ABOUT THE BOT, NOT THE MARKET, and it must never be mistaken
+   for a signal. Everything here is doing that job: a heavy coloured stripe
+   down the left, no pair, no prices, no chart.
+
+   The colour is the severity, and the question it answers is "do I need to
+   get up?" — amber no, green no, red yes. */
+
+:root{ --card-height:420px; }
+
+/* Deeper than the bearish candle red on purpose. That red means price fell;
+   this one means the bot is not running, and they must not look alike. */
+.is-stopped{ --mood:#B3261E; --wash:#FBEDEC; }
+.is-down   { --mood:#A6790C; --wash:#FBF5E6; }
+.is-back   { --mood:#1F9E7A; --wash:#EAF6F2; }
+
+body{ background:var(--vault); }
+
+/* The stripe. It runs the whole height, so the colour is the first thing seen
+   and is still there at the bottom of the card. */
+.edge{
+  position:absolute;left:0;top:0;bottom:0;width:12px;background:var(--mood);
+}
+
+.sheet{
+  position:absolute;left:12px;right:0;top:0;bottom:0;
+  background:var(--vault);
+}
+
+/* The header carries a wash of the same colour as the stripe. The stripe
+   alone is a thin line on an 860-wide card; this is what makes the severity
+   read before any of the words do. */
+.top{
+  background:var(--wash);
+  padding:28px 40px 26px 36px;
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  border-bottom:1px solid color-mix(in srgb,var(--mood) 22%,transparent);
+}
+.what{
+  font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--mood);margin:0 0 10px;font-weight:500;
+}
+.head{
+  font-family:var(--display);font-weight:800;font-size:31px;line-height:1.02;
+  letter-spacing:-.022em;margin:0;max-width:20ch;
+}
+.stamp{
+  font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--mute);white-space:nowrap;text-align:right;
+}
+
+.howlong{
+  font-family:var(--display);font-weight:600;font-size:52px;line-height:1;
+  letter-spacing:-.035em;margin:0 0 8px;color:var(--mood);
+  padding:30px 40px 0 36px;
+}
+.howlong small{font-size:23px;font-weight:400;letter-spacing:-.01em}
+
+.since{
+  font-family:var(--display);font-weight:400;font-size:17px;
+  letter-spacing:-.006em;color:var(--ink);margin:0;padding:0 40px 0 36px;
+}
+
+.two{
+  display:grid;grid-template-columns:1fr 1fr;gap:28px;
+  margin:26px 40px 0 36px;padding-top:22px;border-top:1px solid var(--rule);
+}
+.two h2{
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--mute);margin:0 0 8px;font-weight:500;
+}
+.two p{
+  font-family:var(--display);font-weight:400;font-size:16.5px;line-height:1.4;
+  letter-spacing:-.006em;margin:0;
+}
+
+/* The raw wording the code used. He is not going to debug it — but
+   "connection refused" and "invalid API key" are different evenings, so it is
+   on the card and quiet rather than absent. */
+.detail{
+  /* 12 for the stripe, 36 for the sheet's own padding. Positioned against the
+     page rather than the sheet, so the stripe has to be added by hand or this
+     sits a stripe-width left of everything above it. */
+  position:absolute;left:48px;right:40px;bottom:0;
+  padding:14px 0;border-top:1px solid var(--rule);
+  font-size:12.5px;line-height:1.45;color:var(--mute);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  overflow:hidden;
+}

@@ -77,6 +77,11 @@ WHEN SOMETHING BREAKS, HE HEARS ABOUT IT
   message for each is the same mistake as a candle every hour: he learns the
   buzz means nothing, and then ignores the one that meant something.
 
+  IT GOES AS A CARD, like everything else he is sent, with the severity in the
+  colour: amber the line is down and it is trying, green it is back, red it
+  has stopped and will not restart. Red is the only one that asks him to do
+  anything.
+
   So nothing is said until it has been down `trouble_after_minutes` — five —
   and then it is said ONCE. With a second message when it comes back, because
   "it broke" on its own leaves him checking his phone all evening.

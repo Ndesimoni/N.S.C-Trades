@@ -24,6 +24,8 @@ THE FILES
   alive.rs    The heartbeat card. Works out its own height, because it grows
               a row per pair.
 
+  wrong.rs    The trouble card — the bot itself, not the market.
+
   zone.rs     THE ZONE CARDS, and the facts they are told. What a zone card
               needs is nothing like a candle chart — a band, and either a
               price or one candle — so it keeps its own.

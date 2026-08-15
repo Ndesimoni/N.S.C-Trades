@@ -90,6 +90,22 @@ THE FILES
 
                 ITS HEIGHT IS WORKED OUT, not typed — see below.
 
+  trouble.html  SOMETHING HAS GONE WRONG WITH THE BOT. No pair, no price, no
+                chart — it must never be mistaken for a signal.
+
+                THE COLOUR ANSWERS THE ONLY QUESTION HE HAS: do I need to get
+                up? Amber, the line is down and it is trying — no. Green, it
+                is back — no. Red, it has stopped and will not restart — yes.
+
+                A heavy stripe down the left and a wash of the same colour
+                behind the header, because a thin line on an 860-wide card is
+                not an alarm.
+
+                Then: how long, what it means, what happens next, and the raw
+                wording the code used — small, at the bottom, where it does
+                not shout. He is not going to debug it, but "connection
+                refused" and "invalid API key" are different evenings.
+
   readout.html  NOT SENT BY ANYTHING RIGHT NOW. Where price sat inside one
                 candle, drawn tall with leader lines out to High, Open, Close
                 and Low.

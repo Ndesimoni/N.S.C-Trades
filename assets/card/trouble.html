@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>trouble</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /*__STYLE__*/
+
+  /*__OWN__*/
+</style>
+</head>
+<body>
+
+<div class="edge"></div>
+
+<div class="sheet">
+  <header class="top">
+    <div>
+      <p class="what">The bot itself · not the market</p>
+      <h1 class="head" id="head"></h1>
+    </div>
+    <span class="stamp" id="stamp"></span>
+  </header>
+
+  <p class="howlong" id="howlong"></p>
+  <p class="since" id="since"></p>
+
+  <section class="two">
+    <div>
+      <h2>What it means</h2>
+      <p id="means"></p>
+    </div>
+    <div>
+      <h2>What happens next</h2>
+      <p id="next"></p>
+    </div>
+  </section>
+</div>
+
+<p class="detail" id="detail"></p>
+
+<script>
+// Rust replaces this line.
+const trouble = /*__TROUBLE__*/;
+
+function draw(){
+  document.body.classList.add("is-" + trouble.state);
+
+  document.getElementById("head").textContent   = trouble.head;
+  document.getElementById("stamp").textContent  = trouble.stamp;
+  document.getElementById("since").textContent  = trouble.since;
+  document.getElementById("means").textContent  = trouble.means;
+  document.getElementById("next").textContent   = trouble.next;
+  // A recovery has nothing to explain — it is not down any more. Left in, the
+  // rule above it draws with nothing underneath, which reads as a card that
+  // failed to finish.
+  const detail = document.getElementById("detail");
+  if(trouble.detail){
+    detail.textContent = trouble.detail;
+  } else {
+    detail.remove();
+  }
+
+  // The number, then its unit small beside it. A duration is the one figure
+  // he reads first — how long has this been going on.
+  const box = document.getElementById("howlong");
+  if(trouble.minutes === null){
+    box.textContent = trouble.big;
+  } else {
+    const n = trouble.minutes;
+    box.innerHTML = `${n} <small>minute${n === 1 ? "" : "s"}</small>`;
+  }
+}
+
+draw();
+</script>
+</body>
+</html>

@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 68 tests · clippy clean · it watches his levels and says when price arrives.**
+**Two crates · 94 tests · clippy clean · it watches his levels and says when price arrives.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -63,9 +63,11 @@ last version of this project cleared out on 14 August 2026.
 ```
 crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
                           is what stops it, not a rule anybody has to remember
-  candle/       one candle, and whether it has finished.  8 tests
+  candle/       one candle, and whether it has finished.  9 tests
   levels/       his lines, the bands round them, the
-                watching, and what an alert says.        38 tests
+                watching, what a candle did at one, and
+                what to say about it.                    53 tests
+  when/         whether the bot may speak at all.        10 tests
   error/        retry or give up — Answer and Knows.      3 tests
   settings.rs   pair, timeframe, digits — step 2 replaces this with config
   message.rs    the caption
@@ -78,8 +80,8 @@ crates/nsc-work-man/      EVERYTHING THAT REACHES
   main.rs       the hourly chart card
   review.rs     one pair's levels, drawn
   bin/inbox/    levels arriving from his phone
-  bin/watch.rs  the price watcher — rung 1
-  bin/alert.rs  draw one alert card without waiting for the market
+  bin/watch/    the price watcher — rungs 1 and 2
+  bin/alert.rs  draw any zone card without waiting for the market
   bin/levels.rs draw a pair's bands without waiting for one to be touched
   bin/listen.rs the raw price stream, kept as proof it works
 
@@ -87,11 +89,12 @@ assets/card/
   chart.html     the candle chart. Carries its own open, high, low and range
   readout.html   where price sat inside the candle
   alert.html     price at one of his zones, with the zone drawn
+  close.html     a finished candle drawn inside the zone it touched
 ```
 
-**Every folder with code in it has a `README.txt`.** Two files are past the
-200-line mark and want splitting before they grow again —
-`bin/watch.rs` at 220 and `levels/tests/watching.rs` at 204.
+**Every folder with code in it has a `README.txt`.** Every file is inside the
+250-line limit; `bin/watch/main.rs` at 206 and `when/tests.rs` at 195 are the
+ones to watch.
 
 **The design lives in HTML, not in Rust.** Open the file, change it, and the
 next message picks it up — no rebuild. Chrome draws it headlessly.
@@ -165,7 +168,7 @@ the one that mattered.
 | | When | What arrives |
 |---|---|---|
 | **1** | price touches a level he drew | an alert **card** — the zone drawn, with price on it. May fire on a candle still forming; it is only a heads-up |
-| **2** | a candle closes inside that zone | the candlestick. What it actually did there |
+| **2** | a candle that **touched** the zone finishes | a close card — the candle drawn inside the band. **Once per candle**, not once per visit: while price is at a zone he wants to watch it candle by candle |
 | **3** | it closed there **and** a strategy matched | the chart and the candlestick, with entry, stop, target and the sentence |
 | **·** | morning and evening | a heartbeat — still running, pairs watched, zones touched, signals sent |
 
@@ -238,8 +241,41 @@ somewhere near one — so "price is at the level" means price is inside a band.
       band with price marked on it and a dashed line where the alert fires.
       Three numbers in a message have to be compared in his head; a band with
       a dot on it does not
-- [x] **`--bin alert` draws one on demand**, so the design can be changed
-      without waiting for the market to reach a level
+- [x] **`--bin alert` draws any of them on demand**, so a design can be
+      changed without waiting for the market to do anything
+- [x] **Rung 2 — a candle that touched a zone reports at its close.** Inside,
+      above or below, and **a wick counts**: a candle that only reached in and
+      closed back out is the rejection he is waiting for, and treating that as
+      a miss would throw it away
+- [x] **A 4-hour candle does not exist until its last hour has closed.** Three
+      hourly closes can pass with the 4-hour silent; the fourth is when it
+      speaks. `Bar::finished_by` is the one place that decides
+- [x] **Rung 2 costs nothing when nothing is happening.** Only pairs with
+      price at a zone are ever fetched
+- [x] **There is no "a candle opened in the zone" message.** Spot forex runs
+      without a break, so an open *is* the last close — it would repeat what
+      arrived a minute earlier. Only a **gap** into a zone carries anything
+
+### The calendar — [x]
+
+- [x] **Monday is silent, and it means nothing at all** — no prices checked,
+      no candles fetched, no queue to dump on him on Tuesday
+- [x] **The trading week is not the calendar week.** It opens Sunday 17:00 New
+      York, so Sunday evening is already Monday's session and Monday evening
+      is Tuesday's. Read off the UTC calendar, Monday's silence would land
+      three hours into Tuesday and miss Sunday entirely
+- [x] **17:00 New York is not a fixed UTC time** — 21:00 in summer, 22:00 in
+      winter. `config/when.toml` holds the New York time and the zone, never a
+      UTC clock time
+- [x] **Three states, not two.** `Anything` / `WatchOnly` / `Silence`. "Do not
+      trade" and "do not speak" are different: the first four hours of a day
+      report what is happening and suggest nothing
+- [x] **Friday reports but opens nothing new**
+- [x] **Nothing in `when/` reads the clock** — `now` is handed in, which is
+      what lets the backtester run these exact rules over 2019
+- [x] **Tuesday says what it FOUND**, not what arrived. Price can walk into a
+      zone during Monday's silence, and a card saying "arrived" would put a
+      Monday move on a Tuesday clock
 - [x] **It costs no requests to run.** The candles that size the bands are
       fetched once at startup; after that every price is free
 

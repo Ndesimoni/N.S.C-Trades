@@ -46,6 +46,10 @@ pub struct Watch {
     /// pair, worked out by [`Pair::reach`](super::Pair::reach).
     reach: Decimal,
 
+    /// The last price seen, so a resumed session can say where things stand
+    /// without waiting for the next one.
+    last: Option<Decimal>,
+
     /// Whether any price has arrived yet.
     ///
     /// The first one only says where price *is*. It cannot say price has
@@ -70,6 +74,7 @@ impl Watch {
         Watch {
             seen: bands.into_iter().map(|band| (band, false)).collect(),
             reach,
+            last: None,
             started: false,
         }
     }
@@ -81,6 +86,7 @@ impl Watch {
     pub fn arrive(&mut self, price: Decimal) -> Vec<(Band, Nearness)> {
         let first = !self.started;
         self.started = true;
+        self.last = Some(price);
 
         let mut arrived = Vec::new();
 
@@ -104,6 +110,14 @@ impl Watch {
         }
 
         arrived
+    }
+
+    /// The last price it was given.
+    ///
+    /// For the report made when watching RESUMES — it has to say where price
+    /// is, and the socket may not send another for a second or two.
+    pub fn last_price(&self) -> Option<Decimal> {
+        self.last
     }
 
     /// Which bands price is sitting at. For a heartbeat, not an alert.

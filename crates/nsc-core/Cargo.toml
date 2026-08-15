@@ -20,8 +20,10 @@ edition.workspace = true
 
 [dependencies]
 
-# Times. Everything here is UTC.
-chrono = { workspace = true }
+# Times. Everything here is UTC, with one exception it owns: the trading day
+# ends at 17:00 NEW YORK, and that is not a fixed UTC time.
+chrono    = { workspace = true }
+chrono-tz = { workspace = true }
 
 # Prices. Never f64.
 rust_decimal = { workspace = true }

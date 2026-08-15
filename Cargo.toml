@@ -46,6 +46,15 @@ toml = "0.8"
 # ── Times. Everything in this project is UTC. ──
 chrono = { version = "0.4", features = ["serde"] }
 
+# The New York clock, for the one boundary that is not UTC.
+#
+# The trading day ends 17:00 New York — 21:00 UTC in summer, 22:00 in winter.
+# Written as a fixed UTC time it would be an hour out for half the year, and
+# nothing would error.
+#
+# Pure data. No network, no async, so nsc-core may have it.
+chrono-tz = { version = "0.10", features = ["serde"] }
+
 # ── Prices. Never f64. ──
 #
 # 0.1 + 0.2 is not 0.3 in floating point. On one candle nobody notices. Across

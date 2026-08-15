@@ -1,21 +1,25 @@
-//! Draw an alert card without waiting for price to reach a level.
+//! Draw a card without waiting for the market to do anything.
 //!
-//!     cargo run -p nsc-work-man --bin alert -- XAUUSD 4132.90
+//!     cargo run -p nsc-work-man --bin alert -- XAUUSD            approaching
+//!     cargo run -p nsc-work-man --bin alert -- XAUUSD 4120       in the zone
+//!     cargo run -p nsc-work-man --bin alert -- XAUUSD 4120 found already in
+//!     cargo run -p nsc-work-man --bin alert -- XAUUSD close      rung 2
 //!
-//! **This is the design loop, not the bot.** Changing how the card looks means
-//! looking at it, and the market reaches a level when it feels like it. Give
-//! it a pair and a price and it draws the alert that price would have caused.
+//! **This is the design loop, not the bot.** Changing how a card looks means
+//! looking at it, and the market reaches a level when it feels like it.
 //!
-//! With no price it makes one up just outside the pair's first band, which is
-//! the state hardest to get right — price close enough to the edge that the
+//! With no price it makes one up just outside the pair's first band — the
+//! state hardest to draw, where price is close enough to the edge that the
 //! labels crowd.
 
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use chrono::Utc;
-use nsc_core::levels::{Band, Nearness, Pair, Thickness, Timeframe, nearness};
-use nsc_core::{candle::normal_candle, levels};
+use nsc_core::candle::{Bar, normal_candle};
+use nsc_core::levels::{
+    self, Band, Nearness, News, Pair, Thickness, Timeframe, nearness, what_it_did,
+};
 use nsc_work_man::{card, feed, retry::keep_trying, telegram};
 use rust_decimal::Decimal;
 
@@ -32,33 +36,54 @@ async fn main() -> Result<()> {
     let wanted = std::env::args().nth(1).unwrap_or_else(|| "XAUUSD".into());
     let file = Path::new("config/pairs").join(format!("{wanted}.toml"));
 
-    let pair = load(&file, &wanted)?;
-    let thickness = levels::load_thickness(Path::new("config/levels.toml"))?;
+    let pair = levels::load_pair(&file)
+        .with_context(|| format!("no levels for {wanted} — is there a {}?", file.display()))?;
 
-    let band = first_band(&client, &pair, thickness).await?;
+    let thickness = levels::load_thickness(Path::new("config/levels.toml"))?;
+    let (band, bars) = first_band(&client, &pair, thickness).await?;
+
+    let asked = std::env::args().nth(2);
+
+    if asked.as_deref() == Some("close") {
+        return draw_close(&client, &pair, &band, &bars).await;
+    }
+
+    draw_alert(&client, &pair, &band, thickness, asked).await
+}
+
+/// Rung 1 — price at the zone.
+async fn draw_alert(
+    client: &reqwest::Client,
+    pair: &Pair,
+    band: &Band,
+    thickness: Thickness,
+    asked: Option<String>,
+) -> Result<()> {
     let reach = pair.reach(thickness);
 
     // No price given: sit just outside the band, where the labels crowd.
-    let price = match std::env::args().nth(2) {
+    let price = match asked {
         Some(text) => text.parse().context("that price is not a number")?,
         None => band.top + reach / Decimal::TWO,
     };
 
-    let near = nearness(&band, price, reach);
+    let news = match std::env::args().nth(3).as_deref() {
+        Some("found") => News::Already,
+        _ => News::Fresh,
+    };
+
+    let near = nearness(band, price, reach);
     if near == Nearness::Away {
-        println!(
-            "note: {price} is nowhere near {} to {} — the card will say approaching anyway",
-            band.bottom, band.top
-        );
+        println!("note: {price} is outside the zone and its reach — drawing it anyway");
     }
 
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
     let out = PathBuf::from("preview").join("alert.png");
 
-    let picture = card::alert(&pair, &band, near, price, reach, &stamp, &out)?;
-    let caption = levels::caption(&pair, &band, near, price);
+    let picture = card::alert(pair, band, near, news, price, reach, &stamp, &out)?;
+    let caption = levels::caption(pair, band, near, news, price);
 
-    telegram::send_to(&client, &OWNER.to_string(), &[&picture], &caption).await?;
+    telegram::send_to(client, &OWNER.to_string(), &[&picture], &caption).await?;
 
     println!(
         "{} band {} to {}",
@@ -66,19 +91,64 @@ async fn main() -> Result<()> {
         band.bottom,
         band.top
     );
-    println!("price {price} · fires {reach} out · {near:?}");
+    println!("price {price} · fires {reach} out · {near:?} · {news:?}");
     println!("\ndrawn to {} and sent to you.", out.display());
 
     Ok(())
 }
 
-fn load(file: &Path, wanted: &str) -> Result<Pair> {
-    levels::load_pair(file)
-        .with_context(|| format!("no levels for {wanted} — is there a {}?", file.display()))
+/// Rung 2 — the newest finished hourly candle, against that band.
+async fn draw_close(
+    client: &reqwest::Client,
+    pair: &Pair,
+    band: &Band,
+    bars: &[Bar],
+) -> Result<()> {
+    let now = Utc::now();
+
+    let bar = bars
+        .iter()
+        .rev()
+        .find(|bar| bar.finished_by(now, 60).unwrap_or(false))
+        .or_else(|| bars.last())
+        .context("no candles came back")?;
+
+    // His real zone may be thousands of points from where price is today, and
+    // a card of a candle that MISSED shows nothing about the design. So the
+    // preview may be given a level to sit the band on.
+    let band = match std::env::args().nth(3) {
+        Some(text) => {
+            let at: Decimal = text.parse().context("that level is not a number")?;
+            let moved = Band::around(band.timeframe, at, band.thickness(), Decimal::ONE);
+            println!(
+                "using a made-up {} level at {at} so the candle meets it",
+                moved.timeframe.name()
+            );
+            moved
+        }
+        None => *band,
+    };
+
+    let did = what_it_did(&band, bar);
+    let out = PathBuf::from("preview").join("close.png");
+
+    let picture = card::closed(pair, &band, bar, did, "1h", &out)?;
+    let caption = levels::closed_caption(pair, &band, bar, did, "1h");
+
+    telegram::send_to(client, &OWNER.to_string(), &[&picture], &caption).await?;
+
+    println!("{} candle {} — {did:?}", pair.symbol, bar.datetime);
+    println!("\ndrawn to {} and sent to you.", out.display());
+
+    Ok(())
 }
 
-/// The pair's first band, sized off real candles.
-async fn first_band(client: &reqwest::Client, pair: &Pair, thickness: Thickness) -> Result<Band> {
+/// The pair's first band, sized off real candles, plus hourly candles to draw.
+async fn first_band(
+    client: &reqwest::Client,
+    pair: &Pair,
+    thickness: Thickness,
+) -> Result<(Band, Vec<Bar>)> {
     let line = pair.levels.first().context("that pair has no levels")?;
 
     let interval = match line.timeframe {
@@ -87,19 +157,29 @@ async fn first_band(client: &reqwest::Client, pair: &Pair, thickness: Thickness)
         Timeframe::H4 => "4h",
     };
 
-    let series = keep_trying(3, || {
-        feed::for_pair(client, &pair.symbol, interval, HISTORY)
-    })
-    .await
-    .with_context(|| format!("could not size the {interval} band for {}", pair.symbol))?;
+    let sizing = candles(client, &pair.symbol, interval).await?;
+    let size = normal_candle(&sizing.iter().collect::<Vec<_>>(), NORMAL_OVER)
+        .context("no candles came back")?;
 
-    let mut bars: Vec<_> = series.values.iter().collect();
-    bars.reverse();
-
-    let size = normal_candle(&bars, NORMAL_OVER).context("no candles came back")?;
-
-    pair.bands(thickness, &[(line.timeframe, size)])
+    let band = pair
+        .bands(thickness, &[(line.timeframe, size)])
         .into_iter()
         .next()
-        .context("the level could not be turned into a band")
+        .context("the level could not be turned into a band")?;
+
+    let hourly = candles(client, &pair.symbol, "1h").await?;
+
+    Ok((band, hourly))
+}
+
+/// Candles, oldest first — the direction a chart is read in.
+async fn candles(client: &reqwest::Client, symbol: &str, interval: &str) -> Result<Vec<Bar>> {
+    let series = keep_trying(3, || feed::for_pair(client, symbol, interval, HISTORY))
+        .await
+        .with_context(|| format!("could not get {interval} candles for {symbol}"))?;
+
+    let mut bars = series.values;
+    bars.reverse();
+
+    Ok(bars)
 }

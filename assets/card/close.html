@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>close</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /*__STYLE__*/
+
+  /* Taller than the alert card. This one carries a candle as well as a zone,
+     and the candle needs room to be read. Still shorter than a chart.
+
+     THIS WINS over style.css because it comes after it — the same way CSS
+     resolves it, and Rust reads the last one for that reason. */
+  :root{ --card-height:508px; }
+
+  .is-black  { --level:var(--weekly); }
+  .is-blue   { --level:var(--daily); }
+  .is-yellow { --level:var(--yellow); }
+
+
+  .top{
+    background:var(--panel);
+    padding:24px 40px 22px;
+    display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+    border-bottom:1px solid var(--rule);
+  }
+  .top__pair{
+    font-family:var(--display);font-weight:800;font-size:34px;
+    letter-spacing:-.02em;margin:0 0 9px;line-height:1;
+  }
+  .top__pair span{color:var(--mute);font-weight:400;margin:0 1px}
+  .top__level{
+    display:flex;align-items:center;gap:9px;
+    font-size:12.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);
+  }
+  .top__level b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+  .dot{
+    width:11px;height:11px;border-radius:50%;
+    background:var(--level);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--level) 16%,transparent);
+  }
+
+  .top__right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:11px}
+
+  /* THE INDICATOR. Where the candle ended is the whole message, so it is the
+     first thing on the card that has any colour.
+
+     Inside is brass — price is sitting in his level, and nothing is settled.
+     Above and below take the candle's own direction, because a close back out
+     of a zone is the rejection he is waiting for. */
+  .chip{
+    font-family:var(--display);font-weight:600;
+    font-size:14px;letter-spacing:.13em;text-transform:uppercase;
+    padding:8px 15px;border-radius:999px;
+    border:1.5px solid var(--brass);background:var(--brass);color:#fff;
+    white-space:nowrap;
+  }
+  .chip.is-out{background:var(--dir);border-color:var(--dir)}
+  .chip.is-miss{background:var(--mute);border-color:var(--mute)}
+  .top__stamp{font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+
+
+  .body{
+    display:grid;grid-template-columns:400px 1fr;gap:20px;
+    padding:22px 40px 0;
+  }
+
+  .label{
+    font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--mute);
+    margin:0 0 10px;
+  }
+  .close{
+    font-family:var(--display);font-weight:600;font-size:56px;line-height:.88;
+    letter-spacing:-.035em;font-variant-numeric:tabular-nums;margin:0 0 12px;
+  }
+  .move{font-size:16px;color:var(--dir);font-variant-numeric:tabular-nums;margin:0}
+  .move u{text-decoration:none;color:var(--mute)}
+
+  /* O H L, short labels of equal width. Longer ones push every number to a
+     different place and the column falls apart. */
+  .ohl{
+    display:flex;gap:26px;margin:20px 0 0;padding-top:18px;
+    border-top:1px solid var(--rule);
+  }
+  .ohl div{display:flex;flex-direction:column;gap:5px}
+  .ohl span{font-size:11px;letter-spacing:.16em;color:var(--mute)}
+  .ohl b{
+    font-family:var(--display);font-weight:400;font-size:20px;
+    letter-spacing:-.01em;font-variant-numeric:tabular-nums;
+  }
+
+  .say{
+    font-family:var(--display);font-weight:400;
+    margin:18px 0 0;font-size:18px;line-height:1.4;
+    letter-spacing:-.008em;color:var(--ink);
+  }
+
+  .zone{display:block;overflow:visible}
+  .zone .fill{fill:var(--level);opacity:.11}
+  .zone .spine{fill:var(--level)}
+  .zone .edge{stroke:var(--level);stroke-width:1.4;opacity:.55}
+  .zone .line{stroke:var(--level);stroke-width:2.6}
+  .zone .wick{stroke:#8B959C;stroke-width:3;stroke-linecap:round}
+  .zone .candle{fill:var(--dir);stroke:rgba(0,0,0,.2);stroke-width:1}
+  .zone .lead{stroke:var(--lead);stroke-width:1.2;fill:none}
+  .zone .lead.is-close{stroke:var(--brass);stroke-width:1.6;opacity:.85}
+  .zone text{font-family:var(--data);font-size:13px;fill:var(--ink);font-variant-numeric:tabular-nums}
+  .zone text.tag{font-size:11px;letter-spacing:.13em;fill:var(--mute)}
+  .zone text.is-close{fill:var(--brass);font-weight:500}
+
+  .foot{
+    position:absolute;left:0;right:0;bottom:0;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:16px 40px;border-top:1px solid var(--rule);
+    font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);
+  }
+  .foot b{color:var(--ink);font-weight:400;font-variant-numeric:tabular-nums}
+  body{position:relative}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <h1 class="top__pair" id="pair"></h1>
+    <div class="top__level">
+      <span class="dot"></span>
+      <span id="which"></span>
+    </div>
+  </div>
+  <div class="top__right">
+    <span class="chip" id="chip"></span>
+    <span class="top__stamp" id="stamp"></span>
+  </div>
+</header>
+
+<section class="body">
+  <div>
+    <p class="label" id="what"></p>
+    <p class="close" id="close"></p>
+    <p class="move" id="move"></p>
+
+    <div class="ohl">
+      <div><span>O</span><b id="o"></b></div>
+      <div><span>H</span><b id="h"></b></div>
+      <div><span>L</span><b id="l"></b></div>
+    </div>
+
+    <p class="say" id="say"></p>
+  </div>
+  <svg class="zone" id="zone" aria-hidden="true"></svg>
+</section>
+
+<footer class="foot">
+  <span>A close, not a signal — no entry, no stop, no target</span>
+  <span>Reached <b id="deep"></b> into the zone</span>
+</footer>
+
+<script>
+// Rust replaces this line. EVERY PRICE IS ALREADY WORKED OUT.
+const close = /*__CLOSE__*/;
+
+const fmt = n => n.toLocaleString("en-US",
+  {minimumFractionDigits:close.digits, maximumFractionDigits:close.digits});
+
+function draw(){
+  document.body.classList.add("is-" + close.colour);
+
+  const down = close.close < close.open;
+  document.documentElement.style.setProperty("--dir", down ? "var(--down)" : "var(--up)");
+
+  document.getElementById("pair").innerHTML = close.symbol.replace("/", '<span>/</span>');
+  document.getElementById("which").innerHTML =
+    `${close.timeframe} level &nbsp;<b>${fmt(close.level)}</b>`;
+
+  // A miss is never SENT — closes.rs checks `worth_saying` first. It is here
+  // so the preview does not draw a card with an empty chip on it, which is
+  // what a missing word looks like and is worse than a wrong one.
+  const words = {
+    inside:"closed inside", above:"closed above",
+    below:"closed below",  missed:"never reached it",
+  };
+  const chip = document.getElementById("chip");
+  chip.textContent = words[close.did] || close.did;
+  if(close.did !== "inside") chip.classList.add("is-out");
+  if(close.did === "missed") chip.classList.add("is-miss");
+
+  document.getElementById("stamp").textContent = close.stamp;
+  document.getElementById("what").textContent  = close.interval + " close";
+  document.getElementById("close").textContent = fmt(close.close);
+
+  document.getElementById("move").innerHTML =
+    `${down ? "▼" : "▲"} ${fmt(Math.abs(close.close - close.open))} ` +
+    `&nbsp;<u>·</u>&nbsp; range ${fmt(close.high - close.low)}`;
+
+  document.getElementById("o").textContent = fmt(close.open);
+  document.getElementById("h").textContent = fmt(close.high);
+  document.getElementById("l").textContent = fmt(close.low);
+
+  document.getElementById("say").textContent  = close.note;
+  document.getElementById("deep").textContent = close.deep_words;
+
+  // ── the candle, drawn inside the zone ──────────────────────────────────
+  // The whole reason this is a picture. A wick deep into the band with the
+  // body closing back out is a REJECTION; the same numbers as text have to be
+  // compared in his head.
+  const W = 340, H = 300, PAD = 20;
+  const svg = document.getElementById("zone");
+  svg.setAttribute("width", W);
+  svg.setAttribute("height", H);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  const thick = close.top - close.bottom;
+  let lo = Math.min(close.bottom, close.low)  - thick * 0.14;
+  let hi = Math.max(close.top,    close.high) + thick * 0.14;
+  if(hi === lo){ hi += 1; lo -= 1; }
+
+  const y = v => PAD + (1 - (v - lo) / (hi - lo)) * (H - PAD * 2);
+
+  const BAR_L = 8, BAR_R = 128, CANDLE_X = 96, LEAD_R = 162, TEXT_L = 172;
+  const add = (tag, attrs, text) => {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for(const k in attrs) el.setAttribute(k, attrs[k]);
+    if(text !== undefined) el.textContent = text;
+    svg.appendChild(el);
+    return el;
+  };
+
+  const boxTop = y(close.top), boxHigh = y(close.bottom) - y(close.top);
+  add("rect", {class:"fill",  x:BAR_L, y:boxTop, width:BAR_R - BAR_L, height:boxHigh, rx:3});
+  add("rect", {class:"spine", x:BAR_L, y:boxTop, width:4, height:boxHigh, rx:2});
+  add("line", {class:"edge", x1:BAR_L, y1:y(close.top),    x2:BAR_R, y2:y(close.top)});
+  add("line", {class:"edge", x1:BAR_L, y1:y(close.bottom), x2:BAR_R, y2:y(close.bottom)});
+  add("line", {class:"line", x1:BAR_L, y1:y(close.level),  x2:BAR_R, y2:y(close.level)});
+
+  add("line", {class:"wick", x1:CANDLE_X, y1:y(close.high), x2:CANDLE_X, y2:y(close.low)});
+
+  const bodyTop = Math.min(y(close.open), y(close.close));
+  add("rect", {class:"candle", x:CANDLE_X - 13, y:bodyTop, width:26,
+               height:Math.max(Math.abs(y(close.close) - y(close.open)), 3), rx:2});
+
+  const rows = [
+    {tag:"HIGH",  value:close.high,  is:false},
+    {tag:"CLOSE", value:close.close, is:true},
+    {tag:"LOW",   value:close.low,   is:false},
+  ].sort((a,b) => b.value - a.value);
+
+  const GAP = 42;
+  const ys = rows.map(r => y(r.value));
+  for(let i = 1; i < ys.length; i++)
+    if(ys[i] - ys[i-1] < GAP) ys[i] = ys[i-1] + GAP;
+  const over = ys[ys.length-1] - (H - 12);
+  if(over > 0) for(let i = ys.length-1; i >= 0; i--){
+    ys[i] -= over;
+    if(i > 0 && ys[i] - ys[i-1] >= GAP) break;
+  }
+  ys.forEach((v,i) => ys[i] = Math.max(14, Math.min(H - 8, v)));
+
+  rows.forEach((r,i) => {
+    add("path", {class:"lead" + (r.is ? " is-close" : ""),
+                 d:`M${BAR_R} ${y(r.value)} H${BAR_R + 14} L${LEAD_R - 8} ${ys[i]} H${LEAD_R}`});
+    add("text", {class:"tag" + (r.is ? " is-close" : ""), x:TEXT_L, y:ys[i] - 7}, r.tag);
+    add("text", {class:r.is ? "is-close" : "",            x:TEXT_L, y:ys[i] + 11}, fmt(r.value));
+  });
+}
+
+draw();
+</script>
+</body>
+</html>

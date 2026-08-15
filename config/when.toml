@@ -1,0 +1,71 @@
+# ── When the bot is allowed to speak ────────────────────────────────────────
+#
+# THE TRADING WEEK IS NOT THE CALENDAR WEEK. It opens Sunday 17:00 New York,
+# so the session everyone calls Monday runs from Sunday evening to Monday
+# evening.
+#
+# Read off the UTC calendar instead and Monday's silence lands three hours
+# into TUESDAY'S session and misses Sunday evening altogether. Nothing errors.
+# It is just wrong, every week.
+# ───────────────────────────────────────────────────────────────────────────
+
+# The day boundary, in NEW YORK time. Never as a UTC time.
+#
+# 17:00 New York is 21:00 UTC in summer and 22:00 UTC in winter. Written here
+# as UTC it would be right for half the year and an hour out for the rest —
+# and an hour out is exactly the kind of mistake that never announces itself.
+#
+# Measured, not read off documentation: the daily candle's open was matched
+# against thirty hours of hourly candles and exactly one matched.
+day_ends = "17:00"
+timezone = "America/New_York"
+
+
+# ── Days the bot says nothing ───────────────────────────────────────────────
+#
+# AND IT MEANS NOTHING, not "stays quiet". No prices checked against bands, no
+# candles fetched, no queue building up to be dumped on him on Tuesday
+# morning. If we are not trading Monday there is nothing worth collecting on
+# Monday.
+#
+# Monday is for reading what the week has done, not trading it.
+#
+# THE HEARTBEAT STILL GOES OUT. A quiet Monday and a dead bot look exactly the
+# same, and after two days of nothing he cannot tell which he has.
+silent_days = ["monday"]
+
+
+# ── The settle window ───────────────────────────────────────────────────────
+#
+# How long after a new day opens before a TRADE may be suggested.
+#
+# The first hours of a day are where a move gets faked and taken back. What is
+# happening still gets reported — price reaching a zone, a candle closing in
+# one — because that is information. Only the trade is held back.
+#
+# Four rather than five: it is one 4-hour candle, so the window ends on a
+# boundary that exists rather than in the middle of one.
+settle_hours = 4
+
+
+# ── Days a trade may be talked about but not opened ─────────────────────────
+#
+# Friday. A setup that needs the weekend to work out is a setup nobody can
+# manage, and the gap on Sunday's open is not something a stop can protect.
+no_new_trades = ["friday"]
+
+
+# ── Looking into a candle that has not finished ─────────────────────────────
+#
+# How far into a forming candle before it may report what it is doing.
+#
+# NOT ON THE OPEN. Spot forex runs Sunday evening to Friday evening with no
+# break, so a candle's open IS the last one's close — the same number. An open
+# message repeats what arrived a minute earlier.
+#
+# Twenty minutes in, it has done something worth seeing.
+#
+# THIS READS A CANDLE THAT HAS NOT FINISHED, which is forbidden everywhere
+# else in this project. It is allowed here for the same reason the price alert
+# is: it is a heads-up and nothing more. IT MUST NEVER REACH THE STRATEGY.
+look_in_minutes = 20

@@ -18,4 +18,4 @@ mod tests;
 
 pub use error::CardError;
 pub use fill::render;
-pub use zone::alert;
+pub use zone::{alert, closed};

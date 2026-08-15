@@ -18,3 +18,4 @@ pub mod error;
 pub mod levels;
 pub mod message;
 pub mod settings;
+pub mod when;

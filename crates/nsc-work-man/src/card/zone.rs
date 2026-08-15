@@ -11,10 +11,12 @@ use std::path::{Path, PathBuf};
 use rust_decimal::Decimal;
 
 use super::{CardError, facts, fill};
-use nsc_core::levels::{Band, Nearness, Pair};
+use nsc_core::candle::Bar;
+use nsc_core::levels::{AtZone, Band, Nearness, News, Pair};
 
-/// The template this card is drawn from.
-const TEMPLATE: &str = "alert.html";
+/// The templates these cards are drawn from.
+const ALERT: &str = "alert.html";
+const CLOSE: &str = "close.html";
 
 /// Draws one alert and gives back the picture's absolute path.
 ///
@@ -23,20 +25,45 @@ const TEMPLATE: &str = "alert.html";
 ///
 /// `stamp` is the moment it happened, already worded. Nothing in `nsc-core`
 /// reads a clock, and nothing here works one out twice.
+#[allow(clippy::too_many_arguments)]
 pub fn alert(
     pair: &Pair,
     band: &Band,
     near: Nearness,
+    news: News,
     price: Decimal,
     reach: Decimal,
     stamp: &str,
     out: &Path,
 ) -> Result<PathBuf, CardError> {
     fill::draw(
-        TEMPLATE,
+        ALERT,
         &[(
             "/*__ALERT__*/",
-            facts::alert(pair, band, near, price, reach, stamp).to_string(),
+            facts::alert(pair, band, near, news, price, reach, stamp).to_string(),
+        )],
+        out,
+    )
+}
+
+/// Draws one rung 2 card — a finished candle inside the zone it touched.
+///
+/// The candle is drawn ON the band, because a wick deep in with the body
+/// closing back out is a rejection and no arrangement of numbers says that as
+/// fast as the shape does.
+pub fn closed(
+    pair: &Pair,
+    band: &Band,
+    bar: &Bar,
+    did: AtZone,
+    interval: &str,
+    out: &Path,
+) -> Result<PathBuf, CardError> {
+    fill::draw(
+        CLOSE,
+        &[(
+            "/*__CLOSE__*/",
+            facts::closed(pair, band, bar, did, interval, &bar.datetime).to_string(),
         )],
         out,
     )

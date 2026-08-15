@@ -52,6 +52,14 @@ THE FILES
                 numbers in a message have to be compared in his head; a band
                 with a dot on it does not.
 
+  close.html    A CANDLE THAT TOUCHED ONE OF HIS ZONES HAS FINISHED. The
+                candle drawn ON the band, with its open, high and low, and a
+                chip saying where it ended — inside, above or below.
+
+                The drawing is the point. A wick deep into the band with the
+                body closing back out is a rejection, and no arrangement of
+                numbers says that as fast as the shape does.
+
   readout.html  Where price sat inside the candle. The candle drawn tall on
                 the left, with leader lines out to High, Open, Close and Low.
                 Sent when the detail is wanted, not every hour.
@@ -66,6 +74,8 @@ THEY ARE PIECES, NOT A SET
     a candle closed     chart.html, on its own
     a price alert       alert.html, on its own. No chart, because nothing
                         has formed yet
+    a candle closed     close.html, on its own. What that one candle did at
+                        the zone — still not a trade
     a signal            the chart with your levels and the entry, stop and
                         target on it, plus a card carrying the reasoning
 

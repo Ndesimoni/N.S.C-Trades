@@ -59,8 +59,20 @@ impl Bar {
     /// from the top would be right most of the time and wrong the rest, which
     /// is worse than being wrong always, because you stop checking.
     pub fn is_finished(&self, now: DateTime<Utc>) -> Result<bool, CandleError> {
-        let one_step =
-            TimeDelta::try_minutes(INTERVAL_MINUTES).ok_or(CandleError::ImpossibleInterval)?;
+        self.finished_by(now, INTERVAL_MINUTES)
+    }
+
+    /// The same question, for a candle of any length.
+    ///
+    /// **A 4-hour candle does not exist until its last hour has closed.** Three
+    /// 1-hour candles can close inside a zone and the 4-hour still has nothing
+    /// to say; the fourth close is when it does.
+    ///
+    /// Asking `is_finished` about a 4-hour candle would call it finished three
+    /// hours early — and reading a candle before it exists is the one mistake
+    /// in this project that makes results look *better* rather than broken.
+    pub fn finished_by(&self, now: DateTime<Utc>, minutes: i64) -> Result<bool, CandleError> {
+        let one_step = TimeDelta::try_minutes(minutes).ok_or(CandleError::ImpossibleInterval)?;
 
         Ok(self.opened_at()? + one_step <= now)
     }

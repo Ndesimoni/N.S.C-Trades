@@ -134,3 +134,38 @@ fn a_candle_that_opened_at_nothing_does_not_divide_by_zero() {
 
     assert_eq!(broken.change_percent().to_string(), "0");
 }
+
+// ── A 4-hour candle is not four times an hourly one ──
+
+// THE LOOKAHEAD RULE, on the timeframe he executes on. A 4-hour candle stamped
+// 12:00 is not finished at 13:00, however finished the 1-hour inside it is.
+//
+// Reading it early would report a rejection at his zone three hours before the
+// market had decided there was one — and that mistake does not error, it makes
+// the results look better.
+#[test]
+fn a_four_hour_candle_waits_for_all_four_hours() {
+    let bar: Bar = serde_json::from_str(
+        r#"{"datetime":"2026-08-19 12:00:00","open":"4100","high":"4110",
+            "low":"4090","close":"4105"}"#,
+    )
+    .expect("valid candle");
+
+    let at = |text: &str| {
+        chrono::DateTime::parse_from_rfc3339(text)
+            .expect("a real moment")
+            .with_timezone(&chrono::Utc)
+    };
+
+    let four = |text: &str| bar.finished_by(at(text), 240).expect("a real stamp");
+
+    assert!(!four("2026-08-19T13:00:00Z"), "one hour in");
+    assert!(!four("2026-08-19T15:59:59Z"), "a second short");
+    assert!(four("2026-08-19T16:00:00Z"), "all four hours done");
+
+    // And the hourly rule is unchanged — the same candle, asked as an hour.
+    assert!(
+        bar.is_finished(at("2026-08-19T13:00:00Z"))
+            .expect("a real stamp")
+    );
+}

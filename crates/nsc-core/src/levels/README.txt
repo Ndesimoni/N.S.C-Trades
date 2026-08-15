@@ -32,12 +32,17 @@ THE FILES
               reach anything, so the words can be read and tested without a
               network or a browser.
 
+  close.rs    WHAT A FINISHED CANDLE DID at a zone — reached in and closed
+              above, below, or inside. A wick counts, which is the whole
+              reason to look at closes rather than at price.
+
   watch.rs    Watching bands for price ARRIVING at one. Holds one fact per
               band — is price at it now — and an alert is the moment that
               turns from no to yes.
 
-  tests/      Thirty-eight tests.
+  tests/      Fifty-three tests.
                 bands.rs    does our band land where his landed
+                closing.rs  what a finished candle did at a zone
                 pips.rs     one pip from the pair's digits, and a pair
                             asking for its own approach distance
                 saving.rs   levels arriving from his phone, and going back off

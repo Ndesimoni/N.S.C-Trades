@@ -21,9 +21,10 @@ THE FILES
               is, and hands it to Chrome. Start here. Every card goes through
               its `draw`.
 
-  zone.rs     The alert card — price arriving at one of his zones. Its own
-              file because what it is told is nothing like a candle: a band,
-              a price, and how close counted as arriving.
+  zone.rs     THE ZONE CARDS. Price arriving at one of his zones (rung 1),
+              and a candle that touched one having finished (rung 2). Their
+              own file because what they are told is nothing like a chart: a
+              band, and either a price or one candle.
 
   facts.rs    Turns candles into the numbers a template can read. Nothing in
               here knows about colours or layout, and nothing in a template

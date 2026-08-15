@@ -15,11 +15,12 @@ WHAT THIS FOLDER IS FOR
 
 THE FILES
 
-  watch.rs    THE PRICE WATCHER, and the closest thing here to the real bot.
+  watch/      THE PRICE WATCHER, and the closest thing here to the real bot.
               Holds the price stream open for every pair that has a levels
-              file, and says when price reaches one of his bands.
+              file, and says what happens at his zones.
 
-              Rung 1 of the ladder. Silence is the normal state.
+              Rungs 1 and 2 of the ladder. Silence is the normal state, and
+              on a Monday it watches nothing at all. Has its own README.
 
   inbox/      Listens to Telegram and saves the levels he sends from his
               phone. Buttons rather than typing. Has its own README.
@@ -29,16 +30,21 @@ THE FILES
 
                   cargo run -p nsc-work-man --bin levels -- GBPUSD
 
-  alert.rs    Draws ONE alert card and sends it, without waiting for price to
-              reach anything.
+  alert.rs    Draws ONE zone card and sends it, without waiting for the
+              market to do anything.
 
-                  cargo run -p nsc-work-man --bin alert -- XAUUSD 4132.90
+                  --bin alert -- XAUUSD                approaching
+                  --bin alert -- XAUUSD 4120           in the zone
+                  --bin alert -- XAUUSD 4120 found     already in
+                  --bin alert -- XAUUSD close          a candle's close
+                  --bin alert -- XAUUSD close 4375.6   ...against a made-up
+                                                       level it actually met
 
-              The design loop. Changing how the card looks means looking at
-              it, and the market reaches a level when it feels like it. With
-              no price it puts one just outside the pair's first band, which
-              is the state hardest to draw — price close enough to the edge
-              that the labels crowd.
+              The design loop. Changing how a card looks means looking at it,
+              and the market reaches a level when it feels like it.
+
+              With no price it puts one just outside the pair's first band —
+              the state hardest to draw, where the labels crowd.
 
   listen.rs   Opens Twelve Data's live price stream, asks for one symbol, and
               prints whatever comes down the line. Kept as the proof.
@@ -46,7 +52,7 @@ THE FILES
   README.txt  This file.
 
 
-HOW watch.rs SPENDS ITS REQUESTS
+HOW watch/ SPENDS ITS REQUESTS
 
   IT COSTS NOTHING TO RUN. One request per pair per timeframe at startup to
   size the bands, and after that every price arrives on the socket for free.

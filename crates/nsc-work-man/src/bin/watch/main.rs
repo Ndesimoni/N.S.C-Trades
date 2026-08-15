@@ -1,0 +1,206 @@
+//! Watch price against the levels he drew, and say what happens at them.
+//!
+//! **Rungs 1 and 2 of the ladder.**
+//!
+//!     price reaches a zone        an alert card, once per visit
+//!     a candle closes there       a card per candle that touched it
+//!
+//! Silence is the normal state. Prices arrive about once a second and almost
+//! all of them are nowhere near anything.
+//!
+//! **It watches nothing on a Monday.** Not "stays quiet" — nothing checked,
+//! nothing fetched, no queue building up to be dumped on him on Tuesday. When
+//! Tuesday opens it says what it FOUND rather than pretending it just
+//! happened.
+
+mod bands;
+mod closes;
+mod resumed;
+mod say;
+
+use std::collections::HashMap;
+use std::path::Path;
+
+use anyhow::{Context, Result};
+use chrono::Utc;
+use futures_util::{SinkExt, StreamExt};
+use nsc_core::levels::{News, Pair, Thickness, Watch, known, load_pair, load_thickness};
+use nsc_core::when::{self, Allowed, Rules};
+use rust_decimal::Decimal;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message;
+
+const PAIRS: &str = "config/pairs";
+const THICKNESS: &str = "config/levels.toml";
+const CALENDAR: &str = "config/when.toml";
+
+/// Where his own working goes. Alerts are not signals.
+pub const OWNER: i64 = 6089491075;
+
+/// Where cards are drawn, so the design can be opened in a browser.
+pub const PREVIEW: &str = "preview";
+
+/// How long to wait between requests.
+///
+/// **The limit is 8 a minute.** Seven and a half seconds is eight a minute
+/// exactly, and both the startup sizing and the candle-close checks go through
+/// it.
+pub const BREATHE: std::time::Duration = std::time::Duration::from_millis(7_500);
+
+/// Everything being watched for one pair.
+pub struct Watching {
+    pub pair: Pair,
+    pub watch: Watch,
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    dotenvy::dotenv().ok();
+
+    let client = reqwest::Client::new();
+    let thickness = load_thickness(Path::new(THICKNESS))?;
+    let calendar = when::load(Path::new(CALENDAR))?;
+
+    let mut watching: HashMap<String, Watching> = HashMap::new();
+
+    // The bands are worked out once, at the start. After this nothing is
+    // fetched unless price is actually at one of them.
+    for name in known(Path::new(PAIRS)) {
+        let pair = load_pair(&Path::new(PAIRS).join(format!("{name}.toml")))?;
+        let found = bands::for_pair(&client, &pair, thickness).await?;
+
+        if found.is_empty() {
+            println!("{name} — no levels, skipping");
+            continue;
+        }
+
+        println!("{} — watching {} level(s)", pair.symbol, found.len());
+        let watch = Watch::over(found, pair.reach(thickness));
+        watching.insert(pair.symbol.clone(), Watching { pair, watch });
+    }
+
+    if watching.is_empty() {
+        anyhow::bail!("no pairs have levels — send some with the inbox program");
+    }
+
+    say_what_the_calendar_allows(&calendar);
+
+    listen(&client, &mut watching, thickness, &calendar).await
+}
+
+fn say_what_the_calendar_allows(calendar: &Rules) {
+    match when::allowed(Utc::now(), calendar) {
+        Allowed::Silence => println!(
+            "\ntoday is quiet. Nothing is watched and nothing is fetched.\n\
+             It will start speaking when the next session opens."
+        ),
+        Allowed::WatchOnly => println!("\nlistening. Reporting only — no trade suggested yet.\n"),
+        Allowed::Anything => {
+            println!("\nlistening. Nothing will be said unless price reaches a level.\n")
+        }
+    }
+}
+
+/// Holds the line open and watches every price that comes down it.
+async fn listen(
+    client: &reqwest::Client,
+    watching: &mut HashMap<String, Watching>,
+    thickness: Thickness,
+    calendar: &Rules,
+) -> Result<()> {
+    let key = std::env::var("TWELVE_DATA_API_KEY").context("TWELVE_DATA_API_KEY is not set")?;
+    let url = format!("wss://ws.twelvedata.com/v1/quotes/price?apikey={key}");
+
+    // Never print `url`. The key is in it.
+    let (mut socket, _) = connect_async(&url)
+        .await
+        .context("the price line would not open")?;
+
+    let symbols: Vec<&str> = watching.keys().map(String::as_str).collect();
+    let ask = serde_json::json!({
+        "action": "subscribe",
+        "params": { "symbols": symbols.join(",") }
+    });
+
+    socket
+        .send(Message::Text(ask.to_string()))
+        .await
+        .context("could not ask for prices")?;
+
+    let mut closes = closes::Closes::new();
+    let mut awake = resumed::Awake::new();
+
+    loop {
+        tokio::select! {
+            heard = socket.next() => {
+                let Some(heard) = heard else { break };
+                let heard = heard.context("the price line broke")?;
+
+                if when::allowed(Utc::now(), calendar) == Allowed::Silence {
+                    // Still drained, so the socket does not back up. Nothing is
+                    // looked at and nothing is remembered.
+                    continue;
+                }
+
+                awake.greet(client, watching, thickness).await?;
+                on_price(client, watching, thickness, &heard).await?;
+            }
+
+            _ = closes.next_check() => {
+                if when::allowed(Utc::now(), calendar) == Allowed::Silence {
+                    continue;
+                }
+
+                closes.look(client, watching).await?;
+            }
+        }
+    }
+
+    println!("the other side hung up.");
+    Ok(())
+}
+
+async fn on_price(
+    client: &reqwest::Client,
+    watching: &mut HashMap<String, Watching>,
+    thickness: Thickness,
+    heard: &Message,
+) -> Result<()> {
+    let Ok(said) = serde_json::from_str::<serde_json::Value>(&heard.to_string()) else {
+        return Ok(());
+    };
+
+    if said["event"] != "price" {
+        return Ok(());
+    }
+
+    let (Some(symbol), Some(price)) = (said["symbol"].as_str(), price_in(&said)) else {
+        return Ok(());
+    };
+
+    let Some(seen) = watching.get_mut(symbol) else {
+        return Ok(());
+    };
+
+    let reach = seen.pair.reach(thickness);
+
+    for (band, near) in seen.watch.arrive(price) {
+        println!("{symbol} reached {}", band.price);
+
+        say::alert(client, &seen.pair, &band, near, News::Fresh, price, reach).await?;
+    }
+
+    Ok(())
+}
+
+/// The price out of a message, as a Decimal — never through a float.
+fn price_in(said: &serde_json::Value) -> Option<Decimal> {
+    said["price"]
+        .as_str()
+        .and_then(|text| text.parse().ok())
+        .or_else(|| {
+            said["price"]
+                .as_f64()
+                .and_then(|number| Decimal::try_from(number).ok())
+        })
+}

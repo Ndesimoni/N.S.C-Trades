@@ -14,6 +14,7 @@
 
 mod alert;
 mod band;
+mod close;
 mod error;
 mod naming;
 mod read;
@@ -23,8 +24,9 @@ mod write;
 #[cfg(test)]
 mod tests;
 
-pub use alert::{caption, gap, note};
+pub use alert::{News, caption, closed_caption, gap, note};
 pub use band::{Band, Timeframe};
+pub use close::{AtZone, gapped_in, how_deep, what_it_did};
 pub use error::LevelError;
 pub use naming::{digits_for, with_slash};
 pub use read::{Pair, Thickness, load_pair, load_thickness};

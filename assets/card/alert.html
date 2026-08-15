@@ -62,6 +62,9 @@
     white-space:nowrap;
   }
   .chip.is-inside{background:var(--brass);color:#fff;border-color:var(--brass)}
+  /* Found, not watched. Quieter than a live arrival on purpose — it is where
+     things STAND, not something that just happened. */
+  .chip.is-found{background:var(--mute);border-color:var(--mute)}
   .top__stamp{font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
 
 
@@ -171,9 +174,16 @@ function draw(){
   document.getElementById("which").innerHTML =
     `${alert.timeframe} level &nbsp;<b>${fmt(alert.level)}</b>`;
 
+  // THREE states, not two. "already" means nobody watched it happen — price
+  // may have walked in during Monday's silence, and calling that an arrival
+  // would put a Monday move on a Tuesday clock.
   const chip = document.getElementById("chip");
-  chip.textContent = inside ? "in the zone" : "approaching";
-  if(inside) chip.classList.add("is-inside");
+  chip.textContent = alert.already
+    ? (inside ? "already in the zone" : "already at the zone")
+    : (inside ? "in the zone"         : "approaching");
+
+  if(inside || alert.already) chip.classList.add("is-inside");
+  if(alert.already) chip.classList.add("is-found");
 
   document.getElementById("stamp").textContent = alert.stamp;
   document.getElementById("now").textContent   = fmt(alert.price);

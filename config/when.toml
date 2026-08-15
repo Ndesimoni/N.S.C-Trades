@@ -32,7 +32,14 @@ timezone = "America/New_York"
 #
 # THE HEARTBEAT STILL GOES OUT. A quiet Monday and a dead bot look exactly the
 # same, and after two days of nothing he cannot tell which he has.
-silent_days = ["monday"]
+#
+# SATURDAY AND SUNDAY ARE THE CLOSED MARKET, not a preference. It shuts Friday
+# 17:00 New York and opens Sunday 17:00 — and on the trading calendar above,
+# that closed stretch is exactly the sessions called Saturday and Sunday.
+#
+# Without them the watcher sits holding a socket open against a dead feed and
+# reporting nothing, which looks identical to a fault.
+silent_days = ["saturday", "sunday", "monday"]
 
 
 # ── The settle window ───────────────────────────────────────────────────────

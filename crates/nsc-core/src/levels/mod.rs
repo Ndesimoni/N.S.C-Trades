@@ -28,7 +28,7 @@ pub use alert::{News, caption, closed_caption, gap, happening, happening_words, 
 pub use band::{Band, Timeframe};
 pub use close::{Action, AtZone, action, gapped_in, how_deep, what_it_did};
 pub use error::LevelError;
-pub use naming::{digits_for, with_slash};
+pub use naming::{digits_for, unit_for, with_slash};
 pub use read::{Pair, Thickness, load_pair, load_thickness};
 pub use watch::{Nearness, Watch, nearness};
 pub use write::{known, save, undo};

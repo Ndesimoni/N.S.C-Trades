@@ -15,8 +15,9 @@ use serde_json::{Value, json};
 use super::facts::rounded;
 use super::{CardError, fill};
 use nsc_core::candle::Bar;
+use nsc_core::candle::timeframe_name;
+use nsc_core::levels::unit_for;
 use nsc_core::levels::{self, Action, AtZone, Band, Nearness, News, Pair};
-use nsc_core::settings::{timeframe_name, unit_for};
 
 /// The templates these cards are drawn from.
 const ALERT: &str = "alert.html";

@@ -8,19 +8,14 @@ WHAT THIS FOLDER IS FOR
 
       cargo run -p nsc-work-man --bin <name>
 
-  They are separate from the bot because they have a different shape. The bot
-  does one job and exits. These hold a line open, or answer one question and
-  stop.
+  They are separate from the bot because they have a different shape. THE BOT
+  IS `cargo run -p nsc-work-man` and it is the price watcher — that lives in
+  src/watch/, not here, because it is the product rather than a tool.
+
+  These answer one question and stop.
 
 
 THE FILES
-
-  watch/      THE PRICE WATCHER, and the closest thing here to the real bot.
-              Holds the price stream open for every pair that has a levels
-              file, and says what happens at his zones.
-
-              Rungs 1 and 2 of the ladder. Silence is the normal state, and
-              on a Monday it watches nothing at all. Has its own README.
 
   inbox/      Listens to Telegram and saves the levels he sends from his
               phone. Buttons rather than typing. Has its own README.

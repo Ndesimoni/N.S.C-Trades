@@ -1,4 +1,4 @@
-//! Watch price against the levels he drew, and say what happens at them.
+//! Loading, the calendar, the socket, and the two things that can happen.
 //!
 //! **Rungs 1 and 2 of the ladder.**
 //!
@@ -13,49 +13,20 @@
 //! Tuesday opens it says what it FOUND rather than pretending it just
 //! happened.
 
-mod bands;
-mod closes;
-mod prices;
-mod pulse;
-mod resumed;
-mod say;
-
 use std::collections::HashMap;
 use std::path::Path;
 
 use anyhow::{Context, Result};
+
+use super::{CALENDAR, PAIRS, THICKNESS, Watching, bands, closes, prices, pulse, resumed};
 use chrono::Utc;
 use futures_util::{SinkExt, StreamExt};
-use nsc_core::levels::{Pair, Thickness, Watch, known, load_pair, load_thickness};
+use nsc_core::levels::{Thickness, Watch, known, load_pair, load_thickness};
 use nsc_core::when::{self, Allowed, Rules};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 
-const PAIRS: &str = "config/pairs";
-const THICKNESS: &str = "config/levels.toml";
-const CALENDAR: &str = "config/when.toml";
-
-/// Where his own working goes. Alerts are not signals.
-pub const OWNER: i64 = 6089491075;
-
-/// Where cards are drawn, so the design can be opened in a browser.
-pub const PREVIEW: &str = "preview";
-
-/// How long to wait between requests.
-///
-/// **The limit is 8 a minute.** Seven and a half seconds is eight a minute
-/// exactly, and both the startup sizing and the candle-close checks go through
-/// it.
-pub const BREATHE: std::time::Duration = std::time::Duration::from_millis(7_500);
-
-/// Everything being watched for one pair.
-pub struct Watching {
-    pub pair: Pair,
-    pub watch: Watch,
-}
-
-#[tokio::main]
-async fn main() -> Result<()> {
+pub async fn run() -> Result<()> {
     dotenvy::dotenv().ok();
 
     let client = reqwest::Client::new();

@@ -39,3 +39,14 @@ pub(super) fn nightly_break(name: &str) -> i64 {
         0
     }
 }
+
+/// What one unit of this instrument is.
+///
+/// Gold is priced per troy ounce. A currency pair is priced in the second
+/// currency, one unit of the first.
+pub fn unit_for(symbol: &str) -> String {
+    match symbol {
+        "XAU/USD" | "XAG/USD" => "USD / troy oz".into(),
+        other => other.replace('/', " / "),
+    }
+}

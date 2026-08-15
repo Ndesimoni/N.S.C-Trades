@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 107 tests · clippy clean · it watches his levels and says when price arrives.**
+**Two crates · 108 tests · clippy clean · it watches his levels and says when price arrives.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -63,25 +63,24 @@ last version of this project cleared out on 14 August 2026.
 ```
 crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
                           is what stops it, not a rule anybody has to remember
-  candle/       one candle, and whether it has finished.  9 tests
+  candle/       one candle, whether it has finished, and
+                how long a timeframe is.                  9 tests
   levels/       his lines, the bands round them, the
                 watching, what a candle did at one, and
                 what to say about it.                    59 tests
   when/         whether the bot may speak at all, and
                 the heartbeat.                           15 tests
   error/        retry or give up — Answer and Knows.      3 tests
-  settings.rs   pair, timeframe, digits — step 2 replaces this with config
-  message.rs    the caption
 
 crates/nsc-work-man/      EVERYTHING THAT REACHES
   feed/         asking Twelve Data.                       5 tests
   telegram/     sending — words, pictures, media groups.  3 tests
   card/         filling a template, letting Chrome draw. 11 tests
   retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests
-  main.rs       the hourly chart card
+  main.rs       four lines — it runs the watcher
+  watch/        THE BOT. Rungs 1 and 2, the calendar, the heartbeat
   review.rs     one pair's levels, drawn
   bin/inbox/    levels arriving from his phone
-  bin/watch/    the price watcher — rungs 1 and 2
   bin/cards/    draw any card without waiting for the market
   bin/levels.rs draw a pair's bands without waiting for one to be touched
   bin/listen.rs the raw price stream, kept as proof it works

@@ -5,8 +5,6 @@ use chrono::{DateTime, NaiveDateTime, TimeDelta, Utc};
 use rust_decimal::Decimal;
 use serde::Deserialize;
 
-use crate::settings::INTERVAL_MINUTES;
-
 /// What Twelve Data sends back for a time series request.
 ///
 /// Only the part we need. Serde skips the `meta` block and anything else they
@@ -51,26 +49,18 @@ impl Bar {
 
     /// Has this candle finished?
     ///
-    /// **Asked of the clock, never of position in the list.**
+    /// **Asked of the clock, never of position in the list.** The newest candle
+    /// is usually the one still running — but not always. Ask at 16:00:02 and
+    /// you get either the 16:00 candle already open, if a price has landed, or
+    /// the 15:00 one now finished, if none has. Counting from the top would be
+    /// right most of the time and wrong the rest, which is worse than being
+    /// wrong always, because you stop checking.
     ///
-    /// The newest candle is usually the one still running — but not always.
-    /// Ask at 16:00:02 and you get either the 16:00 candle already open, if a
-    /// price has landed, or the 15:00 one now finished, if none has. Counting
-    /// from the top would be right most of the time and wrong the rest, which
-    /// is worse than being wrong always, because you stop checking.
-    pub fn is_finished(&self, now: DateTime<Utc>) -> Result<bool, CandleError> {
-        self.finished_by(now, INTERVAL_MINUTES)
-    }
-
-    /// The same question, for a candle of any length.
-    ///
-    /// **A 4-hour candle does not exist until its last hour has closed.** Three
-    /// 1-hour candles can close inside a zone and the 4-hour still has nothing
-    /// to say; the fourth close is when it does.
-    ///
-    /// Asking `is_finished` about a 4-hour candle would call it finished three
-    /// hours early — and reading a candle before it exists is the one mistake
-    /// in this project that makes results look *better* rather than broken.
+    /// **`minutes` is the timeframe's own length, and it is asked for rather
+    /// than assumed.** A 4-hour candle does not exist until its last hour has
+    /// closed: three 1-hour candles can close inside a zone with the 4-hour
+    /// still saying nothing. It was a constant sixty here once, which called
+    /// every 4-hour candle finished three hours early.
     pub fn finished_by(&self, now: DateTime<Utc>, minutes: i64) -> Result<bool, CandleError> {
         let one_step = TimeDelta::try_minutes(minutes).ok_or(CandleError::ImpossibleInterval)?;
 

@@ -11,3 +11,4 @@ pub mod feed;
 pub mod retry;
 pub mod review;
 pub mod telegram;
+pub mod watch;

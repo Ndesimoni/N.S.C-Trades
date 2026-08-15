@@ -10,10 +10,10 @@
 
 use std::collections::HashMap;
 
+use crate::{card, telegram};
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
 use nsc_core::when::{Rules, beat_due, beat_words, opened};
-use nsc_work_man::{card, telegram};
 
 use std::path::PathBuf;
 

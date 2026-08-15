@@ -28,7 +28,7 @@ fn a_candle_whose_hour_is_over_has_finished() {
     let bar = candle(17);
 
     assert!(
-        bar.is_finished(clock("2026-08-14T18:19:00Z"))
+        bar.finished_by(clock("2026-08-14T18:19:00Z"), 60)
             .expect("valid")
     );
 }
@@ -40,7 +40,7 @@ fn a_candle_still_running_has_not_finished() {
     let bar = candle(18);
 
     assert!(
-        !bar.is_finished(clock("2026-08-14T18:19:00Z"))
+        !bar.finished_by(clock("2026-08-14T18:19:00Z"), 60)
             .expect("valid")
     );
 }
@@ -53,12 +53,12 @@ fn a_candle_finishes_the_instant_its_hour_is_up_and_not_before() {
     let bar = candle(17);
 
     assert!(
-        !bar.is_finished(clock("2026-08-14T17:59:59Z"))
+        !bar.finished_by(clock("2026-08-14T17:59:59Z"), 60)
             .expect("valid"),
         "one second early"
     );
     assert!(
-        bar.is_finished(clock("2026-08-14T18:00:00Z"))
+        bar.finished_by(clock("2026-08-14T18:00:00Z"), 60)
             .expect("valid"),
         "on the dot"
     );
@@ -77,14 +77,16 @@ fn which_candle_is_newest_and_which_is_finished_are_different_questions() {
 
     // A feed that has already opened the new hour.
     let busy = [candle(18), candle(17)];
-    let first_finished = busy.iter().position(|b| b.is_finished(now).expect("valid"));
+    let first_finished = busy
+        .iter()
+        .position(|b| b.finished_by(now, 60).expect("valid"));
     assert_eq!(first_finished, Some(1), "the finished one is second");
 
     // A quiet feed that has not.
     let quiet = [candle(17), candle(16)];
     let first_finished = quiet
         .iter()
-        .position(|b| b.is_finished(now).expect("valid"));
+        .position(|b| b.finished_by(now, 60).expect("valid"));
     assert_eq!(first_finished, Some(0), "the finished one is first");
 }
 
@@ -165,7 +167,7 @@ fn a_four_hour_candle_waits_for_all_four_hours() {
 
     // And the hourly rule is unchanged — the same candle, asked as an hour.
     assert!(
-        bar.is_finished(at("2026-08-19T13:00:00Z"))
+        bar.finished_by(at("2026-08-19T13:00:00Z"), 60)
             .expect("a real stamp")
     );
 }

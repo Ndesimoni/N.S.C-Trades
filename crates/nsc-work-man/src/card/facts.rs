@@ -10,32 +10,36 @@ use rust_decimal::Decimal;
 use serde_json::{Value, json};
 
 use nsc_core::candle::Bar;
+use nsc_core::candle::{minutes_for, timeframe_name};
 use nsc_core::levels::Band;
-use nsc_core::settings::{INTERVAL_MINUTES, timeframe_name, unit_for};
 
 /// The one candle the card is about.
 pub fn one(bar: &Bar, symbol: &str, interval: &str, digits: u32) -> Result<Value, CardError> {
     // When it FINISHED, not when it opened. "20:00" is the moment this became
     // true, and that is the number a trader looks for.
     //
-    // A weekly or daily candle is stamped with a bare DATE, not a time — so
-    // `opened_at` refuses it rather than guessing, and there is nothing to add
-    // an hour to. The date is then the whole truth and gets shown as it is.
-    let stamp = match bar.opened_at() {
-        Ok(opened) => {
-            let one_step = TimeDelta::try_minutes(INTERVAL_MINUTES)
-                .unwrap_or_else(|| TimeDelta::try_minutes(60).unwrap_or_default());
+    // **HOW LONG THE CANDLE IS COMES FROM THE INTERVAL**, never from a
+    // constant. It was a hardcoded hour here, which would have stamped every
+    // 4-hour card an hour after its open instead of four — a picture with the
+    // wrong time on it is believed exactly like a wrong number.
+    //
+    // A weekly or daily candle is stamped with a bare DATE, not a time, and
+    // `minutes_for` refuses both because their length is not a fixed run of
+    // minutes. The date is then the whole truth and is shown as it is.
+    let stamp = match (bar.opened_at(), minutes_for(interval)) {
+        (Ok(opened), Some(minutes)) => {
+            let one_step = TimeDelta::try_minutes(minutes).unwrap_or_default();
 
             (opened + one_step).format("%-d %b · %H:%M UTC").to_string()
         }
-        Err(_) => bar.datetime.clone(),
+        _ => bar.datetime.clone(),
     };
 
     Ok(json!({
         "symbol":   symbol,
         "interval": timeframe_name(interval),
         "stamp":    stamp,
-        "unit":     unit_for(symbol),
+        "unit":     nsc_core::levels::unit_for(symbol),
         "digits":   digits,
         "open":     rounded(bar.open, digits),
         "high":     rounded(bar.high, digits),

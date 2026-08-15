@@ -7,11 +7,11 @@
 
 use std::path::PathBuf;
 
+use crate::{card, telegram};
 use anyhow::{Context, Result};
 use chrono::Utc;
 use nsc_core::candle::Bar;
 use nsc_core::levels::{self, Action, AtZone, Band, Nearness, News, Pair};
-use nsc_work_man::{card, telegram};
 use rust_decimal::Decimal;
 
 use super::{OWNER, PREVIEW};

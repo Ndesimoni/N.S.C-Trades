@@ -17,12 +17,12 @@
 
 use std::collections::HashMap;
 
+use crate::{feed, retry::keep_trying};
 use anyhow::{Context, Result};
 use chrono::Utc;
 use nsc_core::candle::Bar;
 use nsc_core::levels::{Band, Thickness, action, what_it_did};
 use nsc_core::when::Rules;
-use nsc_work_man::{feed, retry::keep_trying};
 use tokio::time::{Duration, Instant, sleep_until};
 
 use super::{BREATHE, Watching, pulse, say};

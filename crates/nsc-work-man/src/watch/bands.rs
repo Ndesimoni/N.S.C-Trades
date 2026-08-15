@@ -1,9 +1,9 @@
 //! Sizing a pair's bands, once, at startup.
 
+use crate::{feed, retry::keep_trying};
 use anyhow::{Context, Result};
 use nsc_core::candle::normal_candle;
 use nsc_core::levels::{Band, Pair, Thickness, Timeframe};
-use nsc_work_man::{feed, retry::keep_trying};
 
 use super::BREATHE;
 

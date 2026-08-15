@@ -13,5 +13,5 @@ mod error;
 #[cfg(test)]
 mod tests;
 
-pub use ask::{candles, for_pair};
+pub use ask::for_pair;
 pub use error::FeedError;

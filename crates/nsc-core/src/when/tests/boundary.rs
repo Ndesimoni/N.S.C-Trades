@@ -74,3 +74,38 @@ fn five_oclock_exactly_is_the_new_day() {
         "one second earlier it had not"
     );
 }
+
+// The market shuts Friday 17:00 New York and opens Sunday 17:00. On this
+// calendar that closed stretch is exactly the sessions called Saturday and
+// Sunday — so silencing those two silences the weekend, with no separate idea
+// of "the market is shut" anywhere in the code.
+#[test]
+fn the_closed_weekend_is_saturday_and_sunday() {
+    let rules = rules();
+
+    // Friday evening, just after the close. The market is now shut.
+    assert_eq!(
+        trading_day(utc("2026-08-21T22:00:00Z"), &rules),
+        Weekday::Sat
+    );
+    assert_eq!(
+        allowed(utc("2026-08-21T22:00:00Z"), &rules),
+        Allowed::Silence
+    );
+
+    // All the way through to Sunday evening, when it opens again as Monday.
+    assert_eq!(
+        allowed(utc("2026-08-22T14:00:00Z"), &rules),
+        Allowed::Silence
+    );
+    assert_eq!(
+        trading_day(utc("2026-08-23T22:00:00Z"), &rules),
+        Weekday::Mon
+    );
+
+    // And Friday itself, before the close, is still a working day.
+    assert_ne!(
+        allowed(utc("2026-08-21T14:00:00Z"), &rules),
+        Allowed::Silence
+    );
+}

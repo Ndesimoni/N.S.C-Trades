@@ -8,9 +8,11 @@
 
 mod bar;
 mod error;
+mod interval;
 
 #[cfg(test)]
 mod tests;
 
 pub use bar::{Bar, Series, normal_candle};
 pub use error::CandleError;
+pub use interval::{minutes_for, timeframe_name};

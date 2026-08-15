@@ -1,20 +1,18 @@
 //! The asking itself.
 
 use nsc_core::candle::Series;
-use nsc_core::settings::{HISTORY, INTERVAL, SYMBOL};
 
 use super::FeedError;
 
-/// Fetch the most recent candles.
+/// Fetch the most recent candles for a pair and timeframe.
 ///
 /// The newest comes back **first** — the list runs backwards through time —
 /// and the newest is usually the one still forming. Deciding which have
-/// finished is `Bar::is_finished`, and it asks the clock.
-pub async fn candles(client: &reqwest::Client) -> Result<Series, FeedError> {
-    for_pair(client, SYMBOL, INTERVAL, HISTORY).await
-}
-
-/// The same, for any pair and timeframe.
+/// finished is `Bar::finished_by`, and it asks the clock.
+///
+/// **There is no version of this that knows which pair to ask about.** There
+/// was, reading a hardcoded gold, and it made it possible to fetch the wrong
+/// instrument by simply forgetting to say which.
 pub async fn for_pair(
     client: &reqwest::Client,
     symbol: &str,

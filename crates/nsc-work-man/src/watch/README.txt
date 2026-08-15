@@ -2,9 +2,9 @@ watch/ — the price watcher
 ==========================
 
 
-WHAT THIS PROGRAM IS FOR
+WHAT THIS IS FOR
 
-      cargo run -p nsc-work-man --bin watch
+      cargo run -p nsc-work-man
 
   Holds the price line open for every pair that has a levels file, and says
   what happens at his zones.
@@ -18,10 +18,24 @@ WHAT THIS PROGRAM IS FOR
   all of them are nowhere near anything.
 
 
+WHY IT IS NOT A BINARY
+
+  It is library code, and src/main.rs is four lines that call run().
+
+  main.rs used to be a leftover from step one: fetch gold's last hourly candle,
+  draw a card, send it — EVERY TIME IT RAN, regardless of anything. That is the
+  exact opposite of the rule the whole design rests on, and it was what `cargo
+  run -p nsc-work-man` did.
+
+  The obvious command now runs the real thing.
+
+
 THE FILES
 
-  main.rs     Loading, the calendar, the socket, and the two things that can
-              happen joined together. Start here.
+  mod.rs      The front door, and the few things every file here shares.
+
+  run.rs      Loading, the calendar, the socket, and the two things that can
+              happen, joined together. Start here.
 
   bands.rs    Sizing a pair's bands, once, at startup.
 

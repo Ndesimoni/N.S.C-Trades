@@ -6,6 +6,7 @@ use anyhow::{Context, Result, bail};
 
 use super::{chrome, facts};
 use crate::candle::Bar;
+use crate::levels::Band;
 
 /// Where the templates live.
 const TEMPLATES: &str = "assets/card";
@@ -16,7 +17,17 @@ const TEMPLATES: &str = "assets/card";
 /// oldest first — the newest of them is the one the card describes.
 ///
 /// Gives back the absolute path of the picture.
-pub fn render(template: &str, bars: &[&Bar], digits: u32, out: &Path) -> Result<PathBuf> {
+/// `interval` is the timeframe these candles are, in the feed's own spelling —
+/// `1h`, `1week`. The card says it out loud, so it has to be told rather than
+/// assume: the levels chart is weekly and spent a render claiming to be hourly.
+pub fn render(
+    template: &str,
+    bars: &[&Bar],
+    bands: &[Band],
+    interval: &str,
+    digits: u32,
+    out: &Path,
+) -> Result<PathBuf> {
     let Some(latest) = bars.last() else {
         bail!("there are no candles to draw");
     };
@@ -29,8 +40,12 @@ pub fn render(template: &str, bars: &[&Bar], digits: u32, out: &Path) -> Result<
         .with_context(|| format!("{template} has no --card-height line in its CSS"))?;
 
     let filled = html
-        .replace("/*__CANDLE__*/", &facts::one(latest, digits)?.to_string())
-        .replace("/*__BARS__*/", &facts::all(bars, digits).to_string());
+        .replace(
+            "/*__CANDLE__*/",
+            &facts::one(latest, interval, digits)?.to_string(),
+        )
+        .replace("/*__BARS__*/", &facts::all(bars, digits).to_string())
+        .replace("/*__LEVELS__*/", &facts::levels(bands, digits).to_string());
 
     // The page is written next to the picture, not into a temp folder. Open it
     // in a browser and the card is there with real numbers in it — edit the

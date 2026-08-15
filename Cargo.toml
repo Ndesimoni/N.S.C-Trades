@@ -36,6 +36,10 @@ futures-util = "=0.3.31"
 serde      = { version = "1", features = ["derive"] }
 serde_json = "1"
 
+# Reading config/. His levels and the pair settings live in TOML because a
+# trader should be able to open them, not because a program finds it easy.
+toml = "0.8"
+
 # ── Times. Everything in this project is UTC. ──
 chrono = { version = "0.4", features = ["serde"] }
 

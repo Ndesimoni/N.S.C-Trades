@@ -21,14 +21,8 @@
 use anyhow::{Result, bail};
 use chrono::Utc;
 
-use candle::Bar;
-
-mod candle;
-mod card;
-mod feed;
-mod message;
-mod settings;
-mod telegram;
+use nsc_work_man::candle::Bar;
+use nsc_work_man::{card, feed, message, settings, telegram};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -75,12 +69,21 @@ async fn main() -> Result<()> {
     // so docs/visuals.md can point at them and the last card is always there
     // to look at without running anything.
     let chart_card = std::path::Path::new("preview").join("chart.png");
-    card::render("chart.html", &oldest_first, settings::DIGITS, &chart_card)?;
+    card::render(
+        "chart.html",
+        &oldest_first,
+        &[],
+        settings::INTERVAL,
+        settings::DIGITS,
+        &chart_card,
+    )?;
 
     let readout_card = std::path::Path::new("preview").join("readout.png");
     card::render(
         "readout.html",
         &oldest_first,
+        &[],
+        settings::INTERVAL,
         settings::DIGITS,
         &readout_card,
     )?;

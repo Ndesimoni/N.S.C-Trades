@@ -1,0 +1,48 @@
+# ── Gold ────────────────────────────────────────────────────────────────────
+#
+# The levels he drew, and the few facts about the pair itself.
+#
+# THIS FILE IS WHY THE PAIR IS WATCHED. Add a file, the pair gets pulled.
+# Delete it, it stops. There is no second list to keep in sync, and a pair with
+# no levels is a pair the bot has nothing to say about anyway.
+# ───────────────────────────────────────────────────────────────────────────
+
+symbol = "XAU/USD"
+
+# Gold is quoted to two decimals. The feed sends five, which is the raw feed
+# rather than anything a chart shows.
+digits = 2
+
+# It shuts 17:00 to 18:00 New York every weekday. Measured in a real export:
+# the file stops at 20:45 UTC and restarts at 22:00. Spot forex is 0.
+nightly_break_minutes = 60
+
+
+# ── The levels ──────────────────────────────────────────────────────────────
+#
+# ONE PRICE EACH. He draws a line; the band is worked out from it, using the
+# thicknesses in config/levels.toml — 0.35 of a weekly candle, 0.46 of a daily.
+#
+# So a weekly level at 4094 becomes a band from about 4056 to 4132, which is
+# what he drew by hand before.
+# ───────────────────────────────────────────────────────────────────────────
+
+# Read exactly off his TradingView chart on 15 August 2026 — these three had
+# their band edges shown on the price axis, so they are measured rather than
+# estimated from the picture.
+[[level]]
+timeframe = "weekly"
+price = "4094"
+
+[[level]]
+timeframe = "weekly"
+price = "3344"
+
+[[level]]
+timeframe = "daily"
+price = "2984"
+
+# THE REST ARE STILL MISSING. Five more are visible on his chart — roughly
+# 5000, 4530 and 2700 in black, and 4270 in blue — but those numbers came from
+# measuring pixels, which this project has a rule against. They go in when he
+# reads them off and sends them.

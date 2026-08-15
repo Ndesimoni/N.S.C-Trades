@@ -11,4 +11,4 @@ mod bar;
 #[cfg(test)]
 mod tests;
 
-pub use bar::{Bar, Series};
+pub use bar::{Bar, Series, normal_candle};

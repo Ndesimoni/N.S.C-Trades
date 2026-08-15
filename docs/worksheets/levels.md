@@ -15,13 +15,19 @@ inside that band.
 
 | Timeframe | Colour | Thickness | Measured? |
 |---|---|---|---|
-| Weekly | black | **0.35** of a weekly candle | ✅ twice |
+| Weekly | black¹ | **0.35** of a weekly candle | ✅ twice |
 | Daily | blue | **0.46** of a daily candle | ✅ once |
 | 4-hour | yellow | 0.55 of a 4-hour candle | ❌ a guess |
 
 **The same on every pair.** Whatever he sends, those are the thicknesses.
 
 They live in `config/levels.toml`.
+
+¹ **Black on his chart, white on the card.** His TradingView is white, so black
+is the heaviest ink available and that is why the weekly gets it. The card is
+dark, where black disappears entirely — so it becomes white, which is the
+heaviest mark on *that* ground. Same role, other background. Blue and yellow
+read on either and are unchanged.
 
 ## Why a share of a candle and not a price
 

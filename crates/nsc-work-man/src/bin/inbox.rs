@@ -90,7 +90,12 @@ async fn main() -> Result<()> {
 }
 
 /// Works out what he meant and answers.
-async fn handle(client: &reqwest::Client, token: &str, text: &str, adding: &mut Adding) -> Result<()> {
+async fn handle(
+    client: &reqwest::Client,
+    token: &str,
+    text: &str,
+    adding: &mut Adding,
+) -> Result<()> {
     // Start again.
     if text == "/level" {
         *adding = Adding::default();
@@ -108,7 +113,10 @@ async fn handle(client: &reqwest::Client, token: &str, text: &str, adding: &mut 
     }
 
     // A timeframe — but only once a pair is chosen.
-    if let Some(found) = TIMEFRAMES.iter().find(|known| known.eq_ignore_ascii_case(text)) {
+    if let Some(found) = TIMEFRAMES
+        .iter()
+        .find(|known| known.eq_ignore_ascii_case(text))
+    {
         let Some(pair) = adding.pair.clone() else {
             return say(client, token, "Pick a pair first — send /level", None).await;
         };
@@ -119,12 +127,18 @@ async fn handle(client: &reqwest::Client, token: &str, text: &str, adding: &mut 
         return say(client, token, &words, None).await;
     }
 
-       // Prices. One, or a whole set on separate lines.
+    // Prices. One, or a whole set on separate lines.
     let prices = prices_in(text);
 
     if !prices.is_empty() {
         let (Some(pair), Some(timeframe)) = (&adding.pair, &adding.timeframe) else {
-            return say(client, token, "Send /level first, so I know what those are", None).await;
+            return say(
+                client,
+                token,
+                "Send /level first, so I know what those are",
+                None,
+            )
+            .await;
         };
 
         let listed: Vec<String> = prices.iter().map(|price| price.to_string()).collect();
@@ -141,7 +155,6 @@ async fn handle(client: &reqwest::Client, token: &str, text: &str, adding: &mut 
         return say(client, token, &words, Some(json!([TIMEFRAMES]))).await;
     }
 
-
     say(client, token, "Send /level to add a level", None).await
 }
 
@@ -149,7 +162,12 @@ async fn handle(client: &reqwest::Client, token: &str, text: &str, adding: &mut 
 ///
 /// `keyboard` is a list of rows, each row a list of button words. Passing
 /// nothing takes the buttons away and gives him his own keyboard back.
-async fn say(client: &reqwest::Client, token: &str, text: &str, keyboard: Option<Value>) -> Result<()> {
+async fn say(
+    client: &reqwest::Client,
+    token: &str,
+    text: &str,
+    keyboard: Option<Value>,
+) -> Result<()> {
     let markup = match keyboard {
         Some(rows) => json!({
             "keyboard": rows,
@@ -183,7 +201,6 @@ async fn say(client: &reqwest::Client, token: &str, text: &str, keyboard: Option
 
     Ok(())
 }
-
 
 /// Every number in the message.
 ///

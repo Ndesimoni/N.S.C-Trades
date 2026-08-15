@@ -10,21 +10,31 @@ use rust_decimal::Decimal;
 use serde_json::{Value, json};
 
 use crate::candle::Bar;
-use crate::settings::{INTERVAL, INTERVAL_MINUTES, SYMBOL, timeframe_name, unit_for};
+use crate::levels::Band;
+use crate::settings::{INTERVAL_MINUTES, SYMBOL, timeframe_name, unit_for};
 
 /// The one candle the card is about.
-pub fn one(bar: &Bar, digits: u32) -> Result<Value> {
-    let one_step = TimeDelta::try_minutes(INTERVAL_MINUTES)
-        .context("the interval is not a length of time chrono can hold")?;
-
+pub fn one(bar: &Bar, interval: &str, digits: u32) -> Result<Value> {
     // When it FINISHED, not when it opened. "20:00" is the moment this became
     // true, and that is the number a trader looks for.
-    let closed_at = bar.opened_at()? + one_step;
+    //
+    // A weekly or daily candle is stamped with a bare DATE, not a time — so
+    // `opened_at` refuses it rather than guessing, and there is nothing to add
+    // an hour to. The date is then the whole truth and gets shown as it is.
+    let stamp = match bar.opened_at() {
+        Ok(opened) => {
+            let one_step = TimeDelta::try_minutes(INTERVAL_MINUTES)
+                .context("the interval is not a length of time chrono can hold")?;
+
+            (opened + one_step).format("%-d %b · %H:%M UTC").to_string()
+        }
+        Err(_) => bar.datetime.clone(),
+    };
 
     Ok(json!({
         "symbol":   SYMBOL,
-        "interval": timeframe_name(INTERVAL),
-        "stamp":    closed_at.format("%-d %b · %H:%M UTC").to_string(),
+        "interval": timeframe_name(interval),
+        "stamp":    stamp,
         "unit":     unit_for(SYMBOL),
         "digits":   digits,
         "open":     rounded(bar.open, digits),
@@ -66,4 +76,26 @@ fn rounded(value: Decimal, digits: u32) -> f64 {
         .to_string()
         .parse::<f64>()
         .unwrap_or_default()
+}
+
+/// The levels he drew, as bands the template can draw.
+///
+/// **His colours are a specification, not a design choice** — black weekly,
+/// blue daily, yellow 4-hour. Drawing them all one colour was done once
+/// already and the chart looked nothing like his.
+pub fn levels(bands: &[Band], digits: u32) -> Value {
+    let rows: Vec<Value> = bands
+        .iter()
+        .map(|band| {
+            json!({
+                "timeframe": band.timeframe.name(),
+                "colour":    band.timeframe.colour(),
+                "price":     rounded(band.price, digits),
+                "top":       rounded(band.top, digits),
+                "bottom":    rounded(band.bottom, digits),
+            })
+        })
+        .collect();
+
+    json!(rows)
 }

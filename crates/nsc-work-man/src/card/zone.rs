@@ -59,13 +59,14 @@ pub fn closed(
     did: AtZone,
     was: Action,
     interval: &str,
+    forming: bool,
     out: &Path,
 ) -> Result<PathBuf, CardError> {
     fill::draw(
         CLOSE,
         &[(
             "/*__CLOSE__*/",
-            facts::closed(pair, band, bar, did, was, interval, &bar.datetime).to_string(),
+            facts::closed(pair, band, bar, did, was, interval, &bar.datetime, forming).to_string(),
         )],
         out,
     )

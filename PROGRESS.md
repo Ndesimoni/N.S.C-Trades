@@ -266,6 +266,14 @@ somewhere near one — so "price is at the level" means price is inside a band.
       speaks. `Bar::finished_by` is the one place that decides
 - [x] **Rung 2 costs nothing when nothing is happening.** Only pairs with
       price at a zone are ever fetched
+- [x] **The twenty-minute look.** A candle at a zone is spoken about twice —
+      about a third of the way in, and again when it finishes. `look_in_minutes`
+      in `config/when.toml`, scaled per timeframe
+- [x] **It is the only place that reads an unfinished candle**, and the card
+      says so on its face: a hollow dashed chip reading *so far*, the candle
+      drawn hollow, and a footer saying *not a close, and never a signal*
+- [x] **It costs no extra requests** — the reply already carries the finished
+      candle and the running one
 - [x] **There is no "a candle opened in the zone" message.** Spot forex runs
       without a break, so an open *is* the last close — it would repeat what
       arrived a minute earlier. Only a **gap** into a zone carries anything

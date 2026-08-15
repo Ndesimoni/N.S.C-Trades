@@ -51,9 +51,20 @@ THE FILES
                 numbers in a message have to be compared in his head; a band
                 with a dot on it does not.
 
-  close.html    A CANDLE THAT TOUCHED ONE OF HIS ZONES HAS FINISHED. The chip
-                names WHAT IT DID — kissed it, pushed back, closed inside,
-                cut through — and the drawing shows it against the band.
+  close.html    A CANDLE AT ONE OF HIS ZONES. The chip names WHAT IT DID —
+                kissed it, pushed back, closed inside, cut through — and the
+                drawing shows it against the band.
+
+                IT DRAWS TWO DIFFERENT THINGS: a candle that has finished, and
+                one still running twenty minutes in. The second is the only
+                place in this project that reads a candle early, so the card
+                cannot be allowed to look final:
+
+                    the chip goes hollow and dashed, and reads "so far"
+                    the candle body is drawn HOLLOW, like an unfilled order
+                    the footer says "not a close, and never a signal"
+
+                Where it ENDS is the whole point, and it has not ended.
 
   heartbeat.html  THE ONLY CARD THAT SAYS NOTHING IS WRONG. Sent on a day
                 nothing else was, at 07:00 UTC. Every pair, its levels as

@@ -60,6 +60,12 @@
   }
   .chip.is-out{background:var(--dir);border-color:var(--dir)}
   .chip.is-miss{background:var(--mute);border-color:var(--mute)}
+  /* STILL RUNNING. Hollow, and in the quiet grey — nothing on this card is
+     settled, and it must not carry the weight of a finished one. */
+  .chip.is-forming{
+    background:transparent;border-color:var(--mute);color:var(--mute);
+    border-style:dashed;
+  }
   .top__stamp{font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
 
 
@@ -115,6 +121,9 @@
     font-family:var(--data);font-size:11px;letter-spacing:.04em;fill:var(--mute);
   }
   .zone .candle{fill:var(--dir);stroke:rgba(0,0,0,.2);stroke-width:1}
+  /* A candle that has not finished is drawn hollow, the way an unfilled order
+     is. The shape is honest; the fill would claim it is done. */
+  .zone .candle.is-forming{fill:none;stroke:var(--dir);stroke-width:2.5}
   .zone .lead{stroke:var(--lead);stroke-width:1.2;fill:none}
   .zone .lead.is-close{stroke:var(--brass);stroke-width:1.6;opacity:.85}
   .zone text{font-family:var(--data);font-size:13px;fill:var(--ink);font-variant-numeric:tabular-nums}
@@ -165,7 +174,7 @@
 </section>
 
 <footer class="foot">
-  <span>A close, not a signal — no entry, no stop, no target</span>
+  <span id="what-it-is">A close, not a signal — no entry, no stop, no target</span>
   <span>Reached <b id="deep"></b> into the zone</span>
 </footer>
 
@@ -189,13 +198,24 @@ function draw(){
   // THE ACTION, not just where it ended. A wick that grazed the edge and a
   // candle that drove a third of the way in both "closed above".
   const chip = document.getElementById("chip");
-  chip.textContent = close.action;
-  if(close.did !== "inside") chip.classList.add("is-out");
-  if(close.did === "missed") chip.classList.add("is-miss");
+  chip.textContent = close.forming ? `so far · ${close.action}` : close.action;
+
+  if(close.forming){
+    chip.classList.add("is-forming");
+  } else {
+    if(close.did !== "inside") chip.classList.add("is-out");
+    if(close.did === "missed") chip.classList.add("is-miss");
+  }
 
   document.getElementById("stamp").textContent = close.stamp;
-  document.getElementById("what").textContent = close.interval + " close";
-  document.getElementById("say").textContent  = close.note;
+  document.getElementById("what").textContent =
+    close.forming ? `${close.interval} candle · still running` : `${close.interval} close`;
+  document.getElementById("say").textContent = close.note;
+
+  if(close.forming){
+    document.getElementById("what-it-is").textContent =
+      "Still running — not a close, and never a signal";
+  }
 
   document.getElementById("c").textContent = fmt(close.close);
   document.getElementById("o").textContent = fmt(close.open);
@@ -297,7 +317,8 @@ function zone(){
     add("line", {class:"wick is-in", x1:CANDLE_X, y1:y(inTop), x2:CANDLE_X, y2:y(inBot)});
 
   const bodyTop = Math.min(y(close.open), y(close.close));
-  add("rect", {class:"candle", x:CANDLE_X - 13, y:bodyTop, width:26,
+  add("rect", {class:"candle" + (close.forming ? " is-forming" : ""),
+               x:CANDLE_X - 13, y:bodyTop, width:26,
                height:Math.max(Math.abs(y(close.close) - y(close.open)), 3), rx:2});
 
   const rows = [

@@ -25,7 +25,7 @@ THE FILES
 
   bands.rs    Sizing a pair's bands, once, at startup.
 
-  closes.rs   Rung 2 — asking what the last finished candle did at a zone.
+  closes.rs   Rung 2 — what a candle at a zone is doing, and what it did.
 
   pulse.rs    The heartbeat. Remembers when anything was last said, so a busy
               day stays quiet.
@@ -100,6 +100,36 @@ WHAT IT COSTS
   800.
 
   Every request goes through a 7.5-second gap, which is 8 a minute exactly.
+
+
+THE TWENTY-MINUTE LOOK
+
+  A candle at one of his zones gets spoken about TWICE:
+
+      about a third of the way in    what it has done SO FAR
+      when it finishes               what it did
+
+  The first is the only place in this project that reads a candle before it
+  has finished. It is allowed for the same reason the price alert is — it is a
+  heads-up and nothing more — and the card says so on its own face. IT MUST
+  NEVER REACH A STRATEGY.
+
+  NOT ON THE OPEN. Spot forex runs Sunday to Friday without a break, so a
+  candle's open IS the last one's close. That message would repeat what
+  arrived a minute earlier.
+
+  ONE REQUEST SERVES BOTH. The reply already carries the candle that just
+  finished and the one still running, so the look costs nothing on top.
+
+  The two are remembered apart. Keyed together, the look would silence the
+  close that follows it — the one that actually matters.
+
+  `look_in_minutes` in config/when.toml is set for the 1-hour and scaled for
+  the rest: twenty minutes into an hour is eighty into a 4-hour.
+
+  The check runs every ten minutes, so the look lands somewhere between twenty
+  and thirty minutes in. Close enough for a heads-up; nothing decides anything
+  on it.
 
 
 IT NEVER WORKS OUT WHEN A CANDLE CLOSES

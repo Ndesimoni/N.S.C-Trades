@@ -20,7 +20,8 @@ use std::collections::HashMap;
 use anyhow::{Context, Result};
 use chrono::Utc;
 use nsc_core::candle::Bar;
-use nsc_core::levels::{Thickness, action, what_it_did};
+use nsc_core::levels::{Band, Thickness, action, what_it_did};
+use nsc_core::when::Rules;
 use nsc_work_man::{feed, retry::keep_trying};
 use tokio::time::{Duration, Instant, sleep_until};
 
@@ -38,10 +39,23 @@ const FEW: usize = 3;
 /// feed's; every ten minutes just asks.
 const LOOK_EVERY: Duration = Duration::from_secs(600);
 
+/// Which of the two things was said about a candle.
+///
+/// A candle gets spoken about **twice** — once part-way through, once when it
+/// finishes — and they must be remembered apart, or the look silences the
+/// close that follows it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum Kind {
+    /// Part-way through, while it was still running.
+    SoFar,
+    /// Finished.
+    Closed,
+}
+
 pub struct Closes {
-    /// The last candle already reported, per pair, per interval. Keyed by the
-    /// feed's own stamp, so nothing is reported twice.
-    told: HashMap<(String, &'static str), String>,
+    /// The last candle already reported, per pair, per interval, per kind.
+    /// Keyed by the feed's own stamp, so nothing is reported twice.
+    told: HashMap<(String, &'static str, Kind), String>,
     next: Instant,
 }
 
@@ -76,6 +90,7 @@ impl Closes {
         client: &reqwest::Client,
         watching: &HashMap<String, Watching>,
         thickness: Thickness,
+        calendar: &Rules,
         pulse: &mut pulse::Pulse,
     ) -> Result<()> {
         for seen in watching.values() {
@@ -85,63 +100,111 @@ impl Closes {
             }
 
             for (interval, minutes) in REPORT_ON {
-                let Some(bar) =
-                    newest_finished(client, &seen.pair.symbol, interval, minutes).await?
-                else {
-                    continue;
-                };
+                // ONE REQUEST SERVES BOTH. The reply carries the candle that
+                // has just finished and the one still running, so the
+                // mid-candle look costs nothing on top of the close.
+                let bars = fetch(client, &seen.pair.symbol, interval).await?;
+                let now = Utc::now();
 
-                let key = (seen.pair.symbol.clone(), interval);
-                if self.told.get(&key) == Some(&bar.datetime) {
-                    continue;
-                }
-                self.told.insert(key, bar.datetime.clone());
+                let finished = bars
+                    .iter()
+                    .find(|bar| bar.finished_by(now, minutes).unwrap_or(false));
 
-                for band in &live {
-                    let did = what_it_did(band, &bar);
-                    if !did.worth_saying() {
-                        continue;
+                if let Some(bar) = finished {
+                    let key = (seen.pair.symbol.clone(), interval, Kind::Closed);
+                    if self.fresh(key, &bar.datetime) {
+                        self.report(client, seen, &live, bar, thickness, interval, false, pulse)
+                            .await?;
                     }
+                }
 
-                    let was = action(band, &bar, thickness.kiss_depth);
+                // ── the look into a candle still running ──
+                //
+                // THE ONE PLACE IN THIS PROJECT THAT READS AN UNFINISHED
+                // CANDLE. It is allowed here for the reason the price alert is
+                // allowed: it is a heads-up and nothing more, and the card says
+                // so on its face. IT MUST NEVER REACH A STRATEGY.
+                //
+                // Not on the open, either. Spot forex runs without a break so
+                // an open IS the last close — that message would repeat what
+                // arrived a minute earlier.
+                let waited = minutes * calendar.look_in_minutes / 60;
 
-                    println!(
-                        "{} {interval} candle {} — {was:?} at {}",
-                        seen.pair.symbol, bar.datetime, band.price
-                    );
+                let running = bars.iter().find(|bar| {
+                    !bar.finished_by(now, minutes).unwrap_or(true)
+                        && bar.finished_by(now, waited).unwrap_or(false)
+                });
 
-                    say::closed(client, &seen.pair, band, &bar, did, was, interval).await?;
-                    pulse.spoke(Utc::now());
+                if let Some(bar) = running {
+                    let key = (seen.pair.symbol.clone(), interval, Kind::SoFar);
+                    if self.fresh(key, &bar.datetime) {
+                        self.report(client, seen, &live, bar, thickness, interval, true, pulse)
+                            .await?;
+                    }
                 }
             }
         }
 
         Ok(())
     }
+
+    /// Have we already spoken about this candle, in this way?
+    fn fresh(&mut self, key: (String, &'static str, Kind), stamp: &str) -> bool {
+        if self.told.get(&key).is_some_and(|told| told == stamp) {
+            return false;
+        }
+
+        self.told.insert(key, stamp.to_string());
+        true
+    }
+
+    /// Says what one candle did at every zone price is at.
+    #[allow(clippy::too_many_arguments)]
+    async fn report(
+        &self,
+        client: &reqwest::Client,
+        seen: &Watching,
+        live: &[Band],
+        bar: &Bar,
+        thickness: Thickness,
+        interval: &'static str,
+        forming: bool,
+        pulse: &mut pulse::Pulse,
+    ) -> Result<()> {
+        for band in live {
+            let did = what_it_did(band, bar);
+            if !did.worth_saying() {
+                continue;
+            }
+
+            let was = action(band, bar, thickness.kiss_depth);
+            let what = if forming { "so far" } else { "closed" };
+
+            println!(
+                "{} {interval} candle {} — {what} {was:?} at {}",
+                seen.pair.symbol, bar.datetime, band.price
+            );
+
+            say::closed(client, &seen.pair, band, bar, did, was, interval, forming).await?;
+            pulse.spoke(Utc::now());
+        }
+
+        Ok(())
+    }
 }
 
-/// The newest candle that has actually finished.
+/// The last few candles, newest first.
 ///
-/// **Asked of the clock, never of position in the list.** The newest one is
-/// usually still running, but not always — ask at 16:00:02 and you get either
-/// the 16:00 candle already open, if a price has landed, or the 15:00 one now
-/// finished, if none has.
-async fn newest_finished(
-    client: &reqwest::Client,
-    symbol: &str,
-    interval: &str,
-    minutes: i64,
-) -> Result<Option<Bar>> {
+/// **Which one has finished is asked of the clock, never of position in the
+/// list.** The newest is usually still running, but not always — ask at
+/// 16:00:02 and you get either the 16:00 candle already open, if a price has
+/// landed, or the 15:00 one now finished, if none has.
+async fn fetch(client: &reqwest::Client, symbol: &str, interval: &str) -> Result<Vec<Bar>> {
     let series = keep_trying(3, || feed::for_pair(client, symbol, interval, FEW))
         .await
         .with_context(|| format!("could not get the {interval} candle for {symbol}"))?;
 
     tokio::time::sleep(BREATHE).await;
 
-    let now = Utc::now();
-
-    Ok(series
-        .values
-        .into_iter()
-        .find(|bar| bar.finished_by(now, minutes).unwrap_or(false)))
+    Ok(series.values)
 }

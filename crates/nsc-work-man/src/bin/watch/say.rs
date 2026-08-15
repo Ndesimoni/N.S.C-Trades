@@ -42,7 +42,11 @@ pub async fn alert(
     .context("could not send the alert")
 }
 
-/// Rung 2 — a candle that touched one of his zones has finished.
+/// Rung 2 — a candle that touched one of his zones.
+///
+/// `forming` means it has NOT finished — the twenty-minute look, which is the
+/// one place in this project that reads a candle early.
+#[allow(clippy::too_many_arguments)]
 pub async fn closed(
     client: &reqwest::Client,
     pair: &Pair,
@@ -51,17 +55,19 @@ pub async fn closed(
     did: AtZone,
     was: Action,
     interval: &str,
+    forming: bool,
 ) -> Result<()> {
-    let out = card_for(pair, &format!("close-{interval}"));
+    let what = if forming { "sofar" } else { "close" };
+    let out = card_for(pair, &format!("{what}-{interval}"));
 
-    let picture = card::closed(pair, band, bar, did, was, interval, &out)
+    let picture = card::closed(pair, band, bar, did, was, interval, forming, &out)
         .with_context(|| format!("could not draw the close for {}", pair.symbol))?;
 
     telegram::send_to(
         client,
         &OWNER.to_string(),
         &[&picture],
-        &levels::closed_caption(pair, band, bar, did, was, interval),
+        &levels::closed_caption(pair, band, bar, did, was, interval, forming),
     )
     .await
     .context("could not send the close")

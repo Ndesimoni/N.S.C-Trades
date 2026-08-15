@@ -160,7 +160,7 @@ async fn listen(
                     continue;
                 }
 
-                closes.look(client, watching, thickness, &mut pulse).await?;
+                closes.look(client, watching, thickness, calendar, &mut pulse).await?;
             }
         }
     }

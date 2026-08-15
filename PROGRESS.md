@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 100 tests · clippy clean · it watches his levels and says when price arrives.**
+**Two crates · 105 tests · clippy clean · it watches his levels and says when price arrives.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -67,7 +67,8 @@ crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
   levels/       his lines, the bands round them, the
                 watching, what a candle did at one, and
                 what to say about it.                    59 tests
-  when/         whether the bot may speak at all.        10 tests
+  when/         whether the bot may speak at all, and
+                the heartbeat.                           15 tests
   error/        retry or give up — Answer and Knows.      3 tests
   settings.rs   pair, timeframe, digits — step 2 replaces this with config
   message.rs    the caption
@@ -175,7 +176,7 @@ the one that mattered.
 | **1** | price touches a level he drew | an alert **card** — the zone drawn, with price on it. May fire on a candle still forming; it is only a heads-up |
 | **2** | a candle that **touched** the zone finishes | a close card — the candle drawn inside the band. **Once per candle**, not once per visit: while price is at a zone he wants to watch it candle by candle |
 | **3** | it closed there **and** a strategy matched | the chart and the candlestick, with entry, stop, target and the sentence |
-| **·** | morning and evening | a heartbeat — still running, pairs watched, zones touched, signals sent |
+| **·** | 07:00 UTC, **only if nothing else was sent** | a heartbeat — one line, still running, pairs and zones watched. On a busy day it never fires |
 
 **Rung 2 is the point.** Price arriving at a level says nothing; it may cut
 straight through. The *close* says whether it was a rejection. So rungs 2 and 3
@@ -285,6 +286,12 @@ somewhere near one — so "price is at the level" means price is inside a band.
 - [x] **Friday reports but opens nothing new**
 - [x] **Nothing in `when/` reads the clock** — `now` is handed in, which is
       what lets the backtester run these exact rules over 2019
+- [x] **The heartbeat is conditional.** One line at 07:00 UTC, and only on a
+      day that said nothing else — on a busy day it never fires. Before London
+      opens, because knowing the bot works *before* the hours he trades beats
+      a post-mortem after them
+- [x] **It fires on Monday too**, the one message that does. Monday watches
+      nothing, so without it a quiet Monday and a dead bot look identical
 - [x] **Tuesday says what it FOUND**, not what arrived. Price can walk into a
       zone during Monday's silence, and a card saying "arrived" would put a
       Monday move on a Tuesday clock

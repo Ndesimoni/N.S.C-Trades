@@ -13,7 +13,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use nsc_core::levels::{News, Thickness, nearness};
 
-use super::{Watching, say};
+use super::{Watching, pulse, say};
 
 /// Whether this session has been greeted yet.
 pub enum Awake {
@@ -35,6 +35,7 @@ impl Awake {
         client: &reqwest::Client,
         watching: &HashMap<String, Watching>,
         thickness: Thickness,
+        pulse: &mut pulse::Pulse,
     ) -> Result<()> {
         if matches!(self, Awake::Greeted) {
             return Ok(());
@@ -62,6 +63,8 @@ impl Awake {
                     reach,
                 )
                 .await?;
+
+                pulse.spoke(chrono::Utc::now());
             }
         }
 

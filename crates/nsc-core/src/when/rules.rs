@@ -36,6 +36,19 @@ pub struct Rules {
     /// How far into a forming candle before it may say what it is doing.
     #[serde(default = "twenty")]
     pub look_in_minutes: i64,
+
+    /// When the heartbeat goes out, **in UTC**.
+    ///
+    /// Not on the New York clock like [`Rules::day_ends`]. That one is a market
+    /// boundary; this is about when he looks at his phone, and it does not
+    /// move with the seasons.
+    #[serde(default = "seven")]
+    pub heartbeat_at: NaiveTime,
+}
+
+/// What `heartbeat_at` is when a file predates it. Before London opens.
+fn seven() -> NaiveTime {
+    NaiveTime::from_hms_opt(7, 0, 0).unwrap_or_default()
 }
 
 fn four() -> i64 {

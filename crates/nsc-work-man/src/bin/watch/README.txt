@@ -27,6 +27,9 @@ THE FILES
 
   closes.rs   Rung 2 — asking what the last finished candle did at a zone.
 
+  pulse.rs    The heartbeat. Remembers when anything was last said, so a busy
+              day stays quiet.
+
   say.rs      Drawing a card and sending it.
 
   README.txt  This file.
@@ -43,6 +46,20 @@ THE TWO RUNGS FIRE ON DIFFERENT RULES, ON PURPOSE
   once and left guessing. Ten hours in a zone is ten cards.
 
   Silence resumes the moment a candle does not touch the zone.
+
+
+THE ONE MESSAGE THAT STILL GOES OUT ON A MONDAY
+
+  The heartbeat. One line at 07:00 UTC, and only on a day that said nothing
+  else.
+
+  Monday watches nothing, so without it a quiet Monday and a dead bot look
+  exactly the same.
+
+  It is checked on the same ten-minute tick as the closes — and the tick is
+  pushed forward BEFORE anything decides to skip the check. Left until after
+  the work, a Monday leaves the deadline in the past and the loop spins as
+  fast as the processor will go.
 
 
 IT WATCHES NOTHING ON A MONDAY

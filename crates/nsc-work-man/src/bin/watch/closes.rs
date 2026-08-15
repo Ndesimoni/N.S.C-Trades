@@ -24,7 +24,7 @@ use nsc_core::levels::{Thickness, action, what_it_did};
 use nsc_work_man::{feed, retry::keep_trying};
 use tokio::time::{Duration, Instant, sleep_until};
 
-use super::{BREATHE, Watching, say};
+use super::{BREATHE, Watching, pulse, say};
 
 /// The timeframes he executes on. The level's own timeframe says how thick the
 /// band is; these say which candles report.
@@ -60,15 +60,24 @@ impl Closes {
         sleep_until(self.next).await
     }
 
+    /// Push the next check out.
+    ///
+    /// **Called the moment the timer fires, before anything decides to skip
+    /// the check.** Left until after the work, a day that skips it — a Monday,
+    /// say — leaves the deadline in the past and the loop spins as fast as the
+    /// processor will go.
+    pub fn tick(&mut self) {
+        self.next = Instant::now() + LOOK_EVERY;
+    }
+
     /// Asks about every pair price is currently at a zone of.
     pub async fn look(
         &mut self,
         client: &reqwest::Client,
         watching: &HashMap<String, Watching>,
         thickness: Thickness,
+        pulse: &mut pulse::Pulse,
     ) -> Result<()> {
-        self.next = Instant::now() + LOOK_EVERY;
-
         for seen in watching.values() {
             let live = seen.watch.resting_at();
             if live.is_empty() {
@@ -102,6 +111,7 @@ impl Closes {
                     );
 
                     say::closed(client, &seen.pair, band, &bar, did, was, interval).await?;
+                    pulse.spoke(Utc::now());
                 }
             }
         }

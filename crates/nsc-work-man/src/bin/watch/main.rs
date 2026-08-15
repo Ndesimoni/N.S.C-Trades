@@ -15,6 +15,7 @@
 
 mod bands;
 mod closes;
+mod pulse;
 mod resumed;
 mod say;
 
@@ -129,6 +130,7 @@ async fn listen(
 
     let mut closes = closes::Closes::new();
     let mut awake = resumed::Awake::new();
+    let mut pulse = pulse::Pulse::new();
 
     loop {
         tokio::select! {
@@ -142,16 +144,23 @@ async fn listen(
                     continue;
                 }
 
-                awake.greet(client, watching, thickness).await?;
-                on_price(client, watching, thickness, &heard).await?;
+                awake.greet(client, watching, thickness, &mut pulse).await?;
+                on_price(client, watching, thickness, &heard, &mut pulse).await?;
             }
 
             _ = closes.next_check() => {
+                closes.tick();
+
+                // THE HEARTBEAT GOES OUT EVEN ON A SILENT DAY. Monday watches
+                // nothing, and without this a quiet Monday and a dead bot look
+                // exactly the same.
+                pulse.maybe(client, watching, calendar).await?;
+
                 if when::allowed(Utc::now(), calendar) == Allowed::Silence {
                     continue;
                 }
 
-                closes.look(client, watching, thickness).await?;
+                closes.look(client, watching, thickness, &mut pulse).await?;
             }
         }
     }
@@ -165,6 +174,7 @@ async fn on_price(
     watching: &mut HashMap<String, Watching>,
     thickness: Thickness,
     heard: &Message,
+    pulse: &mut pulse::Pulse,
 ) -> Result<()> {
     let Ok(said) = serde_json::from_str::<serde_json::Value>(&heard.to_string()) else {
         return Ok(());
@@ -188,6 +198,7 @@ async fn on_price(
         println!("{symbol} reached {}", band.price);
 
         say::alert(client, &seen.pair, &band, near, News::Fresh, price, reach).await?;
+        pulse.spoke(Utc::now());
     }
 
     Ok(())

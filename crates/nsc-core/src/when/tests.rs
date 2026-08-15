@@ -193,3 +193,113 @@ settle_hours = 0
         assert_eq!(allowed(utc(moment), &open), Allowed::Anything, "{moment}");
     }
 }
+
+// ── The heartbeat ──
+
+use super::beat_due;
+
+// The session opened Tuesday 21:00 UTC. The heartbeat is due at the NEXT
+// 07:00, which is Wednesday morning — not "today at 07:00", which was fourteen
+// hours before the session it reports on had begun.
+#[test]
+fn the_heartbeat_is_due_at_the_first_seven_after_the_session_opened() {
+    let rules = rules();
+
+    assert!(
+        !beat_due(utc("2026-08-18T22:00:00Z"), None, None, &rules),
+        "an hour into the session, far too early"
+    );
+    assert!(
+        !beat_due(utc("2026-08-19T06:59:00Z"), None, None, &rules),
+        "a minute short"
+    );
+    assert!(
+        beat_due(utc("2026-08-19T07:00:00Z"), None, None, &rules),
+        "07:00 the next morning"
+    );
+}
+
+// The whole point. A day where anything at all was sent needs no heartbeat.
+#[test]
+fn a_day_that_already_said_something_gets_no_heartbeat() {
+    let rules = rules();
+    let now = utc("2026-08-19T07:30:00Z");
+
+    // An alert at 02:00, well inside this session.
+    assert!(!beat_due(
+        now,
+        Some(utc("2026-08-19T02:00:00Z")),
+        None,
+        &rules
+    ));
+
+    // But one from BEFORE the session opened does not count — that was
+    // yesterday's news, and today has been silent.
+    assert!(beat_due(
+        now,
+        Some(utc("2026-08-18T14:00:00Z")),
+        None,
+        &rules
+    ));
+}
+
+// A heartbeat that repeats is worse than none — he stops reading it, and that
+// is the one thing it cannot survive.
+#[test]
+fn the_heartbeat_goes_out_once_a_session() {
+    let rules = rules();
+    let sent = utc("2026-08-19T07:00:00Z");
+
+    assert!(!beat_due(
+        utc("2026-08-19T07:10:00Z"),
+        None,
+        Some(sent),
+        &rules
+    ));
+    assert!(!beat_due(
+        utc("2026-08-19T16:00:00Z"),
+        None,
+        Some(sent),
+        &rules
+    ));
+
+    // The next session is a different day, and it is due again.
+    assert!(beat_due(
+        utc("2026-08-20T07:00:00Z"),
+        None,
+        Some(sent),
+        &rules
+    ));
+}
+
+// IT FIRES ON MONDAY TOO. Monday is silent by design, so without this a quiet
+// Monday and a dead bot look exactly the same — which is the whole reason the
+// heartbeat exists.
+#[test]
+fn a_silent_monday_still_gets_its_heartbeat() {
+    let rules = rules();
+    let monday = utc("2026-08-17T07:00:00Z");
+
+    assert_eq!(allowed(monday, &rules), Allowed::Silence);
+    assert!(beat_due(monday, None, None, &rules));
+}
+
+// Written with `\` line continuations it carried the source file's own
+// indentation into the message, and every line after the first arrived on his
+// phone pushed right. It looked like a bug in Telegram. It was not.
+#[test]
+fn the_heartbeat_has_no_stray_indentation_in_it() {
+    use super::beat_words;
+
+    let words = beat_words(4, 16);
+
+    for line in words.lines() {
+        assert_eq!(line, line.trim_start(), "line begins with space: {line:?}");
+    }
+
+    assert!(words.contains("4 pairs · 16 zones"));
+    assert!(
+        beat_words(1, 1).contains("1 pair · 1 zone"),
+        "no stray plurals"
+    );
+}

@@ -34,7 +34,7 @@ pub fn into_day(now: DateTime<Utc>, rules: &Rules) -> TimeDelta {
 }
 
 /// The moment this session opened, as a real instant.
-fn opened(now: DateTime<Utc>, rules: &Rules) -> DateTime<Utc> {
+pub fn opened(now: DateTime<Utc>, rules: &Rules) -> DateTime<Utc> {
     let local = now.with_timezone(&rules.zone);
 
     // Before today's close, this session started at YESTERDAY's close.

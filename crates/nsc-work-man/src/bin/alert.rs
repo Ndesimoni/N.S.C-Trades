@@ -34,6 +34,11 @@ async fn main() -> Result<()> {
     let client = reqwest::Client::new();
 
     let wanted = std::env::args().nth(1).unwrap_or_else(|| "XAUUSD".into());
+
+    if wanted == "heartbeat" {
+        return heartbeat(&client).await;
+    }
+
     let file = Path::new("config/pairs").join(format!("{wanted}.toml"));
 
     let pair = levels::load_pair(&file)
@@ -49,6 +54,28 @@ async fn main() -> Result<()> {
     }
 
     draw_alert(&client, &pair, &band, thickness, asked).await
+}
+
+/// The heartbeat, so it can be looked at without waiting for a quiet day.
+async fn heartbeat(client: &reqwest::Client) -> Result<()> {
+    let pairs = levels::known(Path::new("config/pairs"));
+
+    // Counted from the files, not fetched. Sizing a band needs a candle, and
+    // the heartbeat is not worth a request.
+    let zones: usize = pairs
+        .iter()
+        .filter_map(|name| {
+            levels::load_pair(&Path::new("config/pairs").join(format!("{name}.toml"))).ok()
+        })
+        .map(|pair| pair.levels.len())
+        .sum();
+
+    let words = nsc_core::when::beat_words(pairs.len(), zones);
+
+    telegram::send_words(client, &OWNER.to_string(), &words).await?;
+    println!("{words}\n\nsent to you.");
+
+    Ok(())
 }
 
 /// Rung 1 — price at the zone.

@@ -39,6 +39,7 @@ THE FILES
                   --bin alert -- XAUUSD close          a candle's close
                   --bin alert -- XAUUSD close 4375.6   ...against a made-up
                                                        level it actually met
+                  --bin alert -- heartbeat             the quiet-day line
 
               The design loop. Changing how a card looks means looking at it,
               and the market reaches a level when it feels like it.

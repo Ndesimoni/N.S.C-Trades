@@ -21,6 +21,7 @@
 //! he never takes them.
 
 mod allow;
+mod beat;
 mod rules;
 mod session;
 
@@ -28,5 +29,6 @@ mod session;
 mod tests;
 
 pub use allow::{Allowed, allowed};
+pub use beat::{beat_due, beat_words};
 pub use rules::{Rules, WhenError, load};
-pub use session::{into_day, trading_day};
+pub use session::{into_day, opened, trading_day};

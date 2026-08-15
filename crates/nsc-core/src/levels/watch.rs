@@ -112,6 +112,11 @@ impl Watch {
         arrived
     }
 
+    /// How many bands are being watched. For the heartbeat.
+    pub fn count(&self) -> usize {
+        self.seen.len()
+    }
+
     /// The last price it was given.
     ///
     /// For the report made when watching RESUMES — it has to say where price

@@ -19,7 +19,9 @@ THE FILES
 
   allow.rs    The three states, and the decision.
 
-  tests.rs    Ten tests, nearly all of them on the boundary.
+  beat.rs     THE HEARTBEAT — whether it is due, and what it says.
+
+  tests.rs    Fifteen tests, most of them on the boundary.
 
   README.txt  This file.
 
@@ -94,6 +96,36 @@ NOTHING HERE READS THE CLOCK
   Every function is handed `now`. That is what lets the backtester run these
   exact rules over 2019 by passing 2019 in, with no "if we are backtesting"
   anywhere — which is the whole reason nsc-core is shaped the way it is.
+
+
+THE HEARTBEAT, AND WHY IT IS CONDITIONAL
+
+  ONE LINE, AND ONLY ON A DAY THAT SAID NOTHING ELSE.
+
+  Silence is the default everywhere in this bot, which leaves exactly one
+  problem: after a quiet day he cannot tell whether nothing happened or the
+  bot died.
+
+  On a busy day it never fires. A message already arrived; he knows.
+
+  IT GOES OUT AT 07:00 UTC, before London opens. The point is to know the bot
+  is working BEFORE the hours he trades — at the end of the day it would be a
+  post-mortem.
+
+  That time is in UTC, unlike day_ends. This one is about when he looks at his
+  phone, not about the market, and it does not move with the seasons.
+
+  DUE AT THE FIRST 07:00 AFTER THE SESSION OPENED, not "today at 07:00". The
+  session runs 17:00 New York to 17:00 New York, so it straddles midnight —
+  read off the calendar day it would come due before the session it reports on
+  had begun.
+
+  ONCE A SESSION. A heartbeat that repeats is worse than none, because he
+  stops reading it, and that is the one thing it cannot survive.
+
+  AND IT FIRES ON MONDAY. Monday watches nothing, so without this a quiet
+  Monday and a dead bot look exactly the same — which is the whole reason it
+  exists.
 
 
 WHAT TUESDAY MORNING CANNOT KNOW

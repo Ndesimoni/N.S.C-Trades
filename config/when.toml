@@ -69,3 +69,26 @@ no_new_trades = ["friday"]
 # else in this project. It is allowed here for the same reason the price alert
 # is: it is a heads-up and nothing more. IT MUST NEVER REACH THE STRATEGY.
 look_in_minutes = 20
+
+
+# ── The heartbeat ───────────────────────────────────────────────────────────
+#
+# ONE LINE, AND ONLY IF NOTHING ELSE WAS SENT this session.
+#
+# Silence is the default, which leaves one problem: after a quiet day he cannot
+# tell whether nothing happened or the bot died. This is the answer, and on a
+# busy day it never fires at all.
+#
+# IN UTC, unlike day_ends above. That one is a market boundary and follows New
+# York. This one is about when HE looks at his phone, and it does not move.
+#
+# 07:00 is before London opens. The point is to know the bot is working BEFORE
+# the hours he trades — finding out at the end of the day is a post-mortem.
+#
+# It works out at 07:00 because the trading day opened 17:00 New York, ten
+# hours earlier, so "has anything fired this session" is already a real
+# question with a real answer.
+#
+# IT FIRES ON QUIET DAYS TOO, Monday included. A silent Monday and a dead bot
+# look exactly the same otherwise, which is the whole reason this exists.
+heartbeat_at = "07:00"

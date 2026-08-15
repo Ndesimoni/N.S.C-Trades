@@ -3,7 +3,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use nsc_work_man::levels::{Timeframe, digits_for, known, save, undo, with_slash};
+use nsc_core::levels::{Timeframe, digits_for, known, save, undo, with_slash};
 use rust_decimal::Decimal;
 use serde_json::json;
 

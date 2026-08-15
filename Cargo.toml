@@ -7,13 +7,16 @@
 # ───────────────────────────────────────────────────────────────────────────
 [workspace]
 resolver = "3"
-members  = ["crates/nsc-work-man"]
+members  = ["crates/nsc-core", "crates/nsc-work-man"]
 
 [workspace.package]
 version = "0.1.0"
 edition = "2024"
 
 [workspace.dependencies]
+
+# --- our own crates ---
+nsc-core = { path = "crates/nsc-core" }
 
 # ── Talking to the outside world ──
 tokio   = { version = "1", features = ["macros", "rt-multi-thread", "time"] }

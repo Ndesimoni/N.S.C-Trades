@@ -1,8 +1,8 @@
-src/ — the bot
-==============
+nsc-work-man/src — everything that talks to the world
+=====================================================
 
 
-WHAT THIS FOLDER IS FOR
+WHAT THIS CRATE IS FOR
 
   Fetching the most recently FINISHED candle, drawing a card, and sending it
   to Telegram. That is the whole program today.
@@ -13,41 +13,28 @@ WHAT THIS FOLDER IS FOR
 
 THE FILES
 
+  WHAT THE BOT KNOWS IS NOT HERE. A candle, a level and what went wrong live
+  in nsc-core, which has no reqwest and no tokio and so cannot reach anything.
+  This crate is where reaching happens.
+
+
+THE FILES
+
   main.rs       The flow, and nothing else. Read this first — it is short on
                 purpose, and every line of it hands off to one of the others.
 
-  settings.rs   The pair, the timeframe, how many candles, how many decimals.
-                All written into the code, which is honest for one pair and
-                would be a mess for two. STEP 2 REPLACES THIS FILE with
-                reading config/ — the project rule is that anything a trader
-                would tune lives in a TOML file, and this is the one place
-                that breaks it on purpose.
-
-  candle/       One candle, and the only question that matters about it:
-                has it finished? A folder rather than a file because it
-                defines a type and it has tests, and this project's rule is
-                that those two together earn a folder from the start.
-
   feed.rs       Asking Twelve Data. One request, one answer.
 
-  error/        Everything that can go wrong, in one place, and the one
-                question each answers: try again, or give up? So a dropped
-                line and a wrong key get opposite treatment instead of both
-                looking like a dead connection.
+  retry/        Doing a job again when the trouble says it is worth it. Here
+                and not in nsc-core because it SLEEPS — waiting is doing.
 
   card/         Filling in an HTML template and letting Chrome screenshot it.
                 A folder because it holds three jobs — putting the numbers in,
                 turning candles into numbers, and driving Chrome — and because
                 it has tests.
 
-  message.rs    The one line under the picture. It is the notification
-                banner, not the message — the card is the message.
-
   telegram.rs   Sending. Several pictures go as one media group so the phone
                 buzzes once and each picture still opens on its own.
-
-  levels/       The levels he drew, and the bands they become. A line plus a
-                share of a normal candle.
 
   review.rs     Drawing a pair's levels, so he can see where they landed.
 

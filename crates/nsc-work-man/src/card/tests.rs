@@ -47,7 +47,7 @@ fn the_first_height_wins() {
 // dump rather than a signal.
 #[test]
 fn prices_are_rounded_to_the_instruments_own_precision() {
-    use crate::candle::Bar;
+    use nsc_core::candle::Bar;
 
     let bar: Bar = serde_json::from_str(
         r#"{"datetime":"2026-08-14 17:00:00","open":"4385.59525","high":"4390.11111",
@@ -72,7 +72,7 @@ fn prices_are_rounded_to_the_instruments_own_precision() {
 // look plausible.
 #[test]
 fn the_candles_keep_the_order_they_were_given() {
-    use crate::candle::Bar;
+    use nsc_core::candle::Bar;
 
     let candle = |hour: &str, close: &str| -> Bar {
         serde_json::from_str(&format!(

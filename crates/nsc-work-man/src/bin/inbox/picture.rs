@@ -7,7 +7,7 @@
 use std::path::Path;
 
 use anyhow::Result;
-use nsc_work_man::levels::{Pair, load_thickness};
+use nsc_core::levels::{Pair, load_thickness};
 use nsc_work_man::{review, telegram};
 
 use super::OWNER;

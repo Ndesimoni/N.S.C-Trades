@@ -1,19 +1,13 @@
-//! The parts of the bot that more than one program needs.
+//! Everything that talks to the world.
 //!
-//! There are three programs now — the bot itself, `inbox` which listens for
-//! levels, and `levels` which draws them. They all need the same candles, the
-//! same cards and the same level file, so that work lives here rather than
-//! inside any one of them.
+//! The feed, Telegram, Chrome, and the programs that use them.
 //!
-//! The programs in `bin/` are thin on purpose: each one is a job, and the job
-//! is done with these.
+//! **What the bot KNOWS lives in `nsc-core`** — a candle, a level, what went
+//! wrong. That crate has no `reqwest` and no `tokio`, so nothing in it can
+//! reach anything. This one is where reaching happens.
 
-pub mod candle;
 pub mod card;
-pub mod error;
 pub mod feed;
-pub mod levels;
-pub mod message;
+pub mod retry;
 pub mod review;
-pub mod settings;
 pub mod telegram;

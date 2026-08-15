@@ -2,11 +2,11 @@
 
 use std::path::{Path, PathBuf};
 
-use crate::error::CardError;
+use nsc_core::error::CardError;
 
 use super::{chrome, facts};
-use crate::candle::Bar;
-use crate::levels::Band;
+use nsc_core::candle::Bar;
+use nsc_core::levels::Band;
 
 /// Where the templates live.
 const TEMPLATES: &str = "assets/card";

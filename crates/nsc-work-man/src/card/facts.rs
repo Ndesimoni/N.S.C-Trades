@@ -4,14 +4,14 @@
 //! knows about colours, fonts or layout, and nothing in the template works out
 //! a price.
 
-use crate::error::CardError;
 use chrono::TimeDelta;
+use nsc_core::error::CardError;
 use rust_decimal::Decimal;
 use serde_json::{Value, json};
 
-use crate::candle::Bar;
-use crate::levels::Band;
-use crate::settings::{INTERVAL_MINUTES, timeframe_name, unit_for};
+use nsc_core::candle::Bar;
+use nsc_core::levels::Band;
+use nsc_core::settings::{INTERVAL_MINUTES, timeframe_name, unit_for};
 
 /// The one candle the card is about.
 pub fn one(bar: &Bar, symbol: &str, interval: &str, digits: u32) -> Result<Value, CardError> {

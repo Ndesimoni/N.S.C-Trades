@@ -17,5 +17,5 @@ mod kinds;
 #[cfg(test)]
 mod tests;
 
-pub use answer::{Answer, Knows, keep_trying};
-pub use kinds::{CardError, FeedError, LevelError, SendError};
+pub use answer::{Answer, Knows};
+pub use kinds::{CandleError, CardError, FeedError, LevelError, SendError};

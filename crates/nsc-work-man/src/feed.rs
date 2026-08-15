@@ -7,9 +7,9 @@
 //! ticks would produce something close to the broker's, never the same, and
 //! then nobody could say which was right.
 
-use crate::candle::Series;
-use crate::error::FeedError;
-use crate::settings::{HISTORY, INTERVAL, SYMBOL};
+use nsc_core::candle::Series;
+use nsc_core::error::FeedError;
+use nsc_core::settings::{HISTORY, INTERVAL, SYMBOL};
 
 /// Fetch the most recent candles.
 ///

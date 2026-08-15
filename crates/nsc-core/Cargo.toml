@@ -1,0 +1,35 @@
+# ── nsc-core ────────────────────────────────────────────────────────────────
+# What the bot knows, with nothing it can reach.
+#
+# A candle, a level, what went wrong. No feed, no Telegram, no Chrome, no
+# clock.
+#
+# THE MANIFEST IS THE ENFORCEMENT. There is no reqwest here and no tokio, so
+# nothing in this crate CAN call the network — not "should not", cannot. The
+# compiler refuses.
+#
+# That is what will let the backtester and the live bot run the same analysis
+# and get the same answer, which is the whole reason this project is shaped
+# the way it is. If this file ever gains reqwest, tokio or sqlx, the change is
+# wrong.
+# ───────────────────────────────────────────────────────────────────────────
+[package]
+name              = "nsc-core"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+
+# Times. Everything here is UTC.
+chrono = { workspace = true }
+
+# Prices. Never f64.
+rust_decimal = { workspace = true }
+
+# Reading his config, and what the feed sends.
+serde      = { workspace = true }
+serde_json = { workspace = true }
+toml       = { workspace = true }
+
+# Named troubles the caller can act on.
+thiserror = { workspace = true }

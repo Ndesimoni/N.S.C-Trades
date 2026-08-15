@@ -8,7 +8,7 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use nsc_work_man::levels::{load_pair, load_thickness};
+use nsc_core::levels::{load_pair, load_thickness};
 use nsc_work_man::{review, telegram};
 
 #[tokio::main]

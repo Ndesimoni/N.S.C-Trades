@@ -3,7 +3,7 @@
 use std::path::Path;
 use std::process::Command;
 
-use crate::error::CardError;
+use nsc_core::error::CardError;
 
 const CHROME: &str = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 

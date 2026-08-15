@@ -1,6 +1,6 @@
 //! The candle itself.
 
-use anyhow::{Context, Result};
+use crate::error::CandleError;
 use chrono::{DateTime, NaiveDateTime, TimeDelta, Utc};
 use rust_decimal::Decimal;
 use serde::Deserialize;
@@ -42,9 +42,9 @@ impl Bar {
     /// True for hourly candles. **Not true for daily ones** — a daily stamp is
     /// the date the candle *ends* on. Same field, two meanings, and it is
     /// written down in `docs/worksheets/twelve-data.md` for that reason.
-    pub fn opened_at(&self) -> Result<DateTime<Utc>> {
+    pub fn opened_at(&self) -> Result<DateTime<Utc>, CandleError> {
         let naive = NaiveDateTime::parse_from_str(&self.datetime, "%Y-%m-%d %H:%M:%S")
-            .with_context(|| format!("'{}' is not a time this program can read", self.datetime))?;
+            .map_err(|_| CandleError::NotATime(self.datetime.clone()))?;
 
         Ok(naive.and_utc())
     }
@@ -58,9 +58,9 @@ impl Bar {
     /// price has landed, or the 15:00 one now finished, if none has. Counting
     /// from the top would be right most of the time and wrong the rest, which
     /// is worse than being wrong always, because you stop checking.
-    pub fn is_finished(&self, now: DateTime<Utc>) -> Result<bool> {
-        let one_step = TimeDelta::try_minutes(INTERVAL_MINUTES)
-            .context("the interval is not a length of time chrono can hold")?;
+    pub fn is_finished(&self, now: DateTime<Utc>) -> Result<bool, CandleError> {
+        let one_step =
+            TimeDelta::try_minutes(INTERVAL_MINUTES).ok_or(CandleError::ImpossibleInterval)?;
 
         Ok(self.opened_at()? + one_step <= now)
     }

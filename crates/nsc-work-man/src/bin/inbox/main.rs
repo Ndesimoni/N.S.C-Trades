@@ -18,7 +18,7 @@
 //! the end.
 
 use anyhow::{Context, Result};
-use nsc_work_man::levels::Timeframe;
+use nsc_core::levels::Timeframe;
 use serde_json::Value;
 
 /// Only he may write levels.

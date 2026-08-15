@@ -2,7 +2,7 @@
 
 use std::path::Path;
 
-use crate::error::SendError;
+use nsc_core::error::SendError;
 
 /// Post several pictures as one message.
 ///

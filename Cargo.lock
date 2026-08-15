@@ -784,6 +784,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "nsc-core"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.20",
+ "toml",
+]
+
+[[package]]
 name = "nsc-work-man"
 version = "0.1.0"
 dependencies = [
@@ -792,6 +804,7 @@ dependencies = [
  "dotenvy",
  "futures-util",
  "image",
+ "nsc-core",
  "reqwest",
  "rust_decimal",
  "serde",

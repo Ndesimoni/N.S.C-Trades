@@ -17,6 +17,9 @@ edition.workspace = true
 
 [dependencies]
 
+# What the bot knows. Pure — no feed, no Telegram, no Chrome.
+nsc-core = { workspace = true }
+
 # Waiting on the network without freezing everything else.
 tokio   = { workspace = true }
 reqwest = { workspace = true }

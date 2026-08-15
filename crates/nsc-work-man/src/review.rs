@@ -11,11 +11,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-use crate::candle::{Bar, normal_candle};
 use crate::card;
-use crate::error::keep_trying;
 use crate::feed;
-use crate::levels::{Pair, Thickness, Timeframe};
+use crate::retry::keep_trying;
+use nsc_core::candle::{Bar, normal_candle};
+use nsc_core::levels::{Pair, Thickness, Timeframe};
 
 /// How many candles back. Enough weeks to hold levels drawn years apart.
 const HISTORY: usize = 150;

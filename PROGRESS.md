@@ -12,7 +12,12 @@ gets made against it.
 [ ]  not started
 ```
 
-**One crate · 42 tests · clippy clean · levels arrive from his phone and stick.**
+**Two crates · 42 tests · clippy clean · levels arrive from his phone and stick.**
+
+```
+nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
+nsc-work-man    everything that reaches
+```
 
 ---
 

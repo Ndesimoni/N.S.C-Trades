@@ -129,3 +129,32 @@ fn nightly_break(name: &str) -> i64 {
         0
     }
 }
+
+/// Takes the last `count` levels back off a pair.
+///
+/// **Cuts the text, does not rewrite the file** — same reason as `save`. The
+/// comments in these files explain what a level is, and rewriting would delete
+/// them without a word.
+pub fn undo(folder: &Path, name: &str, count: usize) -> Result<Pair> {
+    let file = folder.join(format!("{name}.toml"));
+
+    let text = std::fs::read_to_string(&file)
+        .with_context(|| format!("could not read {}", file.display()))?;
+
+    // Every level is one `[[level]]` block. Cut from the start of the last
+    // `count` of them to the end.
+    let starts: Vec<usize> = text
+        .match_indices("\n[[level]]")
+        .map(|(at, _)| at)
+        .collect();
+
+    let keep = match starts.len().checked_sub(count) {
+        Some(remaining) => starts.get(remaining).copied().unwrap_or(text.len()),
+        None => starts.first().copied().unwrap_or(text.len()),
+    };
+
+    std::fs::write(&file, &text[..keep])
+        .with_context(|| format!("could not write {}", file.display()))?;
+
+    load_pair(&file)
+}

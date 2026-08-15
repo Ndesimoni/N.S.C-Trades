@@ -14,10 +14,25 @@ use anyhow::{Context, Result, bail};
 /// The caption goes on the first picture and shows under the whole group. Put
 /// it on every picture and Telegram repeats it under every picture.
 pub async fn send(client: &reqwest::Client, pictures: &[&Path], caption: &str) -> Result<()> {
-    let token = std::env::var("TELEGRAM_BOT_TOKEN").context("TELEGRAM_BOT_TOKEN is not set")?;
     let chat = std::env::var("TELEGRAM_CHAT_ID").context("TELEGRAM_CHAT_ID is not set")?;
 
-    let mut form = reqwest::multipart::Form::new().text("chat_id", chat);
+    send_to(client, &chat, pictures, caption).await
+}
+
+/// The same, to a particular chat.
+///
+/// **Signals go to the channel; his own working goes to the private chat.**
+/// A chart he asked for while adding a level is not a signal, and mixing the
+/// two turns the channel into a scratchpad.
+pub async fn send_to(
+    client: &reqwest::Client,
+    chat: &str,
+    pictures: &[&Path],
+    caption: &str,
+) -> Result<()> {
+    let token = std::env::var("TELEGRAM_BOT_TOKEN").context("TELEGRAM_BOT_TOKEN is not set")?;
+
+    let mut form = reqwest::multipart::Form::new().text("chat_id", chat.to_owned());
     let mut described = Vec::new();
 
     for (position, picture) in pictures.iter().enumerate() {

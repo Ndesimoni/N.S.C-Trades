@@ -183,3 +183,83 @@ fn a_price_comes_back_out_of_the_file_unchanged() {
 
     assert_eq!(saved.levels[0].price.to_string(), "1.21279");
 }
+
+// ── Taking one back off ──
+
+#[test]
+fn undo_takes_off_only_what_was_just_added() {
+    let folder = scratch("undo");
+
+    save(
+        &folder,
+        "EURUSD",
+        Timeframe::Weekly,
+        &[d("1.05"), d("1.10")],
+        5,
+    )
+    .expect("saved");
+    save(&folder, "EURUSD", Timeframe::Daily, &[d("1.08")], 5).expect("saved again");
+
+    let left = super::undo(&folder, "EURUSD", 1).expect("undone");
+
+    assert_eq!(left.levels.len(), 2, "the two weeklies stay");
+    assert!(
+        left.levels
+            .iter()
+            .all(|line| line.timeframe == Timeframe::Weekly)
+    );
+}
+
+#[test]
+fn undo_can_take_off_a_whole_batch() {
+    let folder = scratch("undo-batch");
+
+    save(&folder, "EURUSD", Timeframe::Weekly, &[d("1.05")], 5).expect("saved");
+    save(
+        &folder,
+        "EURUSD",
+        Timeframe::Weekly,
+        &[d("1.10"), d("1.15"), d("1.20")],
+        5,
+    )
+    .expect("saved again");
+
+    let left = super::undo(&folder, "EURUSD", 3).expect("undone");
+
+    assert_eq!(left.levels.len(), 1);
+    assert_eq!(left.levels[0].price.to_string(), "1.05");
+}
+
+// Undoing more than there is empties it rather than breaking the file — and
+// the pair's own settings survive, because it is still the same pair.
+#[test]
+fn undoing_everything_leaves_the_pair_itself_intact() {
+    let folder = scratch("undo-all");
+
+    save(
+        &folder,
+        "EURUSD",
+        Timeframe::Weekly,
+        &[d("1.05"), d("1.10")],
+        5,
+    )
+    .expect("saved");
+    let left = super::undo(&folder, "EURUSD", 9).expect("undone");
+
+    assert!(left.levels.is_empty());
+    assert_eq!(left.symbol, "EUR/USD");
+    assert_eq!(left.digits, 5);
+}
+
+// The comments explaining what a level is must survive a removal, same as they
+// survive a save.
+#[test]
+fn undo_keeps_the_comments() {
+    let folder = scratch("undo-comments");
+
+    save(&folder, "EURUSD", Timeframe::Weekly, &[d("1.05")], 5).expect("saved");
+    super::undo(&folder, "EURUSD", 1).expect("undone");
+
+    let text = std::fs::read_to_string(folder.join("EURUSD.toml")).expect("readable");
+    assert!(text.contains("THIS FILE IS WHY THE PAIR IS WATCHED"));
+}

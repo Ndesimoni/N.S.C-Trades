@@ -41,8 +41,14 @@ THE FILES
   telegram.rs   Sending. Several pictures go as one media group so the phone
                 buzzes once and each picture still opens on its own.
 
-  bin/          Small programs that are not the bot. listen.rs watches the
-                live price stream.
+  levels/       The levels he drew, and the bands they become. A line plus a
+                share of a normal candle.
+
+  review.rs     Drawing a pair's levels, so he can see where they landed.
+
+  bin/          Small programs that are not the bot. inbox/ listens for
+                levels, listen.rs watches the live price stream, levels.rs
+                draws a pair on demand.
 
   README.txt    This file.
 

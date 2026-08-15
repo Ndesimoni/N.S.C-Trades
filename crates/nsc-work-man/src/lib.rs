@@ -13,5 +13,6 @@ pub mod card;
 pub mod feed;
 pub mod levels;
 pub mod message;
+pub mod review;
 pub mod settings;
 pub mod telegram;

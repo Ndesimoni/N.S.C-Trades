@@ -21,4 +21,4 @@ mod tests;
 
 pub use band::{Band, Timeframe};
 pub use read::{Pair, Thickness, load_pair, load_thickness};
-pub use write::{digits_for, known, save, with_slash};
+pub use write::{digits_for, known, save, undo, with_slash};

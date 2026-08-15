@@ -75,10 +75,10 @@ pub async fn send_to(
         .multipart(form)
         .send()
         .await
-        .map_err(|trouble| SendError::Unreachable(trouble.to_string()))?
+        .map_err(|trouble| SendError::Unreachable(quietly(trouble)))?
         .json()
         .await
-        .map_err(|trouble| SendError::Unreachable(trouble.to_string()))?;
+        .map_err(|trouble| SendError::Unreachable(quietly(trouble)))?;
 
     // Telegram refuses politely — `ok: false` inside a perfectly normal reply.
     // The same trap Twelve Data sets with its 401, met twice in one afternoon,
@@ -117,10 +117,10 @@ pub async fn send_words(client: &reqwest::Client, chat: &str, text: &str) -> Res
         }))
         .send()
         .await
-        .map_err(|trouble| SendError::Unreachable(trouble.to_string()))?
+        .map_err(|trouble| SendError::Unreachable(quietly(trouble)))?
         .json()
         .await
-        .map_err(|trouble| SendError::Unreachable(trouble.to_string()))?;
+        .map_err(|trouble| SendError::Unreachable(quietly(trouble)))?;
 
     if reply["ok"] != true {
         return Err(SendError::Refused(
@@ -132,4 +132,17 @@ pub async fn send_words(client: &reqwest::Client, chat: &str, text: &str) -> Res
     }
 
     Ok(())
+}
+
+/// A network failure, with the address taken off it.
+///
+/// **THE TOKEN IS IN THE URL**, and `reqwest` puts the URL it was trying into
+/// the message. So "could not reach Telegram" arrived in the terminal with the
+/// bot token printed in full — and from there into any log, any screenshot,
+/// any paste of what went wrong.
+///
+/// It is the same rule already followed for the feed's key, which was written
+/// down as "never print the url" and then not applied to the error path.
+fn quietly(trouble: reqwest::Error) -> String {
+    trouble.without_url().to_string()
 }

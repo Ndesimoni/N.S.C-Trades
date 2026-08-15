@@ -71,7 +71,6 @@ impl Trouble {
             Wrong::LineDown,
             Some(down.num_minutes().max(1)),
             what,
-            "⚠️ <b>The price line is down.</b> Nothing is being watched.",
             pulse,
         )
         .await
@@ -97,15 +96,9 @@ impl Trouble {
             return Ok(());
         }
 
-        say(
-            client,
-            Wrong::LineBack,
-            Some((Utc::now() - since).num_minutes().max(1)),
-            "",
-            "✅ <b>The price line is back.</b> Watching again.",
-            pulse,
-        )
-        .await
+        let minutes = (Utc::now() - since).num_minutes().max(1);
+
+        say(client, Wrong::LineBack, Some(minutes), "", pulse).await
     }
 }
 
@@ -117,7 +110,7 @@ impl Trouble {
 ///
 /// It gives up quietly if even this fails. There is nothing left to try.
 pub async fn dying(client: &reqwest::Client, what: &str) {
-    let caption = "🛑 <b>The bot has stopped.</b> Nothing is being watched.";
+    let caption = card::caption(Wrong::Stopped);
 
     // **Falls back to plain words if the card cannot be drawn.** Chrome may be
     // the very thing that is broken, and the message matters more than the
@@ -137,12 +130,38 @@ pub async fn dying(client: &reqwest::Client, what: &str) {
     }
 }
 
+/// Takes the secrets back out of whatever went wrong.
+///
+/// **The detail on a trouble card is an error chain**, and an error chain
+/// picks up whatever the failing code was holding. reqwest puts the URL it was
+/// trying into its message, and the key and the token both live in a URL — so
+/// "could not reach Telegram" arrived with the bot token printed in full.
+///
+/// The two places that happens are fixed at the source. This is here because
+/// the next one has not been written yet, and a card goes to Telegram and is
+/// left on disk in `preview/`.
+pub(super) fn scrub(what: &str) -> String {
+    let mut clean = what.to_string();
+
+    for name in ["TWELVE_DATA_API_KEY", "TELEGRAM_BOT_TOKEN"] {
+        // Short ones are ignored. An unset or placeholder value could be a
+        // couple of characters, and replacing those would gut the message.
+        if let Ok(secret) = std::env::var(name)
+            && secret.len() > 6
+        {
+            clean = clean.replace(&secret, "…");
+        }
+    }
+
+    clean
+}
+
 /// Draws one, and gives back where it landed.
 fn draw(wrong: Wrong, minutes: Option<i64>, what: &str) -> anyhow::Result<PathBuf> {
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
     let out = PathBuf::from(PREVIEW).join("trouble.png");
 
-    Ok(card::trouble(wrong, minutes, what, &stamp, &out)?)
+    Ok(card::trouble(wrong, minutes, &scrub(what), &stamp, &out)?)
 }
 
 /// Sends, and counts as having spoken today.
@@ -154,9 +173,9 @@ async fn say(
     wrong: Wrong,
     minutes: Option<i64>,
     what: &str,
-    caption: &str,
     pulse: &mut pulse::Pulse,
 ) -> Result<()> {
+    let caption = card::caption(wrong);
     println!("{}", caption.replace("<b>", "").replace("</b>", ""));
 
     let picture = draw(wrong, minutes, what)?;

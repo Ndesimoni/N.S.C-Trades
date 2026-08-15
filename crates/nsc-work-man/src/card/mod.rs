@@ -21,5 +21,5 @@ mod tests;
 pub use alive::{Alive, heartbeat};
 pub use error::CardError;
 pub use fill::render;
-pub use wrong::{Wrong, trouble};
+pub use wrong::{Wrong, caption, trouble};
 pub use zone::{alert, closed};

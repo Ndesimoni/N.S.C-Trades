@@ -29,6 +29,27 @@ pub enum Wrong {
     Stopped,
 }
 
+/// The line under the picture.
+///
+/// **Here, beside the card's own words, so there is one of it.** It was
+/// written twice — once for the real message and once for the preview — and
+/// the preview showed its own text, so all three states arrived captioned
+/// identically and none of them said what had happened.
+///
+/// The sign carries the same thing the colour does: ⚠️ it is trying, ✅ it is
+/// fine, 🛑 it needs him.
+pub fn caption(wrong: Wrong) -> &'static str {
+    match wrong {
+        Wrong::LineDown => {
+            "⚠️ <b>The price line is down.</b> Nothing is being watched while this lasts."
+        }
+        Wrong::LineBack => "✅ <b>The price line is back.</b> Your zones are being watched again.",
+        Wrong::Stopped => {
+            "🛑 <b>The bot has stopped.</b> Nothing is being watched until you start it."
+        }
+    }
+}
+
 /// Draws it.
 ///
 /// `minutes` is how long the trouble has lasted, where that is known — the

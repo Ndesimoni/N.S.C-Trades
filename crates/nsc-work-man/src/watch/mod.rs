@@ -31,6 +31,15 @@ use nsc_core::levels::{Pair, Watch};
 pub use run::run;
 pub use trouble::dying;
 
+/// Reachable from the tests, and nowhere else.
+///
+/// The scrubbing itself is not worth making public — but a secret leaking is
+/// worth a test, and a test cannot check what it cannot call.
+#[cfg(test)]
+pub(crate) fn scrub_for_tests(what: &str) -> String {
+    trouble::scrub(what)
+}
+
 const PAIRS: &str = "config/pairs";
 const THICKNESS: &str = "config/levels.toml";
 const CALENDAR: &str = "config/when.toml";

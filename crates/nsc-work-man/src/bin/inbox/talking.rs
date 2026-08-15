@@ -1,6 +1,6 @@
 //! Saying things to Telegram.
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use serde_json::{Value, json};
 
 use super::OWNER;
@@ -34,7 +34,7 @@ pub async fn say(
         }))
         .send()
         .await
-        .context("could not reach Telegram")?
+        .map_err(|trouble| anyhow!("could not reach Telegram: {}", trouble.without_url()))?
         .json()
         .await
         .context("Telegram answered, but not with JSON")?;

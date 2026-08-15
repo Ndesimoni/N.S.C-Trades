@@ -33,12 +33,12 @@ pub async fn for_pair(
         .get(&url)
         .send()
         .await
-        .map_err(|trouble| FeedError::Unreachable(trouble.to_string()))?;
+        .map_err(|trouble| FeedError::Unreachable(quietly(trouble)))?;
 
     let body = reply
         .text()
         .await
-        .map_err(|trouble| FeedError::Unreachable(trouble.to_string()))?;
+        .map_err(|trouble| FeedError::Unreachable(quietly(trouble)))?;
 
     // **Twelve Data refuses with a perfectly ordinary reply** — a 200, and
     // `{"code": 401, "status": "error"}` in the body. So a reply that parses is
@@ -54,4 +54,17 @@ pub async fn for_pair(
     }
 
     serde_json::from_str(&body).map_err(|_| FeedError::NotCandles(body))
+}
+
+/// A network failure, with the address taken off it.
+///
+/// **THE TOKEN IS IN THE URL**, and `reqwest` puts the URL it was trying into
+/// the message. So "could not reach Twelve Data" arrived in the terminal with the
+/// bot token printed in full — and from there into any log, any screenshot,
+/// any paste of what went wrong.
+///
+/// It is the same rule already followed for the URL, which was written
+/// down as "never print the url" and then not applied to the error path.
+fn quietly(trouble: reqwest::Error) -> String {
+    trouble.without_url().to_string()
 }

@@ -17,7 +17,7 @@
 //! that was the mistake the old `settings.rs` made, and two lists disagree in
 //! the end.
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, anyhow};
 use nsc_core::levels::Timeframe;
 use serde_json::Value;
 
@@ -68,7 +68,7 @@ async fn main() -> Result<()> {
             .get(&url)
             .send()
             .await
-            .context("could not reach Telegram")?
+            .map_err(|trouble| anyhow!("could not reach Telegram: {}", trouble.without_url()))?
             .json()
             .await
             .context("Telegram answered, but not with JSON")?;

@@ -166,3 +166,57 @@ fn the_heartbeat_card_is_told_how_tall_to_be() {
     // Filled, the number it was given wins over the shared one above it.
     assert_eq!(height_of(&page.replace("/*__TALL__*/", "376")), Some(376));
 }
+
+// ── The line under the picture ──
+
+// It was written twice — once for the real message, once for the preview — and
+// the preview used its own, so all three states arrived captioned identically
+// and none of them said what had happened. There is one of it now, and these
+// check it actually differs per state.
+#[test]
+fn each_kind_of_trouble_says_what_happened() {
+    use super::{Wrong, caption};
+
+    let down = caption(Wrong::LineDown);
+    let back = caption(Wrong::LineBack);
+    let stopped = caption(Wrong::Stopped);
+
+    assert_ne!(down, back);
+    assert_ne!(back, stopped);
+    assert_ne!(down, stopped);
+
+    // The sign carries what the colour carries: trying, fine, needs him.
+    assert!(down.starts_with('⚠'), "{down}");
+    assert!(back.starts_with('✅'), "{back}");
+    assert!(stopped.starts_with('🛑'), "{stopped}");
+
+    // And each says what it MEANS, not just what happened. "The line is down"
+    // on its own leaves him working out whether that matters.
+    for words in [down, back, stopped] {
+        assert!(words.contains("watched"), "no consequence in: {words}");
+    }
+}
+
+// ── Secrets must not travel on a card ──
+
+// The detail line on a trouble card is an error chain, and an error chain picks
+// up whatever the failing code was holding. reqwest puts the URL it was trying
+// into its message, and BOTH SECRETS LIVE IN A URL — so "could not reach
+// Telegram" once arrived in the terminal with the bot token printed in full.
+//
+// A card goes to Telegram AND is left on disk in preview/, so this is the last
+// place to catch it.
+#[test]
+fn a_secret_never_reaches_the_card() {
+    let token = "8988717584:AAGHHfmyivoFbkDXbaJ0BARMa";
+    unsafe { std::env::set_var("TELEGRAM_BOT_TOKEN", token) };
+
+    let leaked = format!("error sending request for url (https://api.telegram.org/bot{token}/x)");
+    let clean = crate::watch::scrub_for_tests(&leaked);
+
+    assert!(!clean.contains(token), "the token survived: {clean}");
+    assert!(
+        clean.contains("api.telegram.org"),
+        "and it still says what failed"
+    );
+}

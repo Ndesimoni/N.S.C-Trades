@@ -10,6 +10,7 @@
 
 use std::collections::HashMap;
 
+use crate::retry::keep_trying;
 use crate::{card, telegram};
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
@@ -54,8 +55,6 @@ impl Pulse {
             return Ok(());
         }
 
-        self.beat = Some(now);
-
         // Sorted, so the list does not shuffle between mornings. A HashMap
         // hands them back in a different order every run, and a card that
         // reorders itself looks like something changed when nothing did.
@@ -83,13 +82,19 @@ impl Pulse {
         let zones: usize = watching.values().map(|seen| seen.watch.count()).sum();
         println!("Heartbeat — {pairs} pairs, {zones} zones, nothing said today.");
 
-        telegram::send_to(
-            client,
-            &OWNER.to_string(),
-            &[&picture],
-            &beat_words(pairs, zones),
-        )
-        .await
-        .context("could not send the heartbeat")
+        let owner = OWNER.to_string();
+        let pictures = [picture.as_path()];
+        let words = beat_words(pairs, zones);
+
+        keep_trying(3, || telegram::send_to(client, &owner, &pictures, &words))
+            .await
+            .context("could not send the heartbeat")?;
+
+        // **Marked only once it has gone.** Marked first, one failed send
+        // silenced the heartbeat for the whole day — and its entire job is
+        // telling him the bot is alive on a day nothing else does.
+        self.beat = Some(now);
+
+        Ok(())
     }
 }

@@ -40,7 +40,8 @@ impl Awake {
         if matches!(self, Awake::Greeted) {
             return Ok(());
         }
-        *self = Awake::Greeted;
+
+        let mut all_said = true;
 
         for seen in watching.values() {
             let reach = seen.pair.reach(thickness);
@@ -53,7 +54,7 @@ impl Awake {
 
                 println!("{} was already at {}", seen.pair.symbol, band.price);
 
-                say::alert(
+                match say::alert(
                     client,
                     &seen.pair,
                     &band,
@@ -62,10 +63,23 @@ impl Awake {
                     at,
                     reach,
                 )
-                .await?;
-
-                pulse.spoke(chrono::Utc::now());
+                .await
+                {
+                    Ok(()) => pulse.spoke(chrono::Utc::now()),
+                    Err(trouble) => {
+                        eprintln!("Could not say what was already there: {trouble:#}");
+                        all_said = false;
+                    }
+                }
             }
+        }
+
+        // **Marked only once it has actually been said.** Marked first, a
+        // failed send left the session greeted with nothing sent — and it is
+        // greeted once, so the zones price was already sitting in would never
+        // have been mentioned at all.
+        if all_said {
+            *self = Awake::Greeted;
         }
 
         Ok(())

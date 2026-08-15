@@ -39,6 +39,8 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
         return Err(CardError::NoChrome(CHROME.into()));
     }
 
+    clear_the_way(out)?;
+
     let done = Command::new(CHROME)
         .args([
             "--headless",
@@ -62,6 +64,26 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
     }
 
     trim(out, height * PIXELS_PER_POINT)
+}
+
+/// Takes the last picture of this kind out of the way.
+///
+/// **The only check that Chrome drew anything is whether a file appeared** —
+/// and one was already there, left by the last card of the same kind. Chrome
+/// fails, the old picture survives the check, and it goes out with today's
+/// caption on yesterday's chart.
+///
+/// Nothing to remove is fine. Being unable to remove one that IS there has to
+/// stop here, because carrying on would send the stale picture.
+pub(super) fn clear_the_way(out: &Path) -> Result<(), CardError> {
+    match std::fs::remove_file(out) {
+        Ok(()) => Ok(()),
+        Err(trouble) if trouble.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(trouble) => Err(CardError::CannotWrite {
+            path: out.display().to_string(),
+            detail: trouble.to_string(),
+        }),
+    }
 }
 
 /// Cuts the white strip off the bottom.

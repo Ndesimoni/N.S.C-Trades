@@ -7,6 +7,7 @@
 
 use std::path::PathBuf;
 
+use crate::retry::keep_trying;
 use crate::{card, telegram};
 use anyhow::{Context, Result};
 use chrono::Utc;
@@ -32,14 +33,11 @@ pub async fn alert(
     let picture = card::alert(pair, band, near, news, price, reach, &stamp, &out)
         .with_context(|| format!("could not draw the alert for {}", pair.symbol))?;
 
-    telegram::send_to(
-        client,
-        &OWNER.to_string(),
-        &[&picture],
-        &levels::caption(pair, band, near, news, price),
-    )
-    .await
-    .context("could not send the alert")
+    let caption = levels::caption(pair, band, near, news, price);
+
+    send(client, &picture, &caption)
+        .await
+        .context("could not send the alert")
 }
 
 /// Rung 2 — a candle that touched one of his zones.
@@ -63,14 +61,33 @@ pub async fn closed(
     let picture = card::closed(pair, band, bar, did, was, interval, forming, &out)
         .with_context(|| format!("could not draw the close for {}", pair.symbol))?;
 
-    telegram::send_to(
-        client,
-        &OWNER.to_string(),
-        &[&picture],
-        &levels::closed_caption(pair, band, bar, did, was, interval, forming),
-    )
-    .await
-    .context("could not send the close")
+    let caption = levels::closed_caption(pair, band, bar, did, was, interval, forming);
+
+    send(client, &picture, &caption)
+        .await
+        .context("could not send the close")
+}
+
+/// Sends, and **tries again if the trouble says it is worth it**.
+///
+/// It went straight out with no retry, and that lost things. `Watch::arrive`
+/// has already marked the band as reached by the time the card goes, so a
+/// dropped connection to Telegram meant the alert was never sent AND never
+/// tried again — it would not fire until price left the zone and came back.
+///
+/// `SendError` has known retry-or-give-up since the day it was written. It was
+/// simply never asked. A wrong token still stops on the first go rather than
+/// three.
+async fn send(client: &reqwest::Client, picture: &std::path::Path, caption: &str) -> Result<()> {
+    // Built once, outside the closure — the closure runs up to three times,
+    // and both of these would otherwise be borrowed from a value that dies at
+    // the end of the first go.
+    let owner = OWNER.to_string();
+    let pictures = [picture];
+
+    keep_trying(3, || telegram::send_to(client, &owner, &pictures, caption)).await?;
+
+    Ok(())
 }
 
 /// Each pair gets its own file, so two cards drawn seconds apart cannot

@@ -112,6 +112,11 @@ THE TRAP IN chrome.rs
   And Chrome answers 0 whether it drew your card or its own error page. The
   only honest check is whether a file appeared.
 
+  WHICH MEANS THE LAST PICTURE HAS TO BE CLEARED FIRST. One was already there,
+  left by the last card of the same kind — so a failed draw left the old
+  picture in place, passed the check, and would have gone out with today's
+  caption on yesterday's chart.
+
 
 THE COST OF ALL THIS
 

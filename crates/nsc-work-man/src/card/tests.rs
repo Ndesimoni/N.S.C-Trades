@@ -220,3 +220,30 @@ fn a_secret_never_reaches_the_card() {
         "and it still says what failed"
     );
 }
+
+// ── A picture that is there is not a picture that was just drawn ──
+
+// The only check that Chrome drew anything is whether a file appeared — and
+// one was already there, left by the last card of the same kind. A failed draw
+// left the old picture in place and it would have gone out with today's caption
+// on yesterday's chart.
+//
+// It does not run Chrome. Chrome takes ten seconds and, worse, it SUCCEEDS on
+// a missing page — it screenshots its own error page, which is the reason
+// "a file exists" was never a check in the first place.
+#[test]
+fn the_last_picture_is_cleared_before_anything_draws() {
+    let folder = std::env::temp_dir().join("nsc-card-stale");
+    let _ = std::fs::create_dir_all(&folder);
+
+    let out = folder.join("alert.png");
+    std::fs::write(&out, b"yesterday").expect("a stale picture");
+
+    super::chrome::clear_the_way(&out).expect("cleared");
+
+    assert!(!out.exists(), "the old picture must not survive");
+
+    // Nothing to clear is not a failure. Most draws are the first of their
+    // kind since the bot started.
+    super::chrome::clear_the_way(&out).expect("nothing to clear is fine");
+}

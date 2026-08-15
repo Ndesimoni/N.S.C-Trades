@@ -42,8 +42,13 @@ pub async fn heard(
     for (band, near) in seen.watch.arrive(price) {
         println!("{symbol} reached {}", band.price);
 
-        say::alert(client, &seen.pair, &band, near, News::Fresh, price, reach).await?;
-        pulse.spoke(Utc::now());
+        // **A card that will not send is not the price line breaking.**
+        // Letting it out of here dropped a perfectly good socket and told him
+        // the feed was down. It has already tried three times by now.
+        match say::alert(client, &seen.pair, &band, near, News::Fresh, price, reach).await {
+            Ok(()) => pulse.spoke(Utc::now()),
+            Err(trouble) => eprintln!("Could not send that alert: {trouble:#}"),
+        }
     }
 
     Ok(())

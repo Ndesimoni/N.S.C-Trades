@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 120 tests · clippy clean · it watches his levels, says what
+**Two crates · 121 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -215,6 +215,17 @@ without waiting for it to happen. That was the last plain-text message going.
 - [x] **It reconnects**, keeping what it knew: which candles were reported,
       which zones were announced, when it last spoke
 - [x] **On a silent day it does not open the line at all**
+- [x] **Nothing is marked as said until it has actually gone.** That was wrong
+      in four places at once — the alert, the close, the waking report and the
+      heartbeat — and each lost its message for good on a single hiccup
+- [x] **Every send tries again**, through the retry that `SendError` has known
+      how to answer since the day it was written and was never asked
+- [x] **A card that will not send does not drop the price line.** It said the
+      feed was down when Telegram had hiccupped
+- [x] **The last picture is cleared before drawing.** Chrome answers 0 whether
+      it drew your card or its own error page, so "a file appeared" is the only
+      check — and one was already there. A failed draw would have sent today's
+      caption on yesterday's chart
 - [x] **The subscription reply is read.** They answer per symbol with a
       `success` list and a `fails` list, and nothing looked at it — a pair
       they will not serve is refused while the socket stays open, so no prices
@@ -354,7 +365,9 @@ Agreed 16 August, before anything new is added.
    README, and two READMEs named files that had become folders. Reading
    `watch/run.rs` for it turned up a real bug: **the subscription reply was
    never read**
-2. **Read the rest of the code back for bugs.** The last week added the calendar, rungs 1
+2. ~~**Read the code back for bugs.**~~ Done 16 August — six found, all of
+   them things that lose a message rather than crash. Written up under
+   "when something goes wrong" below The last week added the calendar, rungs 1
    and 2, the heartbeat, trouble handling, the reconnect and the inbox fold-in
    — and every careful read-back so far has found something. Two failing
    doc-tests, a spin loop, a secret in an error message, a silent reconnect

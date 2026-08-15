@@ -62,6 +62,31 @@ THE FILES
   README.txt  This file.
 
 
+A CARD THAT WILL NOT SEND IS NOT THE PRICE LINE BREAKING
+
+  Every send now goes through keep_trying, which SendError has known how to
+  answer since the day it was written — a dropped connection waits and tries
+  again, a wrong token stops on the first go. It was simply never asked.
+
+  And after three goes, a failure is logged and the run carries on. Letting it
+  out dropped a perfectly good socket and told him the feed was down.
+
+  NOTHING IS MARKED AS SAID UNTIL IT HAS ACTUALLY GONE. That was wrong in four
+  places at once, and each one lost something for good:
+
+    the alert      Watch::arrive marks the band reached before the card goes,
+                   so a failed send meant no alert until price left the zone
+                   and came back
+    the close      the candle was remembered as reported and never retried
+    the greeting   the session was marked greeted with nothing sent, and it
+                   is greeted once
+    the heartbeat  marked beaten, so the day it was most needed was the day
+                   it stayed quiet
+
+  Half-sent counts as not sent. A repeat on the next look is far better than
+  the one that failed never arriving.
+
+
 THE TWO RUNGS FIRE ON DIFFERENT RULES, ON PURPOSE
 
   RUNG 1 IS ONCE PER VISIT. Prices come once a second and barely move. Without

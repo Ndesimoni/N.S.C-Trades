@@ -112,9 +112,12 @@ impl Closes {
 
                 if let Some(bar) = finished {
                     let key = (seen.pair.symbol.clone(), interval, Kind::Closed);
-                    if self.fresh(key, &bar.datetime) {
-                        self.report(client, seen, &live, bar, thickness, interval, false, pulse)
-                            .await?;
+
+                    if !self.already_said(&key, &bar.datetime) {
+                        self.say(
+                            client, seen, &live, bar, thickness, interval, false, pulse, key,
+                        )
+                        .await;
                     }
                 }
 
@@ -137,9 +140,12 @@ impl Closes {
 
                 if let Some(bar) = running {
                     let key = (seen.pair.symbol.clone(), interval, Kind::SoFar);
-                    if self.fresh(key, &bar.datetime) {
-                        self.report(client, seen, &live, bar, thickness, interval, true, pulse)
-                            .await?;
+
+                    if !self.already_said(&key, &bar.datetime) {
+                        self.say(
+                            client, seen, &live, bar, thickness, interval, true, pulse, key,
+                        )
+                        .await;
                     }
                 }
             }
@@ -149,19 +155,24 @@ impl Closes {
     }
 
     /// Have we already spoken about this candle, in this way?
-    fn fresh(&mut self, key: (String, &'static str, Kind), stamp: &str) -> bool {
-        if self.told.get(&key).is_some_and(|told| told == stamp) {
-            return false;
-        }
-
-        self.told.insert(key, stamp.to_string());
-        true
+    ///
+    /// **It only asks.** Marking it before the card has actually gone was a
+    /// way to lose a close for good: a hiccup reaching Telegram, and the
+    /// candle is remembered as reported and never tried again. A close is the
+    /// thing he is waiting for.
+    fn already_said(&self, key: &(String, &'static str, Kind), stamp: &str) -> bool {
+        self.told.get(key).is_some_and(|told| told == stamp)
     }
 
     /// Says what one candle did at every zone price is at.
+    ///
+    /// **Nothing here can end the run.** A card that will not send is not the
+    /// price line breaking, and treating it as one would drop a perfectly good
+    /// socket and tell him the feed is down. It says what went wrong, does not
+    /// remember the candle, and tries again on the next look.
     #[allow(clippy::too_many_arguments)]
-    async fn report(
-        &self,
+    async fn say(
+        &mut self,
         client: &reqwest::Client,
         seen: &Watching,
         live: &[Band],
@@ -170,7 +181,10 @@ impl Closes {
         interval: &'static str,
         forming: bool,
         pulse: &mut pulse::Pulse,
-    ) -> Result<()> {
+        key: (String, &'static str, Kind),
+    ) {
+        let mut all_sent = true;
+
         for band in live {
             let did = what_it_did(band, bar);
             if !did.worth_saying() {
@@ -185,11 +199,21 @@ impl Closes {
                 seen.pair.symbol, bar.datetime, band.price
             );
 
-            say::closed(client, &seen.pair, band, bar, did, was, interval, forming).await?;
-            pulse.spoke(Utc::now());
+            match say::closed(client, &seen.pair, band, bar, did, was, interval, forming).await {
+                Ok(()) => pulse.spoke(Utc::now()),
+                Err(trouble) => {
+                    eprintln!("Could not send that one: {trouble:#}");
+                    all_sent = false;
+                }
+            }
         }
 
-        Ok(())
+        // Remembered only once it has actually gone. Half-sent is not sent —
+        // the ones that worked will repeat on the next look, which is far
+        // better than the one that failed never arriving.
+        if all_sent {
+            self.told.insert(key, bar.datetime.clone());
+        }
     }
 }
 

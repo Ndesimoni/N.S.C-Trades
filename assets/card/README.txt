@@ -55,6 +55,17 @@ THE FILES
                 names WHAT IT DID — kissed it, pushed back, closed inside,
                 cut through — and the drawing shows it against the band.
 
+  heartbeat.html  THE ONLY CARD THAT SAYS NOTHING IS WRONG. Sent on a day
+                nothing else was, at 07:00 UTC. Every pair, its levels as
+                dots in HIS COLOURS, and how far price is from the nearest
+                zone on each.
+
+                The dots earn their place: a pair that quietly lost its daily
+                levels shows up as a missing blue dot, where a count of 16
+                would still look fine.
+
+                ITS HEIGHT IS WORKED OUT, not typed — see below.
+
   readout.html  Where price sat inside the candle. The candle drawn tall on
                 the left, with leader lines out to High, Open, Close and Low.
                 Sent when the detail is wanted, not every hour.
@@ -118,8 +129,14 @@ TWO THINGS THAT WILL CATCH YOU
      being designed is the honest place for it. Two numbers in two files
      drift apart; one does not.
 
-     Change the design, change that number. It is measured by hand today,
-     which is a known rough edge.
+     Change the design, change that number. It is measured by hand on every
+     card but one, which is a known rough edge.
+
+     THE EXCEPTION IS heartbeat.html. It grows a row per pair, so it writes
+     `--card-height:/*__TALL__*/px` and Rust fills the number in. That works
+     because fill.rs reads the height AFTER the facts go in, and if the marker
+     is ever left unfilled the card FAILS rather than falling back on the
+     shared height and clipping the last pair off.
 
      style.css carries a shared one and every template gets it dropped in at
      the top. A card wanting its own puts it FURTHER DOWN, because the last

@@ -114,3 +114,21 @@ fn the_candles_keep_the_order_they_were_given() {
     assert_eq!(facts[1]["close"], 30.0);
     assert_eq!(facts[0]["at"], "08-14 15:00");
 }
+
+// The heartbeat grows a row per pair, so its height is worked out rather than
+// typed. Two things have to hold for that to be safe.
+#[test]
+fn the_heartbeat_card_is_told_how_tall_to_be() {
+    let shared = std::fs::read_to_string("../../assets/card/style.css").expect("style.css");
+    let card = std::fs::read_to_string("../../assets/card/heartbeat.html").expect("heartbeat.html");
+
+    assert!(card.contains("/*__TALL__*/"), "it asks to be told");
+
+    // Unfilled, it gives NOTHING rather than falling back on the shared 647.
+    // A silent fallback would clip the last pair off every heartbeat he gets.
+    assert_eq!(height_of(&format!("{shared}{card}")), None);
+
+    // Filled, the number it was given wins over the shared one above it.
+    let filled = format!("{shared}{}", card.replace("/*__TALL__*/", "376"));
+    assert_eq!(height_of(&filled), Some(376));
+}

@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 105 tests · clippy clean · it watches his levels and says when price arrives.**
+**Two crates · 106 tests · clippy clean · it watches his levels and says when price arrives.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -76,7 +76,7 @@ crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
 crates/nsc-work-man/      EVERYTHING THAT REACHES
   feed/         asking Twelve Data.                       5 tests
   telegram/     sending — words, pictures, media groups.  3 tests
-  card/         filling a template, letting Chrome draw.  9 tests
+  card/         filling a template, letting Chrome draw. 10 tests
   retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests
   main.rs       the hourly chart card
   review.rs     one pair's levels, drawn
@@ -91,6 +91,7 @@ assets/card/
   readout.html   where price sat inside the candle
   alert.html     price at one of his zones
   close.html     a finished candle at a zone, named by what it did
+  heartbeat.html what is being watched, on a day nothing happened
 
 The close card ZOOMS TO THE CANDLE, because a 1-hour candle inside a weekly
 zone is a hundredth of its height and draws as a smudge otherwise. His line is
@@ -176,7 +177,7 @@ the one that mattered.
 | **1** | price touches a level he drew | an alert **card** — the zone drawn, with price on it. May fire on a candle still forming; it is only a heads-up |
 | **2** | a candle that **touched** the zone finishes | a close card — the candle drawn inside the band. **Once per candle**, not once per visit: while price is at a zone he wants to watch it candle by candle |
 | **3** | it closed there **and** a strategy matched | the chart and the candlestick, with entry, stop, target and the sentence |
-| **·** | 07:00 UTC, **only if nothing else was sent** | a heartbeat — one line, still running, pairs and zones watched. On a busy day it never fires |
+| **·** | 07:00 UTC, **only if nothing else was sent** | a heartbeat **card** — every pair, its levels as dots in his colours, and how far price is from the nearest zone. On a busy day it never fires |
 
 **Rung 2 is the point.** Price arriving at a level says nothing; it may cut
 straight through. The *close* says whether it was a rejection. So rungs 2 and 3
@@ -290,6 +291,13 @@ somewhere near one — so "price is at the level" means price is inside a band.
       day that said nothing else — on a busy day it never fires. Before London
       opens, because knowing the bot works *before* the hours he trades beats
       a post-mortem after them
+- [x] **It is a card, not a line.** Every pair, its levels as dots in his
+      colours, and the nearest zone on each — so a pair that quietly lost its
+      daily levels shows as a missing blue dot, where a count of 16 still
+      looks fine
+- [x] **Its height is worked out, not typed**, because it grows a row per
+      pair. Left unfilled the card fails rather than falling back and clipping
+      the last pair off
 - [x] **It fires on Monday too**, the one message that does. Monday watches
       nothing, so without it a quiet Monday and a dead bot look identical
 - [x] **Tuesday says what it FOUND**, not what arrived. Price can walk into a

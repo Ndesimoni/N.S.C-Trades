@@ -101,8 +101,9 @@ pub async fn send_to(
 /// gives text no colour, no size and no layout, so every message ended up
 /// looking like every other one. See `card::alert`.
 ///
-/// Still here for anything genuinely one line: the heartbeat, and errors
-/// worth telling him about.
+/// The heartbeat moved to a card too, for the same reason. What is left for
+/// this is anything genuinely one line and not worth a picture — errors worth
+/// telling him about, and replies while he is sending levels.
 pub async fn send_words(client: &reqwest::Client, chat: &str, text: &str) -> Result<(), SendError> {
     let token =
         std::env::var("TELEGRAM_BOT_TOKEN").map_err(|_| SendError::NotSet("TELEGRAM_BOT_TOKEN"))?;

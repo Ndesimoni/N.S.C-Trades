@@ -12,10 +12,12 @@ use std::collections::HashMap;
 
 use anyhow::{Context, Result};
 use chrono::{DateTime, Utc};
-use nsc_core::when::{Rules, beat_due, beat_words};
-use nsc_work_man::telegram;
+use nsc_core::when::{Rules, beat_due, beat_words, opened};
+use nsc_work_man::{card, telegram};
 
-use super::{OWNER, Watching};
+use std::path::PathBuf;
+
+use super::{OWNER, PREVIEW, Watching};
 
 /// Remembers when anything was last said, so the heartbeat knows to stay quiet.
 pub struct Pulse {
@@ -54,15 +56,40 @@ impl Pulse {
 
         self.beat = Some(now);
 
+        // Sorted, so the list does not shuffle between mornings. A HashMap
+        // hands them back in a different order every run, and a card that
+        // reorders itself looks like something changed when nothing did.
+        let mut seen: Vec<&Watching> = watching.values().collect();
+        seen.sort_by(|a, b| a.pair.symbol.cmp(&b.pair.symbol));
+
+        let alive: Vec<card::Alive<'_>> = seen
+            .iter()
+            .map(|seen| card::Alive {
+                pair: &seen.pair,
+                bands: seen.watch.bands(),
+                price: seen.watch.last_price(),
+            })
+            .collect();
+
+        let hours = (now - opened(now, calendar)).num_hours();
+        let quiet = format!("{hours} hour{}", if hours == 1 { "" } else { "s" });
+        let stamp = now.format("%-d %b · %H:%M UTC").to_string();
+
+        let out = PathBuf::from(PREVIEW).join("heartbeat.png");
+        let picture = card::heartbeat(&alive, &quiet, &stamp, &out)
+            .context("could not draw the heartbeat")?;
+
         let pairs = watching.len();
         let zones: usize = watching.values().map(|seen| seen.watch.count()).sum();
-
-        let words = beat_words(pairs, zones);
-
         println!("heartbeat: {pairs} pairs, {zones} zones, nothing said");
 
-        telegram::send_words(client, &OWNER.to_string(), &words)
-            .await
-            .context("could not send the heartbeat")
+        telegram::send_to(
+            client,
+            &OWNER.to_string(),
+            &[&picture],
+            &beat_words(pairs, zones),
+        )
+        .await
+        .context("could not send the heartbeat")
     }
 }

@@ -7,6 +7,7 @@
 //! A real dependency on a server, and worth remembering before it goes
 //! anywhere but a laptop.
 
+mod alive;
 mod chrome;
 mod error;
 mod facts;
@@ -16,6 +17,7 @@ mod zone;
 #[cfg(test)]
 mod tests;
 
+pub use alive::{Alive, heartbeat};
 pub use error::CardError;
 pub use fill::render;
 pub use zone::{alert, closed};

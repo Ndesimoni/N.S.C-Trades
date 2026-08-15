@@ -50,8 +50,9 @@ THE TWO RUNGS FIRE ON DIFFERENT RULES, ON PURPOSE
 
 THE ONE MESSAGE THAT STILL GOES OUT ON A MONDAY
 
-  The heartbeat. One line at 07:00 UTC, and only on a day that said nothing
-  else.
+  The heartbeat. A card at 07:00 UTC, and only on a day that said nothing
+  else: every pair, its levels as dots in his colours, and how far price is
+  from the nearest zone on each.
 
   Monday watches nothing, so without it a quiet Monday and a dead bot look
   exactly the same.

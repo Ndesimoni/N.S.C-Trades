@@ -83,11 +83,16 @@ pub(super) fn draw(
 
     let mut filled = html.replace("/*__STYLE__*/", &style);
 
-    let height = height_of(&filled).ok_or_else(|| CardError::NoHeight(template.into()))?;
-
     for (marker, value) in fills {
         filled = filled.replace(marker, value);
     }
+
+    // **After the facts go in, not before.** A card whose height depends on
+    // what it is showing — the heartbeat lists a row per pair — writes its
+    // `--card-height` as one of those facts. Read it any earlier and Rust asks
+    // Chrome for a window the page never agreed to, and the difference comes
+    // out as a strip of white or a clipped last row.
+    let height = height_of(&filled).ok_or_else(|| CardError::NoHeight(template.into()))?;
 
     // The page is written next to the picture, not into a temp folder. Open it
     // in a browser and the card is there with real numbers in it — edit the

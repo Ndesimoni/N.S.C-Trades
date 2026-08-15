@@ -21,6 +21,9 @@ THE FILES
               is, and hands it to Chrome. Start here. Every card goes through
               its `draw`.
 
+  alive.rs    The heartbeat card. Works out its own height, because it grows
+              a row per pair.
+
   zone.rs     THE ZONE CARDS. Price arriving at one of his zones (rung 1),
               and a candle that touched one having finished (rung 2). Their
               own file because what they are told is nothing like a chart: a
@@ -33,7 +36,7 @@ THE FILES
   chrome.rs   Runs Chrome headless, then cuts the white strip off the
               bottom.
 
-  tests.rs    Nine tests, on the two things that have actually gone wrong.
+  tests.rs    Ten tests, on the two things that have actually gone wrong.
 
   README.txt  This file.
 
@@ -46,7 +49,9 @@ TWO THINGS THAT HAVE CAUGHT US, BOTH NOW PINNED BY TESTS
 
          --card-height:647px;
 
-     fill.rs reads that line straight out of the file.
+     fill.rs reads that line straight out of the file, AFTER the facts have
+     gone in — which is what lets heartbeat.html have a height that depends on
+     how many pairs are on it.
 
      Chrome screenshots a WINDOW, not a page, so something has to say how
      tall. The file being designed is the honest place for it — two numbers

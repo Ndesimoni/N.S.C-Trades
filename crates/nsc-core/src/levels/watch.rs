@@ -112,9 +112,16 @@ impl Watch {
         arrived
     }
 
-    /// How many bands are being watched. For the heartbeat.
+    /// How many bands are being watched.
     pub fn count(&self) -> usize {
         self.seen.len()
+    }
+
+    /// Every band being watched, whether price is at it or not. For the
+    /// heartbeat, which reports what is being looked after rather than what
+    /// happened.
+    pub fn bands(&self) -> Vec<Band> {
+        self.seen.iter().map(|(band, _)| *band).collect()
     }
 
     /// The last price it was given.

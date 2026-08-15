@@ -31,10 +31,12 @@ THE FILES
               band — is price at it now — and an alert is the moment that
               turns from no to yes.
 
-  tests/      Nineteen tests.
+  tests/      Thirty-three tests.
                 bands.rs    does our band land where his landed
+                pips.rs     one pip, worked out from how the pair is quoted
                 saving.rs   levels arriving from his phone, and going back off
-                support.rs  what both of those share
+                watching.rs firing once per touch, not once per price
+                support.rs  what they share
 
   README.txt  This file.
 
@@ -90,25 +92,35 @@ TWO THINGS ABOUT THE FILES THEMSELVES
   saves one and reads it back.
 
 
-"AT IT" IS WIDER THAN "INSIDE IT"
+ARRIVING IS A TOUCH. LEAVING IS A REAL DISTANCE.
 
-  A BAND IS A ZONE, NOT A WALL. Price at 4133 when the top is 4132.57 is at
-  that level in every way that matters, and waiting for it to cross by half a
-  dollar is arbitrary.
+  Two different sums on purpose, and the reason is worth having.
 
-  There is a second reason and it may be the bigger one: AN ALERT THAT ONLY
-  FIRES ONCE PRICE IS INSIDE ARRIVES TOO LATE TO USE. Told it is coming, he
-  can get to his chart before the reaction starts.
+  ARRIVING is `approach_pips` in config/levels.toml — one pip, worked out from
+  the pair's own `digits`. Gold 0.10, the euro 0.0001. Price at 4132.60 when
+  the top is 4132.57 has touched it, and staying quiet over three cents would
+  be silly.
 
-  How close counts is `approach` in config/levels.toml — a share of the band's
-  own thickness, so it travels between instruments the same way the band does.
+  IT IS DELIBERATELY TINY, because THE BAND IS ALREADY THE EARLY WARNING. Its
+  outer edge is a long way from the line he drew, measured against how fast
+  each pair actually moves:
 
-      0.25 on gold weekly   fires about 19 points out
-      0.25 on gold daily    fires about 8 points out
-      0.25 on the pound     fires about 15 pips out
+      gold    half a weekly band  =  about 3 hours before price reaches him
+      pound   half a weekly band  =  about 6 hours
 
-  The alert says which it is — price IS IN the zone, or is COMING UP ON it.
-  Different things, and he should not have to work it out from the numbers.
+  An earlier version added a quarter of a band on top of that and fired NINE
+  HOURS early on the pound. That is not an alert, it is a horoscope. The
+  working is in docs/diagrams/how-close.html.
+
+  LEAVING is a tenth of the band's own thickness — about 8 points on gold, 6
+  pips on the pound. It has to be a real distance or price sitting on the edge
+  fires over and over: a pip out, a pip back, all afternoon.
+
+  Easy to trigger, hard to reset.
+
+  The alert still says which it is — price IS IN the zone, or is COMING UP ON
+  it. Different things, and he should not have to work it out from the
+  numbers.
 
 
 FIRE ONCE PER TOUCH, NOT ONCE PER PRICE
@@ -139,5 +151,10 @@ WHAT IS NOT HERE YET
   Removing one particular level. Undo takes off what the last message added,
   which covers a typo but not "that 3800 from last week was wrong".
 
-  Nothing watches these. Prices arrive on the websocket and nothing yet asks
-  whether one has entered a band. That is the price watcher.
+  Refusing a level the pair already has. He sent three euro levels twice and
+  both copies were saved, so one line on his chart is two bands and two
+  alerts.
+
+  Anything past rung 1. These bands say when price ARRIVES. Whether the candle
+  that got there closed inside — the thing that says it was a rejection rather
+  than a pass-through — is not built.

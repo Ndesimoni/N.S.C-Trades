@@ -8,9 +8,15 @@ THE FILES
 
   bands.rs     Does the band we build land where the one he drew landed?
 
+  pips.rs      One pip, worked out from how the pair is quoted. Gold to two
+               decimals is 0.10; the euro to five is 0.0001.
+
   saving.rs    Levels arriving from his phone, and going back off again.
 
-  support.rs   The scratch folder and the price helper both use.
+  watching.rs  Firing once per touch, not once per price — and the two
+               different distances for arriving and leaving.
+
+  support.rs   The scratch folder and the price helper they share.
 
   README.txt   This file.
 
@@ -29,6 +35,16 @@ THE ONE THAT MATTERS
   That is the whole point. Everything in this project is measured against his
   levels, so a change that makes our band stop matching his hand has to fail
   loudly rather than quietly draw something slightly different.
+
+
+THE ONE THAT IS EASIEST TO GET WRONG
+
+  watching.rs::leaving_takes_more_than_it_took_to_arrive.
+
+  ARRIVING and LEAVING are measured differently — a pip to arrive, a tenth of
+  the band to leave — and it would be very natural to tidy that into one
+  number. That test fails the moment anyone does, which was checked by making
+  the change and watching it go red.
 
 
 WHY saving.rs WRITES REAL FILES

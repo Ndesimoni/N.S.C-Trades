@@ -12,7 +12,6 @@
 
     --good:  #1E3FA8;
     --bad:   #A2665C;
-    --band:  #171A1F;
 
     --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
     --sans:  ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
@@ -28,10 +27,8 @@
       --ink-soft: #98A1B0;
       --faint:    #6B7686;
       --rule:     #262C36;
-
       --good:  #7C9BFF;
       --bad:   #C98B7F;
-      --band:  #E8EBF1;
     }
   }
 
@@ -43,10 +40,8 @@
     --ink-soft: #98A1B0;
     --faint:    #6B7686;
     --rule:     #262C36;
-
     --good:  #7C9BFF;
     --bad:   #C98B7F;
-    --band:  #E8EBF1;
   }
 
   body {
@@ -93,15 +88,13 @@
     border-radius: 12px; padding: 1.5rem;
   }
   .scroller { overflow-x: auto; }
-  .chart { display: block; width: 100%; min-width: 640px; height: auto; }
+  .chart { display: block; width: 100%; min-width: 660px; height: auto; }
 
   table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
   th, td { text-align: left; padding: 0.6rem 1rem 0.6rem 0; border-bottom: 1px solid var(--rule); }
   th { font-family: var(--mono); font-size: 0.67rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); font-weight: 500; }
   td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; text-align: right; padding-right: 0; }
   td.pair { font-weight: 600; }
-  tr.is-bad td.verdict { color: var(--bad); font-weight: 600; }
-  tr.is-good td.verdict { color: var(--good); font-weight: 600; }
 
   .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
   .lane { border-radius: 10px; padding: 1.15rem 1.25rem; background: var(--sunk); border: 1px solid var(--rule); }
@@ -119,6 +112,8 @@
     margin-left: 0.6rem; vertical-align: 0.18em;
   }
 
+  code { font-family: var(--mono); font-size: 0.88em; }
+
   footer { border-top: 1px solid var(--rule); padding-top: 1.5rem; color: var(--ink-soft); font-size: 0.93rem; max-width: 68ch; }
   footer strong { color: var(--ink); }
 </style>
@@ -129,20 +124,111 @@
     <p class="eyebrow">nsc_trades · the price watcher</p>
     <h1>How Close Counts</h1>
     <p class="standfirst">
-      An alert fires when price gets near one of his bands. How near should
-      that be — a fixed number of pips, or a share of the band itself?
-      Measured on his own three pairs, and the answer is the same one the band
-      thickness already gave.
+      The alert fires when price gets near one of his bands. How near? The
+      question looked like a choice between a fixed number of pips and a share
+      of the band. Measured on his own three pairs, it turned out to be
+      neither — because <strong>the band is already the early warning</strong>.
     </p>
     <p class="real">Real data · XAU/USD, GBP/USD, EUR/USD · Twelve Data, 15 Aug 2026</p>
   </header>
 
   <section>
-    <h2>The measure that matters is time<span class="chip">settled</span></h2>
+    <h2>Start from the line he actually drew<span class="chip">the finding</span></h2>
     <p class="note">
-      Not how many points. <strong>How long price takes to cover them</strong>
-      — because the whole job of the alert is to give him enough notice to get
-      to his chart before the reaction starts.
+      A level is a band, and his gold weekly band is <strong>77 points
+      thick</strong>. So price touching its outer edge is already a long way
+      from the line in the middle. Measured in hours of normal movement rather
+      than points, that gap is the whole argument.
+    </p>
+
+    <div class="stage">
+      <div class="scroller">
+        <svg class="chart" viewBox="0 0 940 400" role="img"
+             aria-label="Half a band alone gives 2.9 hours of warning on gold, 6.2 on the pound and 4.9 on the euro. Adding a quarter of a band on top raises those to 4.3, 9.3 and 7.4 hours.">
+
+          <text x="0" y="18" font-family="var(--mono)" font-size="11.5" letter-spacing="1.2" fill="var(--faint)">HOURS OF NORMAL MOVEMENT BETWEEN THE ALERT AND HIS LINE</text>
+
+          <!-- scale -->
+          <g font-family="var(--mono)" font-size="10.5" fill="var(--faint)">
+            <line x1="120" y1="42" x2="120" y2="330" stroke="var(--rule)" />
+            <line x1="240" y1="42" x2="240" y2="330" stroke="var(--rule)" />
+            <line x1="360" y1="42" x2="360" y2="330" stroke="var(--rule)" />
+            <line x1="480" y1="42" x2="480" y2="330" stroke="var(--rule)" />
+            <line x1="600" y1="42" x2="600" y2="330" stroke="var(--rule)" />
+            <line x1="720" y1="42" x2="720" y2="330" stroke="var(--rule)" />
+            <text x="120" y="350" text-anchor="middle">0 hr</text>
+            <text x="240" y="350" text-anchor="middle">2</text>
+            <text x="360" y="350" text-anchor="middle">4</text>
+            <text x="480" y="350" text-anchor="middle">6</text>
+            <text x="600" y="350" text-anchor="middle">8</text>
+            <text x="720" y="350" text-anchor="middle">10</text>
+          </g>
+
+          <!-- 60px per hour, zero at x=120 -->
+
+          <!-- GOLD  half 2.9 -> 174 ; plus 1.4 -> 84 -->
+          <text x="0" y="82" font-family="var(--sans)" font-size="13" fill="var(--ink)">XAU/USD</text>
+          <rect x="120" y="66" width="174" height="22" rx="2" fill="var(--good)" opacity="0.9" />
+          <rect x="294" y="66" width="84" height="22" rx="2" fill="var(--bad)" opacity="0.55" />
+          <text x="390" y="82" font-family="var(--mono)" font-size="12" fill="var(--ink-soft)">4.3 hr</text>
+
+          <!-- GBP  half 6.2 -> 372 ; plus 3.1 -> 186 -->
+          <text x="0" y="142" font-family="var(--sans)" font-size="13" fill="var(--ink)">GBP/USD</text>
+          <rect x="120" y="126" width="372" height="22" rx="2" fill="var(--good)" opacity="0.9" />
+          <rect x="492" y="126" width="186" height="22" rx="2" fill="var(--bad)" opacity="0.55" />
+          <text x="690" y="142" font-family="var(--mono)" font-size="12" fill="var(--bad)">9.3 hr</text>
+
+          <!-- EUR  half 4.9 -> 294 ; plus 2.5 -> 150 -->
+          <text x="0" y="202" font-family="var(--sans)" font-size="13" fill="var(--ink)">EUR/USD</text>
+          <rect x="120" y="186" width="294" height="22" rx="2" fill="var(--good)" opacity="0.9" />
+          <rect x="414" y="186" width="150" height="22" rx="2" fill="var(--bad)" opacity="0.55" />
+          <text x="576" y="202" font-family="var(--mono)" font-size="12" fill="var(--ink-soft)">7.4 hr</text>
+
+          <!-- key -->
+          <rect x="120" y="252" width="18" height="12" rx="2" fill="var(--good)" opacity="0.9" />
+          <text x="147" y="262" font-family="var(--sans)" font-size="12.5" fill="var(--ink)">half the band — warning he already had, for free</text>
+
+          <rect x="120" y="278" width="18" height="12" rx="2" fill="var(--bad)" opacity="0.55" />
+          <text x="147" y="288" font-family="var(--sans)" font-size="12.5" fill="var(--ink-soft)">a quarter of a band added on top — the first attempt</text>
+
+          <text x="120" y="322" font-family="var(--sans)" font-size="13" font-weight="600" fill="var(--bad)">Nine hours of notice on the pound is not an alert. It is a horoscope.</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>So both framings of the question were wrong</h2>
+
+    <div class="stage">
+      <div class="two">
+        <div class="lane is-bad">
+          <h3>A share of the band</h3>
+          <p>Travels between instruments, which is why it is right for the band's own thickness. But used <em>again</em> for the approach it <strong>double-counts</strong> — the band was already sized by how much the pair moves.</p>
+          <p>Result: the thicker the zone, the earlier the alert. Backwards. A thick zone is <em>already</em> plenty of notice.</p>
+        </div>
+
+        <div class="lane is-bad">
+          <h3>A fixed 8 pips</h3>
+          <p>A pip on gold is <strong>ten cents</strong>, and gold moves $13 in a normal hour — so eight pips is <strong>six minutes</strong>. On the euro the same eight pips is nearly two hours. Twenty-six times apart.</p>
+          <p>Exactly what <code>CLAUDE.md</code> already warns about: <em>a pip setting works on the pair you tested and quietly stops working on every other one.</em></p>
+        </div>
+      </div>
+
+      <p class="note" style="margin: 1.5rem 0 0;">
+        The catch is that the second objection <strong>stops mattering when the
+        number is small enough</strong>. Six minutes of warning is useless as
+        warning — but perfectly good as <em>rounding</em>, which is all that
+        was needed once the band turned out to be doing the warning.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Settled: one pip, and it comes from <code>digits</code><span class="chip">settled</span></h2>
+    <p class="note">
+      Price at 4132.60 against a top of 4132.57 has touched the level. Staying
+      quiet over three cents would be silly, and that is the entire job.
     </p>
 
     <div class="stage">
@@ -151,113 +237,31 @@
           <thead>
             <tr>
               <th>Pair</th>
-              <th class="num">Normal hour</th>
-              <th class="num">His band</th>
-              <th class="num">8 pips</th>
-              <th class="num">¼ of the band</th>
+              <th class="num">Digits</th>
+              <th class="num">One pip</th>
+              <th class="num">Fires at</th>
+              <th class="num">Quiet until</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td class="pair">XAU/USD</td>
-              <td class="num">13.33</td>
-              <td class="num">77.15</td>
-              <td class="num">0.80</td>
-              <td class="num">19.29</td>
-            </tr>
-            <tr>
-              <td class="pair">GBP/USD</td>
-              <td class="num">0.00050</td>
-              <td class="num">0.00622</td>
-              <td class="num">0.00080</td>
-              <td class="num">0.00155</td>
-            </tr>
-            <tr>
-              <td class="pair">EUR/USD</td>
-              <td class="num">0.00043</td>
-              <td class="num">0.00424</td>
-              <td class="num">0.00080</td>
-              <td class="num">0.00106</td>
-            </tr>
+            <tr><td class="pair">XAU/USD</td><td class="num">2</td><td class="num">0.10</td><td class="num">0.10 out</td><td class="num">7.7 out</td></tr>
+            <tr><td class="pair">GBP/USD</td><td class="num">5</td><td class="num">0.0001</td><td class="num">1 pip out</td><td class="num">6.2 pips out</td></tr>
+            <tr><td class="pair">EUR/USD</td><td class="num">5</td><td class="num">0.0001</td><td class="num">1 pip out</td><td class="num">4.2 pips out</td></tr>
           </tbody>
         </table>
       </div>
 
-      <p class="note" style="margin: 1.4rem 0 0;">
-        Those columns look reasonable. Turn them into <strong>hours of
-        warning</strong> and one of them falls apart.
-      </p>
-    </div>
-  </section>
-
-  <section>
-    <h2>Eight pips is six minutes on gold</h2>
-    <p class="note">
-      Each bar is how much notice the alert gives, in hours of normal
-      movement.
-    </p>
-
-    <div class="stage">
-      <div class="scroller">
-        <svg class="chart" viewBox="0 0 940 420" role="img"
-             aria-label="Eight pips gives 0.06 hours of warning on gold, 1.59 on the pound and 1.86 on the euro — a twenty-six fold spread. A quarter of the band gives 1.4, 3.1 and 2.5 hours, all within about two of each other.">
-
-          <!-- ── eight pips ── -->
-          <text x="0" y="20" font-family="var(--mono)" font-size="11.5" letter-spacing="1.2" fill="var(--bad)">A FIXED 8 PIPS</text>
-          <text x="0" y="40" font-family="var(--sans)" font-size="13" fill="var(--ink-soft)">the same number on every pair</text>
-
-          <!-- gold: 0.06 hr -->
-          <text x="0" y="78" font-family="var(--sans)" font-size="13" fill="var(--ink)">XAU/USD</text>
-          <rect x="92" y="64" width="4" height="20" rx="2" fill="var(--bad)" />
-          <text x="104" y="79" font-family="var(--mono)" font-size="12.5" fill="var(--bad)">0.06 hr — about six minutes</text>
-
-          <!-- gbp: 1.59 hr -->
-          <text x="0" y="112" font-family="var(--sans)" font-size="13" fill="var(--ink)">GBP/USD</text>
-          <rect x="92" y="98" width="167" height="20" rx="2" fill="var(--bad)" opacity="0.75" />
-          <text x="271" y="113" font-family="var(--mono)" font-size="12.5" fill="var(--ink-soft)">1.59 hr</text>
-
-          <!-- eur: 1.86 hr -->
-          <text x="0" y="146" font-family="var(--sans)" font-size="13" fill="var(--ink)">EUR/USD</text>
-          <rect x="92" y="132" width="195" height="20" rx="2" fill="var(--bad)" opacity="0.75" />
-          <text x="299" y="147" font-family="var(--mono)" font-size="12.5" fill="var(--ink-soft)">1.86 hr</text>
-
-          <text x="0" y="184" font-family="var(--sans)" font-size="13" font-weight="600" fill="var(--bad)">Twenty-six times more warning on the euro than on gold.</text>
-
-          <line x1="0" y1="212" x2="940" y2="212" stroke="var(--rule)" />
-
-          <!-- ── a share of the band ── -->
-          <text x="0" y="248" font-family="var(--mono)" font-size="11.5" letter-spacing="1.2" fill="var(--good)">A QUARTER OF THE BAND</text>
-          <text x="0" y="268" font-family="var(--sans)" font-size="13" fill="var(--ink-soft)">sized by the pair's own movement</text>
-
-          <text x="0" y="306" font-family="var(--sans)" font-size="13" fill="var(--ink)">XAU/USD</text>
-          <rect x="92" y="292" width="147" height="20" rx="2" fill="var(--good)" opacity="0.85" />
-          <text x="251" y="307" font-family="var(--mono)" font-size="12.5" fill="var(--ink-soft)">1.4 hr</text>
-
-          <text x="0" y="340" font-family="var(--sans)" font-size="13" fill="var(--ink)">GBP/USD</text>
-          <rect x="92" y="326" width="326" height="20" rx="2" fill="var(--good)" opacity="0.85" />
-          <text x="430" y="341" font-family="var(--mono)" font-size="12.5" fill="var(--ink-soft)">3.1 hr</text>
-
-          <text x="0" y="374" font-family="var(--sans)" font-size="13" fill="var(--ink)">EUR/USD</text>
-          <rect x="92" y="360" width="263" height="20" rx="2" fill="var(--good)" opacity="0.85" />
-          <text x="367" y="375" font-family="var(--mono)" font-size="12.5" fill="var(--ink-soft)">2.5 hr</text>
-
-          <text x="0" y="412" font-family="var(--sans)" font-size="13" font-weight="600" fill="var(--good)">One and a half to three hours on all three. Close enough to be one rule.</text>
-        </svg>
-      </div>
-
       <div class="two">
-        <div class="lane is-bad">
-          <h3>Why 8 pips falls over</h3>
-          <p>A pip on gold is <strong>ten cents</strong>. Gold moves $13 in a normal hour, so eight pips is <strong>six minutes</strong> — the alert arrives after the move it was meant to warn about.</p>
-          <p>A pip on the euro is a hundredth of that in relative terms, so the same eight pips is nearly two hours.</p>
-          <p>It is the exact thing <code>CLAUDE.md</code> already says: <em>20 pips is a big move on EURUSD and a small one on GBPJPY. A pip setting works on the pair you tested and quietly stops working on every other one.</em></p>
+        <div class="lane is-good">
+          <h3>Nothing new to configure</h3>
+          <p>A pip is <strong>ten ticks</strong>, so it falls straight out of <code>digits</code> — which every pair file already has, and which the bot works out for itself when he sends a new pair from his phone.</p>
+          <p>One setting, <code>approach_pips = 1.0</code>, meaning the same thing on gold and on the euro.</p>
         </div>
 
         <div class="lane is-good">
-          <h3>Why a share of the band travels</h3>
-          <p>The band is already sized by how much that pair moves — 0.35 of a weekly candle. So a quarter of the band is a quarter of something that already fits the instrument.</p>
-          <p><strong>Same rule, same answer, everywhere.</strong> Nothing to set per pair, nothing to forget when a new pair arrives.</p>
-          <p>And it is the answer his own hand already gave, twice, on the thickness.</p>
+          <h3>Arriving and leaving are different sums</h3>
+          <p><strong>Easy to trigger, hard to reset.</strong> A touch fires. But the band stays quiet until price is a tenth of its thickness clear — 7.7 points on gold.</p>
+          <p>One pip each way would turn a single visit into an afternoon of alerts: a pip out, a pip back, over and over.</p>
         </div>
       </div>
     </div>
@@ -267,8 +271,9 @@
     <h2>The measurement was wrong the first time<span class="chip">worth keeping</span></h2>
     <div class="stage">
       <p style="margin: 0 0 0.9rem; font-size: 0.95rem; color: var(--ink-soft);">
-        The first run of these numbers said gold moves <strong style="color: var(--ink)">0.73</strong>
-        in a normal hour, and made eight pips look like an hour of warning.
+        The first run said gold moves <strong style="color: var(--ink)">0.73</strong> in a normal hour,
+        which made a fixed 8 pips look like a full hour of warning and nearly
+        settled the question the other way.
       </p>
       <p style="margin: 0 0 0.9rem; font-size: 0.95rem; color: var(--ink-soft);">
         It was measured on a <strong style="color: var(--ink)">Saturday</strong>. Most of the last forty
@@ -277,10 +282,10 @@
         was <em>closed</em>.
       </p>
       <p style="margin: 0; font-size: 0.95rem; color: var(--ink-soft);">
-        Gold actually moves <strong style="color: var(--ink)">13.33</strong> an hour, and the answer
-        flipped. That is the weekend-candle problem already written down in
-        <code>PROGRESS.md</code> — still not handled in code, and it has now
-        cost one wrong answer.
+        Gold actually moves <strong style="color: var(--ink)">13.33</strong> an hour. That is the
+        weekend-candle problem already written down in <code>PROGRESS.md</code>
+        — still not handled in code, and it has now cost one wrong answer
+        inside ten minutes.
       </p>
     </div>
   </section>
@@ -288,13 +293,14 @@
   <footer>
     <p>
       <strong>This is an argument, not a result.</strong> It settles what
-      "close enough" should mean. Whether the alerts are worth acting on needs
-      a month of them and a record of what happened next.
+      "close enough" means. Whether the alerts are worth acting on needs a
+      month of them and a record of what happened next.
     </p>
     <p>
-      Settled: <code>approach = 0.25</code> in <code>config/levels.toml</code>,
-      a share of the band's thickness. Turn it up for more notice and more
-      false starts.
+      In code: <code>approach_pips = 1.0</code> in
+      <code>config/levels.toml</code>, the pip from each pair's
+      <code>digits</code>, and the clearance a tenth of the band.
+      Thirty-three tests in <code>nsc-core/src/levels/tests/</code>.
     </p>
   </footer>
 

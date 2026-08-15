@@ -1,38 +1,39 @@
-//! Firing once per touch, not once per price — and firing on approach.
+//! Firing once per touch, not once per price.
 
 use rust_decimal::Decimal;
 
 use super::super::{Band, Nearness, Timeframe, Watch, nearness};
 use super::support::d;
 
-/// A quarter of the band's thickness counts as arriving.
-fn approach() -> Decimal {
-    d("0.25")
+/// A pip on gold. It is quoted to two decimals, so a pip is ten cents.
+fn reach() -> Decimal {
+    d("0.10")
 }
 
-/// The gold band he drew at 4094 — 4055.42 to 4132.57, about 77 thick.
-/// So the zone reaches about 19 further, to roughly 4151.8 and 4036.1.
+/// The gold band he drew at 4094 — 4055.43 to 4132.57, about 77 thick.
+///
+/// So a touch is anything up to 4132.67, and the band goes quiet again only
+/// past 4140.28 — a tenth of its own thickness clear.
 fn gold() -> Band {
     Band::around(Timeframe::Weekly, d("4094"), d("220.42"), d("0.35"))
 }
 
 fn watching() -> Watch {
-    Watch::over(vec![gold()], approach())
+    Watch::over(vec![gold()], reach())
 }
 
-// ── A band is a zone, not a wall ──
+// ── A touch, not a crossing ──
 
-// The whole point of approach. 4140 is above the band's top of 4132.57 — but
-// it is 8 away on a band 77 thick, and price at 4140 is at that level in every
-// way that matters.
+// The band's top is 4132.57. Price at 4132.60 has touched it in every way that
+// matters, and staying quiet over three cents would be silly.
 #[test]
-fn price_near_the_band_counts_as_arriving() {
+fn a_price_just_outside_still_counts_as_arriving() {
     let mut watch = watching();
 
     watch.arrive(d("4300"));
-    let arrived = watch.arrive(d("4140"));
+    let arrived = watch.arrive(d("4132.60"));
 
-    assert_eq!(arrived.len(), 1, "near enough is arrived");
+    assert_eq!(arrived.len(), 1, "a touch is an arrival");
     assert_eq!(arrived[0].1, Nearness::Approaching, "and it says which");
 }
 
@@ -44,18 +45,21 @@ fn price_inside_the_band_says_so() {
     assert_eq!(watch.arrive(d("4100"))[0].1, Nearness::Inside);
 }
 
-// Told it is COMING, he can get to his chart before the reaction starts. An
-// alert that waits for price to be strictly inside arrives too late to use.
+// The slack is a pip, NOT time to react. The band already gives him that — its
+// top is about three hours of gold movement from the line he drew.
 #[test]
-fn the_alert_comes_before_price_is_inside() {
+fn the_slack_is_a_pip_and_no_more() {
     let band = gold();
 
     assert_eq!(
-        nearness(&band, d("4140"), approach()),
+        nearness(&band, d("4132.60"), reach()),
         Nearness::Approaching
     );
-    assert_eq!(nearness(&band, d("4132"), approach()), Nearness::Inside);
-    assert_eq!(nearness(&band, d("4200"), approach()), Nearness::Away);
+    assert_eq!(nearness(&band, d("4132.50"), reach()), Nearness::Inside);
+
+    // A dollar out is not a touch, and neither is anything beyond.
+    assert_eq!(nearness(&band, d("4133.60"), reach()), Nearness::Away);
+    assert_eq!(nearness(&band, d("4140"), reach()), Nearness::Away);
 }
 
 #[test]
@@ -63,11 +67,20 @@ fn how_close_counts_is_a_setting() {
     let band = gold();
 
     // Nothing counts but the band itself.
-    assert_eq!(nearness(&band, d("4140"), d("0")), Nearness::Away);
+    assert_eq!(nearness(&band, d("4132.60"), d("0")), Nearness::Away);
 
-    // Half a band's thickness of warning reaches further.
-    assert_eq!(nearness(&band, d("4160"), d("0.25")), Nearness::Away);
-    assert_eq!(nearness(&band, d("4160"), d("0.5")), Nearness::Approaching);
+    // A pip of slack reaches it.
+    assert_eq!(
+        nearness(&band, d("4132.60"), d("0.10")),
+        Nearness::Approaching
+    );
+
+    // Ten pips reaches further.
+    assert_eq!(nearness(&band, d("4133.50"), d("0.10")), Nearness::Away);
+    assert_eq!(
+        nearness(&band, d("4133.50"), d("1.00")),
+        Nearness::Approaching
+    );
 }
 
 // ── Once per touch ──
@@ -78,9 +91,9 @@ fn sitting_at_a_band_fires_nothing_more() {
     let mut watch = watching();
 
     watch.arrive(d("4300"));
-    watch.arrive(d("4140"));
+    watch.arrive(d("4132.60"));
 
-    for price in ["4139", "4135", "4100", "4060", "4145"] {
+    for price in ["4132.55", "4120", "4100", "4060", "4135"] {
         assert!(
             watch.arrive(d(price)).is_empty(),
             "{price} was already at it"
@@ -99,25 +112,50 @@ fn leaving_and_coming_back_fires_again() {
     assert_eq!(watch.arrive(d("4100")).len(), 1, "a second visit");
 }
 
-// Price hovering at the edge of the zone crosses it again and again, and
-// describes one moment where nothing happened.
+// Price hovering at the edge crosses it again and again, and describes one
+// moment where nothing happened.
 #[test]
 fn hovering_at_the_edge_does_not_fire_over_and_over() {
     let mut watch = watching();
 
     watch.arrive(d("4300"));
     assert_eq!(
-        watch.arrive(d("4151")).len(),
+        watch.arrive(d("4132.60")).len(),
         1,
-        "the first crossing counts"
+        "the first touch counts"
     );
 
     let mut fired = 0;
-    for price in ["4153", "4150", "4153", "4151", "4154"] {
+    for price in ["4134", "4132.50", "4136", "4133", "4139"] {
         fired += watch.arrive(d(price)).len();
     }
 
     assert_eq!(fired, 0, "the same moment, told five times");
+}
+
+// Leaving is a REAL distance. A pip back out must not reset the band, or the
+// next pip back in is a second alert for one visit.
+#[test]
+fn leaving_takes_more_than_it_took_to_arrive() {
+    let mut watch = watching();
+
+    watch.arrive(d("4300"));
+    watch.arrive(d("4132.60"));
+
+    // Well outside a touch, still nowhere near clear of the band.
+    assert!(watch.arrive(d("4139")).is_empty(), "not gone yet");
+    assert!(
+        watch.arrive(d("4132.60")).is_empty(),
+        "so coming back is not new"
+    );
+
+    // Past a tenth of the band's thickness — 4140.28 — it is properly gone.
+    watch.arrive(d("4141"));
+    assert_eq!(
+        watch.arrive(d("4132.60")).len(),
+        1,
+        "now it is a fresh touch"
+    );
 }
 
 // ── The first price ──
@@ -148,7 +186,7 @@ fn starting_at_a_band_still_fires_on_a_real_arrival_later() {
 #[test]
 fn only_the_band_price_arrived_at_fires() {
     let daily = Band::around(Timeframe::Daily, d("2984"), d("70.36"), d("0.46"));
-    let mut watch = Watch::over(vec![gold(), daily], approach());
+    let mut watch = Watch::over(vec![gold(), daily], reach());
 
     watch.arrive(d("3500"));
 

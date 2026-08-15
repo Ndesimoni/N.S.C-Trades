@@ -39,17 +39,22 @@ Source: [`diagrams/step-two.html`](diagrams/step-two.html)
 
 ### [How Close Counts →](https://claude.ai/code/artifact/33596afc-e645-4d74-be82-4206c57a8273)
 
-**Settled: the alert fires on a share of the band, not a fixed number of
-pips.** Measured on gold, the pound and the euro.
+**Settled: the alert fires on a one-pip touch.** Measured on gold, the pound
+and the euro.
 
-The measure that matters is not how many points but **how long price takes to
-cover them**. A fixed 8 pips gives six minutes of warning on gold and nearly
-two hours on the euro — twenty-six times apart. A quarter of the band gives
-between one and a half and three hours on all three.
+It looked like a choice between a fixed number of pips and a share of the
+band. It was neither — **the band is already the early warning**. Half his
+gold weekly band is about three hours of movement from the line he drew, and
+half the pound's is six. Reaching further out on top of that fired *nine hours
+early* on the pound.
+
+So the pip is for **rounding**, not warning: price at 4132.60 against a top of
+4132.57 has touched it. And it comes from each pair's `digits`, so there is
+nothing to set when a new pair arrives.
 
 The page also keeps the mistake: the first measurement was taken on a Saturday
 and the weekend candles said the market was calm when it was shut. It flipped
-the answer.
+the answer once already.
 
 Source: [`diagrams/how-close.html`](diagrams/how-close.html)
 

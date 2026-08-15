@@ -8,27 +8,29 @@
 //! So this holds one fact per band: is price at it *now*? An alert is the
 //! moment that turns from no to yes, and nothing else.
 //!
-//! ## "At it" is wider than "inside it"
+//! ## Arriving and leaving are measured differently, on purpose
 //!
-//! **A band is a zone, not a wall.** Price at 4133 when the top is 4132.57 is
-//! at the level in every way that matters, and waiting for it to cross by half
-//! a dollar is arbitrary.
+//! **Arriving is a touch.** Price a pip outside the band has reached it, and
+//! staying quiet over a cent would be silly. That is all `reach` is for — it
+//! is not there to buy him time, because the band already does that. The outer
+//! edge of his gold weekly zone is about three hours of movement from the line
+//! he drew, and on the pound about six.
 //!
-//! And an alert that only fires once price is strictly inside arrives too late
-//! to be any use. Told it is *coming*, he can get to his chart before the
-//! reaction starts.
+//! **Leaving has to be a real distance**, or price sitting on the edge fires
+//! over and over: a pip out, a pip back, all afternoon. So a band goes quiet
+//! only once price is properly gone — [`CLEAR_BY`] of its own thickness, which
+//! is about 8 points on gold and 6 pips on the pound.
 //!
-//! How close counts is `approach` in `config/levels.toml` — a share of the
-//! band's own thickness, so it travels between instruments the same way the
-//! band does.
+//! Easy to trigger, hard to reset.
 
 use rust_decimal::Decimal;
 
 use super::Band;
 
-/// How far outside the zone price must get before that band can fire again.
+/// How far outside price must get before that band can fire again.
 ///
-/// A share of the band's own thickness.
+/// A share of the band's own thickness, so it is a real distance on every pair
+/// — about 8 points on gold, about 6 pips on the pound.
 ///
 /// **Without it, price sitting on the edge flickers.** Three crossings of one
 /// boundary would be three alerts, all describing one moment where nothing
@@ -40,8 +42,9 @@ pub struct Watch {
     /// Each band, and whether price is at it now.
     seen: Vec<(Band, bool)>,
 
-    /// How close counts as arriving, as a share of the band's thickness.
-    approach: Decimal,
+    /// How close counts as arriving — **a price, not a share**. A pip on this
+    /// pair, worked out by [`Pair::reach`](super::Pair::reach).
+    reach: Decimal,
 
     /// Whether any price has arrived yet.
     ///
@@ -63,10 +66,10 @@ pub enum Nearness {
 }
 
 impl Watch {
-    pub fn over(bands: Vec<Band>, approach: Decimal) -> Self {
+    pub fn over(bands: Vec<Band>, reach: Decimal) -> Self {
         Watch {
             seen: bands.into_iter().map(|band| (band, false)).collect(),
-            approach,
+            reach,
             started: false,
         }
     }
@@ -82,7 +85,7 @@ impl Watch {
         let mut arrived = Vec::new();
 
         for (band, at_it) in &mut self.seen {
-            let near = nearness(band, price, self.approach);
+            let near = nearness(band, price, self.reach);
             let now_at_it = near != Nearness::Away;
 
             if first {
@@ -95,7 +98,7 @@ impl Watch {
             if now_at_it && !*at_it {
                 *at_it = true;
                 arrived.push((*band, near));
-            } else if !now_at_it && *at_it && clear_of(band, price, self.approach) {
+            } else if !now_at_it && *at_it && clear_of(band, price) {
                 *at_it = false;
             }
         }
@@ -114,12 +117,12 @@ impl Watch {
 }
 
 /// How near this price is to this band.
-pub fn nearness(band: &Band, price: Decimal, approach: Decimal) -> Nearness {
+///
+/// `reach` is a **price**, not a share — a pip on the pair being watched.
+pub fn nearness(band: &Band, price: Decimal, reach: Decimal) -> Nearness {
     if band.holds(price) {
         return Nearness::Inside;
     }
-
-    let reach = band.thickness() * approach;
 
     if price <= band.top + reach && price >= band.bottom - reach {
         Nearness::Approaching
@@ -128,10 +131,13 @@ pub fn nearness(band: &Band, price: Decimal, approach: Decimal) -> Nearness {
     }
 }
 
-/// Is price properly away from this band, rather than hovering at the edge of
-/// the zone?
-fn clear_of(band: &Band, price: Decimal, approach: Decimal) -> bool {
-    let reach = band.thickness() * (approach + CLEAR_BY);
+/// Is price properly away from this band, rather than hovering at its edge?
+///
+/// **Deliberately not the same sum as arriving.** Arriving is a touch, so a pip
+/// is right. Leaving has to be a real distance or one visit becomes an
+/// afternoon of alerts, so it is measured against the band itself.
+fn clear_of(band: &Band, price: Decimal) -> bool {
+    let gone = band.thickness() * CLEAR_BY;
 
-    price > band.top + reach || price < band.bottom - reach
+    price > band.top + gone || price < band.bottom - gone
 }

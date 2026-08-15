@@ -15,18 +15,18 @@ pub struct Thickness {
     pub daily: Decimal,
     pub h4: Decimal,
 
-    /// How close to a band counts as arriving at it, as a share of the band's
-    /// own thickness.
+    /// How close to a band counts as arriving at it, **in pips**.
     ///
-    /// A band is a zone rather than a wall, and an alert that waits for price
-    /// to be strictly inside arrives too late to be any use.
-    #[serde(default = "a_quarter")]
-    pub approach: Decimal,
+    /// Small on purpose. The band's own edge is already hours of movement away
+    /// from the line he drew, so this is slack for rounding rather than time to
+    /// react — see the note in `config/levels.toml`.
+    #[serde(default = "one_pip")]
+    pub approach_pips: Decimal,
 }
 
-/// What `approach` is when a file predates it.
-fn a_quarter() -> Decimal {
-    Decimal::from_parts(25, 0, 0, false, 2)
+/// What `approach_pips` is when a file predates it.
+fn one_pip() -> Decimal {
+    Decimal::ONE
 }
 
 impl Thickness {
@@ -64,6 +64,20 @@ pub struct Line {
 }
 
 impl Pair {
+    /// One pip for this pair, as a price.
+    ///
+    /// **A pip is ten ticks**, so it falls straight out of `digits` and never
+    /// needs a setting of its own. Gold is quoted to 2 decimals, so a pip is
+    /// 0.10. The euro to 5, so a pip is 0.0001. The yen to 3, so 0.01.
+    pub fn pip(&self) -> Decimal {
+        Decimal::new(1, self.digits.saturating_sub(1))
+    }
+
+    /// How near price has to get before it counts as having arrived at a band.
+    pub fn reach(&self, thickness: Thickness) -> Decimal {
+        self.pip() * thickness.approach_pips
+    }
+
     /// Every line, turned into a band.
     ///
     /// `candles` says how big a normal candle is on each timeframe. A level

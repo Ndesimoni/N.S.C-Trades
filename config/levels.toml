@@ -37,17 +37,21 @@ h4 = 0.55
 
 # ── How close counts as arriving ────────────────────────────────────────────
 #
-# A band is a ZONE, not a wall. Price at 4133 when the top is 4132.57 is at the
-# level in every way that matters, and waiting for it to cross by half a dollar
-# is arbitrary.
+# IN PIPS, and deliberately tiny.
 #
-# There is a second reason, and it may be the bigger one: an alert that only
-# fires once price is INSIDE gives him no time. Told it is coming, he can get
-# to his chart before the reaction starts.
+# THE BAND IS ALREADY THE EARLY WARNING. Its outer edge is a long way from the
+# line he drew — measured against how fast each pair moves:
 #
-# A share of the band's own thickness, so it travels between instruments the
-# same way the band does. 0.25 on gold is about 19 points — roughly an hour of
-# movement, which is the right amount of warning.
+#     gold      half a weekly band  =  about 3 hours before price reaches him
+#     pound     half a weekly band  =  about 6 hours
 #
-# Turn it up for more notice and more false starts. Down for the opposite.
-approach = 0.25
+# So there is nothing to gain by reaching further out. An earlier version added
+# a quarter of a band on top of that and fired NINE HOURS early on the pound,
+# which is not an alert, it is a horoscope.
+#
+# This pip is for ROUNDING, not for warning. Price at 4132.58 against a top of
+# 4132.57 has touched, and staying quiet over a cent would be silly.
+#
+# A pip is worked out from each pair's `digits` — gold 0.10, the euro 0.0001 —
+# so this one number means the same thing everywhere.
+approach_pips = 1.0

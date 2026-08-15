@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 54 tests · clippy clean · it watches his levels and says when price arrives.**
+**Two crates · 62 tests · clippy clean · it watches his levels and says when price arrives.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -61,23 +61,35 @@ last version of this project cleared out on 14 August 2026.
 ### What it is made of
 
 ```
-crates/nsc-work-man/src/
-  main.rs       the flow, and nothing else
+crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
+                          is what stops it, not a rule anybody has to remember
+  candle/       one candle, and whether it has finished.  8 tests
+  levels/       his lines, the bands round them, and the
+                watching of them.                        33 tests
+  error/        retry or give up — Answer and Knows.      3 tests
   settings.rs   pair, timeframe, digits — step 2 replaces this with config
-  candle/       one candle, and whether it has finished. 8 tests
-  feed.rs       asking Twelve Data
-  card/         filling in a template, letting Chrome draw it. 7 tests
-  bin/listen.rs the live price stream, proved to work
-  message.rs    the caption — the notification banner, not the message
-  telegram.rs   sending, as a media group
+  message.rs    the caption
+
+crates/nsc-work-man/      EVERYTHING THAT REACHES
+  feed/         asking Twelve Data.                       5 tests
+  telegram/     sending — words, pictures, media groups.  3 tests
+  card/         filling a template, letting Chrome draw.  7 tests
+  retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests
+  main.rs       the hourly chart card
+  review.rs     one pair's levels, drawn
+  bin/inbox/    levels arriving from his phone
+  bin/watch.rs  the price watcher — rung 1
+  bin/levels.rs draw a pair's bands without waiting for one to be touched
+  bin/listen.rs the raw price stream, kept as proof it works
 
 assets/card/
   chart.html     the candle chart. Carries its own open, high, low and range
   readout.html   where price sat inside the candle
 ```
 
-**Every file is under 140 lines. Every folder with code in it has a
-`README.txt`.**
+**Every folder with code in it has a `README.txt`.** Two files are past the
+200-line mark and want splitting before they grow again —
+`bin/watch.rs` at 220 and `levels/tests/watching.rs` at 204.
 
 **The design lives in HTML, not in Rust.** Open the file, change it, and the
 next message picks it up — no rebuild. Chrome draws it headlessly.
@@ -198,16 +210,23 @@ somewhere near one — so "price is at the level" means price is inside a band.
 - [x] **They are watched.** `cargo run -p nsc-work-man --bin watch` holds the
       price stream open for every pair with a file and says when price arrives
       in one of his bands. Rung 1 of the ladder
-- [x] **A band is a zone, not a wall.** It fires when price comes *near*, not
-      only when it is strictly inside — because an alert that waits for price
-      to be inside arrives too late to be any use. `approach` in
-      `config/levels.toml`, a quarter of the band's thickness, which is about
-      19 points on gold. The alert says whether price is in the zone or coming
-      up on it
+- [x] **A touch counts, not just a crossing.** `approach_pips = 1.0` in
+      `config/levels.toml`. One pip, worked out from each pair's `digits` —
+      gold 0.10, the euro 0.0001 — so one setting means the same thing
+      everywhere. Price at 4132.60 against a top of 4132.57 has reached it
+- [x] **And no wider than that, because the band is already the early
+      warning.** Its outer edge is about 3 hours of movement from his line on
+      gold and 6 on the pound. A first attempt added a quarter of a band on
+      top and fired *nine hours* early on the pound.
+      [`docs/diagrams/how-close.html`](docs/diagrams/how-close.html) has the
+      measurements
 - [x] It fires **once per touch, not once per price** — prices come about once
       a second and barely move, so without that rule one visit becomes twenty
       alerts. The first price never fires, and hovering on a band's edge does
       not fire repeatedly
+- [x] **Leaving is measured differently from arriving** — a tenth of the
+      band's thickness, about 8 points on gold. Easy to trigger, hard to
+      reset. One pip each way would make a single visit an afternoon of alerts
 - [x] **It costs no requests to run.** The candles that size the bands are
       fetched once at startup; after that every price is free
 

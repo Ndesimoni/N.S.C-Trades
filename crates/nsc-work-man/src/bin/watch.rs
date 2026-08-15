@@ -71,7 +71,7 @@ async fn main() -> Result<()> {
         }
 
         println!("{} — watching {} level(s)", pair.symbol, bands.len());
-        let watch = Watch::over(bands, thickness.approach);
+        let watch = Watch::over(bands, pair.reach(thickness));
         watching.insert(pair.symbol.clone(), (pair, watch));
     }
 

@@ -16,3 +16,4 @@ pub mod message;
 pub mod review;
 pub mod settings;
 pub mod telegram;
+pub mod trouble;

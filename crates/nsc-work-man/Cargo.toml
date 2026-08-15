@@ -39,6 +39,11 @@ rust_decimal = { workspace = true }
 # Cutting the white strip off Chrome's screenshot.
 image = { workspace = true }
 
-# Errors, and reading .env.
-anyhow  = { workspace = true }
+# Errors.
+#
+# anyhow in the programs: something went wrong, here is the trail, stop.
+# thiserror in the library: a named trouble the caller can act on, because a
+# bad key and a dropped line need opposite responses.
+anyhow    = { workspace = true }
+thiserror = { workspace = true }
 dotenvy = { workspace = true }

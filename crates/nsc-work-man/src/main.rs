@@ -22,6 +22,7 @@ use anyhow::{Result, bail};
 use chrono::Utc;
 
 use nsc_work_man::candle::Bar;
+use nsc_work_man::trouble::keep_trying;
 use nsc_work_man::{card, feed, message, settings, telegram};
 
 #[tokio::main]
@@ -31,7 +32,9 @@ async fn main() -> Result<()> {
     let client = reqwest::Client::new();
     let now = Utc::now();
 
-    let series = feed::candles(&client).await?;
+    // Tries again on a hiccup, stops dead on a wrong key. The difference is
+    // the whole reason the library has named troubles.
+    let series = keep_trying(3, || feed::candles(&client)).await?;
 
     // Keep only the candles that have finished.
     //

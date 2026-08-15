@@ -2,7 +2,50 @@
 
 use std::path::Path;
 
-use anyhow::{Context, Result, bail};
+use thiserror::Error;
+
+use crate::trouble::{Answer, Knows};
+
+/// What can go wrong sending.
+#[derive(Debug, Error)]
+pub enum SendError {
+    #[error("{0} is not set")]
+    NotSet(&'static str),
+
+    #[error("could not read {path}: {detail}")]
+    NoPicture { path: String, detail: String },
+
+    #[error("could not reach Telegram: {0}")]
+    Unreachable(String),
+
+    /// **Telegram refuses politely** — `ok: false` inside a perfectly ordinary
+    /// reply. A reply that parses is not a message that arrived.
+    #[error("Telegram refused: {0}")]
+    Refused(String),
+}
+
+impl Knows for SendError {
+    fn answer(&self) -> Answer {
+        match self {
+            // A missing token or a missing picture stays missing.
+            SendError::NotSet(_) | SendError::NoPicture { .. } => Answer::GiveUp,
+
+            SendError::Unreachable(_) => Answer::soon(),
+
+            // Telegram says "Too Many Requests" in words rather than a code we
+            // can match on, so the words are what there is to go by. Anything
+            // else — a bad token, a chat that does not exist, a caption too
+            // long — is settled and will not change.
+            SendError::Refused(why) => {
+                if why.contains("Too Many Requests") || why.contains("retry after") {
+                    Answer::in_a_while()
+                } else {
+                    Answer::GiveUp
+                }
+            }
+        }
+    }
+}
 
 /// Post several pictures as one message.
 ///
@@ -13,8 +56,13 @@ use anyhow::{Context, Result, bail};
 ///
 /// The caption goes on the first picture and shows under the whole group. Put
 /// it on every picture and Telegram repeats it under every picture.
-pub async fn send(client: &reqwest::Client, pictures: &[&Path], caption: &str) -> Result<()> {
-    let chat = std::env::var("TELEGRAM_CHAT_ID").context("TELEGRAM_CHAT_ID is not set")?;
+pub async fn send(
+    client: &reqwest::Client,
+    pictures: &[&Path],
+    caption: &str,
+) -> Result<(), SendError> {
+    let chat =
+        std::env::var("TELEGRAM_CHAT_ID").map_err(|_| SendError::NotSet("TELEGRAM_CHAT_ID"))?;
 
     send_to(client, &chat, pictures, caption).await
 }
@@ -29,8 +77,9 @@ pub async fn send_to(
     chat: &str,
     pictures: &[&Path],
     caption: &str,
-) -> Result<()> {
-    let token = std::env::var("TELEGRAM_BOT_TOKEN").context("TELEGRAM_BOT_TOKEN is not set")?;
+) -> Result<(), SendError> {
+    let token =
+        std::env::var("TELEGRAM_BOT_TOKEN").map_err(|_| SendError::NotSet("TELEGRAM_BOT_TOKEN"))?;
 
     let mut form = reqwest::multipart::Form::new().text("chat_id", chat.to_owned());
     let mut described = Vec::new();
@@ -38,8 +87,10 @@ pub async fn send_to(
     for (position, picture) in pictures.iter().enumerate() {
         let name = format!("photo{position}");
 
-        let bytes = std::fs::read(picture)
-            .with_context(|| format!("could not read {} back", picture.display()))?;
+        let bytes = std::fs::read(picture).map_err(|trouble| SendError::NoPicture {
+            path: picture.display().to_string(),
+            detail: trouble.to_string(),
+        })?;
 
         form = form.part(
             name.clone(),
@@ -67,19 +118,21 @@ pub async fn send_to(
         .multipart(form)
         .send()
         .await
-        .context("could not reach Telegram")?
+        .map_err(|trouble| SendError::Unreachable(trouble.to_string()))?
         .json()
         .await
-        .context("Telegram answered, but not with JSON")?;
+        .map_err(|trouble| SendError::Unreachable(trouble.to_string()))?;
 
     // Telegram refuses politely — `ok: false` inside a perfectly normal reply.
     // The same trap Twelve Data sets with its 401, met twice in one afternoon,
     // so it is a pattern rather than bad luck.
     if reply["ok"] != true {
-        bail!(
-            "Telegram refused the message: {}",
-            reply["description"].as_str().unwrap_or("no reason given")
-        );
+        return Err(SendError::Refused(
+            reply["description"]
+                .as_str()
+                .unwrap_or("no reason given")
+                .to_string(),
+        ));
     }
 
     Ok(())

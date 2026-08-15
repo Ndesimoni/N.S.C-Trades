@@ -33,6 +33,7 @@ pub async fn show(client: &reqwest::Client, token: &str, pair: &Pair) -> Result<
                 &format!("<b>{}</b> · where they landed", pair.symbol),
             )
             .await
+            .map_err(Into::into)
         }
         Err(trouble) => {
             println!("  -> could not draw it: {trouble:#}");

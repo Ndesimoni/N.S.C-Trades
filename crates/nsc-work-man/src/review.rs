@@ -11,9 +11,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 
-use crate::candle::{Bar, Series, normal_candle};
+use crate::candle::{Bar, normal_candle};
 use crate::card;
+use crate::feed;
 use crate::levels::{Pair, Thickness, Timeframe};
+use crate::trouble::keep_trying;
 
 /// How many candles back. Enough weeks to hold levels drawn years apart.
 const HISTORY: usize = 150;
@@ -65,18 +67,14 @@ pub async fn picture_of(
 }
 
 /// Candles, oldest first — the direction a chart is read in.
+///
+/// **Tries again if the trouble says it is worth it.** A dropped line clears
+/// on its own; a wrong key does not, and stops on the first go rather than
+/// looking like a dead connection for a minute.
 async fn candles(client: &reqwest::Client, symbol: &str, interval: &str) -> Result<Vec<Bar>> {
-    let key = std::env::var("TWELVE_DATA_API_KEY").context("TWELVE_DATA_API_KEY is not set")?;
-
-    let url = format!(
-        "https://api.twelvedata.com/time_series\
-         ?symbol={symbol}&interval={interval}&outputsize={HISTORY}&timezone=UTC&apikey={key}"
-    );
-
-    let body = client.get(&url).send().await?.text().await?;
-
-    let series: Series = serde_json::from_str(&body)
-        .with_context(|| format!("Twelve Data sent this instead of candles:\n{body}"))?;
+    let series = keep_trying(3, || feed::for_pair(client, symbol, interval, HISTORY))
+        .await
+        .with_context(|| format!("could not get {interval} candles for {symbol}"))?;
 
     let mut bars = series.values;
     bars.reverse();

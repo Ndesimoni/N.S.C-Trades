@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**One crate · 28 tests · clippy clean · levels arrive from his phone and stick.**
+**One crate · 42 tests · clippy clean · levels arrive from his phone and stick.**
 
 ---
 
@@ -191,6 +191,26 @@ somewhere near one — so "price is at the level" means price is inside a band.
 - [ ] **Five gold levels are still missing** — they are pixel estimates off a
       screenshot and stay out until he reads them off
 - [ ] Nothing watches them yet. That is the price watcher
+
+---
+
+## Failing properly — [~]
+
+Every failure now answers one question: **is it worth trying again?**
+
+- [x] `trouble/` — `Answer::TryAgain(how long)` or `Answer::GiveUp`, and
+      `keep_trying`, which respects it and still stops after a few goes
+- [x] The feed and Telegram have **named troubles**, not one catch-all. A
+      dropped line waits 3 seconds; being told to slow down waits a minute; a
+      wrong key stops on the first go rather than looking like a dead
+      connection for a minute
+- [x] Both feeds **refuse politely** — Twelve Data answers 200 with
+      `{"code": 401}` in the body, Telegram answers 200 with `ok: false`. Both
+      are read out of the body, and both are tested
+- [ ] The card and the level files still use `anyhow` — no caller has needed
+      to tell their failures apart yet
+- [ ] Nothing survives a *restart* yet. Retrying handles a hiccup; a crash
+      still loses the run
 
 ---
 

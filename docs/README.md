@@ -37,6 +37,22 @@ crash; the candles would just be missing.
 
 Source: [`diagrams/step-two.html`](diagrams/step-two.html)
 
+### [How Close Counts →](https://claude.ai/code/artifact/33596afc-e645-4d74-be82-4206c57a8273)
+
+**Settled: the alert fires on a share of the band, not a fixed number of
+pips.** Measured on gold, the pound and the euro.
+
+The measure that matters is not how many points but **how long price takes to
+cover them**. A fixed 8 pips gives six minutes of warning on gold and nearly
+two hours on the euro — twenty-six times apart. A quarter of the band gives
+between one and a half and three hours on all three.
+
+The page also keeps the mistake: the first measurement was taken on a Saturday
+and the weekend candles said the market was calm when it was shut. It flipped
+the answer.
+
+Source: [`diagrams/how-close.html`](diagrams/how-close.html)
+
 ### [The clock, not the stamp →](https://claude.ai/code/artifact/9088bc46-0abf-4d19-b33e-7f3ba4d2895a)
 
 Why a candle's timestamp does not say when it became true. A 4-hour candle

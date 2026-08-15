@@ -21,3 +21,7 @@ nightly_break_minutes = 0
 [[level]]
 timeframe = "daily"
 price = "1.41700"
+
+[[level]]
+timeframe = "weekly"
+price = "1.35000"

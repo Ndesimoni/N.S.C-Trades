@@ -27,6 +27,10 @@ THE FILES
   naming.rs   What a pair's name tells you — how many decimals, whether it
               shuts at night. Worked out, not checked.
 
+  watch.rs    Watching bands for price ARRIVING in one. Holds one fact per
+              band — is price inside it now — and an alert is the moment that
+              turns from no to yes.
+
   tests/      Nineteen tests.
                 bands.rs    does our band land where his landed
                 saving.rs   levels arriving from his phone, and going back off
@@ -84,6 +88,29 @@ TWO THINGS ABOUT THE FILES THEMSELVES
   PRICES ARE STORED AS TEXT — price = "1.21279". Written as a TOML number it
   would go through a float and stop being exactly that. There is a test that
   saves one and reads it back.
+
+
+FIRE ONCE PER TOUCH, NOT ONCE PER PRICE
+
+  Prices come down the websocket about once a second and barely move —
+  4375.35, 4375.36, 4375.35. Without a rule, one visit to a level becomes
+  twenty alerts and he stops reading them.
+
+  So an alert is a CHANGE: price was outside, now it is inside. Sitting there
+  says nothing more.
+
+  Two things that took thinking:
+
+  THE FIRST PRICE NEVER FIRES. It says where price IS. It cannot say price has
+  ARRIVED — it may have been sitting in that band for hours before the bot
+  started, and an alert for that is a lie about when it happened.
+
+  HOVERING ON THE EDGE DOES NOT FIRE REPEATEDLY. 4131.99, 4132.01, 4131.99
+  against a top of 4132.00 crosses three times and describes one moment where
+  nothing happened. Price has to get clear of the band by a tenth of its
+  thickness before that band can fire again.
+
+  Both have tests that fail without the rule.
 
 
 WHAT IS NOT HERE YET

@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 42 tests · clippy clean · levels arrive from his phone and stick.**
+**Two crates · 54 tests · clippy clean · it watches his levels and says when price arrives.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -195,7 +195,15 @@ somewhere near one — so "price is at the level" means price is inside a band.
 - [x] `XAUUSD` has 3, `GBPUSD` has 4
 - [ ] **Five gold levels are still missing** — they are pixel estimates off a
       screenshot and stay out until he reads them off
-- [ ] Nothing watches them yet. That is the price watcher
+- [x] **They are watched.** `cargo run -p nsc-work-man --bin watch` holds the
+      price stream open for every pair with a file and says when price arrives
+      in one of his bands. Rung 1 of the ladder
+- [x] It fires **once per touch, not once per price** — prices come about once
+      a second and barely move, so without that rule one visit becomes twenty
+      alerts. The first price never fires, and hovering on a band's edge does
+      not fire repeatedly
+- [x] **It costs no requests to run.** The candles that size the bands are
+      fetched once at startup; after that every price is free
 
 ---
 

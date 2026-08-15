@@ -16,6 +16,7 @@ mod band;
 mod error;
 mod naming;
 mod read;
+mod watch;
 mod write;
 
 #[cfg(test)]
@@ -25,4 +26,5 @@ pub use band::{Band, Timeframe};
 pub use error::LevelError;
 pub use naming::{digits_for, with_slash};
 pub use read::{Pair, Thickness, load_pair, load_thickness};
+pub use watch::Watch;
 pub use write::{known, save, undo};

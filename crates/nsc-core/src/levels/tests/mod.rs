@@ -3,3 +3,4 @@
 mod bands;
 mod saving;
 mod support;
+mod watching;

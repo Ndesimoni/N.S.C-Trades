@@ -94,3 +94,38 @@ pub async fn send_to(
 
     Ok(())
 }
+
+/// Words on their own, with no picture.
+///
+/// **An alert has no picture on purpose.** Nothing has formed yet — price has
+/// only arrived somewhere. A chart would say "look at this", and there is
+/// nothing to look at until a candle closes there.
+pub async fn send_words(client: &reqwest::Client, chat: &str, text: &str) -> Result<(), SendError> {
+    let token =
+        std::env::var("TELEGRAM_BOT_TOKEN").map_err(|_| SendError::NotSet("TELEGRAM_BOT_TOKEN"))?;
+
+    let reply: serde_json::Value = client
+        .post(format!("https://api.telegram.org/bot{token}/sendMessage"))
+        .json(&serde_json::json!({
+            "chat_id": chat,
+            "text": text,
+            "parse_mode": "HTML",
+        }))
+        .send()
+        .await
+        .map_err(|trouble| SendError::Unreachable(trouble.to_string()))?
+        .json()
+        .await
+        .map_err(|trouble| SendError::Unreachable(trouble.to_string()))?;
+
+    if reply["ok"] != true {
+        return Err(SendError::Refused(
+            reply["description"]
+                .as_str()
+                .unwrap_or("no reason given")
+                .to_string(),
+        ));
+    }
+
+    Ok(())
+}

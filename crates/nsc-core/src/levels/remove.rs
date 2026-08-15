@@ -91,3 +91,52 @@ pub fn undo(folder: &Path, name: &str, count: usize) -> Result<Pair, LevelError>
 
     load_pair(&file)
 }
+
+/// Every pair he has stopped, newest name first.
+///
+/// **The names are the files as they sit**, so `GBPUSD-2` is a real answer —
+/// he stopped that pair twice and both sets are kept.
+pub fn retired(folder: &Path) -> Vec<String> {
+    let Ok(entries) = std::fs::read_dir(folder.join(RETIRED)) else {
+        return Vec::new();
+    };
+
+    let mut names: Vec<String> = entries
+        .flatten()
+        .filter(|entry| entry.path().extension().is_some_and(|kind| kind == "toml"))
+        .filter_map(|entry| entry.path().file_stem()?.to_str().map(str::to_owned))
+        .collect();
+
+    names.sort();
+    names
+}
+
+/// Puts a stopped pair back.
+///
+/// `name` is the file as it sits in `removed/` — `GBPUSD`, or `GBPUSD-2` if he
+/// stopped that pair twice. It comes back under the pair's own name, which is
+/// what the file inside says.
+///
+/// **It refuses to land on a pair he is already watching.** Restoring
+/// `GBPUSD-2` over a live `GBPUSD` would replace levels he is using with ones
+/// he put aside, and nothing would say so.
+pub fn restore(folder: &Path, name: &str) -> Result<String, LevelError> {
+    let from = folder.join(RETIRED).join(format!("{name}.toml"));
+
+    // The pair's real name comes from the file, not from what it is called on
+    // disk. `GBPUSD-2.toml` is still GBPUSD.
+    let pair = load_pair(&from)?;
+    let under = pair.symbol.replace('/', "");
+    let to = folder.join(format!("{under}.toml"));
+
+    if to.exists() {
+        return Err(LevelError::AlreadyThere(pair.symbol));
+    }
+
+    std::fs::rename(&from, &to).map_err(|trouble| LevelError::CannotWrite {
+        path: to.display().to_string(),
+        detail: trouble.to_string(),
+    })?;
+
+    Ok(pair.symbol)
+}

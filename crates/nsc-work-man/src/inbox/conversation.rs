@@ -7,8 +7,8 @@ use nsc_core::levels::{Timeframe, digits_for, known, save, undo, with_slash};
 use rust_decimal::Decimal;
 use serde_json::json;
 
+use super::pairs;
 use super::picture::show;
-use super::stopping;
 use super::talking::say;
 use super::{NEW_PAIR, PAIRS, TIMEFRAMES, UNDO};
 
@@ -31,6 +31,9 @@ pub struct Adding {
 
     /// The pair he has asked to stop watching, waiting on a second tap.
     pub(super) stopping: Option<String>,
+
+    /// He has sent /restore and is picking which set to bring back.
+    pub(super) restoring: bool,
 }
 
 /// Works out what he meant and answers.
@@ -42,7 +45,7 @@ pub async fn handle(
 ) -> Result<()> {
     let folder = Path::new(PAIRS);
 
-    if let Some(answer) = stopping::heard(client, token, folder, text, adding).await {
+    if let Some(answer) = pairs::heard(client, token, folder, text, adding).await {
         return answer;
     }
 
@@ -88,7 +91,7 @@ pub async fn handle(
         && let Some(name) = tapped.cloned()
     {
         adding.removing = false;
-        return stopping::ask_first(client, token, folder, name, adding).await;
+        return pairs::ask_first(client, token, folder, name, adding).await;
     }
 
     if tapped.is_some() || adding.naming {

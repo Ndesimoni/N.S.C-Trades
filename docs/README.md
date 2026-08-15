@@ -8,6 +8,18 @@ changes.
 
 ---
 
+## What you can send the bot
+
+[`telegram.md`](telegram.md)
+
+Every command, what comes back, and what arrives without being asked for.
+`/level`, `/remove`, `/restore`, Undo — and the seven cards that turn up on
+their own.
+
+Start here if the question is "how do I use it" rather than "how does it work".
+
+---
+
 ## The design
 
 ### [Broker to Telegram →](https://claude.ai/code/artifact/1093ff9f-f3b3-4af7-afd5-6377629ea1dd)

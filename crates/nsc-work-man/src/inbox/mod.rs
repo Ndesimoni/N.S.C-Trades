@@ -51,8 +51,8 @@ const YES: &str = "✓ Yes, stop it";
 const NO: &str = "✗ Keep it";
 
 mod conversation;
+mod pairs;
 mod picture;
-mod stopping;
 mod talking;
 
 use conversation::{Adding, handle};

@@ -41,6 +41,22 @@ IT RUNS INSIDE THE BOT
   its own trouble, waits fifteen seconds and listens again.
 
 
+PUTTING ONE BACK
+
+      /restore  ->  which one?  ->  [pair]  ->  back
+
+  ONE TAP. It takes nothing away, so there is nothing to be careful about.
+
+  It comes back under the PAIR'S OWN NAME, whatever the file is called — the
+  name on disk is bookkeeping, the name inside the file is the pair. Restoring
+  GBPUSD-2 lands as GBPUSD.
+
+  AND IT REFUSES TO LAND ON A PAIR HE IS ALREADY WATCHING. He may have stopped
+  a pair, drawn it again from scratch, and then reached for the old set —
+  which would replace the levels he is using with the ones he put aside, and
+  say nothing. It says so instead, and leaves both alone.
+
+
 STOPPING A PAIR
 
       /remove   ->  which pair?  ->  [pair]  ->  stop it? / keep it
@@ -117,6 +133,22 @@ IT RUNS INSIDE THE BOT
 
   IT CANNOT STOP. If this task ends, levels go nowhere again — so it catches
   its own trouble, waits fifteen seconds and listens again.
+
+
+PUTTING ONE BACK
+
+      /restore  ->  which one?  ->  [pair]  ->  back
+
+  ONE TAP. It takes nothing away, so there is nothing to be careful about.
+
+  It comes back under the PAIR'S OWN NAME, whatever the file is called — the
+  name on disk is bookkeeping, the name inside the file is the pair. Restoring
+  GBPUSD-2 lands as GBPUSD.
+
+  AND IT REFUSES TO LAND ON A PAIR HE IS ALREADY WATCHING. He may have stopped
+  a pair, drawn it again from scratch, and then reached for the old set —
+  which would replace the levels he is using with the ones he put aside, and
+  say nothing. It says so instead, and leaves both alone.
 
 
 STOPPING A PAIR

@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 126 tests · clippy clean · it watches his levels, says what
+**Two crates · 129 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -58,6 +58,12 @@ cargo run -p nsc-work-man --bin levels -- GBPUSD
 - [x] **Level files are written in one move** — to a file beside it, then
       renamed over the top. Two things read these files now, and a plain write
       is not one step
+
+---
+
+**What he can send it** is written up for him in
+[docs/telegram.md](docs/telegram.md) — every command, what comes back, and
+what turns up on its own.
 
 ---
 
@@ -170,6 +176,11 @@ without waiting for it to happen. That was the last plain-text message going.
       **Two taps**, because it throws away every level he drew for that pair
       and the first tap happens while he is doing something else. The second
       one tells him how many levels are on it first
+- [x] **`/restore` puts a stopped pair back**, one tap, under the pair's own
+      name whatever the file is called
+- [x] **It refuses to land on a pair he is already watching.** He may have
+      stopped one, drawn it again, and then reached for the old set — which
+      would replace the levels he is using and say nothing
 - [x] **Stopped is moved, not deleted.** The file goes to
       `config/pairs/removed/` and comes back by being moved out. Retiring the
       same pair twice keeps both sets. The watcher notices within ten minutes
@@ -399,9 +410,8 @@ Agreed 16 August, before anything new is added.
    doc-tests, a spin loop, a secret in an error message, a silent reconnect
    loop, and a level that armed but was never watched were all found this way
    rather than by a test going red.
-3. **`/restore`** — put a stopped pair back from his phone. Removing is a
-   one-way door at the moment: he can stop a pair with two taps and needs his
-   Mac to undo it.
+3. ~~**`/restore`**~~ Done 16 August. Stopping a pair is no longer a one-way
+   door from his phone.
 
 **`EURUSD` is sitting in `config/pairs/removed/`** with all four levels,
 stopped from his phone on 16 August. Not put back — that is his call.

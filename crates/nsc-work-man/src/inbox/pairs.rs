@@ -1,21 +1,22 @@
-//! Stopping a pair — the whole two-tap conversation.
+//! Stopping a pair, and putting one back.
 //!
-//! **Two taps, not one.** It throws away every level he has drawn for that
-//! pair — months of chart work — and the first tap is made on a phone while he
-//! is doing something else. The second one tells him how many levels are on it
-//! before he confirms.
+//! **Stopping takes two taps.** It sets aside every level he has drawn for
+//! that pair — months of chart work — and the first tap is made on a phone
+//! while he is doing something else. The second one tells him how many levels
+//! are on it before he confirms.
 //!
-//! And it is MOVED, not deleted. `retire` puts the file in
-//! `config/pairs/removed/`, and moving it back starts the pair again.
+//! **Putting one back takes one.** It takes nothing away, so there is nothing
+//! to be careful about — except landing on a pair he is already watching, and
+//! that is refused rather than asked about.
 
 use std::path::Path;
 
 use anyhow::Result;
-use nsc_core::levels::{known, load_pair, retire, with_slash};
+use nsc_core::levels::{known, load_pair, restore, retire, retired, with_slash};
 use serde_json::json;
 
 use super::conversation::Adding;
-use super::talking::say;
+use super::talking::{plainly, say};
 use super::{NO, YES};
 
 /// Handles anything to do with stopping a pair.
@@ -73,6 +74,62 @@ pub async fn heard(
         );
 
         return Some(say(client, token, &words, None).await);
+    }
+
+    if text == "/restore" {
+        *adding = Adding::default();
+        adding.restoring = true;
+
+        let aside = retired(folder);
+        if aside.is_empty() {
+            return Some(
+                say(
+                    client,
+                    token,
+                    "Nothing has been stopped. Everything you have drawn is being watched.",
+                    None,
+                )
+                .await,
+            );
+        }
+
+        let buttons: Vec<Vec<String>> = aside.chunks(2).map(<[String]>::to_vec).collect();
+
+        return Some(
+            say(
+                client,
+                token,
+                "Which one should I put back?",
+                Some(json!(buttons)),
+            )
+            .await,
+        );
+    }
+
+    // **No second tap here.** Putting a pair back takes nothing away, and the
+    // one case that could — landing on a pair he is already watching — is
+    // refused outright rather than asked about.
+    if adding.restoring && retired(folder).iter().any(|name| name == text) {
+        adding.restoring = false;
+
+        return Some(match restore(folder, text) {
+            Ok(symbol) => {
+                let words = format!(
+                    "<b>{symbol}</b> · back\n\n\
+                     Its levels are being watched again. You will get a card when \
+                     the watcher has picked them up."
+                );
+                say(client, token, &words, None).await
+            }
+
+            Err(trouble) => {
+                let words = format!(
+                    "Could not put it back.\n\n{}",
+                    plainly(&trouble.to_string())
+                );
+                say(client, token, &words, None).await
+            }
+        });
     }
 
     if text == NO {

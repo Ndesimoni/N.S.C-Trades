@@ -99,3 +99,19 @@ look_in_minutes = 20
 # IT FIRES ON QUIET DAYS TOO, Monday included. A silent Monday and a dead bot
 # look exactly the same otherwise, which is the whole reason this exists.
 heartbeat_at = "07:00"
+
+
+# ── When trouble is worth telling him about ───────────────────────────────────
+#
+# The price line drops. It always will — the feed closes an idle one, the wifi
+# blinks, a router reboots. Almost all of those fix themselves in seconds.
+#
+# TELLING HIM ABOUT EVERY HICCUP IS THE SAME MISTAKE AS SENDING A CANDLE EVERY
+# HOUR. He learns the buzz means nothing, and then he ignores the one that
+# meant something.
+#
+# So: quiet about hiccups, loud about outages. Nothing is said until the line
+# has been down this long, and then it is said once — with a second message
+# when it comes back, because "it broke" without "it is fixed" leaves him
+# checking.
+trouble_after_minutes = 5

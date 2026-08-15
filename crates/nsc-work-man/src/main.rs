@@ -15,5 +15,20 @@ use anyhow::Result;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    nsc_work_man::watch::run().await
+    dotenvy::dotenv().ok();
+
+    let Err(trouble) = nsc_work_man::watch::run().await else {
+        return Ok(());
+    };
+
+    // **It only gets here for trouble it cannot recover from** — a key it will
+    // never be given, a config file that will not parse. The line dropping is
+    // handled inside and does not reach this.
+    //
+    // He has to be told, because from his side a bot that stopped looks
+    // exactly like a market where nothing happened.
+    eprintln!("stopping: {trouble:#}");
+    nsc_work_man::watch::dying(&reqwest::Client::new(), &format!("{trouble:#}")).await;
+
+    Err(trouble)
 }

@@ -14,7 +14,7 @@ use nsc_core::when::{self, Allowed, Rules};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 
-use super::{CALENDAR, PAIRS, THICKNESS, Watching, bands, closes, prices, pulse, resumed};
+use super::{CALENDAR, PAIRS, THICKNESS, Watching, bands, closes, prices, pulse, resumed, trouble};
 
 /// How long to wait before opening the line again after it drops.
 ///
@@ -43,6 +43,7 @@ pub async fn run() -> Result<()> {
     let mut closes = closes::Closes::new();
     let mut awake = resumed::Awake::new();
     let mut pulse = pulse::Pulse::new();
+    let mut trouble = trouble::Trouble::new();
 
     say_what_the_calendar_allows(&calendar);
 
@@ -59,7 +60,7 @@ pub async fn run() -> Result<()> {
             continue;
         }
 
-        if let Err(trouble) = listen(
+        match listen(
             &client,
             &mut watching,
             thickness,
@@ -70,7 +71,15 @@ pub async fn run() -> Result<()> {
         )
         .await
         {
-            eprintln!("the price line broke: {trouble:#}");
+            // The line closed cleanly, or the session did. Nothing is wrong.
+            Ok(()) => trouble.mended(&client, &mut pulse).await?,
+
+            Err(broke) => {
+                eprintln!("the price line broke: {broke:#}");
+                trouble
+                    .broke(&client, &format!("{broke:#}"), &calendar, &mut pulse)
+                    .await?;
+            }
         }
 
         eprintln!("opening it again in {} seconds.", AGAIN.as_secs());
@@ -152,15 +161,26 @@ async fn listen(
         .await
         .context("could not ask for prices")?;
 
+    // A line that opens and shuts without a word is not working — a key over
+    // its quota does exactly that. Returning Ok for it would have this
+    // reconnect every thirty seconds forever without ever saying so, which is
+    // the same silence as being dead.
+    let mut heard_anything = false;
+
     loop {
         tokio::select! {
             heard = socket.next() => {
                 let Some(heard) = heard else {
+                    if !heard_anything {
+                        anyhow::bail!("the line opened and shut without sending anything");
+                    }
+
                     println!("the other side hung up.");
                     return Ok(());
                 };
 
                 let heard = heard.context("the price line broke")?;
+                heard_anything = true;
 
                 awake.greet(client, watching, thickness, pulse).await?;
                 prices::heard(client, watching, thickness, &heard, pulse).await?;

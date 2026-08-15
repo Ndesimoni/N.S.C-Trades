@@ -160,6 +160,15 @@ to build in now, annoying to retrofit.
       close. See `crates/nsc-work-man/src/bin/README.txt`
 - [ ] **Gold specifically has not been watched ticking** — it was shut for the
       weekend, so the test ran on BTC/USD. Change one word back on Sunday
+- [x] **He is told when something breaks**, and when it is fixed. Nothing is
+      said for the first five minutes — most drops fix themselves in seconds,
+      and a buzz for each teaches him the buzz means nothing
+- [x] **A line that opens and shuts without a price counts as broken.** A key
+      over its quota does exactly that, and treating it as a clean close would
+      reconnect every thirty seconds forever in silence
+- [x] **Trouble it cannot recover from says so and stops** — a bad key, a
+      config that will not parse. Proved by hiding `config/when.toml` and
+      running it: the message arrived
 - [x] **The line dropping is no longer the end of it.** The socket closing
       used to return `Ok` and the process exited *successfully* — and the
       heartbeat went with it, so a dead bot and a quiet day looked identical.

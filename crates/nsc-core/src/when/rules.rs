@@ -44,6 +44,18 @@ pub struct Rules {
     /// move with the seasons.
     #[serde(default = "seven")]
     pub heartbeat_at: NaiveTime,
+
+    /// How long the price line must stay down before he is told.
+    ///
+    /// **Quiet about hiccups, loud about outages.** Most drops fix themselves
+    /// in seconds, and a buzz for each one teaches him the buzz means nothing.
+    #[serde(default = "five")]
+    pub trouble_after_minutes: i64,
+}
+
+/// What `trouble_after_minutes` is when a file predates it.
+fn five() -> i64 {
+    5
 }
 
 /// What `heartbeat_at` is when a file predates it. Before London opens.

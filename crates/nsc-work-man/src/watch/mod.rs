@@ -24,10 +24,12 @@ mod pulse;
 mod resumed;
 mod run;
 mod say;
+mod trouble;
 
 use nsc_core::levels::{Pair, Watch};
 
 pub use run::run;
+pub use trouble::dying;
 
 const PAIRS: &str = "config/pairs";
 const THICKNESS: &str = "config/levels.toml";

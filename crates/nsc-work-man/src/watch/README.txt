@@ -49,6 +49,9 @@ THE FILES
 
   say.rs      Drawing a card and sending it.
 
+  trouble.rs  Telling him when something has gone wrong, and when it is
+              fixed.
+
   README.txt  This file.
 
 
@@ -63,6 +66,36 @@ THE TWO RUNGS FIRE ON DIFFERENT RULES, ON PURPOSE
   once and left guessing. Ten hours in a zone is ten cards.
 
   Silence resumes the moment a candle does not touch the zone.
+
+
+WHEN SOMETHING BREAKS, HE HEARS ABOUT IT
+
+  QUIET ABOUT HICCUPS, LOUD ABOUT OUTAGES.
+
+  The price line drops. It always will — the feed closes an idle one, the wifi
+  blinks, a router reboots. Almost all fix themselves in seconds, and a
+  message for each is the same mistake as a candle every hour: he learns the
+  buzz means nothing, and then ignores the one that meant something.
+
+  So nothing is said until it has been down `trouble_after_minutes` — five —
+  and then it is said ONCE. With a second message when it comes back, because
+  "it broke" on its own leaves him checking his phone all evening.
+
+  THREE THINGS IT WILL NOT LET PASS QUIETLY:
+
+    the line keeps failing      after five minutes, one message
+    the line opens and SHUTS    without a single price. A key over its quota
+                                does exactly that, and returning Ok for it
+                                would reconnect forever in silence
+    it cannot recover at all    a key it will never be given, a config that
+                                will not parse. It says so and stops
+
+  The last one is main.rs, not here. run() returning Err means give up, and
+  the last thing it does is tell him — because from his side a bot that
+  stopped looks exactly like a market where nothing happened.
+
+  TROUBLE COUNTS AS HAVING SPOKEN. He heard from the bot, so he knows it is
+  alive, which is all the heartbeat was going to tell him.
 
 
 THE ONE MESSAGE THAT STILL GOES OUT ON A MONDAY

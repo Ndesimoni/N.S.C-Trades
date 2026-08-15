@@ -84,7 +84,7 @@ pub async fn draw_close(
             let at: Decimal = text.parse().context("that level is not a number")?;
             let moved = Band::around(band.timeframe, at, band.thickness(), Decimal::ONE);
             println!(
-                "using a made-up {} level at {at} so the candle meets it",
+                "Using a made-up {} level at {at}, so the candle meets it.",
                 moved.timeframe.name()
             );
             moved

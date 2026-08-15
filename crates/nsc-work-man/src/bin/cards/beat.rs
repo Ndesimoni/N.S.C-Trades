@@ -63,7 +63,7 @@ pub async fn heartbeat(client: &reqwest::Client) -> Result<()> {
     .await?;
 
     println!(
-        "{} pairs, {zones} zones\n\ndrawn to {} and sent.",
+        "{} pairs, {zones} zones.\n\nDrawn to {} and sent.",
         alive.len(),
         out.display()
     );

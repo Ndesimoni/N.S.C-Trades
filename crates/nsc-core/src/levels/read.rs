@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::error::LevelError;
+use super::LevelError;
 use rust_decimal::Decimal;
 use serde::Deserialize;
 

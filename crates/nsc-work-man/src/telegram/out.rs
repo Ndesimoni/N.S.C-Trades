@@ -1,8 +1,8 @@
-//! Sending to the channel.
+//! The sending itself.
 
 use std::path::Path;
 
-use nsc_core::error::SendError;
+use super::SendError;
 
 /// Post several pictures as one message.
 ///

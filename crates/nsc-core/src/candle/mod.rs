@@ -7,8 +7,10 @@
 //! the list.
 
 mod bar;
+mod error;
 
 #[cfg(test)]
 mod tests;
 
 pub use bar::{Bar, Series, normal_candle};
+pub use error::CandleError;

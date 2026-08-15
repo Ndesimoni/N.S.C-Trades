@@ -4,8 +4,8 @@
 //! knows about colours, fonts or layout, and nothing in the template works out
 //! a price.
 
+use super::CardError;
 use chrono::TimeDelta;
-use nsc_core::error::CardError;
 use rust_decimal::Decimal;
 use serde_json::{Value, json};
 

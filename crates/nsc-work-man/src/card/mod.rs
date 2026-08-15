@@ -8,10 +8,12 @@
 //! anywhere but a laptop.
 
 mod chrome;
+mod error;
 mod facts;
 mod fill;
 
 #[cfg(test)]
 mod tests;
 
+pub use error::CardError;
 pub use fill::render;

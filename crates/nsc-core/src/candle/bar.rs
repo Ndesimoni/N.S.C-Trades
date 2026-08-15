@@ -1,6 +1,6 @@
 //! The candle itself.
 
-use crate::error::CandleError;
+use super::CandleError;
 use chrono::{DateTime, NaiveDateTime, TimeDelta, Utc};
 use rust_decimal::Decimal;
 use serde::Deserialize;

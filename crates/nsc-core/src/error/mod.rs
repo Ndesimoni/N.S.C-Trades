@@ -12,10 +12,8 @@
 //! failure rather than exit on one.
 
 mod answer;
-mod kinds;
 
 #[cfg(test)]
 mod tests;
 
 pub use answer::{Answer, Knows};
-pub use kinds::{CandleError, CardError, FeedError, LevelError, SendError};

@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use nsc_core::error::CardError;
+use super::CardError;
 
 use super::{chrome, facts};
 use nsc_core::candle::Bar;

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>alert</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /*__STYLE__*/
+
+  /* Shorter than the chart cards. An alert has one thing to say, and padding
+     it out to chart height would send half a screen of white.
+
+     THIS WINS over the one in style.css because it comes after it — the same
+     way CSS itself resolves it, and Rust reads the last one for that reason. */
+  :root{ --card-height:462px; }
+
+  /* His colours, by name. facts.rs hands over the word, never a hex — the
+     mapping is a design decision and belongs on this side. */
+  .is-black  { --level:var(--weekly); }
+  .is-blue   { --level:var(--daily); }
+  .is-yellow { --level:var(--yellow); }
+
+
+  /* ── header ───────────────────────────────────────────────────────────── */
+  .top{
+    background:var(--panel);
+    padding:24px 40px 22px;
+    display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+    border-bottom:1px solid var(--rule);
+  }
+  .top__pair{
+    font-family:var(--display);font-weight:800;font-size:34px;
+    letter-spacing:-.02em;margin:0 0 9px;line-height:1;
+  }
+  .top__pair span{color:var(--mute);font-weight:400;margin:0 1px}
+
+  .top__level{
+    display:flex;align-items:center;gap:9px;
+    font-size:12.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--mute);
+  }
+  .top__level b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums}
+  /* A dot in the level's own colour, so the card and his chart agree at a
+     glance about which line this is. */
+  .dot{
+    width:11px;height:11px;border-radius:50%;
+    background:var(--level);
+    box-shadow:0 0 0 3px color-mix(in srgb,var(--level) 16%,transparent);
+  }
+
+  .top__right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:11px}
+
+  /* THE INDICATOR. Telegram gives no colour and no size, which is why this
+     card exists at all — here the state can actually look different.
+     Outlined means price is on its way. Filled means it is there. */
+  .chip{
+    font-family:var(--display);font-weight:600;
+    font-size:14px;letter-spacing:.13em;text-transform:uppercase;
+    padding:8px 15px;border-radius:999px;
+    border:1.5px solid var(--brass);color:var(--brass);background:transparent;
+    white-space:nowrap;
+  }
+  .chip.is-inside{background:var(--brass);color:#fff;border-color:var(--brass)}
+  .top__stamp{font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
+
+
+  /* ── body ─────────────────────────────────────────────────────────────── */
+  .body{
+    display:grid;grid-template-columns:400px 1fr;gap:20px;
+    padding:24px 40px 0;
+  }
+
+  .label{
+    font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--mute);
+    margin:0 0 10px;
+  }
+  .now{
+    font-family:var(--display);font-weight:600;font-size:62px;line-height:.88;
+    letter-spacing:-.035em;font-variant-numeric:tabular-nums;margin:0 0 14px;
+  }
+  .gap{
+    font-size:17px;color:var(--brass);font-variant-numeric:tabular-nums;margin:0;
+  }
+  .gap u{text-decoration:none;color:var(--mute)}
+
+  /* The display face, not the data face. This is the one sentence on the card
+     meant to be READ rather than looked up, and mono reads like a printout. */
+  .say{
+    font-family:var(--display);font-weight:400;
+    margin:24px 0 0;padding-top:22px;border-top:1px solid var(--rule);
+    font-size:21px;line-height:1.42;letter-spacing:-.008em;color:var(--ink);
+  }
+  .say b{font-weight:600}
+
+  .zone{display:block;overflow:visible}
+  .zone .fill{fill:var(--level);opacity:.11}
+  /* A bar down the left in the level's own colour. Without it a black weekly
+     band and a blue daily one both wash out to the same pale grey, and his
+     colours are a specification. */
+  .zone .spine{fill:var(--level)}
+  .zone .edge{stroke:var(--level);stroke-width:1.4;opacity:.55}
+  .zone .line{stroke:var(--level);stroke-width:2.6}
+  .zone .trigger{stroke:var(--brass);stroke-width:1.2;stroke-dasharray:3 4;opacity:.75}
+  .zone .lead{stroke:var(--lead);stroke-width:1.2;fill:none}
+  .zone .lead.is-now{stroke:var(--brass);stroke-width:1.6;opacity:.8}
+  .zone .mark{fill:var(--brass)}
+  .zone .halo{fill:var(--brass);opacity:.18}
+
+  .zone text{font-family:var(--data);font-size:13px;fill:var(--ink);font-variant-numeric:tabular-nums}
+  .zone text.tag{font-size:11px;letter-spacing:.13em;fill:var(--mute)}
+  .zone text.is-now{fill:var(--brass);font-weight:500}
+
+
+  /* ── footer ───────────────────────────────────────────────────────────── */
+  .foot{
+    position:absolute;left:0;right:0;bottom:0;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:16px 40px;border-top:1px solid var(--rule);
+    font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);
+  }
+  .foot b{color:var(--ink);font-weight:400;font-variant-numeric:tabular-nums}
+  body{position:relative}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <h1 class="top__pair" id="pair"></h1>
+    <div class="top__level">
+      <span class="dot"></span>
+      <span id="which"></span>
+    </div>
+  </div>
+  <div class="top__right">
+    <span class="chip" id="chip"></span>
+    <span class="top__stamp" id="stamp"></span>
+  </div>
+</header>
+
+<section class="body">
+  <div>
+    <p class="label">Price now</p>
+    <p class="now" id="now"></p>
+    <p class="gap" id="gap"></p>
+    <p class="say" id="say"></p>
+  </div>
+  <svg class="zone" id="zone" aria-hidden="true"></svg>
+</section>
+
+<footer class="foot">
+  <span>An alert — no entry, no stop, no target</span>
+  <span>Fires <b id="range"></b> &nbsp;·&nbsp; <span id="unit"></span></span>
+</footer>
+
+<script>
+// Rust replaces this line. EVERY PRICE HERE IS ALREADY WORKED OUT — this file
+// decides where things sit on the card and nothing else.
+const alert = /*__ALERT__*/;
+
+const fmt = n => n.toLocaleString("en-US",
+  {minimumFractionDigits:alert.digits, maximumFractionDigits:alert.digits});
+
+function draw(){
+  document.body.classList.add("is-" + alert.colour);
+
+  const inside = alert.state === "inside";
+
+  document.getElementById("pair").innerHTML = alert.symbol.replace("/", '<span>/</span>');
+  document.getElementById("which").innerHTML =
+    `${alert.timeframe} level &nbsp;<b>${fmt(alert.level)}</b>`;
+
+  const chip = document.getElementById("chip");
+  chip.textContent = inside ? "in the zone" : "approaching";
+  if(inside) chip.classList.add("is-inside");
+
+  document.getElementById("stamp").textContent = alert.stamp;
+  document.getElementById("now").textContent   = fmt(alert.price);
+
+  document.getElementById("gap").innerHTML = inside
+    ? `inside &nbsp;<u>·</u>&nbsp; ${fmt(alert.from_line)} from your line`
+    : `${fmt(alert.gap)} from the zone`;
+
+  document.getElementById("say").innerHTML = alert.note;
+
+  // The graphic already carries the zone's top and bottom. Repeating them in
+  // the footer spends the last line of the card on nothing.
+  document.getElementById("range").textContent = `${fmt(alert.reach)} outside the zone`;
+  document.getElementById("unit").textContent  = alert.unit;
+
+  // ── the zone, drawn ────────────────────────────────────────────────────
+  // The point of a picture rather than a line of text: he SEES how far price
+  // is from the band, on the same shape he drew.
+  const W = 340, H = 286, PAD = 18;
+  const svg = document.getElementById("zone");
+  svg.setAttribute("width", W);
+  svg.setAttribute("height", H);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+
+  const thick = alert.top - alert.bottom;
+  let lo = Math.min(alert.bottom, alert.price) - thick * 0.22;
+  let hi = Math.max(alert.top,    alert.price) + thick * 0.22;
+  if(hi === lo){ hi += 1; lo -= 1; }
+
+  const y = v => PAD + (1 - (v - lo) / (hi - lo)) * (H - PAD * 2);
+
+  const BAR_L = 8, BAR_R = 128, LEAD_R = 162, TEXT_L = 172;
+  const add = (tag, attrs, text) => {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+    for(const k in attrs) el.setAttribute(k, attrs[k]);
+    if(text !== undefined) el.textContent = text;
+    svg.appendChild(el);
+    return el;
+  };
+
+  const boxTop = y(alert.top), boxHigh = y(alert.bottom) - y(alert.top);
+  add("rect", {class:"fill",  x:BAR_L, y:boxTop, width:BAR_R - BAR_L, height:boxHigh, rx:3});
+  add("rect", {class:"spine", x:BAR_L, y:boxTop, width:4, height:boxHigh, rx:2});
+
+  // Where the alert fires, only on the side price came from — so the card
+  // answers "why now?" without a word of explanation.
+  if(!inside){
+    const at = alert.price > alert.top ? alert.top + alert.reach
+                                       : alert.bottom - alert.reach;
+    add("line", {class:"trigger", x1:BAR_L, y1:y(at), x2:BAR_R + 10, y2:y(at)});
+  }
+
+  add("line", {class:"edge", x1:BAR_L, y1:y(alert.top),    x2:BAR_R, y2:y(alert.top)});
+  add("line", {class:"edge", x1:BAR_L, y1:y(alert.bottom), x2:BAR_R, y2:y(alert.bottom)});
+  add("line", {class:"line", x1:BAR_L, y1:y(alert.level),  x2:BAR_R, y2:y(alert.level)});
+
+  const rows = [
+    {tag:"TOP",  value:alert.top,    now:false},
+    {tag:"LINE", value:alert.level,  now:false},
+    {tag:"LOW",  value:alert.bottom, now:false},
+    {tag:"NOW",  value:alert.price,  now:true},
+  ].sort((a,b) => b.value - a.value);
+
+  // Labels crowd when price sits right on an edge. Push them apart, keeping
+  // the order, then pull the whole run back inside the box.
+  const GAP = 40;
+  const ys = rows.map(r => y(r.value));
+  for(let i = 1; i < ys.length; i++)
+    if(ys[i] - ys[i-1] < GAP) ys[i] = ys[i-1] + GAP;
+  const over = ys[ys.length-1] - (H - 12);
+  if(over > 0) for(let i = ys.length-1; i >= 0; i--){
+    ys[i] -= over;
+    if(i > 0 && ys[i] - ys[i-1] >= GAP) break;
+  }
+  ys.forEach((v,i) => ys[i] = Math.max(14, Math.min(H - 8, v)));
+
+  rows.forEach((r,i) => {
+    const at = y(r.value);
+    add("path", {class:"lead" + (r.now ? " is-now" : ""),
+                 d:`M${BAR_R} ${at} H${BAR_R + 14} L${LEAD_R - 8} ${ys[i]} H${LEAD_R}`});
+
+    if(r.now){
+      add("circle", {class:"halo", cx:BAR_R, cy:at, r:9});
+      add("circle", {class:"mark", cx:BAR_R, cy:at, r:4});
+    }
+
+    add("text", {class:"tag" + (r.now ? " is-now" : ""), x:TEXT_L, y:ys[i] - 7}, r.tag);
+    add("text", {class:r.now ? "is-now" : "",            x:TEXT_L, y:ys[i] + 11}, fmt(r.value));
+  });
+}
+
+draw();
+</script>
+</body>
+</html>

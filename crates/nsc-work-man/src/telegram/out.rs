@@ -97,9 +97,12 @@ pub async fn send_to(
 
 /// Words on their own, with no picture.
 ///
-/// **An alert has no picture on purpose.** Nothing has formed yet — price has
-/// only arrived somewhere. A chart would say "look at this", and there is
-/// nothing to look at until a candle closes there.
+/// **Alerts stopped using this** — they go as a card now, because Telegram
+/// gives text no colour, no size and no layout, so every message ended up
+/// looking like every other one. See `card::alert`.
+///
+/// Still here for anything genuinely one line: the heartbeat, and errors
+/// worth telling him about.
 pub async fn send_words(client: &reqwest::Client, chat: &str, text: &str) -> Result<(), SendError> {
     let token =
         std::env::var("TELEGRAM_BOT_TOKEN").map_err(|_| SendError::NotSet("TELEGRAM_BOT_TOKEN"))?;

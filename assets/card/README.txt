@@ -40,6 +40,18 @@ THE FILES
                 weekly one with his levels on it are THE SAME FILE. They were
                 two, and 87% of the second was a copy of the first.
 
+  alert.html    PRICE HAS REACHED ONE OF HIS ZONES. The pair, a chip saying
+                whether price is approaching or in it, the price now, and the
+                zone DRAWN — his band with price marked on it and a dashed
+                line showing where the alert fires.
+
+                Shorter than the others and says so in its own CSS. An alert
+                has one thing to say.
+
+                The zone drawing is the whole reason this is a picture. Three
+                numbers in a message have to be compared in his head; a band
+                with a dot on it does not.
+
   readout.html  Where price sat inside the candle. The candle drawn tall on
                 the left, with leader lines out to High, Open, Close and Low.
                 Sent when the detail is wanted, not every hour.
@@ -52,8 +64,8 @@ THEY ARE PIECES, NOT A SET
   A message picks the cards it needs:
 
     a candle closed     chart.html, on its own
-    a price alert       its own card — the level touched, price now. No
-                        chart, because nothing has formed yet
+    a price alert       alert.html, on its own. No chart, because nothing
+                        has formed yet
     a signal            the chart with your levels and the entry, stop and
                         target on it, plus a card carrying the reasoning
 
@@ -76,6 +88,10 @@ TWO THINGS THAT WILL CATCH YOU
 
      Change the design, change that number. It is measured by hand today,
      which is a known rough edge.
+
+     style.css carries a shared one and every template gets it dropped in at
+     the top. A card wanting its own puts it FURTHER DOWN, because the last
+     one wins — the same way the browser resolves it. alert.html does.
 
   2. CHROME ALWAYS LEAVES 87 PIXELS OF WHITE.
 

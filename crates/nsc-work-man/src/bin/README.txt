@@ -15,18 +15,58 @@ WHAT THIS FOLDER IS FOR
 
 THE FILES
 
+  watch.rs    THE PRICE WATCHER, and the closest thing here to the real bot.
+              Holds the price stream open for every pair that has a levels
+              file, and says when price reaches one of his bands.
+
+              Rung 1 of the ladder. Silence is the normal state.
+
+  inbox/      Listens to Telegram and saves the levels he sends from his
+              phone. Buttons rather than typing. Has its own README.
+
+  levels.rs   Draws a pair's levels on its weekly chart and sends the
+              picture. For checking that our band sits where his does.
+
+                  cargo run -p nsc-work-man --bin levels -- GBPUSD
+
+  alert.rs    Draws ONE alert card and sends it, without waiting for price to
+              reach anything.
+
+                  cargo run -p nsc-work-man --bin alert -- XAUUSD 4132.90
+
+              The design loop. Changing how the card looks means looking at
+              it, and the market reaches a level when it feels like it. With
+              no price it puts one just outside the pair's first band, which
+              is the state hardest to draw — price close enough to the edge
+              that the labels crowd.
+
   listen.rs   Opens Twelve Data's live price stream, asks for one symbol, and
-              prints whatever comes down the line.
+              prints whatever comes down the line. Kept as the proof.
 
   README.txt  This file.
+
+
+HOW watch.rs SPENDS ITS REQUESTS
+
+  IT COSTS NOTHING TO RUN. One request per pair per timeframe at startup to
+  size the bands, and after that every price arrives on the socket for free.
+
+  That is what killed the earlier design, where a candle was fetched on every
+  close on every pair whether anything had happened or not.
+
+  Two things keep the startup inside the limit of 8 requests a minute:
+
+      - 7.5 seconds between requests, which is 8 a minute exactly
+      - a timeframe a pair has no levels on is never asked about
+
+  Four pairs across three timeframes would be twelve requests. Skipping the
+  empty ones makes it seven.
 
 
 WHY listen.rs EXISTS
 
   The whole design hangs on the websocket. Prices come down it for free, and
-  they are what tell us when price reaches one of his levels. Without it we
-  would be back to asking for a candle every hour, on every pair, whether
-  anything happened or not.
+  they are what tell us when price reaches one of his levels.
 
   The free plan lists the websocket as 8 credits, 1 connection, marked TRIAL.
   Nobody knew whether it worked.
@@ -38,21 +78,21 @@ WHY listen.rs EXISTS
       prices flow                 15 in 19.5 seconds, about one a second
       what a price message is     symbol, timestamp, price. Nothing else
 
-  Three things it also showed, which matter later:
+  Three things it also showed, which shaped what came after:
 
       - Several prices share the same timestamp. It is in whole seconds, so
         it cannot be used to put prices in order.
 
       - The price barely moves between messages. A touch test has to fire
         ONCE when price enters a band, not once per message, or one touch
-        becomes twenty alerts.
+        becomes twenty alerts. That is what nsc-core::levels::watch does.
 
       - Gold comes back as exchange COMMODITY, a blend of sources. Crypto
         comes from one exchange. That is why gold has five decimals and will
         never match his broker exactly.
 
 
-THE SYMBOL IN IT IS TEMPORARY
+THE SYMBOL IN listen.rs IS TEMPORARY
 
   It says BTC/USD, on purpose. Gold is shut at the weekend and a silent line
   looks exactly like a broken one; crypto trades all weekend.

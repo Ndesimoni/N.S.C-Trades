@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 67 tests · clippy clean · it watches his levels and says when price arrives.**
+**Two crates · 68 tests · clippy clean · it watches his levels and says when price arrives.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -64,8 +64,8 @@ last version of this project cleared out on 14 August 2026.
 crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
                           is what stops it, not a rule anybody has to remember
   candle/       one candle, and whether it has finished.  8 tests
-  levels/       his lines, the bands round them, and the
-                watching of them.                        38 tests
+  levels/       his lines, the bands round them, the
+                watching, and what an alert says.        38 tests
   error/        retry or give up — Answer and Knows.      3 tests
   settings.rs   pair, timeframe, digits — step 2 replaces this with config
   message.rs    the caption
@@ -73,18 +73,20 @@ crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
 crates/nsc-work-man/      EVERYTHING THAT REACHES
   feed/         asking Twelve Data.                       5 tests
   telegram/     sending — words, pictures, media groups.  3 tests
-  card/         filling a template, letting Chrome draw.  7 tests
+  card/         filling a template, letting Chrome draw.  9 tests
   retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests
   main.rs       the hourly chart card
   review.rs     one pair's levels, drawn
   bin/inbox/    levels arriving from his phone
   bin/watch.rs  the price watcher — rung 1
+  bin/alert.rs  draw one alert card without waiting for the market
   bin/levels.rs draw a pair's bands without waiting for one to be touched
   bin/listen.rs the raw price stream, kept as proof it works
 
 assets/card/
   chart.html     the candle chart. Carries its own open, high, low and range
   readout.html   where price sat inside the candle
+  alert.html     price at one of his zones, with the zone drawn
 ```
 
 **Every folder with code in it has a `README.txt`.** Two files are past the
@@ -162,7 +164,7 @@ the one that mattered.
 
 | | When | What arrives |
 |---|---|---|
-| **1** | price touches a level he drew | an alert. One line, no picture. May fire on a candle still forming — it is only a heads-up |
+| **1** | price touches a level he drew | an alert **card** — the zone drawn, with price on it. May fire on a candle still forming; it is only a heads-up |
 | **2** | a candle closes inside that zone | the candlestick. What it actually did there |
 | **3** | it closed there **and** a strategy matched | the chart and the candlestick, with entry, stop, target and the sentence |
 | **·** | morning and evening | a heartbeat — still running, pairs watched, zones touched, signals sent |
@@ -230,6 +232,14 @@ somewhere near one — so "price is at the level" means price is inside a band.
 - [x] **Leaving is measured differently from arriving** — a tenth of the
       band's thickness, about 8 points on gold. Easy to trigger, hard to
       reset. One pip each way would make a single visit an afternoon of alerts
+- [x] **The alert goes as a card, not a line of text.** Telegram gives text no
+      colour, no size and no layout, so approaching and arriving read the
+      same. On a card the state is a chip, and **the zone is drawn** — his
+      band with price marked on it and a dashed line where the alert fires.
+      Three numbers in a message have to be compared in his head; a band with
+      a dot on it does not
+- [x] **`--bin alert` draws one on demand**, so the design can be changed
+      without waiting for the market to reach a level
 - [x] **It costs no requests to run.** The candles that size the bands are
       fetched once at startup; after that every price is free
 

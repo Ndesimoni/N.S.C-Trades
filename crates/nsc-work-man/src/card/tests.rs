@@ -30,14 +30,38 @@ fn a_height_that_is_not_a_number_gives_nothing() {
     assert_eq!(height_of("--card-height:tall;"), None);
 }
 
-// It reads the first one. A template with two is a mistake, and taking the
-// first at least makes it a repeatable mistake.
+// THE LAST ONE WINS, because that is what the browser does with two
+// declarations of the same custom property.
+//
+// It matters now that style.css sets a shared height and is dropped in at the
+// top of every template: a card wanting its own says so further down. Reading
+// the first would have Rust asking Chrome for one height while the page drew
+// another, and that difference comes out as a strip of white — the exact bug
+// this number exists to stop.
 #[test]
-fn the_first_height_wins() {
+fn a_templates_own_height_beats_the_shared_one() {
     assert_eq!(
-        height_of("--card-height:100px; --card-height:900px;"),
-        Some(100)
+        height_of("--card-height:647px; --card-height:462px;"),
+        Some(462)
     );
+}
+
+// The alert card is shorter than the chart cards on purpose, and it is the
+// first template to overrule the shared height. If this stops being true the
+// card gets sent with a field of white under it.
+#[test]
+fn the_alert_card_asks_for_its_own_height() {
+    let shared = std::fs::read_to_string("../../assets/card/style.css").expect("style.css");
+    let card = std::fs::read_to_string("../../assets/card/alert.html").expect("alert.html");
+
+    let together = format!("{shared}{card}");
+
+    assert_ne!(
+        height_of(&shared),
+        height_of(&card),
+        "it wants a different one"
+    );
+    assert_eq!(height_of(&together), height_of(&card), "and it gets it");
 }
 
 // ── Rounding on the way out ──

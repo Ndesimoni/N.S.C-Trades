@@ -18,7 +18,12 @@ THE FILES
   mod.rs      The front door.
 
   fill.rs     Reads a template, puts the numbers in, works out how tall it
-              is, and hands it to Chrome. Start here.
+              is, and hands it to Chrome. Start here. Every card goes through
+              its `draw`.
+
+  zone.rs     The alert card — price arriving at one of his zones. Its own
+              file because what it is told is nothing like a candle: a band,
+              a price, and how close counted as arriving.
 
   facts.rs    Turns candles into the numbers a template can read. Nothing in
               here knows about colours or layout, and nothing in a template
@@ -27,7 +32,7 @@ THE FILES
   chrome.rs   Runs Chrome headless, then cuts the white strip off the
               bottom.
 
-  tests.rs    Seven tests, on the two things that have actually gone wrong.
+  tests.rs    Nine tests, on the two things that have actually gone wrong.
 
   README.txt  This file.
 
@@ -45,6 +50,12 @@ TWO THINGS THAT HAVE CAUGHT US, BOTH NOW PINNED BY TESTS
      Chrome screenshots a WINDOW, not a page, so something has to say how
      tall. The file being designed is the honest place for it — two numbers
      in two files drift apart, one does not.
+
+     THE LAST ONE WINS, which is what the browser does. style.css sets a
+     shared height and is dropped in at the top of every template, so a card
+     that wants its own says so further down. alert.html is the first to do
+     it — an alert has one thing to say and chart height would send half a
+     screen of white.
 
      The height was held in Rust first. It clipped the footer four times.
 

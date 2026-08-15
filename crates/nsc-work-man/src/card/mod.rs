@@ -11,9 +11,11 @@ mod chrome;
 mod error;
 mod facts;
 mod fill;
+mod zone;
 
 #[cfg(test)]
 mod tests;
 
 pub use error::CardError;
 pub use fill::render;
+pub use zone::alert;

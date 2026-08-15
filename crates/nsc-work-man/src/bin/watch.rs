@@ -12,21 +12,26 @@
 //! on every pair whether anything had happened or not.
 
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use chrono::Utc;
 use futures_util::{SinkExt, StreamExt};
 use nsc_core::candle::normal_candle;
 use nsc_core::levels::{
-    Band, Nearness, Pair, Thickness, Timeframe, Watch, known, load_pair, load_thickness,
+    self, Band, Nearness, Pair, Thickness, Timeframe, Watch, known, load_pair, load_thickness,
 };
-use nsc_work_man::{feed, retry::keep_trying, telegram};
+use nsc_work_man::{card, feed, retry::keep_trying, telegram};
 use rust_decimal::Decimal;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 
 const PAIRS: &str = "config/pairs";
 const THICKNESS: &str = "config/levels.toml";
+
+/// Where the drawn card and its page are left, so the design can be opened in
+/// a browser and changed without running any of this again.
+const PREVIEW: &str = "preview";
 
 /// How many candles a "normal" one is averaged over.
 const NORMAL_OVER: usize = 14;
@@ -79,7 +84,7 @@ async fn main() -> Result<()> {
         anyhow::bail!("no pairs have levels — send some with the inbox program");
     }
 
-    listen(&client, &mut watching).await
+    listen(&client, &mut watching, thickness).await
 }
 
 /// Every level of a pair, as a band.
@@ -125,6 +130,7 @@ async fn bands_for(
 async fn listen(
     client: &reqwest::Client,
     watching: &mut HashMap<String, (Pair, Watch)>,
+    thickness: Thickness,
 ) -> Result<()> {
     let key = std::env::var("TWELVE_DATA_API_KEY").context("TWELVE_DATA_API_KEY is not set")?;
     let url = format!("wss://ws.twelvedata.com/v1/quotes/price?apikey={key}");
@@ -167,10 +173,9 @@ async fn listen(
         };
 
         for (band, near) in watch.arrive(price) {
-            let words = alert(pair, &band, near, price);
             println!("{symbol} reached {}", band.price);
 
-            telegram::send_words(client, &OWNER.to_string(), &words).await?;
+            shout(client, pair, &band, near, price, pair.reach(thickness)).await?;
         }
     }
 
@@ -190,31 +195,34 @@ fn price_in(said: &serde_json::Value) -> Option<Decimal> {
         })
 }
 
-/// **An alert, not a signal.**
+/// Draws the alert and sends it as a picture.
 ///
-/// No entry, no stop, no target — because there is no trade. Price has
-/// arrived where he would be waiting, and nothing has formed yet.
-fn alert(pair: &Pair, band: &Band, near: Nearness, price: Decimal) -> String {
-    let show = |value: Decimal| value.round_dp(pair.digits).to_string();
+/// **An alert is not a signal.** No entry, no stop, no target — because there
+/// is no trade. Price has arrived where he would be waiting and nothing has
+/// formed yet. The card says so on its own face.
+///
+/// Each pair gets its own file so two alerts landing seconds apart cannot
+/// overwrite each other's picture between drawing and sending.
+async fn shout(
+    client: &reqwest::Client,
+    pair: &Pair,
+    band: &Band,
+    near: Nearness,
+    price: Decimal,
+    reach: Decimal,
+) -> Result<()> {
+    let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
+    let out = PathBuf::from(PREVIEW).join(format!("alert-{}.png", pair.symbol.replace('/', "")));
 
-    // Inside the band, or on its way in. Different things, and he should not
-    // have to work out which from the numbers.
-    let standing = match near {
-        Nearness::Inside => "is <b>in</b>",
-        _ => "is coming up on",
-    };
+    let picture = card::alert(pair, band, near, price, reach, &stamp, &out)
+        .with_context(|| format!("could not draw the alert for {}", pair.symbol))?;
 
-    format!(
-        "🔔 <b>{}</b> — your zone is live\n\n\
-         Price {} your <b>{}</b> level at {}.\n\n\
-         <i>now {} · zone {} to {}</i>\n\n\
-         Nothing has formed yet. Go and watch it.",
-        pair.symbol,
-        standing,
-        band.timeframe.name(),
-        show(band.price),
-        show(price),
-        show(band.bottom),
-        show(band.top),
+    telegram::send_to(
+        client,
+        &OWNER.to_string(),
+        &[&picture],
+        &levels::caption(pair, band, near, price),
     )
+    .await
+    .context("could not send the alert")
 }

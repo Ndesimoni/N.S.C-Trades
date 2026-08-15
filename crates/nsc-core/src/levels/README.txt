@@ -27,6 +27,11 @@ THE FILES
   naming.rs   What a pair's name tells you — how many decimals, whether it
               shuts at night. Worked out, not checked.
 
+  alert.rs    What an alert SAYS — the one-line caption under the picture,
+              and the sentence on the card. Here, in the crate that cannot
+              reach anything, so the words can be read and tested without a
+              network or a browser.
+
   watch.rs    Watching bands for price ARRIVING at one. Holds one fact per
               band — is price at it now — and an alert is the moment that
               turns from no to yes.

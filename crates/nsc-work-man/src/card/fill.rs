@@ -19,7 +19,7 @@ const TEMPLATES: &str = "assets/card";
 /// two are not in the same folder.
 const STYLE: &str = "style.css";
 
-/// Fills in a template and screenshots it.
+/// Fills in a candle template and screenshots it.
 ///
 /// `template` is a file in `assets/card/`. `bars` are the finished candles,
 /// oldest first — the newest of them is the one the card describes.
@@ -45,6 +45,29 @@ pub fn render(
         return Err(CardError::NothingToDraw);
     };
 
+    draw(
+        template,
+        &[
+            (
+                "/*__CANDLE__*/",
+                facts::one(latest, symbol, interval, digits)?.to_string(),
+            ),
+            ("/*__BARS__*/", facts::all(bars, digits).to_string()),
+            ("/*__LEVELS__*/", facts::levels(bands, digits).to_string()),
+        ],
+        out,
+    )
+}
+
+/// Reads a template, puts the facts in, and screenshots the result.
+///
+/// Every card goes through here. `fills` are the marker each template leaves
+/// for its own facts and what to put there.
+pub(super) fn draw(
+    template: &str,
+    fills: &[(&str, String)],
+    out: &Path,
+) -> Result<PathBuf, CardError> {
     let source = Path::new(TEMPLATES).join(template);
     let html = std::fs::read_to_string(&source).map_err(|trouble| CardError::NoTemplate {
         path: source.display().to_string(),
@@ -58,17 +81,13 @@ pub fn render(
         }
     })?;
 
-    let html = html.replace("/*__STYLE__*/", &style);
+    let mut filled = html.replace("/*__STYLE__*/", &style);
 
-    let height = height_of(&html).ok_or_else(|| CardError::NoHeight(template.into()))?;
+    let height = height_of(&filled).ok_or_else(|| CardError::NoHeight(template.into()))?;
 
-    let filled = html
-        .replace(
-            "/*__CANDLE__*/",
-            &facts::one(latest, symbol, interval, digits)?.to_string(),
-        )
-        .replace("/*__BARS__*/", &facts::all(bars, digits).to_string())
-        .replace("/*__LEVELS__*/", &facts::levels(bands, digits).to_string());
+    for (marker, value) in fills {
+        filled = filled.replace(marker, value);
+    }
 
     // The page is written next to the picture, not into a temp folder. Open it
     // in a browser and the card is there with real numbers in it — edit the
@@ -106,8 +125,16 @@ pub fn render(
 /// Chrome screenshots a **window**, not a page, so something has to say how
 /// tall. The file being designed is the honest place for it — two numbers in
 /// two files drift apart, one does not.
+///
+/// **The last one wins, because that is what the browser does.** `style.css`
+/// sets a shared height and is dropped in at the top, so a card that wants its
+/// own says so further down and both Chrome and this agree on which. Reading
+/// the first would leave Rust asking for one height while the page drew
+/// another, and the difference comes out as a strip of white.
 pub fn height_of(html: &str) -> Option<u32> {
-    let after = html.split("--card-height:").nth(1)?;
+    // rsplit always yields something. If the text was never there it is the
+    // whole file, which starts with `<` and parses to nothing.
+    let after = html.rsplit("--card-height:").next()?;
 
     let digits: String = after
         .trim_start()

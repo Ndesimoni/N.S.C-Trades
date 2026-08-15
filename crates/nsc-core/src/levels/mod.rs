@@ -12,6 +12,7 @@
 //! one pair and absurd on the rest — 78 points is a normal week on gold and
 //! about a year on EURUSD.
 
+mod alert;
 mod band;
 mod error;
 mod naming;
@@ -22,6 +23,7 @@ mod write;
 #[cfg(test)]
 mod tests;
 
+pub use alert::{caption, gap, note};
 pub use band::{Band, Timeframe};
 pub use error::LevelError;
 pub use naming::{digits_for, with_slash};

@@ -10,7 +10,7 @@ use rust_decimal::Decimal;
 use serde_json::{Value, json};
 
 use nsc_core::candle::Bar;
-use nsc_core::levels::Band;
+use nsc_core::levels::{self, Band, Nearness, Pair};
 use nsc_core::settings::{INTERVAL_MINUTES, timeframe_name, unit_for};
 
 /// The one candle the card is about.
@@ -60,6 +60,40 @@ pub fn all(bars: &[&Bar], digits: u32) -> Value {
         .collect();
 
     json!(rows)
+}
+
+/// Everything the alert card says out loud.
+///
+/// **Every distance is worked out here.** The template places things on the
+/// card and reads no prices of its own — the same rule the chart cards follow,
+/// for the same reason: a number worked out in two places drifts in one.
+pub fn alert(
+    pair: &Pair,
+    band: &Band,
+    near: Nearness,
+    price: Decimal,
+    reach: Decimal,
+    stamp: &str,
+) -> Value {
+    let digits = pair.digits;
+
+    json!({
+        "symbol":    pair.symbol,
+        "state":     if near == Nearness::Inside { "inside" } else { "approaching" },
+        "timeframe": band.timeframe.name(),
+        "colour":    band.timeframe.colour(),
+        "note":      levels::note(near),
+        "stamp":     stamp,
+        "unit":      unit_for(&pair.symbol),
+        "digits":    digits,
+        "price":     rounded(price, digits),
+        "level":     rounded(band.price, digits),
+        "top":       rounded(band.top, digits),
+        "bottom":    rounded(band.bottom, digits),
+        "gap":       rounded(levels::gap(band, price), digits),
+        "from_line": rounded((price - band.price).abs(), digits),
+        "reach":     rounded(reach, digits),
+    })
 }
 
 /// Rounds to the instrument's own precision, then hands it over as a number.

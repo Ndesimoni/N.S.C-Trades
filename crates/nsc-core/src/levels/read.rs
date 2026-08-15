@@ -49,6 +49,15 @@ pub struct Pair {
     pub digits: u32,
     #[serde(default)]
     pub nightly_break_minutes: i64,
+
+    /// How close counts as approaching **this** pair's bands, in pips.
+    ///
+    /// Missing means use the one in `config/levels.toml`. It is here so gold
+    /// can be given more room than the euro without touching every other pair
+    /// — four pips is two minutes of gold and nearly an hour of euro.
+    #[serde(default)]
+    pub approach_pips: Option<Decimal>,
+
     #[serde(default, rename = "level")]
     pub levels: Vec<Line>,
 }
@@ -74,8 +83,13 @@ impl Pair {
     }
 
     /// How near price has to get before it counts as having arrived at a band.
+    ///
+    /// This pair's own `approach_pips` wins if it has one, otherwise the
+    /// shared setting.
     pub fn reach(&self, thickness: Thickness) -> Decimal {
-        self.pip() * thickness.approach_pips
+        let pips = self.approach_pips.unwrap_or(thickness.approach_pips);
+
+        self.pip() * pips
     }
 
     /// Every line, turned into a band.

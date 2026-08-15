@@ -37,21 +37,27 @@ h4 = 0.55
 
 # ── How close counts as arriving ────────────────────────────────────────────
 #
-# IN PIPS, and deliberately tiny.
+# IN PIPS. Four of them, so the alert can say "price is COMING UP ON this zone"
+# rather than only "price has touched it".
 #
-# THE BAND IS ALREADY THE EARLY WARNING. Its outer edge is a long way from the
-# line he drew — measured against how fast each pair moves:
+# A pip is worked out from each pair's `digits` — gold 0.10, the euro 0.0001 —
+# so this one number is meaningful everywhere without a setting per pair.
+#
+# THE BAND IS STILL THE REAL EARLY WARNING, and that is why this stays small.
+# Its outer edge is already a long way from the line he drew, measured against
+# how fast each pair actually moves:
 #
 #     gold      half a weekly band  =  about 3 hours before price reaches him
 #     pound     half a weekly band  =  about 6 hours
 #
-# So there is nothing to gain by reaching further out. An earlier version added
-# a quarter of a band on top of that and fired NINE HOURS early on the pound,
-# which is not an alert, it is a horoscope.
+# An earlier version added A QUARTER OF A BAND on top of that and fired nine
+# hours early on the pound, which is not an alert, it is a horoscope. Four pips
+# is the last nudge before the edge, not the notice itself:
 #
-# This pip is for ROUNDING, not for warning. Price at 4132.58 against a top of
-# 4132.57 has touched, and staying quiet over a cent would be silly.
+#     gold      0.40    =  about 2 minutes of movement
+#     pound     4 pips  =  about 48 minutes
+#     euro      4 pips  =  about 56 minutes
 #
-# A pip is worked out from each pair's `digits` — gold 0.10, the euro 0.0001 —
-# so this one number means the same thing everywhere.
-approach_pips = 1.0
+# ANY PAIR CAN OVERRIDE THIS with its own `approach_pips` under config/pairs/.
+# Gold needs a much bigger number than the euro to feel like the same warning.
+approach_pips = 4.0

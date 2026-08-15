@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 62 tests · clippy clean · it watches his levels and says when price arrives.**
+**Two crates · 67 tests · clippy clean · it watches his levels and says when price arrives.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -65,7 +65,7 @@ crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
                           is what stops it, not a rule anybody has to remember
   candle/       one candle, and whether it has finished.  8 tests
   levels/       his lines, the bands round them, and the
-                watching of them.                        33 tests
+                watching of them.                        38 tests
   error/        retry or give up — Answer and Knows.      3 tests
   settings.rs   pair, timeframe, digits — step 2 replaces this with config
   message.rs    the caption
@@ -210,10 +210,13 @@ somewhere near one — so "price is at the level" means price is inside a band.
 - [x] **They are watched.** `cargo run -p nsc-work-man --bin watch` holds the
       price stream open for every pair with a file and says when price arrives
       in one of his bands. Rung 1 of the ladder
-- [x] **A touch counts, not just a crossing.** `approach_pips = 1.0` in
-      `config/levels.toml`. One pip, worked out from each pair's `digits` —
-      gold 0.10, the euro 0.0001 — so one setting means the same thing
-      everywhere. Price at 4132.60 against a top of 4132.57 has reached it
+- [x] **It says price is *approaching*, not only that it has touched.**
+      `approach_pips = 4.0` in `config/levels.toml`. A pip comes from each
+      pair's `digits` — gold 0.10, the euro 0.0001 — so one setting is
+      meaningful everywhere without a number per pair
+- [x] **Any pair can overrule it** with its own `approach_pips`. Four pips is
+      about two minutes of gold and about an hour of euro, so gold is the one
+      likely to want more. Commented example in `config/pairs/XAUUSD.toml`
 - [x] **And no wider than that, because the band is already the early
       warning.** Its outer edge is about 3 hours of movement from his line on
       gold and 6 on the pound. A first attempt added a quarter of a band on

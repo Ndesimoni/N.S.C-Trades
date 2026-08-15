@@ -8,8 +8,9 @@ THE FILES
 
   bands.rs     Does the band we build land where the one he drew landed?
 
-  pips.rs      One pip, worked out from how the pair is quoted. Gold to two
-               decimals is 0.10; the euro to five is 0.0001.
+  pips.rs      One pip, worked out from how the pair is quoted — gold to two
+               decimals is 0.10, the euro to five is 0.0001. Also a pair
+               asking for its own approach distance instead of the shared one.
 
   saving.rs    Levels arriving from his phone, and going back off again.
 
@@ -35,6 +36,16 @@ THE ONE THAT MATTERS
   That is the whole point. Everything in this project is measured against his
   levels, so a change that makes our band stop matching his hand has to fail
   loudly rather than quietly draw something slightly different.
+
+
+THE ONE THAT WOULD HAVE BEEN MISSED
+
+  pips.rs::a_pair_file_can_carry_its_own_number.
+
+  Every other test there builds a Pair in memory, and all of them would pass
+  with the setting unreadable from an actual file. TYPING IT INTO THE FILE IS
+  THE ONLY WAY HE WILL EVER SET IT, so the trip through TOML is the part that
+  matters.
 
 
 THE ONE THAT IS EASIEST TO GET WRONG

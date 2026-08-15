@@ -31,9 +31,10 @@ THE FILES
               band — is price at it now — and an alert is the moment that
               turns from no to yes.
 
-  tests/      Thirty-three tests.
+  tests/      Thirty-eight tests.
                 bands.rs    does our band land where his landed
-                pips.rs     one pip, worked out from how the pair is quoted
+                pips.rs     one pip from the pair's digits, and a pair
+                            asking for its own approach distance
                 saving.rs   levels arriving from his phone, and going back off
                 watching.rs firing once per touch, not once per price
                 support.rs  what they share
@@ -96,21 +97,25 @@ ARRIVING IS A TOUCH. LEAVING IS A REAL DISTANCE.
 
   Two different sums on purpose, and the reason is worth having.
 
-  ARRIVING is `approach_pips` in config/levels.toml — one pip, worked out from
-  the pair's own `digits`. Gold 0.10, the euro 0.0001. Price at 4132.60 when
-  the top is 4132.57 has touched it, and staying quiet over three cents would
-  be silly.
+  ARRIVING is `approach_pips` in config/levels.toml — four pips, so the alert
+  can say price is COMING UP ON the zone rather than only that it has touched.
+  A pip comes from the pair's own `digits`: gold 0.10, the euro 0.0001.
 
-  IT IS DELIBERATELY TINY, because THE BAND IS ALREADY THE EARLY WARNING. Its
-  outer edge is a long way from the line he drew, measured against how fast
-  each pair actually moves:
+  ANY PAIR CAN OVERRIDE IT with its own `approach_pips`. Four pips is about two
+  minutes of gold and about an hour of euro, so gold is the one likely to want
+  a bigger number. There is a commented example in config/pairs/XAUUSD.toml.
+
+  IT STAYS SMALL, because THE BAND IS ALREADY THE EARLY WARNING. Its outer edge
+  is a long way from the line he drew, measured against how fast each pair
+  actually moves:
 
       gold    half a weekly band  =  about 3 hours before price reaches him
       pound   half a weekly band  =  about 6 hours
 
   An earlier version added a quarter of a band on top of that and fired NINE
-  HOURS early on the pound. That is not an alert, it is a horoscope. The
-  working is in docs/diagrams/how-close.html.
+  HOURS early on the pound. That is not an alert, it is a horoscope. Four pips
+  is the last nudge before the edge, not the notice itself. The working is in
+  docs/diagrams/how-close.html.
 
   LEAVING is a tenth of the band's own thickness — about 8 points on gold, 6
   pips on the pound. It has to be a real distance or price sitting on the edge

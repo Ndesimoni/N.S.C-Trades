@@ -8,7 +8,16 @@ fn pair(symbol: &str, digits: u32) -> Pair {
         symbol: symbol.into(),
         digits,
         nightly_break_minutes: 0,
+        approach_pips: None,
         levels: Vec::new(),
+    }
+}
+
+/// The same pair, but with its own idea of how close counts.
+fn pair_wanting(symbol: &str, digits: u32, pips: &str) -> Pair {
+    Pair {
+        approach_pips: Some(d(pips)),
+        ..pair(symbol, digits)
     }
 }
 
@@ -40,18 +49,86 @@ fn a_pair_quoted_to_whole_numbers_does_not_blow_up() {
 
 #[test]
 fn the_reach_is_that_pip_times_the_setting() {
+    assert_eq!(pair("XAU/USD", 2).reach(thickness("4.0")), d("0.4"));
     assert_eq!(pair("XAU/USD", 2).reach(thickness("1.0")), d("0.1"));
-    assert_eq!(pair("XAU/USD", 2).reach(thickness("5.0")), d("0.5"));
-    assert_eq!(pair("EUR/USD", 5).reach(thickness("1.0")), d("0.0001"));
+    assert_eq!(pair("EUR/USD", 5).reach(thickness("4.0")), d("0.0004"));
 }
 
 // The whole reason it is in pips rather than a share of the band. One number
-// means the same SIZE OF TOUCH everywhere, while a share would mean ten cents
+// means the same SIZE OF NUDGE everywhere, while a share would mean ten cents
 // on a thin band and ten dollars on a thick one.
 #[test]
-fn one_setting_means_a_touch_on_every_pair() {
-    let setting = thickness("1.0");
+fn one_setting_covers_every_pair() {
+    let setting = thickness("4.0");
 
-    assert_eq!(pair("XAU/USD", 2).reach(setting), d("0.1"));
-    assert_eq!(pair("GBP/USD", 5).reach(setting), d("0.0001"));
+    assert_eq!(pair("XAU/USD", 2).reach(setting), d("0.4"));
+    assert_eq!(pair("GBP/USD", 5).reach(setting), d("0.0004"));
+}
+
+// ── But a pair may want its own ──
+
+// Four pips is two minutes of gold and nearly an hour of euro. So gold gets to
+// ask for more without dragging every other pair along with it.
+#[test]
+fn a_pair_can_want_more_room_than_the_shared_setting() {
+    let shared = thickness("4.0");
+
+    assert_eq!(pair("XAU/USD", 2).reach(shared), d("0.4"));
+    assert_eq!(pair_wanting("XAU/USD", 2, "40").reach(shared), d("4.0"));
+}
+
+#[test]
+fn a_pair_can_want_less_too() {
+    assert_eq!(
+        pair_wanting("EUR/USD", 5, "1").reach(thickness("4.0")),
+        d("0.0001")
+    );
+}
+
+// A pair file written before the override existed has none, and must still get
+// the shared number rather than nothing.
+#[test]
+fn a_pair_without_one_falls_back_to_the_shared_setting() {
+    assert_eq!(pair("GBP/USD", 5).approach_pips, None);
+    assert_eq!(pair("GBP/USD", 5).reach(thickness("4.0")), d("0.0004"));
+}
+
+// Typing it into the file is the ONLY way he will ever set this, so the trip
+// through TOML is the part worth pinning. The tests above build a Pair in
+// memory and would all pass with the field unreadable from a file.
+#[test]
+fn a_pair_file_can_carry_its_own_number() {
+    let text = r#"
+symbol = "XAU/USD"
+digits = 2
+approach_pips = 40
+
+[[level]]
+timeframe = "weekly"
+price = "4094"
+"#;
+
+    let pair: Pair = toml::from_str(text).expect("a valid pair file");
+
+    assert_eq!(pair.approach_pips, Some(d("40")));
+    assert_eq!(pair.reach(thickness("4.0")), d("4.0"), "$4, not 40 cents");
+}
+
+// Every pair file he has today was written before this existed. None of them
+// may stop loading.
+#[test]
+fn a_pair_file_written_before_the_setting_existed_still_loads() {
+    let text = r#"
+symbol = "EUR/USD"
+digits = 5
+
+[[level]]
+timeframe = "weekly"
+price = "1.15000"
+"#;
+
+    let pair: Pair = toml::from_str(text).expect("a valid pair file");
+
+    assert_eq!(pair.approach_pips, None);
+    assert_eq!(pair.reach(thickness("4.0")), d("0.0004"));
 }

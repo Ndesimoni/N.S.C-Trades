@@ -17,6 +17,14 @@ digits = 2
 # the file stops at 20:45 UTC and restarts at 22:00. Spot forex is 0.
 nightly_break_minutes = 60
 
+# How close to a band counts as approaching it, in pips. Uncomment to give gold
+# its own, instead of the 4 in config/levels.toml.
+#
+# GOLD IS THE PAIR MOST LIKELY TO WANT THIS. A pip is 0.10, so the shared 4 is
+# 40 cents — about two minutes of movement. 40 pips is $4, about twenty minutes.
+#
+# approach_pips = 40
+
 
 # ── The levels ──────────────────────────────────────────────────────────────
 #

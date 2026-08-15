@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 116 tests · clippy clean · it watches his levels, says what
+**Two crates · 117 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -141,13 +141,20 @@ without waiting for it to happen. That was the last plain-text message going.
 - [x] **Only the changed pair costs a request.** An untouched pair keeps the
       `Watch` it had; rebuilt, it forgets which zones price is in
 - [x] Currently: `EURUSD` 4, `GBPUSD` 4, `XAUUSD` 3, `USDCAD` 2
-- [x] **The same level cannot be saved twice.** He sent three euro levels
-      twice and got both copies, so one line on his chart was two bands — two
-      alerts, two closes, and a heartbeat claiming seven levels where he had
-      drawn four. Compared as *numbers*, so 1.15 and 1.15000 are one level,
-      and repeats inside a single message are dropped too
-- [x] **The reply says which** — *"2 saved, 1 you already had"*. And undo is
-      told what was actually added, or it would cut levels he sent weeks ago
+- [x] **The same price is one level, whatever chart it arrives on.** He sent
+      three euro levels twice and got both copies — one line on his chart was
+      two bands, two alerts, two closes, and a heartbeat claiming seven levels
+      where he had drawn four
+- [x] **Compared as numbers**, so 1.15 and 1.15000 are one level, and repeats
+      inside a single message are dropped too
+- [x] **The timeframe is not part of what makes it unique.** Re-sending a
+      weekly line off the daily chart has not changed anything about it, and a
+      62-pip band and a 29-pip band round one line fire twice as price passes.
+      It keeps the chart he first drew it on
+- [x] **The reply names what he already had, and which chart it is on** —
+      *"1.15000 is already a weekly level"*. He may have expected it to move;
+      silence would leave him thinking it had. And undo is told what was
+      actually added, or it would cut levels he sent weeks ago
 - [x] **The three already in `EURUSD` are gone**, comments untouched
 - [ ] **The 4-hour thickness has never been measured** — 0.55 is a guess
 - [ ] **Five gold levels are still missing** — pixel estimates off a

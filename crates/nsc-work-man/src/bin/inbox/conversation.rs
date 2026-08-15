@@ -126,16 +126,24 @@ pub async fn handle(
         // Say back what the pair NOW HOLDS, not only what just arrived. A
         // mistyped 1.4000 is then caught by his eye in the reply rather than
         // three weeks later when a signal fires in the wrong place.
-        let head = match (saved.added, saved.already) {
-            (0, _) => format!("<b>{} · you already had those</b>", with_slash(&pair)),
+        let mut lines = vec![match (saved.added, saved.already.len()) {
             (_, 0) => format!("<b>{} · saved</b>", with_slash(&pair)),
+            (0, _) => format!("<b>{} · nothing new</b>", with_slash(&pair)),
             (new, old) => format!(
                 "<b>{} · {new} saved</b>, {old} you already had",
                 with_slash(&pair)
             ),
-        };
+        }];
 
-        let mut lines = vec![head];
+        // **Name the ones he already had, and the chart they are on.** He may
+        // have just re-sent a weekly line off his daily chart expecting it to
+        // move; saying nothing would leave him thinking it had.
+        for (price, timeframe) in &saved.already {
+            lines.push(format!(
+                "· {price} is already a <b>{}</b> level",
+                timeframe.name()
+            ));
+        }
 
         for (word, kind) in TIMEFRAMES {
             let held: Vec<String> = saved

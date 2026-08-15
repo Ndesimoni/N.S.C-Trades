@@ -196,7 +196,7 @@ fn a_level_he_already_has_is_not_added_again() {
     .expect("saved");
 
     assert_eq!(again.added, 0, "nothing new");
-    assert_eq!(again.already, 2, "and it says he had both");
+    assert_eq!(again.already.len(), 2, "and it says he had both");
     assert_eq!(again.pair.levels.len(), 2, "still two levels, not four");
 }
 
@@ -216,7 +216,7 @@ fn a_repeat_inside_one_message_is_dropped_too() {
     .expect("saved");
 
     assert_eq!(saved.added, 2);
-    assert_eq!(saved.already, 1);
+    assert_eq!(saved.already.len(), 1);
     assert_eq!(saved.pair.levels.len(), 2);
 }
 
@@ -233,15 +233,34 @@ fn the_same_price_written_differently_is_still_the_same_level() {
     assert_eq!(again.pair.levels.len(), 1);
 }
 
-// The same number on two timeframes is TWO levels — a weekly line at 1.15 and
-// a daily line at 1.15 are different things, drawn on different charts.
+// HE DRAWS ONE LINE. Sending it again off the daily chart has not changed
+// anything about it — and a second band round the same line is the same
+// duplicate wearing a different label: a wide one and a narrow one, firing
+// twice as price passes through.
 #[test]
-fn the_same_price_on_another_timeframe_is_a_different_level() {
+fn the_same_price_sent_again_off_another_chart_is_still_one_level() {
     let folder = scratch("doubles-across");
 
     save(&folder, "EURUSD", Timeframe::Weekly, &[d("1.15")], 5).expect("saved");
     let daily = save(&folder, "EURUSD", Timeframe::Daily, &[d("1.15")], 5).expect("saved");
 
-    assert_eq!(daily.added, 1);
-    assert_eq!(daily.pair.levels.len(), 2);
+    assert_eq!(daily.added, 0, "nothing new");
+    assert_eq!(daily.pair.levels.len(), 1, "still one line");
+
+    // And it says WHICH chart it is already on. Refusing silently would leave
+    // him thinking he had moved it to the daily.
+    assert_eq!(daily.already, vec![(d("1.15"), Timeframe::Weekly)]);
+}
+
+// The level keeps the chart he FIRST drew it on, and with it the band
+// thickness. A weekly band is 62 pips on the pound where a daily is 29 — so
+// which one it kept is not a detail.
+#[test]
+fn it_keeps_the_chart_he_first_drew_it_on() {
+    let folder = scratch("first-chart-wins");
+
+    save(&folder, "EURUSD", Timeframe::Weekly, &[d("1.15")], 5).expect("saved");
+    let after = save(&folder, "EURUSD", Timeframe::Daily, &[d("1.15")], 5).expect("saved");
+
+    assert_eq!(after.pair.levels[0].timeframe, Timeframe::Weekly);
 }

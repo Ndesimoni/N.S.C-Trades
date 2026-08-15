@@ -105,16 +105,27 @@ TWO THINGS ABOUT THE FILES THEMSELVES
   and rewriting would delete all of it without a word. He is meant to be able
   to open one and read it.
 
-  THE SAME LEVEL CANNOT BE SAVED TWICE. He sent three euro levels twice and
-  got both copies: one line on his chart became two bands, two alerts, two
-  closes, and a heartbeat card claiming seven levels where he had drawn four.
+  THE SAME PRICE IS ONE LEVEL, WHATEVER CHART IT ARRIVES ON. He sent three
+  euro levels twice and got both copies: one line on his chart became two
+  bands, two alerts, two closes, and a heartbeat card claiming seven levels
+  where he had drawn four.
 
   Compared as NUMBERS, not as text — 1.15 and 1.15000 are the same line and he
   may type either. Repeats inside one message are dropped too, because tapping
   send twice is the commonest way it happens.
 
-  The same price on ANOTHER TIMEFRAME is a different level. A weekly line at
-  1.15 and a daily line at 1.15 are two things, drawn on two charts.
+  AND THE TIMEFRAME IS NOT PART OF WHAT MAKES IT UNIQUE. He draws one line at
+  1.15000. Sending it again off his daily chart has not changed anything about
+  it, and a second band round the same line is the same duplicate wearing a
+  different label — a 62-pip band and a 29-pip band round one line, firing
+  twice as price passes through.
+
+  IT KEEPS THE CHART HE FIRST DREW IT ON, and with it the thickness. That is
+  not a detail: weekly is 62 pips on the pound where daily is 29.
+
+  So the reply NAMES what he already had and which chart it is on — "1.15000
+  is already a weekly level". He may have re-sent it off the daily expecting
+  it to move; saying nothing would leave him thinking it had.
 
   PRICES ARE STORED AS TEXT — price = "1.21279". Written as a TOML number it
   would go through a float and stop being exactly that. There is a test that

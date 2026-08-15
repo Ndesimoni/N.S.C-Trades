@@ -40,16 +40,26 @@ pub struct Saved {
     /// How many were new.
     pub added: usize,
 
-    /// How many he already had, on that timeframe, at that exact price.
-    pub already: usize,
+    /// The ones he already had, and which chart they are already on.
+    ///
+    /// **The timeframe is carried so the reply can say it.** Refusing a level
+    /// he has just re-sent on a different chart is right, but doing it
+    /// silently would leave him thinking he had moved it.
+    pub already: Vec<(Decimal, Timeframe)>,
 }
 
 /// Adds levels to a pair, starting its file if this is the first time.
 ///
-/// **A price he already has on that timeframe is not added again.** He sent
-/// the same three euro levels twice and got both copies, so one line on his
-/// chart became two bands — two alerts, two closes, and a heartbeat card
-/// claiming seven levels where he had drawn four.
+/// **A price he already has is not added again, whatever chart it comes in
+/// on.** He sent the same three euro levels twice and got both copies, so one
+/// line on his chart became two bands — two alerts, two closes, and a
+/// heartbeat card claiming seven levels where he had drawn four.
+///
+/// The timeframe is deliberately not part of what makes a level unique. He
+/// draws ONE line at 1.15000; sending it again off the daily chart has not
+/// changed anything about it, and a second band round the same line is the
+/// same duplicate wearing a different label — a wider one and a narrower one,
+/// firing twice as price passes through.
 ///
 /// Repeats inside one message are dropped too. Tapping send twice is the
 /// commonest way it happens.
@@ -71,25 +81,27 @@ pub fn save(
         write(&file, &opening(name, digits))?;
     }
 
-    // What is on that timeframe already. Compared as NUMBERS, not as text:
-    // 1.15 and 1.15000 are the same line on his chart, and he may type either.
-    let mut held: Vec<Decimal> = load_pair(&file)?
+    // Every price he already holds, on ANY chart, with the chart it is on.
+    //
+    // Compared as NUMBERS, not as text: 1.15 and 1.15000 are the same line and
+    // he may type either.
+    let mut held: Vec<(Decimal, Timeframe)> = load_pair(&file)?
         .levels
         .iter()
-        .filter(|line| line.timeframe == timeframe)
-        .map(|line| line.price)
+        .map(|line| (line.price, line.timeframe))
         .collect();
 
     let mut text = read(&file)?;
-    let (mut added, mut already) = (0, 0);
+    let mut added = 0;
+    let mut already = Vec::new();
 
     for price in prices {
-        if held.contains(price) {
-            already += 1;
+        if let Some(had) = held.iter().find(|(at, _)| at == price) {
+            already.push(*had);
             continue;
         }
 
-        held.push(*price);
+        held.push((*price, timeframe));
         added += 1;
 
         text.push_str(&format!(

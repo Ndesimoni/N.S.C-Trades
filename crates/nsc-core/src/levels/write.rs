@@ -30,17 +30,36 @@ pub fn known(folder: &Path) -> Vec<String> {
     names
 }
 
+/// What came of saving.
+#[derive(Debug, Clone)]
+pub struct Saved {
+    /// The pair as it now stands, so a reply can say what it holds rather than
+    /// only what was just added.
+    pub pair: Pair,
+
+    /// How many were new.
+    pub added: usize,
+
+    /// How many he already had, on that timeframe, at that exact price.
+    pub already: usize,
+}
+
 /// Adds levels to a pair, starting its file if this is the first time.
 ///
-/// Gives back the pair as it now stands, so the reply can say what it holds
-/// rather than only what was just added.
+/// **A price he already has on that timeframe is not added again.** He sent
+/// the same three euro levels twice and got both copies, so one line on his
+/// chart became two bands — two alerts, two closes, and a heartbeat card
+/// claiming seven levels where he had drawn four.
+///
+/// Repeats inside one message are dropped too. Tapping send twice is the
+/// commonest way it happens.
 pub fn save(
     folder: &Path,
     name: &str,
     timeframe: Timeframe,
     prices: &[Decimal],
     digits: u32,
-) -> Result<Pair, LevelError> {
+) -> Result<Saved, LevelError> {
     let file = folder.join(format!("{name}.toml"));
 
     if !file.exists() {
@@ -52,9 +71,27 @@ pub fn save(
         write(&file, &opening(name, digits))?;
     }
 
+    // What is on that timeframe already. Compared as NUMBERS, not as text:
+    // 1.15 and 1.15000 are the same line on his chart, and he may type either.
+    let mut held: Vec<Decimal> = load_pair(&file)?
+        .levels
+        .iter()
+        .filter(|line| line.timeframe == timeframe)
+        .map(|line| line.price)
+        .collect();
+
     let mut text = read(&file)?;
+    let (mut added, mut already) = (0, 0);
 
     for price in prices {
+        if held.contains(price) {
+            already += 1;
+            continue;
+        }
+
+        held.push(*price);
+        added += 1;
+
         text.push_str(&format!(
             "\n[[level]]\ntimeframe = \"{}\"\nprice = \"{price}\"\n",
             timeframe.name()
@@ -63,7 +100,11 @@ pub fn save(
 
     write(&file, &text)?;
 
-    load_pair(&file)
+    Ok(Saved {
+        pair: load_pair(&file)?,
+        added,
+        already,
+    })
 }
 
 fn read(file: &Path) -> Result<String, LevelError> {

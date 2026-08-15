@@ -47,7 +47,7 @@ THE FILES
               band — is price at it now — and an alert is the moment that
               turns from no to yes.
 
-  tests/      Fifty-nine tests.
+  tests/      Sixty-five tests.
                 bands.rs    does our band land where his landed
                 closing.rs  what a finished candle did at a zone
                 pips.rs     one pip from the pair's digits, and a pair
@@ -104,6 +104,17 @@ TWO THINGS ABOUT THE FILES THEMSELVES
   carry comments explaining what a level is and where the numbers came from,
   and rewriting would delete all of it without a word. He is meant to be able
   to open one and read it.
+
+  THE SAME LEVEL CANNOT BE SAVED TWICE. He sent three euro levels twice and
+  got both copies: one line on his chart became two bands, two alerts, two
+  closes, and a heartbeat card claiming seven levels where he had drawn four.
+
+  Compared as NUMBERS, not as text — 1.15 and 1.15000 are the same line and he
+  may type either. Repeats inside one message are dropped too, because tapping
+  send twice is the commonest way it happens.
+
+  The same price on ANOTHER TIMEFRAME is a different level. A weekly line at
+  1.15 and a daily line at 1.15 are two things, drawn on two charts.
 
   PRICES ARE STORED AS TEXT — price = "1.21279". Written as a TOML number it
   would go through a float and stop being exactly that. There is a test that
@@ -172,10 +183,6 @@ WHAT IS NOT HERE YET
 
   Removing one particular level. Undo takes off what the last message added,
   which covers a typo but not "that 3800 from last week was wrong".
-
-  Refusing a level the pair already has. He sent three euro levels twice and
-  both copies were saved, so one line on his chart is two bands and two
-  alerts.
 
   Anything past rung 1. These bands say when price ARRIVES. Whether the candle
   that got there closed inside — the thing that says it was a rejection rather

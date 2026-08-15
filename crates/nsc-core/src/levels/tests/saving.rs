@@ -9,7 +9,9 @@ use super::support::{d, scratch};
 fn a_pair_that_has_never_been_seen_gets_its_own_file() {
     let folder = scratch("new-pair");
 
-    let saved = save(&folder, "EURUSD", Timeframe::Weekly, &[d("1.0850")], 5).expect("saved");
+    let saved = save(&folder, "EURUSD", Timeframe::Weekly, &[d("1.0850")], 5)
+        .expect("saved")
+        .pair;
 
     assert_eq!(saved.symbol, "EUR/USD");
     assert_eq!(saved.digits, 5);
@@ -32,7 +34,8 @@ fn sending_more_levels_keeps_the_ones_already_there() {
         &[d("1.37"), d("1.31")],
         5,
     )
-    .expect("saved again");
+    .expect("saved again")
+    .pair;
 
     assert_eq!(saved.levels.len(), 3);
 
@@ -164,4 +167,81 @@ fn undo_keeps_the_comments() {
 
     let text = std::fs::read_to_string(folder.join("EURUSD.toml")).expect("readable");
     assert!(text.contains("THIS FILE IS WHY THE PAIR IS WATCHED"));
+}
+
+// ── The same level, twice ──
+
+// THE ONE THAT ACTUALLY HAPPENED. He sent the same three euro levels twice and
+// got both copies, so one line on his chart became two bands — two alerts, two
+// closes, and a heartbeat card claiming seven levels where he had drawn four.
+#[test]
+fn a_level_he_already_has_is_not_added_again() {
+    let folder = scratch("no-doubles");
+
+    save(
+        &folder,
+        "EURUSD",
+        Timeframe::Weekly,
+        &[d("1.15"), d("1.17")],
+        5,
+    )
+    .expect("saved");
+    let again = save(
+        &folder,
+        "EURUSD",
+        Timeframe::Weekly,
+        &[d("1.15"), d("1.17")],
+        5,
+    )
+    .expect("saved");
+
+    assert_eq!(again.added, 0, "nothing new");
+    assert_eq!(again.already, 2, "and it says he had both");
+    assert_eq!(again.pair.levels.len(), 2, "still two levels, not four");
+}
+
+// Tapping send twice is the commonest way it happens, and both copies arrive
+// in the same message.
+#[test]
+fn a_repeat_inside_one_message_is_dropped_too() {
+    let folder = scratch("no-doubles-in-one");
+
+    let saved = save(
+        &folder,
+        "EURUSD",
+        Timeframe::Weekly,
+        &[d("1.15"), d("1.15"), d("1.17")],
+        5,
+    )
+    .expect("saved");
+
+    assert_eq!(saved.added, 2);
+    assert_eq!(saved.already, 1);
+    assert_eq!(saved.pair.levels.len(), 2);
+}
+
+// 1.15 and 1.15000 are the same line on his chart, and he may type either.
+// Compared as text they are two different levels.
+#[test]
+fn the_same_price_written_differently_is_still_the_same_level() {
+    let folder = scratch("no-doubles-text");
+
+    save(&folder, "EURUSD", Timeframe::Weekly, &[d("1.15")], 5).expect("saved");
+    let again = save(&folder, "EURUSD", Timeframe::Weekly, &[d("1.15000")], 5).expect("saved");
+
+    assert_eq!(again.added, 0);
+    assert_eq!(again.pair.levels.len(), 1);
+}
+
+// The same number on two timeframes is TWO levels — a weekly line at 1.15 and
+// a daily line at 1.15 are different things, drawn on different charts.
+#[test]
+fn the_same_price_on_another_timeframe_is_a_different_level() {
+    let folder = scratch("doubles-across");
+
+    save(&folder, "EURUSD", Timeframe::Weekly, &[d("1.15")], 5).expect("saved");
+    let daily = save(&folder, "EURUSD", Timeframe::Daily, &[d("1.15")], 5).expect("saved");
+
+    assert_eq!(daily.added, 1);
+    assert_eq!(daily.pair.levels.len(), 2);
 }

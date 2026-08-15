@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 112 tests · clippy clean · it watches his levels, says what
+**Two crates · 116 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -140,9 +140,15 @@ without waiting for it to happen. That was the last plain-text message going.
       too: the weekend is when he does his chart work
 - [x] **Only the changed pair costs a request.** An untouched pair keeps the
       `Watch` it had; rebuilt, it forgets which zones price is in
-- [x] Currently: `EURUSD` 7, `GBPUSD` 4, `XAUUSD` 3, `USDCAD` 2
-- [ ] **`EURUSD` has three duplicates** — he sent them twice and `save` does
-      not check. One line on his chart is two bands and two alerts
+- [x] Currently: `EURUSD` 4, `GBPUSD` 4, `XAUUSD` 3, `USDCAD` 2
+- [x] **The same level cannot be saved twice.** He sent three euro levels
+      twice and got both copies, so one line on his chart was two bands — two
+      alerts, two closes, and a heartbeat claiming seven levels where he had
+      drawn four. Compared as *numbers*, so 1.15 and 1.15000 are one level,
+      and repeats inside a single message are dropped too
+- [x] **The reply says which** — *"2 saved, 1 you already had"*. And undo is
+      told what was actually added, or it would cut levels he sent weeks ago
+- [x] **The three already in `EURUSD` are gone**, comments untouched
 - [ ] **The 4-hour thickness has never been measured** — 0.55 is a guess
 - [ ] **Five gold levels are still missing** — pixel estimates off a
       screenshot, and they stay out until he reads them off

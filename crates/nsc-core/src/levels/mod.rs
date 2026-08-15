@@ -31,4 +31,4 @@ pub use error::LevelError;
 pub use naming::{digits_for, unit_for, with_slash};
 pub use read::{Pair, Thickness, load_pair, load_thickness};
 pub use watch::{Nearness, Watch, nearness};
-pub use write::{known, save, undo};
+pub use write::{Saved, known, save, undo};

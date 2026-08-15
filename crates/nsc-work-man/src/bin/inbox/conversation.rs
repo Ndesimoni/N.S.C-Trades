@@ -117,15 +117,29 @@ pub async fn handle(
         };
 
         let saved = save(folder, &pair, timeframe, &prices, digits_for(&pair))?;
-        adding.just_added = Some((pair.clone(), prices.len()));
+
+        // **Only what was actually added.** Undo cuts the last N levels off the
+        // file, so telling it a number that includes ones already there would
+        // have it cut levels he sent weeks ago.
+        adding.just_added = Some((pair.clone(), saved.added));
 
         // Say back what the pair NOW HOLDS, not only what just arrived. A
         // mistyped 1.4000 is then caught by his eye in the reply rather than
         // three weeks later when a signal fires in the wrong place.
-        let mut lines = vec![format!("<b>{} · saved</b>", with_slash(&pair))];
+        let head = match (saved.added, saved.already) {
+            (0, _) => format!("<b>{} · you already had those</b>", with_slash(&pair)),
+            (_, 0) => format!("<b>{} · saved</b>", with_slash(&pair)),
+            (new, old) => format!(
+                "<b>{} · {new} saved</b>, {old} you already had",
+                with_slash(&pair)
+            ),
+        };
+
+        let mut lines = vec![head];
 
         for (word, kind) in TIMEFRAMES {
             let held: Vec<String> = saved
+                .pair
                 .levels
                 .iter()
                 .filter(|line| line.timeframe == kind)
@@ -151,7 +165,7 @@ pub async fn handle(
         // Reading the price back only proves he can read his own typing. The
         // picture shows the PLACE, which is the thing that actually goes wrong
         // — and it is how he reads a chart anyway.
-        return show(client, token, &saved).await;
+        return show(client, token, &saved.pair).await;
     }
 
     say(client, token, "Send /level to add a level", None).await

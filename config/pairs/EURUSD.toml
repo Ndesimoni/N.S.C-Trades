@@ -32,16 +32,4 @@ price = "1.18600"
 
 [[level]]
 timeframe = "weekly"
-price = "1.15000"
-
-[[level]]
-timeframe = "weekly"
-price = "1.17000"
-
-[[level]]
-timeframe = "weekly"
-price = "1.18600"
-
-[[level]]
-timeframe = "weekly"
 price = "1.35000"

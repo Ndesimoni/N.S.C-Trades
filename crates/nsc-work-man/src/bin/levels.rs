@@ -1,6 +1,8 @@
 //! Draw a pair's levels and send the picture.
 //!
+//! ```text
 //!     cargo run -p nsc-work-man --bin levels -- GBPUSD
+//! ```
 //!
 //! The same picture `inbox` sends after saving. This one is for looking at a
 //! pair without sending anything.

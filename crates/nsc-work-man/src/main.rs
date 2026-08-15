@@ -1,6 +1,8 @@
 //! The bot.
 //!
+//! ```text
 //!     cargo run -p nsc-work-man
+//! ```
 //!
 //! **It sends signals and places no trades.** Version 1 has no execution in
 //! it, and `features.execution` being absent is not a gap waiting to be

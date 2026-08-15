@@ -1,5 +1,6 @@
 //! Draw any card without waiting for the market to do anything.
 //!
+//! ```text
 //!     cargo run -p nsc-work-man --bin cards -- XAUUSD             approaching
 //!     cargo run -p nsc-work-man --bin cards -- XAUUSD 4120        in the zone
 //!     cargo run -p nsc-work-man --bin cards -- XAUUSD 4120 found  already in
@@ -10,6 +11,7 @@
 //!     cargo run -p nsc-work-man --bin cards -- trouble down       the line is off
 //!     cargo run -p nsc-work-man --bin cards -- trouble back       it is back
 //!     cargo run -p nsc-work-man --bin cards -- trouble stopped    it gave up
+//! ```
 //!
 //! **This is the design loop, not the bot.** Changing how a card looks means
 //! looking at it, and the market reaches a level when it feels like it.

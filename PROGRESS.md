@@ -1,6 +1,6 @@
 # Progress
 
-Where the project actually is, as of **14 August 2026**.
+Where the project actually is, as of **16 August 2026**.
 
 Updated whenever a piece of work finishes — that is a rule in `CLAUDE.md`. A
 progress file that is out of date is worse than none, because the next decision
@@ -12,7 +12,8 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 110 tests · clippy clean · it watches his levels and says when price arrives.**
+**Two crates · 112 tests · clippy clean · it watches his levels, says what
+happens at them, and tells him when it cannot.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
@@ -27,8 +28,7 @@ A signal bot. Phase one sends signals to Telegram and places no trades.
 
 **The design is a page you can click through** —
 [Broker to Telegram](https://claude.ai/code/artifact/1093ff9f-f3b3-4af7-afd5-6377629ea1dd).
-The two lanes, what sits in each stage, where your rules live, and the build
-order. Everything else visual is indexed in [docs/README.md](docs/README.md).
+Everything else visual is indexed in [docs/README.md](docs/README.md).
 
 **Forex pairs and gold, nothing else.** Trades are executed on the 4-hour and
 the 1-hour; the weekly and daily are there for levels.
@@ -39,363 +39,293 @@ last version of this project cleared out on 14 August 2026.
 
 ---
 
-## Step 1 — the thin pipe — [x]
+## Running it
 
-*Done when a candle closes and the phone buzzes.*
-
-- [x] Connected to **Twelve Data**, key in `.env`, never in the code
-- [x] **Gold works on the free plan** — `XAU/USD` comes back as
-      `"type": "Precious Metal"`. That was the one thing we could not know
-      without asking, because "commodities" is a paid feature on their pricing
-      page
-- [x] **The finished-candle rule, proved against the clock.** At 18:19 it sent
-      the 17:00 candle and skipped the 18:00 one, because 18:00 plus an hour
-      has not happened. Not asserted in a comment — demonstrated on real data
-- [x] Telegram bot made, channel made, bot is an admin
-- [x] A card is drawn and sent, with a one-line caption
-- [x] **The finished-candle rule is pinned by tests**, including the one that
-      shows why "skip the first candle in the list" is wrong: ask at 18:00:02
-      and the finished candle is first or second depending on whether a price
-      has landed yet
-
-### What it is made of
-
-```
-crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
-                          is what stops it, not a rule anybody has to remember
-  candle/       one candle, whether it has finished, and
-                how long a timeframe is.                  9 tests
-  levels/       his lines, the bands round them, the
-                watching, what a candle did at one, and
-                what to say about it.                    59 tests
-  when/         whether the bot may speak at all, and
-                the heartbeat.                           15 tests
-  error/        retry or give up — Answer and Knows.      3 tests
-
-crates/nsc-work-man/      EVERYTHING THAT REACHES
-  feed/         asking Twelve Data.                       5 tests
-  telegram/     sending — words, pictures, media groups.  3 tests
-  card/         filling a template, letting Chrome draw. 11 tests
-  retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests
-  main.rs       four lines — it runs the watcher
-  watch/        THE BOT. Rungs 1 and 2, the calendar, the heartbeat
-  review.rs     one pair's levels, drawn
-  bin/inbox/    levels arriving from his phone
-  bin/cards/    draw any card without waiting for the market
-  bin/levels.rs draw a pair's bands without waiting for one to be touched
-  bin/listen.rs the raw price stream, kept as proof it works
-
-assets/card/
-  style.css      the palette, the typefaces, the page box — shared by all
-  <name>.css     each card's own styling, and its height
-  chart.html     the candle chart. Carries its own open, high, low and range
-  readout.html   where price sat inside the candle — NOT SENT by anything
-  alert.html     price at one of his zones
-  close.html     a finished candle at a zone, named by what it did
-  heartbeat.html what is being watched, on a day nothing happened
-  armed.html     a level he just sent is now being watched
-  trouble.html   the bot itself has a problem — severity in the colour
-
-The close card ZOOMS TO THE CANDLE, because a 1-hour candle inside a weekly
-zone is a hundredth of its height and draws as a smudge otherwise. His line is
-kept in view, anything off the edge gets an arrow, and the stretch of wick
-inside the zone is picked out in the level's colour.
+```sh
+cargo run -p nsc-work-man                    # THE BOT
+cargo run -p nsc-work-man --bin inbox        # listen for levels from his phone
+cargo run -p nsc-work-man --bin cards -- …   # draw any card without waiting
+cargo run -p nsc-work-man --bin levels -- GBPUSD
 ```
 
-**Every folder with code in it has a `README.txt`, and every file — Rust, HTML
-and CSS — is under the 250-line limit.** Five sit between 200 and 225 and are
-the ones to watch: `close.html`, `chart.html`, `bin/watch/closes.rs`,
-`levels/tests/watching.rs` and `card/zone.rs`.
-
-**The design lives in HTML, not in Rust.** Open the file, change it, and the
-next message picks it up — no rebuild. Chrome draws it headlessly.
-
-Every run leaves the card in `preview/` as both a picture and a web page. Open
-the page in Chrome, edit the template, refresh — that is the design loop.
-Everything worth looking at is listed in [docs/README.md](docs/README.md).
-
-The cost: **whatever machine runs this needs Chrome.** Fine on a Mac. A real
-dependency on a server, and worth remembering before it goes anywhere else.
+- [x] **The obvious command runs the real thing.** It used to run a leftover
+      from step one that sent a gold card *every time it was called* — the
+      exact opposite of silence-by-default
+- [x] **The watcher is library code**, not a binary, so `main.rs` is four lines
+      and the whole bot is reachable from a test
 
 ---
 
-## What the feed actually does — [x]
-
-All of it measured, none of it read off their documentation. The detail is in
-`docs/worksheets/twelve-data.md`.
-
-- [x] **Their day ends at 17:00 New York.** Checked by matching the daily
-      candle's open against every hourly candle for thirty hours — exactly one
-      matched. Their daily chart is your daily chart
-- [x] **Their week opens Sunday 17:00 New York.** The forex week
-- [x] **The newest candle is always still forming**, and skipping the first one
-      in the list is not the fix — position is right most of the time, which is
-      worse than being wrong always
-- [x] **The datetime field means two different things.** An hourly stamp is the
-      candle's open time. A daily stamp is the date it *ends* on
-- [ ] **Weekend daily candles exist and are noise.** Saturday and Sunday come
-      back with ranges of 0.57 and 1.32 against 60–200 on a real day. Your chart
-      has five daily candles a week; this feed gives seven. **Not handled in
-      code yet** — the rule is to drop any daily stamped Saturday or Sunday
-
-### The limit that shapes the design
-
-**8 requests a minute.** Not the 800 a day — that is plenty.
-
-Our requests all want to happen at the same instant, on the hour. Eight pairs at
-a 4-hour close is eight 1-hour candles plus eight 4-hour candles: **sixteen
-requests in one second against a limit of eight.**
-
-So the fetching has to spread itself over the minute or two after a close. Cheap
-to build in now, annoying to retrofit.
-
----
-
-## Still open
-
-- [ ] **OANDA** — waiting on them, about 24 hours from 14 August. Worth having
-      because it marks each candle finished or not, so the guessing stops
-- [x] **The websocket works, and it changes the cost of everything.** Tested
-      14 August: the line opens, gold is allowed on the trial plan, and prices
-      arrive about one a second. So price watching costs **0 requests**, and a
-      request only happens when price reaches a level — not once per candle
-      close. See `crates/nsc-work-man/src/bin/README.txt`
-- [ ] **Gold specifically has not been watched ticking** — it was shut for the
-      weekend, so the test ran on BTC/USD. Change one word back on Sunday
-- [x] **Every line it says is written properly** — captions and terminal both.
-      One way of writing a price (`levels::pretty`: rounded to the pair,
-      grouped in thousands, trailing zeros kept) and one way of naming a
-      timeframe, so a card saying *4,094.00* is never captioned *4094*
-- [x] **Trouble goes as a card too**, with the severity in the colour — amber
-      it is trying, green it is back, red it has stopped. Red is the only one
-      that asks him to do anything. No pair, no price, no chart, so it can
-      never be mistaken for a signal
-- [x] **A level sent while it is running is picked up**, without a restart.
-      They used to be read once at startup: the inbox saved it, the file was
-      right, and the level did nothing until the next restart. Checked every
-      ten minutes by the clock on the files, on quiet days too — the weekend
-      is when he does his chart work
-- [x] **Only the changed pair costs a request.** A pair whose levels are
-      untouched keeps the `Watch` it had; rebuilt, it would forget which zones
-      price is in and announce them all again
-- [x] **He gets a card back — a tick, *Got it. Your levels are live*, and the
-      count.** No pair names: he has just sent it, and the inbox already sent
-      back a picture of where the bands landed. What that picture cannot say
-      is that they are being *watched*, and that is this card's whole job
-- [x] **He is told when something breaks**, and when it is fixed. Nothing is
-      said for the first five minutes — most drops fix themselves in seconds,
-      and a buzz for each teaches him the buzz means nothing
-- [x] **A line that opens and shuts without a price counts as broken.** A key
-      over its quota does exactly that, and treating it as a clean close would
-      reconnect every thirty seconds forever in silence
-- [x] **Trouble it cannot recover from says so and stops** — a bad key, a
-      config that will not parse. Proved by hiding `config/when.toml` and
-      running it: the message arrived
-- [x] **The line dropping is no longer the end of it.** The socket closing
-      used to return `Ok` and the process exited *successfully* — and the
-      heartbeat went with it, so a dead bot and a quiet day looked identical.
-      It reconnects now, and on a silent day it does not open the line at all
-- [ ] **`--card-height` is measured by hand.** Each template says how tall it
-      is and Rust reads that line, but the number comes from measuring the page
-      once and typing it in. It will go stale when the design changes
-- [ ] **Everything was measured on gold only.** The majors almost certainly
-      behave the same. Almost is not checked
-
----
-
-## What the bot is allowed to say — [x] decided, [ ] built
+## What it sends — [x] rungs 1 and 2, [ ] rung 3
 
 **Silence is the default.** Nothing arrives on a quiet hour. Send something
-every hour and by the second week he stops opening them, and then he misses
-the one that mattered.
+every hour and by the second week he stops opening them, and then he misses the
+one that mattered.
 
 | | When | What arrives |
 |---|---|---|
-| **1** | price touches a level he drew | an alert **card** — the zone drawn, with price on it. May fire on a candle still forming; it is only a heads-up |
-| **2** | a candle that **touched** the zone finishes | a close card — the candle drawn inside the band. **Once per candle**, not once per visit: while price is at a zone he wants to watch it candle by candle |
-| **3** | it closed there **and** a strategy matched | the chart and the candlestick, with entry, stop, target and the sentence |
-| **·** | 07:00 UTC, **only if nothing else was sent** | a heartbeat **card** — every pair, its levels as dots in his colours, and how far price is from the nearest zone. On a busy day it never fires |
+| **1** | price comes within a pip of a zone | an **alert card** — the zone drawn, price on it, and the line it had to cross to fire |
+| **2** | a candle that **touched** a zone finishes | a **close card** — the candle drawn on the band, named by what it did |
+| **·** | a third of the way into that candle | the same card, marked *so far* — hollow chip, hollow candle, *not a close* |
+| **3** | it closed there **and** a strategy matched | **not built.** Needs `nsc-strategy`, which needs his answers |
+| **·** | 07:00 UTC, only if nothing else was sent | a **heartbeat card** — every pair, its levels as dots in his colours, the nearest zone on each |
+| **·** | he sends a level while it is running | an **armed card** — a tick, and the count |
+| **·** | the line breaks, comes back, or it stops | a **trouble card** — severity in the colour |
 
-**Rung 2 is the point.** Price arriving at a level says nothing; it may cut
-straight through. The *close* says whether it was a rejection. So rungs 2 and 3
-never fire on a candle still forming.
+**Everything it can say is a card**, and every one can be looked at on demand
+without waiting for it to happen. That was the last plain-text message going.
 
-The heartbeat exists because silence has one problem: after three quiet days
-you cannot tell whether nothing happened or the bot died. Twice a day rather
-than once — twelve hours of silence is believable, twenty-four is not.
+---
 
-Needs levels loaded, which is step 5. Until then the hourly message stays as
-the only sign of life.
+## Rung 1 — price at a zone — [x]
+
+- [x] **A level is a band, not a line.** Price does not stop at a number, it
+      turns somewhere near one
+- [x] **It fires on a touch** — `approach_pips = 4.0`, and a pip comes from
+      each pair's `digits`, so one setting means the same everywhere
+- [x] **Any pair can overrule it** with its own `approach_pips`. Four pips is
+      two minutes of gold and an hour of euro
+- [x] **And no wider, because the band is already the early warning.** Its
+      outer edge is ~3 hours of movement from his line on gold, 6 on the pound.
+      A first attempt added a quarter of a band on top and fired *nine hours*
+      early. [`docs/diagrams/how-close.html`](docs/diagrams/how-close.html)
+- [x] **Once per touch, not once per price.** Prices arrive about once a second
+      and barely move; without the rule one visit is twenty alerts
+- [x] **Leaving is measured differently from arriving** — a tenth of the band,
+      about 8 points on gold. Easy to trigger, hard to reset
+- [x] **The first price never fires.** It says where price *is*, not that it
+      arrived — it may have been sitting there for hours
+- [x] **Three states, and the card says which**: *approaching*, *in the zone*,
+      and *already in the zone* — the last for what it **found** on waking, so
+      a Monday move never gets a Tuesday clock
+
+## Rung 2 — what the candle did — [x]
+
+- [x] **A wick counts.** A candle that only reached in and closed back out is
+      the rejection he is waiting for; treating it as a miss throws it away
+- [x] **The card names what happened** — *kissed it*, *pushed back*, *closed
+      inside*, *cut through*. `kiss_depth` is where the graze ends
+- [x] **Cutting through is never called a rejection.** Deep, and closed
+      outside — the exact shape of a rejection, but the level *broke*
+- [x] **Once per candle**, not once per visit. His decision: while price is at
+      a zone he wants to watch it candle by candle
+- [x] **A 4-hour candle does not exist until its last hour has closed.** Three
+      hourly closes can pass with the 4-hour silent
+- [x] **The twenty-minute look** — the same candle, part-way through, marked
+      *so far*. `look_in_minutes`, scaled per timeframe
+- [x] **It is the only place that reads an unfinished candle**, and the card
+      says so on its face. It must never reach a strategy
+- [x] **No "a candle opened in the zone" message.** Spot forex runs without a
+      break, so an open *is* the last close. Only a **gap** carries anything
+- [x] **It costs nothing when nothing is happening.** Only pairs with price at
+      a zone are fetched, and one request serves both the close and the look
 
 ---
 
 ## His levels — [~]
 
-**A level is a band, not a line.** Price does not stop at a number, it turns
-somewhere near one — so "price is at the level" means price is inside a band.
-
 - [x] **Weekly bands are 0.35 of a weekly candle.** Measured off his own gold
-      chart from two bands drawn months apart at 4,094 and 3,343 — 76.11 and
-      79.93 points, giving 0.35 and 0.36. Two independent draws landing on the
-      same number is why this one is trusted.
-- [x] **Daily bands are 0.46 of a daily candle.** 32.28 points, measured the
-      same day. An older note said 0.60; that came from USDCAD before the
-      reset, and his own hand wins.
-- [x] **The same on every pair**, whatever he sends. In `config/levels.toml`,
-      with the evidence in `docs/worksheets/levels.md`
-- [ ] **The 4-hour thickness has never been measured** — 0.55 is a guess
-      sitting between the other two
+      chart, two bands drawn months apart, giving 0.35 and 0.36
+- [x] **Daily bands are 0.46 of a daily candle**, measured the same day
+- [x] **The same on every pair**, in `config/levels.toml`, evidence in
+      `docs/worksheets/levels.md`
 - [x] **He sends them from Telegram and they save themselves.** Tap the pair,
-      tap the timeframe, send the numbers. A pair he has never sent creates its
-      own file, with `digits` and the nightly break worked out from the name and
-      marked as unchecked
-- [x] **The buttons are the files in `config/pairs/`**, not a list in the code —
-      that was the `settings.rs` mistake, and two lists always disagree
-- [x] **They draw**, and they land where he drew them.
-      `cargo run -p nsc-work-man --bin levels -- GBPUSD`
-- [x] `XAUUSD` has 3, `GBPUSD` has 4
-- [ ] **Five gold levels are still missing** — they are pixel estimates off a
-      screenshot and stay out until he reads them off
-- [x] **They are watched.** `cargo run -p nsc-work-man --bin watch` holds the
-      price stream open for every pair with a file and says when price arrives
-      in one of his bands. Rung 1 of the ladder
-- [x] **It says price is *approaching*, not only that it has touched.**
-      `approach_pips = 4.0` in `config/levels.toml`. A pip comes from each
-      pair's `digits` — gold 0.10, the euro 0.0001 — so one setting is
-      meaningful everywhere without a number per pair
-- [x] **Any pair can overrule it** with its own `approach_pips`. Four pips is
-      about two minutes of gold and about an hour of euro, so gold is the one
-      likely to want more. Commented example in `config/pairs/XAUUSD.toml`
-- [x] **And no wider than that, because the band is already the early
-      warning.** Its outer edge is about 3 hours of movement from his line on
-      gold and 6 on the pound. A first attempt added a quarter of a band on
-      top and fired *nine hours* early on the pound.
-      [`docs/diagrams/how-close.html`](docs/diagrams/how-close.html) has the
-      measurements
-- [x] It fires **once per touch, not once per price** — prices come about once
-      a second and barely move, so without that rule one visit becomes twenty
-      alerts. The first price never fires, and hovering on a band's edge does
-      not fire repeatedly
-- [x] **Leaving is measured differently from arriving** — a tenth of the
-      band's thickness, about 8 points on gold. Easy to trigger, hard to
-      reset. One pip each way would make a single visit an afternoon of alerts
-- [x] **The alert goes as a card, not a line of text.** Telegram gives text no
-      colour, no size and no layout, so approaching and arriving read the
-      same. On a card the state is a chip, and **the zone is drawn** — his
-      band with price marked on it and a dashed line where the alert fires.
-      Three numbers in a message have to be compared in his head; a band with
-      a dot on it does not
-- [x] **`--bin cards` draws any of them on demand**, so a design can be
-      changed without waiting for the market to do anything
-- [x] **Rung 2 — a candle that touched a zone reports at its close.** Inside,
-      above or below, and **a wick counts**: a candle that only reached in and
-      closed back out is the rejection he is waiting for, and treating that as
-      a miss would throw it away
-- [x] **The card names what happened** — *kissed it*, *pushed back*, *closed
-      inside*, *cut through*. A wick that grazed the edge and a candle that
-      drove a third of the way in both "closed above", and they are not the
-      same event. `kiss_depth` in `config/levels.toml` is where the line is
-- [x] **Cutting through is never called a rejection.** It is deep and it
-      closed outside, which is the exact shape of a rejection — but the level
-      broke, and the card would have said it held
-- [x] **A 4-hour candle does not exist until its last hour has closed.** Three
-      hourly closes can pass with the 4-hour silent; the fourth is when it
-      speaks. `Bar::finished_by` is the one place that decides
-- [x] **Rung 2 costs nothing when nothing is happening.** Only pairs with
-      price at a zone are ever fetched
-- [x] **The twenty-minute look.** A candle at a zone is spoken about twice —
-      about a third of the way in, and again when it finishes. `look_in_minutes`
-      in `config/when.toml`, scaled per timeframe
-- [x] **It is the only place that reads an unfinished candle**, and the card
-      says so on its face: a hollow dashed chip reading *so far*, the candle
-      drawn hollow, and a footer saying *not a close, and never a signal*
-- [x] **It costs no extra requests** — the reply already carries the finished
-      candle and the running one
-- [x] **There is no "a candle opened in the zone" message.** Spot forex runs
-      without a break, so an open *is* the last close — it would repeat what
-      arrived a minute earlier. Only a **gap** into a zone carries anything
+      tap the timeframe, send the numbers. A new pair creates its own file
+- [x] **The buttons are the files in `config/pairs/`**, not a list in the code
+- [x] **They draw**, and they land where he drew them
+- [x] **A level sent while it is running is picked up**, no restart. They used
+      to be read once at startup — the inbox saved it, the file was right, and
+      the level did nothing for days
+- [x] **Checked by the clock on the files**, every ten minutes, on quiet days
+      too: the weekend is when he does his chart work
+- [x] **Only the changed pair costs a request.** An untouched pair keeps the
+      `Watch` it had; rebuilt, it forgets which zones price is in
+- [x] Currently: `EURUSD` 7, `GBPUSD` 4, `XAUUSD` 3, `USDCAD` 2
+- [ ] **`EURUSD` has three duplicates** — he sent them twice and `save` does
+      not check. One line on his chart is two bands and two alerts
+- [ ] **The 4-hour thickness has never been measured** — 0.55 is a guess
+- [ ] **Five gold levels are still missing** — pixel estimates off a
+      screenshot, and they stay out until he reads them off
+- [ ] **0.35 was only ever verified on gold.** 62 pips on the pound is
+      unchecked — one screenshot settles it
 
-### The calendar — [x]
+## The calendar — [x]
 
-- [x] **Monday is silent, and it means nothing at all** — no prices checked,
-      no candles fetched, no queue to dump on him on Tuesday
 - [x] **The trading week is not the calendar week.** It opens Sunday 17:00 New
-      York, so Sunday evening is already Monday's session and Monday evening
-      is Tuesday's. Read off the UTC calendar, Monday's silence would land
-      three hours into Tuesday and miss Sunday entirely
+      York, so Sunday evening is already Monday's session and Monday evening is
+      Tuesday's
 - [x] **17:00 New York is not a fixed UTC time** — 21:00 in summer, 22:00 in
-      winter. `config/when.toml` holds the New York time and the zone, never a
-      UTC clock time
-- [x] **Three states, not two.** `Anything` / `WatchOnly` / `Silence`. "Do not
-      trade" and "do not speak" are different: the first four hours of a day
-      report what is happening and suggest nothing
+      winter. The config holds the New York time and the zone
+- [x] **Monday is silent, and it means nothing at all** — nothing checked,
+      nothing fetched, no queue to dump on him on Tuesday
+- [x] **Saturday and Sunday too**, and not as a preference: the market shuts
+      Friday 17:00 New York and opens Sunday 17:00, and on this calendar that
+      closed stretch *is* the sessions called Saturday and Sunday
+- [x] **Three states, not two.** `Anything` / `WatchOnly` / `Silence`. The
+      first four hours of a day report what happens and suggest nothing
 - [x] **Friday reports but opens nothing new**
 - [x] **Nothing in `when/` reads the clock** — `now` is handed in, which is
       what lets the backtester run these exact rules over 2019
-- [x] **The heartbeat is conditional.** One line at 07:00 UTC, and only on a
-      day that said nothing else — on a busy day it never fires. Before London
-      opens, because knowing the bot works *before* the hours he trades beats
-      a post-mortem after them
-- [x] **It is a card, not a line.** Every pair, its levels as dots in his
-      colours, and the nearest zone on each — so a pair that quietly lost its
-      daily levels shows as a missing blue dot, where a count of 16 still
-      looks fine
-- [x] **Its height is worked out, not typed**, because it grows a row per
-      pair. Left unfilled the card fails rather than falling back and clipping
-      the last pair off
-- [x] **It fires on Monday too**, the one message that does. Monday watches
-      nothing, so without it a quiet Monday and a dead bot look identical
-- [x] **Tuesday says what it FOUND**, not what arrived. Price can walk into a
-      zone during Monday's silence, and a card saying "arrived" would put a
-      Monday move on a Tuesday clock
-- [x] **It costs no requests to run.** The candles that size the bands are
-      fetched once at startup; after that every price is free
+
+## The heartbeat — [x]
+
+- [x] **Only on a day that said nothing else.** On a busy day it never fires
+- [x] **07:00 UTC, before London opens** — knowing the bot works *before* the
+      hours he trades beats a post-mortem after them
+- [x] **Due at the first 07:00 after the session opened**, not "today at 07:00"
+      — the session straddles midnight
+- [x] **Once a session.** A heartbeat that repeats is worse than none
+- [x] **It fires on Monday too**, the one message that does
+- [x] **A card**: every pair, its levels as dots in his colours, and how far
+      price is from the nearest zone on each — so a pair that quietly lost its
+      daily levels shows as a missing blue dot
+- [x] **Its height is worked out, not typed**, because it grows a row per pair.
+      Left unfilled the card *fails* rather than clipping the last pair off
+
+## When something goes wrong — [x]
+
+- [x] **The line dropping is no longer the end of it.** The socket closing used
+      to return `Ok` and the process exited *successfully* — and the heartbeat
+      went with it, so a dead bot and a quiet day looked identical
+- [x] **It reconnects**, keeping what it knew: which candles were reported,
+      which zones were announced, when it last spoke
+- [x] **On a silent day it does not open the line at all**
+- [x] **A line that opens and shuts without a price counts as broken.** A key
+      over its quota does exactly that
+- [x] **Quiet about hiccups, loud about outages** — nothing said for five
+      minutes, then once, with a second message when it comes back
+- [x] **Trouble it cannot recover from says so and stops.** Proved by hiding
+      `config/when.toml`: the message arrived
+- [x] **The secrets do not travel with the error.** `reqwest` puts the failing
+      URL in its message and both secrets live in a URL, so *"could not reach
+      Telegram"* printed the bot token in full. Stripped at the source in three
+      places, and scrubbed again before anything reaches a card
+- [ ] **A hard crash still loses the run.** Nothing can send a message if the
+      process is killed outright — that needs a supervisor (`launchd`)
+
+## Errors — [x]
+
+- [x] Every failure answers one question: **is it worth trying again?**
+      `Answer::TryAgain(how long)` or `Answer::GiveUp`
+- [x] **Named troubles, not one catch-all.** A dropped line waits 3 seconds;
+      being told to slow down waits a minute; a wrong key stops on the first go
+- [x] **Both feeds refuse politely** — Twelve Data answers 200 with
+      `{"code": 401}`, Telegram answers 200 with `ok: false`. Both read out of
+      the body, both tested
+- [x] **The library speaks named troubles**, the binaries use `anyhow`
 
 ---
 
-## Failing properly — [~]
+## What it is made of
 
-Every failure now answers one question: **is it worth trying again?**
+```
+crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
+                          is what stops it, not a rule anybody remembers
+  candle/       one candle, whether it has finished, and
+                how long a timeframe is                    9 tests
+  levels/       his lines, the bands round them, the
+                watching, what a candle did at one, and
+                what to say about it                      61 tests
+  when/         whether it may speak, and the heartbeat   16 tests
+  error/        retry or give up                           3 tests
 
-- [x] `error/` — every trouble this crate can have, in one place. Each answers
-      `Answer::TryAgain(how long)` or `Answer::GiveUp`, and `keep_trying`
-      respects it while still stopping after a few goes
-- [x] The feed and Telegram have **named troubles**, not one catch-all. A
-      dropped line waits 3 seconds; being told to slow down waits a minute; a
-      wrong key stops on the first go rather than looking like a dead
-      connection for a minute
-- [x] Both feeds **refuse politely** — Twelve Data answers 200 with
-      `{"code": 401}` in the body, Telegram answers 200 with `ok: false`. Both
-      are read out of the body, and both are tested
-- [x] **The whole library speaks named troubles** — `FeedError`, `SendError`,
-      `CardError`, `LevelError`. The programs in `bin/` still use `anyhow`,
-      which is right: a program with a person watching it only needs the trail
-- [ ] Nothing survives a *restart* yet. Retrying handles a hiccup; a crash
-      still loses the run
+crates/nsc-work-man/      EVERYTHING THAT REACHES
+  main.rs       four lines — it runs the watcher
+  watch/        THE BOT. Rungs 1 and 2, the calendar, the
+                heartbeat, reconnecting, and picking up a
+                level he sends while it runs
+  card/         filling a template, letting Chrome draw   12 tests
+  feed/         asking Twelve Data                         5 tests
+  telegram/     sending — words, pictures, media groups    3 tests
+  retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests
+  review.rs     one pair's levels, drawn
+  bin/inbox/    levels arriving from his phone
+  bin/cards/    draw ANY card without waiting for anything
+  bin/levels.rs draw a pair's bands on demand
+  bin/listen.rs the raw price stream, kept as proof
+
+assets/card/
+  style.css      the palette, typefaces and page box — shared by all
+  <name>.css     each card's own styling, and its height
+  chart.html     the candle chart, with his levels as bands
+  alert.html     price at one of his zones
+  close.html     a finished candle at a zone, named by what it did
+  heartbeat.html what is being watched, on a day nothing happened
+  armed.html     a level he just sent is now being watched
+  trouble.html   the bot itself has a problem — severity in the colour
+  readout.html   NOT SENT by anything. Superseded by close.html
+
+config/
+  levels.toml    band thickness, how close counts, where a graze ends
+  when.toml      the trading day, the silent days, the heartbeat
+  pairs/*.toml   ONE FILE PER PAIR — the file is why the pair is watched
+```
+
+- [x] **Every folder with code has a `README.txt`**, and every file — Rust,
+      HTML and CSS — is under the 250-line limit
+- [x] **Each card's styling lives beside it** as `<name>.css`. A card was a
+      350-line file; the markup and script are what change, the CSS sits still
+- [x] **The design lives in HTML.** Edit the template, redraw, no rebuild
+- [ ] **`--card-height` is measured by hand** on every card but the heartbeat.
+      It will go stale when a design changes
+- [x] **Doc comments say `text` when they mean text.** An indented block in a
+      doc comment is Rust to rustdoc, so a table and a list of commands were
+      being compiled — and failing. See below
+- [ ] Eight files sit between 200 and 250 lines and want watching:
+      `watch/run.rs`, `close.html`, `card/tests.rs`, `levels/alert.rs`,
+      `chart.html`, `watch/closes.rs`, `levels/tests/watching.rs`,
+      `card/zone.rs`
+
+The cost of all this: **whatever machine runs it needs Chrome.** Fine on a
+Mac. A real dependency on a server.
 
 ---
 
-## Step 2 — every pair, behind one door — [ ]
+## What the feed actually does — [x]
 
-**Designed:** [One Door, Eight Pairs](https://claude.ai/code/artifact/475ba411-e3c9-4d1e-8bb1-83591bd4e47e)
+All measured, none read off their documentation.
+`docs/worksheets/twelve-data.md`.
 
-*Done when it runs a full trading day without missing a candle — including one
-Friday 21:00 UTC, which is the moment that breaks it if anything will.*
+- [x] **Their day ends at 17:00 New York.** Checked by matching the daily
+      candle's open against thirty hours of hourly candles — exactly one
+      matched
+- [x] **Their week opens Sunday 17:00 New York**
+- [x] **The newest candle is always still forming**, and skipping the first in
+      the list is not the fix — position is right *most* of the time, which is
+      worse than being wrong always
+- [x] **The datetime field means two different things.** An hourly stamp is the
+      candle's open. A daily stamp is the date it *ends* on
+- [x] **The websocket works and it changes the cost of everything.** Prices
+      cost nothing, so a request only happens when price reaches a level
+- [ ] **Weekend daily candles exist and are noise** — ranges of 0.57 and 1.32
+      against 60–200 on a real day. **Not handled.** It has already cost one
+      wrong answer: a normal-hour measurement taken on a Saturday said gold
+      moves 0.73 an hour instead of 13.33, and nearly settled a rule the wrong
+      way
+- [ ] **Gold has never been watched ticking** — every socket test so far has
+      been on a shut market or on BTC/USD
 
-**The burst is worse than 16.** At Friday 21:00 UTC the hour, the 4-hour, the
-day and the week all end on the same second, because 21:00 UTC is 17:00 New
-York. Eight pairs across four timeframes is **32 requests against a limit of
-8 a minute** — and a refused request does not crash anything, it just leaves
-the candle missing on the busiest close of the week.
+**8 requests a minute** is the limit that shapes everything. Friday 21:00 UTC
+is the worst moment of the week: the hour, the 4-hour, the day and the week all
+end on the same second.
 
-- [ ] The pairs and their settings come from `config/`, not from constants at
-      the top of `main.rs`
-- [ ] Four timeframes — W1, D1, H4, H1
-- [ ] Requests spread out after a close, to stay under 8 a minute
-- [ ] One interface every feed hides behind, so adding OANDA is a config change
-      rather than a rewrite. **Two feeds are already planned, so the door goes
-      in now** — building it afterwards means unpicking it out of everything
-      written in between
+---
+
+## Still open
+
+- [ ] **Rung 3 — the strategy.** Needs `nsc-strategy`, and needs two answers
+      from him: what makes him *skip* a rejection, and where the stop goes.
+      Everything else can be built without him
+- [ ] **It has never run through a live session.** Rungs 1 and 2, the
+      twenty-minute look and the heartbeat have only been exercised through
+      `--bin cards`. First real test is Monday 21:00 UTC, when Tuesday opens
+- [ ] **OANDA** — applied 14 August, nothing back. Worth having because it
+      marks each candle finished or not, so the guessing stops
+- [ ] **Nothing is stored.** No database. A restart forgets every zone it was
+      already sitting in, and there is no record to answer "why did nothing
+      fire last week?"
+- [ ] **Rejected setups are not saved** — that is a `CLAUDE.md` rule and it
+      needs rung 3 to exist first
 
 ---
 
@@ -404,10 +334,7 @@ the candle missing on the busiest close of the week.
 - [ ] **Keep it** — Postgres, one table of candles, written as they arrive
 - [ ] **The past** — download history per timeframe, and a scan that says
       whether it is complete before anything reads it
-- [ ] **Read the chart** — swings, candle types, structure, and your hand-drawn
-      levels loaded from config
-- [ ] **The price watcher** — every tick against every level you drew. Alerts
-      only. It may never produce a signal
+- [ ] **Read the chart** — swings, candle types, structure
 - [ ] **The strategies** — one family first. Direction, place, trigger, stop,
       target, skip
 - [ ] **Prove it** — replay the stored history through the same code the bot
@@ -423,10 +350,32 @@ Written down because each cost something.
 chart quoted its headline price from the candle still forming — a picture with
 a price on it gets believed exactly like a number does.
 
-**Round to the instrument.** The feed sends gold as `4385.59525`. Gold is quoted
-to two decimals. Printing all five is what makes a signal look like a debug
-dump.
+**Round to the instrument, and write it one way.** The feed sends gold as
+`4385.59525`; gold is quoted to two. And a card saying *4,094.00* was captioned
+*4094* — the same number, twice, looking like two prices.
 
 **A reply that parses is not a reply that worked.** Twelve Data refuses with a
-normal-looking `{"code": 401}`. Telegram refuses with a polite `ok: false`. Both
-in one afternoon, so it is a pattern rather than bad luck.
+normal-looking `{"code": 401}`. Telegram refuses with a polite `ok: false`.
+Both in one afternoon, so it is a pattern rather than bad luck.
+
+**A message the bot cannot send is the same as no message.** The heartbeat
+died with the process it was meant to report on, and silence is exactly what a
+quiet day looks like.
+
+**Secrets travel in error messages.** The rule "never print the url, the key is
+in it" was written down, followed on the happy path, and never applied to the
+error path — which is the one that prints.
+
+**Count the failures, not the passes.** Two doc-tests failed for days while
+every report said "112 tests, clippy clean" — because the count came from
+`grep "^test .* ok$"`, which cannot see a failure. The honest check is to read
+the `test result:` lines and look for `FAILED`.
+
+**An indented block in a doc comment is Rust.** rustdoc compiles it. A table of
+what each colour means and a list of `cargo run` lines were both being fed to
+the compiler. They need a ```text fence, and only the binaries' docs are
+compiled — which is why it went unnoticed.
+
+**Search the string, not the code that prints it.** Two lines were missed in a
+wording sweep because `rustfmt` had split their `println!` across lines. The
+replace matched nothing, changed nothing, and reported success.

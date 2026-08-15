@@ -4,9 +4,11 @@
 //! mistaken for a signal, and the colour answers the only question he has:
 //! do I need to get up?
 //!
+//! ```text
 //!     amber   the line is down and it is trying        no
 //!     green   it is back                               no
 //!     red     it has stopped and will not restart      yes
+//! ```
 
 use std::path::{Path, PathBuf};
 

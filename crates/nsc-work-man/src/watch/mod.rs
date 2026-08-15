@@ -2,8 +2,10 @@
 //!
 //! **Rungs 1 and 2 of the ladder.**
 //!
+//! ```text
 //!     price reaches a zone        an alert card, once per visit
 //!     a candle at one finishes    a card per candle that touched it
+//! ```
 //!
 //! Silence is the normal state. Prices arrive about once a second and almost
 //! all of them are nowhere near anything.

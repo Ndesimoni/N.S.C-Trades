@@ -20,6 +20,7 @@ pub async fn heard(
     thickness: Thickness,
     heard: &Message,
     pulse: &mut pulse::Pulse,
+    settled: bool,
 ) -> Result<()> {
     let Ok(said) = serde_json::from_str::<serde_json::Value>(&heard.to_string()) else {
         return Ok(());
@@ -41,6 +42,13 @@ pub async fn heard(
 
     for (band, near) in seen.watch.arrive(price) {
         println!("{symbol} reached {}", band.price);
+
+        // **Watched, remembered, not spoken about.** `arrive` has already run,
+        // so where price is stays true through the opening hours — the report
+        // at the end of them says where it actually stands.
+        if !settled {
+            continue;
+        }
 
         // **A card that will not send is not the price line breaking.**
         // Letting it out of here dropped a perfectly good socket and told him

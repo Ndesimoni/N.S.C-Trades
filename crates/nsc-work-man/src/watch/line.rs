@@ -67,8 +67,19 @@ pub async fn listen(
 
                 let heard = heard.context("the price line broke")?;
 
-                kit.awake.greet(client, watching, thickness, &mut kit.pulse).await?;
-                prices::heard(client, watching, thickness, &heard, &mut kit.pulse).await?;
+                // **The opening hours are watched but not spoken about.** A
+                // zone touched at the open and abandoned twenty minutes later
+                // is noise, and a buzz he learns to ignore costs him the one
+                // that mattered. Prices are still fed in, so when the window
+                // ends the greeting knows exactly where price stands.
+                let settled = when::settled(Utc::now(), calendar);
+
+                kit.awake
+                    .greet(client, watching, thickness, calendar, &mut kit.pulse)
+                    .await?;
+
+                prices::heard(client, watching, thickness, &heard, &mut kit.pulse, settled)
+                    .await?;
             }
 
             _ = kit.closes.next_check() => {
@@ -93,7 +104,14 @@ pub async fn listen(
                     return Ok(Closed::LevelsChanged);
                 }
 
-                kit.closes.look(client, watching, thickness, calendar, &mut kit.pulse).await?;
+                // Held through the opening hours, same as the price alerts.
+                // The first candle report after the window covers what
+                // happened during it.
+                if when::settled(Utc::now(), calendar) {
+                    kit.closes
+                        .look(client, watching, thickness, calendar, &mut kit.pulse)
+                        .await?;
+                }
 
                 // Where price last was has moved on. Anything asking /status
                 // should see today, not where it stood when the line opened.

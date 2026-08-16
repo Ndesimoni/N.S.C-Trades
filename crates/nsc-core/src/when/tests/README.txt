@@ -9,6 +9,10 @@ THE FILES
   boundary.rs   WHICH TRADING DAY A MOMENT BELONGS TO. The only hard thing in
                 this folder, and where a mistake would hide.
 
+  settling.rs  The opening hours, and the moment they end. Also that
+               settled and tradeable are not the same thing -- Friday is
+               one and not the other.
+
   allowing.rs   The three states — the settle window, Friday, a normal day.
 
   beating.rs    The heartbeat: when it is due, and when it stays quiet.

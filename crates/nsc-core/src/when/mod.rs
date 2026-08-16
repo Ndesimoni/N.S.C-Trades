@@ -31,4 +31,4 @@ mod tests;
 pub use allow::{Allowed, allowed};
 pub use beat::{beat_due, beat_words};
 pub use rules::{Rules, WhenError, load};
-pub use session::{into_day, opened, trading_day};
+pub use session::{into_day, opened, settled, trading_day};

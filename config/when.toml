@@ -39,16 +39,25 @@ timezone = "America/New_York"
 #
 # Without them the watcher sits holding a socket open against a dead feed and
 # reporting nothing, which looks identical to a fault.
-silent_days = ["saturday", "sunday", "monday"]
-
+#//todo uncomment this later
+# silent_days = ["saturday", "sunday", "monday"]
+silent_days = ["saturday", "sunday"]
 
 # ── The settle window ───────────────────────────────────────────────────────
 #
-# How long after a new day opens before a TRADE may be suggested.
+# How long after a new day opens before the bot says ANYTHING.
 #
-# The first hours of a day are where a move gets faked and taken back. What is
-# happening still gets reported — price reaching a zone, a candle closing in
-# one — because that is information. Only the trade is held back.
+# The first hours of a day are where a move gets faked and taken back. A zone
+# touched at the open and abandoned twenty minutes later is noise — and a buzz
+# he learns to ignore is a buzz that costs him the one that mattered.
+#
+# PRICE IS STILL WATCHED THROUGHOUT. Nothing is skipped, only held. When the
+# window ends he gets one report of where price ACTUALLY STANDS — every zone
+# it is sitting in, marked "already at" rather than "just arrived", so a move
+# made at the open is never put on the wrong clock.
+#
+# It also gates the trade, once there is one to gate. Same window, both jobs:
+# it is the point the day is worth reading.
 #
 # Four rather than five: it is one 4-hour candle, so the window ends on a
 # boundary that exists rather than in the middle of one.

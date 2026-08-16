@@ -311,3 +311,34 @@ WHAT MUST NEVER STOP THE BOT
 
   The rule under all three: A REQUEST THAT FAILS IS NOT THE PRICE LINE
   BREAKING. Only the websocket itself going down is that.
+
+
+THE OPENING HOURS ARE WATCHED, NOT SPOKEN ABOUT
+===============================================
+
+  settle_hours in config/when.toml is 4. For those four hours after a session
+  opens, the bot says nothing at all -- no approach, no in-the-zone, no candle
+  close.
+
+  It is not asleep. Prices come down the line and are checked against the
+  bands exactly as always, so `arrive` keeps its record of where price is and
+  which zones it is sitting in. Only the sending is held.
+
+  WHY. The first hours of a day are where a move gets faked and taken back. A
+  zone touched at the open and abandoned twenty minutes later is a buzz he has
+  to ignore, and a buzz he learns to ignore is one that costs him the alert
+  that mattered.
+
+  WHAT ARRIVES WHEN THEY END. One report per zone price is actually sitting
+  in, marked "already at" rather than "just arrived". That distinction is the
+  whole reason resumed.rs exists -- saying "arrived" would put a move made at
+  the open onto the clock of the moment the window closed.
+
+  THE GREETING IS PER SESSION, NOT PER RUN. It used to be a flag set once and
+  never cleared, so a bot left running from Friday greeted once and then never
+  again -- and the Sunday open, after two days of silence, is exactly when the
+  report is worth most. It now remembers WHICH session it greeted.
+
+  SETTLED IS NOT THE SAME AS TRADEABLE. Friday settles four hours in like any
+  other day and still opens no trade. Gating the report on "may a trade be
+  suggested" would silence it every Friday.

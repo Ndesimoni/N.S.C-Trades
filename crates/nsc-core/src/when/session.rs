@@ -33,6 +33,19 @@ pub fn into_day(now: DateTime<Utc>, rules: &Rules) -> TimeDelta {
     now - opened(now, rules)
 }
 
+/// **Are the opening hours over?**
+///
+/// The first hours of a day are where a move gets faked and taken back. He
+/// does not want his phone going during them — a zone touched at the open and
+/// abandoned twenty minutes later is noise he would have to ignore, and a
+/// buzz he learns to ignore is a buzz that costs him the one that mattered.
+///
+/// When it turns true he gets one report of where price actually stands, which
+/// is the thing he wanted at the open and could not trust yet.
+pub fn settled(now: DateTime<Utc>, rules: &Rules) -> bool {
+    into_day(now, rules) >= Duration::hours(rules.settle_hours)
+}
+
 /// The moment this session opened, as a real instant.
 pub fn opened(now: DateTime<Utc>, rules: &Rules) -> DateTime<Utc> {
     let local = now.with_timezone(&rules.zone);

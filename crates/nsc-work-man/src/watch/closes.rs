@@ -103,7 +103,24 @@ impl Closes {
                 // ONE REQUEST SERVES BOTH. The reply carries the candle that
                 // has just finished and the one still running, so the
                 // mid-candle look costs nothing on top of the close.
-                let bars = fetch(client, &seen.pair.symbol, interval).await?;
+                // **A candle that will not fetch is not the price line
+                // breaking.** This used to travel out of here, out of `listen`
+                // and into `run`, which dropped a perfectly good socket and —
+                // once the trouble had lasted five minutes — told him the
+                // price line was down. It is a different connection entirely.
+                //
+                // Nothing is remembered, so the next look asks again.
+                let bars = match fetch(client, &seen.pair.symbol, interval).await {
+                    Ok(bars) => bars,
+                    Err(trouble) => {
+                        eprintln!(
+                            "Could not get the {interval} candle for {}: {trouble:#}",
+                            seen.pair.symbol
+                        );
+                        continue;
+                    }
+                };
+
                 let now = Utc::now();
 
                 let finished = bars

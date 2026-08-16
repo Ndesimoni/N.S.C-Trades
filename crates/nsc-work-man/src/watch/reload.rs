@@ -65,20 +65,41 @@ fn state() -> (Option<SystemTime>, usize) {
     (newest, names.len())
 }
 
+/// What reading the levels again produced.
+pub struct Reloaded {
+    pub watching: HashMap<String, Watching>,
+
+    /// Whether anything new was actually armed, so he can be told.
+    pub armed: bool,
+
+    /// Pairs whose bands could not be sized this time, because the feed would
+    /// not answer. **Not an error.** See the note on `again`.
+    pub not_sized: Vec<String>,
+}
+
 /// Reads the levels again, keeping what has not changed.
 ///
 /// **A pair whose levels are untouched keeps the `Watch` it already had.**
 /// Rebuilt, it would forget which zones price is sitting in — and then
 /// announce every one of them again as though it had just arrived.
 ///
-/// Gives back the new set, and whether anything was actually armed.
+/// **A pair that cannot be sized keeps the bands it already had.** This used
+/// to give back an error, and that error travelled all the way out of `run`
+/// and stopped the bot: he sent a level from his phone, Twelve Data was slow
+/// for ten seconds, and the bot said "stopped" and quit. Nothing was watched
+/// again until he noticed and restarted it — and the weekend, when he does his
+/// chart work, is exactly when he would not.
+///
+/// Gives back the new set, whether anything was armed, and which pairs the
+/// feed would not size.
 pub async fn again(
     client: &reqwest::Client,
     thickness: Thickness,
     mut old: HashMap<String, Watching>,
-) -> Result<(HashMap<String, Watching>, bool)> {
+) -> Result<Reloaded> {
     let mut now: HashMap<String, Watching> = HashMap::new();
     let mut armed = false;
+    let mut not_sized = Vec::new();
 
     for name in known(Path::new(PAIRS)) {
         let pair = match load_pair(&Path::new(PAIRS).join(format!("{name}.toml"))) {
@@ -103,7 +124,23 @@ pub async fn again(
             continue;
         }
 
-        let found = bands::for_pair(client, &pair, thickness).await?;
+        let found = match bands::for_pair(client, &pair, thickness).await {
+            Ok(found) => found,
+
+            // The feed would not answer. Keep whatever this pair already had
+            // and try again on the next look — the alternative is stopping the
+            // bot over a hiccup.
+            Err(trouble) => {
+                eprintln!("{name} — could not size its bands: {trouble:#}");
+                not_sized.push(pair.symbol.clone());
+
+                if let Some(kept) = old.remove(&pair.symbol) {
+                    now.insert(kept.pair.symbol.clone(), kept);
+                }
+                continue;
+            }
+        };
+
         if found.is_empty() {
             println!("{name} — no levels, skipping");
             continue;
@@ -116,7 +153,11 @@ pub async fn again(
         now.insert(pair.symbol.clone(), Watching { pair, watch });
     }
 
-    Ok((now, armed))
+    Ok(Reloaded {
+        watching: now,
+        armed,
+        not_sized,
+    })
 }
 
 /// Tells him the watcher has picked the new levels up.

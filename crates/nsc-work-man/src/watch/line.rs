@@ -139,7 +139,10 @@ where
         .filter_map(|item| item["symbol"].as_str().map(str::to_owned))
         .collect();
 
-    if failed.len() == asked.len() {
+    // **Asking about nothing is not the same as being refused everything.**
+    // Nought equals nought, so an empty subscription used to read as a total
+    // refusal and reported the line as broken.
+    if !asked.is_empty() && failed.len() == asked.len() {
         anyhow::bail!("they refused every pair: {}", failed.join(", "));
     }
 
@@ -154,4 +157,53 @@ where
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::check_the_answer;
+    use futures_util::stream;
+    use tokio_tungstenite::tungstenite::Message;
+
+    /// One reply, then the stream ends.
+    fn answering(
+        said: &str,
+    ) -> impl futures_util::StreamExt<Item = Result<Message, Error>> + Unpin
+where {
+        stream::iter(vec![Ok(Message::Text(said.to_string()))])
+    }
+
+    use tokio_tungstenite::tungstenite::Error;
+
+    /// **Nought refused out of nought asked is not a total refusal.**
+    ///
+    /// Removing the last pair left this subscribing to no symbols. The feed
+    /// answered with an empty fails list, `0 == 0` came out true, and it
+    /// reported every pair as refused — which `run` then treated as the price
+    /// line breaking and told him so.
+    #[tokio::test]
+    async fn asking_about_nothing_is_not_being_refused_everything() {
+        let said = r#"{"event":"subscribe-status","status":"ok","fails":[]}"#;
+
+        let answer = check_the_answer(&mut answering(said), &[]).await;
+        assert!(answer.is_ok(), "it should not call that a refusal");
+    }
+
+    /// Every pair refused really is fatal — nothing would ever arrive.
+    #[tokio::test]
+    async fn every_pair_refused_still_stops() {
+        let said = r#"{"event":"subscribe-status","fails":[{"symbol":"XAU/USD"}]}"#;
+
+        let answer = check_the_answer(&mut answering(said), &["XAU/USD".to_string()]).await;
+        assert!(answer.is_err());
+    }
+
+    /// Some refused, some not: said out loud, but it carries on.
+    #[tokio::test]
+    async fn one_bad_pair_does_not_stop_the_others() {
+        let said = r#"{"event":"subscribe-status","fails":[{"symbol":"XAU/USD"}]}"#;
+        let asked = ["XAU/USD".to_string(), "EUR/USD".to_string()];
+
+        assert!(check_the_answer(&mut answering(said), &asked).await.is_ok());
+    }
 }

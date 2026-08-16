@@ -36,10 +36,22 @@ pub async fn run() -> Result<()> {
 
     // The same reading used when he sends a level mid-run. One way of turning
     // the files into bands, so the two cannot drift.
-    let (mut watching, _) = reload::again(&client, thickness, HashMap::new()).await?;
+    let first = reload::again(&client, thickness, HashMap::new()).await?;
+    let mut watching = first.watching;
 
+    // **Two different nothings, and they need different words.** No levels is
+    // something he fixes from his phone in a minute. A feed that will not
+    // answer is nothing to do with him, and saying "no pairs have levels"
+    // would send him looking in the wrong place.
     if watching.is_empty() {
-        anyhow::bail!("no pairs have levels — send the bot /level to add some");
+        if first.not_sized.is_empty() {
+            anyhow::bail!("no pairs have levels — send the bot /level to add some");
+        }
+
+        anyhow::bail!(
+            "could not reach the feed to size any bands ({})",
+            first.not_sized.join(", ")
+        );
     }
 
     // **The inbox runs beside the watcher**, so one command is the whole bot.
@@ -66,7 +78,12 @@ pub async fn run() -> Result<()> {
     // The heartbeat went with it, so a dead bot and a quiet day looked exactly
     // the same, which is the one thing the heartbeat exists to tell apart.
     loop {
-        if when::allowed(Utc::now(), &calendar) == Allowed::Silence {
+        // **Nothing to watch is not a reason to open a line.** Removing the
+        // last pair left this subscribing to no symbols at all, and the feed's
+        // answer to that came back looking exactly like every pair being
+        // refused — so it reported the price line as down, every thirty
+        // seconds, over a bot doing precisely what he asked.
+        if watching.is_empty() || when::allowed(Utc::now(), &calendar) == Allowed::Silence {
             // Nothing to watch, so nothing is opened. The heartbeat still
             // goes out — that is the whole point of it on a quiet day.
             kit.pulse.maybe(&client, &watching, &calendar).await?;
@@ -154,13 +171,22 @@ async fn armed(
     watching: HashMap<String, Watching>,
     pulse: &mut pulse::Pulse,
 ) -> Result<HashMap<String, Watching>> {
-    let (fresh, armed) = reload::again(client, thickness, watching).await?;
+    let fresh = reload::again(client, thickness, watching).await?;
 
-    if armed {
-        reload::say_it_is_armed(client, &fresh, pulse).await?;
+    // Said out loud, because from his side an not_sized pair is silent — the
+    // level is in the file, the bot is running, and nothing is watching it.
+    if !fresh.not_sized.is_empty() {
+        eprintln!(
+            "Could not size {} this time. Keeping what they had and trying again.",
+            fresh.not_sized.join(", ")
+        );
     }
 
-    Ok(fresh)
+    if fresh.armed {
+        reload::say_it_is_armed(client, &fresh.watching, pulse).await?;
+    }
+
+    Ok(fresh.watching)
 }
 
 /// Says out loud what the calendar is allowing, so the terminal is not silent

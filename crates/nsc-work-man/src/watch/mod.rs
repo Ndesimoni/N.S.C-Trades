@@ -46,10 +46,10 @@ pub async fn say_it_is_armed(
     client: &reqwest::Client,
     thickness: nsc_core::levels::Thickness,
 ) -> anyhow::Result<()> {
-    let (watching, _) = reload::again(client, thickness, std::collections::HashMap::new()).await?;
+    let fresh = reload::again(client, thickness, std::collections::HashMap::new()).await?;
     let mut pulse = pulse::Pulse::new();
 
-    reload::say_it_is_armed(client, &watching, &mut pulse).await
+    reload::say_it_is_armed(client, &fresh.watching, &mut pulse).await
 }
 
 /// Reachable from the tests, and nowhere else.

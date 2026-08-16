@@ -284,3 +284,30 @@ IT NEVER WORKS OUT WHEN A CANDLE CLOSES
   A 4-HOUR CANDLE DOES NOT EXIST UNTIL ITS LAST HOUR HAS CLOSED. Three hourly
   closes can pass with the 4-hour still saying nothing; the fourth is when it
   speaks. Bar::finished_by is the single place that decides.
+
+
+WHAT MUST NEVER STOP THE BOT
+============================
+
+  It is meant to run for weeks. Three things used to end it, or end the
+  socket, and none of them were the price line actually breaking.
+
+  SIZING A PAIR'S BANDS. reload.rs asks the feed for history to work out how
+  thick a band should be. That answer used to travel out of run() and stop
+  the whole bot -- he sends a level from his phone, Twelve Data is slow for
+  ten seconds, and the bot says "stopped" and quits. It now keeps whatever
+  bands that pair already had and tries again on the next look.
+
+  FETCHING A CANDLE. closes.rs asks for the newest candle when price is at a
+  zone. That is a REST request on a completely different connection from the
+  price websocket, and its failure used to drop the socket. Repeated, it told
+  him the price line was down while the price line was perfectly fine.
+
+  HAVING NOTHING TO WATCH. Removing the last pair left it subscribing to no
+  symbols at all. Nought refused out of nought asked read as every pair being
+  refused, so it reported the line as broken every thirty seconds. It now
+  waits quietly, the same as it does at the weekend, and picks the levels up
+  when he sends some.
+
+  The rule under all three: A REQUEST THAT FAILS IS NOT THE PRICE LINE
+  BREAKING. Only the websocket itself going down is that.

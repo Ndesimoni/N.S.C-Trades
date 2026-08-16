@@ -64,13 +64,11 @@ const NO: &str = "✗ Keep it";
 mod asked;
 mod conversation;
 mod dropping;
+mod hearing;
 mod one;
 mod pairs;
 mod picture;
 mod talking;
 
-pub use talking::plainly;
-
-mod hearing;
-
 pub use hearing::run;
+pub use talking::plainly;

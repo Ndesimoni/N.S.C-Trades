@@ -109,30 +109,46 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
 fn wait_for(mut chrome: std::process::Child) -> Result<String, CardError> {
     let give_up_at = Instant::now() + PATIENCE;
 
+    // **Read on its own thread, while Chrome is still running.**
+    //
+    // A pipe holds about 64k. Left unread until the process exits, a Chrome
+    // that said more than that would block trying to say it — and then it
+    // never exits, and we are back to waiting on something that cannot
+    // finish. It says about 2k on a normal run, so this has never bitten;
+    // it is the same shape as the bug that wedged the bot, which is reason
+    // enough not to leave it lying there.
+    let talking = chrome.stderr.take().map(|mut errors| {
+        std::thread::spawn(move || {
+            use std::io::Read;
+
+            let mut said = String::new();
+            let _ = errors.read_to_string(&mut said);
+            said
+        })
+    });
+
+    let heard = || {
+        talking
+            .map(|thread| thread.join().unwrap_or_default())
+            .unwrap_or_default()
+    };
+
     loop {
         match chrome.try_wait() {
             Err(trouble) => return Err(CardError::DrewNothing(trouble.to_string())),
 
             // Finished on its own. Whatever it said is the reason if no
             // picture appeared.
-            Ok(Some(_)) => {
-                let mut said = String::new();
-
-                if let Some(mut errors) = chrome.stderr.take() {
-                    use std::io::Read;
-                    let _ = errors.read_to_string(&mut said);
-                }
-
-                return Ok(said);
-            }
+            Ok(Some(_)) => return Ok(heard()),
 
             Ok(None) if Instant::now() >= give_up_at => {
                 let _ = chrome.kill();
                 let _ = chrome.wait();
 
                 return Err(CardError::DrewNothing(format!(
-                    "Chrome had not finished after {} seconds and was stopped",
-                    PATIENCE.as_secs()
+                    "Chrome had not finished after {} seconds and was stopped.\n{}",
+                    PATIENCE.as_secs(),
+                    heard(),
                 )));
             }
 
@@ -163,9 +179,14 @@ pub(super) fn clear_the_way(out: &Path) -> Result<(), CardError> {
 
 /// Cuts the white strip off the bottom.
 fn trim(picture: &Path, keep: u32) -> Result<(), CardError> {
-    let shot = image::open(picture).map_err(|trouble| CardError::CannotWrite {
-        path: picture.display().to_string(),
-        detail: trouble.to_string(),
+    // **Not a write failure.** Chrome can leave a file that is not a picture —
+    // half of one, if it was stopped part way. Reported as "could not write"
+    // it read like a full disk, and an hour went on the wrong thing.
+    let shot = image::open(picture).map_err(|trouble| {
+        CardError::DrewNothing(format!(
+            "Chrome left something at {} that is not a picture: {trouble}",
+            picture.display()
+        ))
     })?;
 
     if shot.height() <= keep {

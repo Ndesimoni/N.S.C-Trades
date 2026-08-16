@@ -111,6 +111,14 @@ pub async fn status(
         .await;
     }
 
+    // **A quiet day gets words and no picture.** The card's one useful column
+    // is how far price is from the nearest zone, and on a quiet day no price
+    // has arrived to measure from — so every row would read as a dash. It also
+    // saves running Chrome for the best part of ten seconds to say nothing.
+    if now.quiet {
+        return say(client, token, &resting(&now), None).await;
+    }
+
     let alive: Vec<Alive<'_>> = now
         .pairs
         .iter()
@@ -125,28 +133,30 @@ pub async fn status(
     let quiet = format!("{hours} hour{}", if hours == 1 { "" } else { "s" });
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
 
-    let words = if now.quiet {
-        resting(&now)
-    } else {
-        beat_words(now.pairs.len(), now.zones())
-    };
-
+    let words = beat_words(now.pairs.len(), now.zones());
     let out = PathBuf::from("preview").join("status.png");
 
     // **It answers either way.** This is the one command whose whole job is
-    // "are you alive", and it used to reply "Could not do that" when the card
-    // would not draw — which is the single most misleading thing it could say.
-    // The words carry the answer; the picture only carries it better.
-    match card::heartbeat(&alive, &quiet, &stamp, &out) {
+    // "are you alive", and it used to reply "Could not do that" whenever the
+    // card would not go — the single most misleading thing it could say.
+    //
+    // The words carry the answer; the picture only carries it better. Both the
+    // drawing and the sending are covered, because a photo Telegram refuses
+    // leaves him just as unanswered as one Chrome never drew.
+    let sent = match card::heartbeat(&alive, &quiet, &stamp, &out) {
         Ok(picture) => telegram::send_to(client, &OWNER.to_string(), &[&picture], &words)
             .await
-            .map_err(Into::into),
+            .map_err(anyhow::Error::from),
 
-        Err(trouble) => {
-            eprintln!("Could not draw the status card: {trouble}");
-            say(client, token, &words, None).await
-        }
+        Err(trouble) => Err(trouble.into()),
+    };
+
+    if let Err(trouble) = sent {
+        eprintln!("Could not send the status card: {trouble:#}");
+        return say(client, token, &words, None).await;
     }
+
+    Ok(())
 }
 
 /// What to say on a day nothing is watched.

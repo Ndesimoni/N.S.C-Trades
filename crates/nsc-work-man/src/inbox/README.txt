@@ -389,3 +389,13 @@ ONLY ONE COPY AT A TIME
   It now says which thing is wrong, every fifteen seconds, until one is shut
   down. Same for any other refusal -- a bad token reads the same way and is a
   very different evening.
+
+
+/status ON A QUIET DAY DRAWS NOTHING
+
+  It sends words and no picture.
+
+  The card's one useful column is how far price is from the nearest zone, and
+  on a quiet day no price has arrived to measure from -- every row would read
+  as a dash. It also saves running Chrome for the best part of ten seconds to
+  say nothing.

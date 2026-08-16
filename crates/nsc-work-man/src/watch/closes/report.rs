@@ -31,8 +31,9 @@ impl Closes {
         interval: &'static str,
         forming: bool,
         pulse: &mut pulse::Pulse,
-    ) {
+    ) -> bool {
         let kind = if forming { Kind::SoFar } else { Kind::Closed };
+        let mut all_sent = true;
 
         for band in live {
             let key = Said {
@@ -70,9 +71,17 @@ impl Closes {
                     self.told.insert(key, bar.datetime.clone());
                 }
 
-                // Deliberately not remembered, so the next look tries it again.
-                Err(trouble) => eprintln!("Could not send that one: {trouble:#}"),
+                // Deliberately not remembered, so the next look tries it
+                // again — and `when_next` brings that look forward, because
+                // waiting for the following candle is four hours on the
+                // 4-hour.
+                Err(trouble) => {
+                    eprintln!("Could not send that one: {trouble:#}");
+                    all_sent = false;
+                }
             }
         }
+
+        all_sent
     }
 }

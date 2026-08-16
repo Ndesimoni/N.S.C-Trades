@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 170 tests · clippy clean · it watches his levels, says what
+**Two crates · 172 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -539,6 +539,45 @@ stopped from his phone on 16 August. Not put back — that is his call.
       fire last week?"
 - [ ] **Rejected setups are not saved** — that is a `CLAUDE.md` rule and it
       needs rung 3 to exist first
+
+---
+
+## Phase 2 — Postgres and Redis
+
+**Noted 16 August. Not now, and nothing is half-built for it.**
+
+Right now the bot keeps everything in memory and its levels in TOML files.
+That is right for what it does today and it stops being right soon.
+
+**Postgres — the record.** Three things need it, and all three are already
+written down as missing:
+
+- **Rejected setups get saved, not thrown away.** That is a `CLAUDE.md` rule,
+  and it is the file that answers "why did nothing fire this week?". It also
+  supplies the "don't take this" examples the Phase 4 model needs
+- **Every signal, and what happened next.** Without it there is nothing to
+  measure against, and no backtest that means anything
+- **Candle history.** The backtester has to read years of candles from
+  somewhere that is not an API with a rate limit
+
+**Redis — the fast, throwaway state.** What is in memory today and lost on
+every restart:
+
+- **Which zones price is already sitting in.** A restart forgets, and the
+  report of where price stands comes out empty
+- **Which candles have already been reported**, so a restart does not send
+  yesterday's close again
+- **Where he is in a Telegram conversation** — the pair, the chart, the flow
+  he is part-way through. Lost on restart today
+
+**What must not change when they land.** `nsc-core` never touches either.
+No `sqlx`, no `redis`, no `tokio` in that manifest — it is the manifest that
+enforces it, not a rule anybody remembers. If a rule needs a row, it gets
+handed the row.
+
+The place they plug in is the same one the backtester uses: `BarClosed` in
+`nsc-data::events`. One meeting point, so the live bot and the backtester keep
+running the same code.
 
 ---
 

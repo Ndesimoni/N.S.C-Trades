@@ -8,7 +8,7 @@ use nsc_core::levels::Thickness;
 use nsc_core::when::Rules;
 use tokio::time::{Duration, Instant, sleep_until};
 
-use super::due::worth_asking_again;
+use super::due::{when_next, worth_asking_again};
 use super::fetch::{REPORT_ON, fetch};
 use super::said::Said;
 use crate::watch::{Watching, pulse};
@@ -128,18 +128,17 @@ impl Closes {
                 let now = Utc::now();
                 let waited = minutes * calendar.look_in_minutes / 60;
 
-                // Worked out before anything is reported, so a card that will
-                // not send cannot also cost the next request its timing.
                 let ask_again = worth_asking_again(&bars, minutes, waited, now);
-                self.due.insert(waiting_on, ask_again);
-                self.wake_by(ask_again);
 
                 let finished = bars
                     .iter()
                     .find(|bar| bar.finished_by(now, minutes).unwrap_or(false));
 
+                let mut all_sent = true;
+
                 if let Some(bar) = finished {
-                    self.say(client, seen, &live, bar, thickness, interval, false, pulse)
+                    all_sent &= self
+                        .say(client, seen, &live, bar, thickness, interval, false, pulse)
                         .await;
                 }
 
@@ -159,9 +158,21 @@ impl Closes {
                 });
 
                 if let Some(bar) = running {
-                    self.say(client, seen, &live, bar, thickness, interval, true, pulse)
+                    all_sent &= self
+                        .say(client, seen, &live, bar, thickness, interval, true, pulse)
                         .await;
                 }
+
+                // **Set after the cards have gone, not before.** Pushed
+                // forward first, a card that would not send waited for the
+                // NEXT candle to come round — four hours on the 4-hour, for
+                // something the bot had already read. Nothing is marked as
+                // told when a send fails, so coming back in a minute puts it
+                // right.
+                let ask_again = when_next(all_sent, ask_again, Utc::now());
+
+                self.due.insert(waiting_on, ask_again);
+                self.wake_by(ask_again);
             }
         }
 

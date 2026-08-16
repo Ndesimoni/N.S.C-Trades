@@ -150,8 +150,8 @@ CHROME IS NEVER GIVEN A PROFILE FOLDER
   that is exactly how this got missed the first time.
 
 
-CHROME GETS A DEADLINE
-======================
+CHROME GETS A DEADLINE  (waiting.rs)
+====================================
 
   One minute, then it is killed. A card takes about two seconds, so a minute
   is far past generous -- and it is not "forever", which is what it had.
@@ -160,7 +160,7 @@ CHROME GETS A DEADLINE
   The bot was up, the log was clean, and every single thing he sent it went
   unanswered.
 
-  chrome.rs has three tests of its own on that deadline: that something which
+  waiting.rs holds it, with three tests: that something which
   will not finish is stopped, that it is really killed rather than just given
   up on, and that something finishing normally still hands back what it said.
   They use `sleep` rather than Chrome, so they need nothing installed.

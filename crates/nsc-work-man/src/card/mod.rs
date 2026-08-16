@@ -13,6 +13,7 @@ mod error;
 mod facts;
 mod fill;
 mod live;
+mod waiting;
 mod wrong;
 mod zone;
 

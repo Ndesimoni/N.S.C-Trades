@@ -73,9 +73,30 @@ pub(super) fn worth_asking_again(
         .max(floor)
 }
 
+/// When to ask again, given whether everything that had to be said was said.
+///
+/// **A close that would not send is the one thing worth hurrying back for.**
+/// Waiting for the next candle would be right if the request had done its job
+/// — but it did not, and on the 4-hour that is four hours before he hears
+/// about a candle the bot has already read.
+///
+/// Nothing is marked as told when a card fails, so coming back early is enough
+/// to put it right.
+pub(super) fn when_next(
+    all_sent: bool,
+    when_the_candle_is_due: DateTime<Utc>,
+    now: DateTime<Utc>,
+) -> DateTime<Utc> {
+    if all_sent {
+        return when_the_candle_is_due;
+    }
+
+    now + FLOOR
+}
+
 #[cfg(test)]
 mod tests {
-    use super::worth_asking_again;
+    use super::{when_next, worth_asking_again};
     use chrono::{DateTime, Duration, Utc};
     use nsc_core::candle::Bar;
     use rust_decimal::Decimal;
@@ -162,6 +183,27 @@ mod tests {
             worth_asking_again(&[], 60, 20, now),
             now + Duration::minutes(1)
         );
+    }
+
+    /// Everything sent, so wait for the candle the feed pointed at.
+    #[test]
+    fn all_said_waits_for_the_next_candle() {
+        let now = at("2026-08-17T12:00:00Z");
+        let candle = at("2026-08-17T16:00:00Z");
+
+        assert_eq!(when_next(true, candle, now), candle);
+    }
+
+    /// **A card that would not send comes back in a minute, not in four
+    /// hours.** Nothing is marked as told when a send fails, so an early
+    /// return is all it takes — but on the 4-hour, waiting for the next candle
+    /// means he hears about this one four hours after the bot read it.
+    #[test]
+    fn something_unsaid_comes_back_soon() {
+        let now = at("2026-08-17T12:00:00Z");
+        let candle = at("2026-08-17T16:00:00Z");
+
+        assert_eq!(when_next(false, candle, now), now + Duration::minutes(1));
     }
 
     /// A stamp the feed sends in a shape we cannot read is not a reason to ask

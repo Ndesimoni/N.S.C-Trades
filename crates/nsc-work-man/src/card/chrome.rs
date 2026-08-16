@@ -2,9 +2,9 @@
 
 use std::path::Path;
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
 
 use super::CardError;
+use super::waiting::wait_for;
 
 const CHROME: &str = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
@@ -17,18 +17,6 @@ const SCALE: &str = "--force-device-scale-factor=2";
 /// Fast-forwards the page's clock. Without it the screenshot catches the
 /// animations halfway and the fonts before they have arrived.
 const SETTLE: &str = "--virtual-time-budget=4000";
-
-/// How long Chrome gets before it is stopped.
-///
-/// **A card takes about two seconds.** A minute is far past generous, and it
-/// is not "forever" — which is what it had, and what wedged the whole bot: a
-/// Chrome that draws the picture and then never exits leaves the call waiting
-/// on it waiting for good. Nothing answered, not even `/help`, and nothing
-/// said why.
-const PATIENCE: Duration = Duration::from_secs(60);
-
-/// How often to look and see whether Chrome has finished.
-const GLANCE: Duration = Duration::from_millis(100);
 
 /// How much shorter the page is than the window Chrome was asked for.
 ///
@@ -107,78 +95,12 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
     trim(out, height * PIXELS_PER_POINT)
 }
 
-/// Waits for Chrome, but not forever.
-///
-/// **`output()` waits for good**, and Chrome can finish its work and then not
-/// exit. When that happened the bot stopped answering anything at all — the
-/// thread was stuck in here, and nothing in any log said so.
-///
-/// Killed rather than left, because a Chrome that will not exit is one more
-/// every time a card is drawn.
-fn wait_for(chrome: std::process::Child) -> Result<String, CardError> {
-    wait_up_to(chrome, PATIENCE)
-}
-
-/// The waiting itself, with the deadline handed in so a test can use a short
-/// one. Sixty seconds is the right answer for a card and the wrong one for a
-/// test that has to prove the deadline works.
-fn wait_up_to(mut chrome: std::process::Child, patience: Duration) -> Result<String, CardError> {
-    let give_up_at = Instant::now() + patience;
-
-    // **Read on its own thread, while Chrome is still running.**
-    //
-    // A pipe holds about 64k. Left unread until the process exits, a Chrome
-    // that said more than that would block trying to say it — and then it
-    // never exits, and we are back to waiting on something that cannot
-    // finish. It says about 2k on a normal run, so this has never bitten;
-    // it is the same shape as the bug that wedged the bot, which is reason
-    // enough not to leave it lying there.
-    let talking = chrome.stderr.take().map(|mut errors| {
-        std::thread::spawn(move || {
-            use std::io::Read;
-
-            let mut said = String::new();
-            let _ = errors.read_to_string(&mut said);
-            said
-        })
-    });
-
-    let heard = || {
-        talking
-            .map(|thread| thread.join().unwrap_or_default())
-            .unwrap_or_default()
-    };
-
-    loop {
-        match chrome.try_wait() {
-            Err(trouble) => return Err(CardError::DrewNothing(trouble.to_string())),
-
-            // Finished on its own. Whatever it said is the reason if no
-            // picture appeared.
-            Ok(Some(_)) => return Ok(heard()),
-
-            Ok(None) if Instant::now() >= give_up_at => {
-                let _ = chrome.kill();
-                let _ = chrome.wait();
-
-                return Err(CardError::DrewNothing(format!(
-                    "Chrome had not finished after {} seconds and was stopped.\n{}",
-                    patience.as_secs(),
-                    heard(),
-                )));
-            }
-
-            Ok(None) => std::thread::sleep(GLANCE),
-        }
-    }
-}
-
 /// Takes the last picture of this kind out of the way.
 ///
-/// **The only check that Chrome drew anything is whether a file appeared** —
-/// and one was already there, left by the last card of the same kind. Chrome
-/// fails, the old picture survives the check, and it goes out with today's
-/// caption on yesterday's chart.
+/// **A file appearing is the only check that Chrome drew anything** — and one
+/// was already there, left by the last card of the same kind. Chrome fails,
+/// the old picture survives the check, and it goes out with today's caption on
+/// yesterday's chart.
 ///
 /// Nothing to remove is fine. Being unable to remove one that IS there has to
 /// stop here, because carrying on would send the stale picture.
@@ -218,70 +140,4 @@ fn trim(picture: &Path, keep: u32) -> Result<(), CardError> {
         })?;
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{CardError, wait_up_to};
-    use std::process::{Command, Stdio};
-    use std::time::{Duration, Instant};
-
-    fn started(program: &str, args: &[&str]) -> std::process::Child {
-        Command::new(program)
-            .args(args)
-            .stdout(Stdio::null())
-            .stderr(Stdio::piped())
-            .spawn()
-            .expect("it should start")
-    }
-
-    /// **The guard that the whole bot rests on.**
-    ///
-    /// A Chrome that draws the picture and then never exits left the thread
-    /// waiting here for good — and because that call blocks, the bot answered
-    /// nothing at all. No error, no log line, just silence.
-    #[test]
-    fn something_that_will_not_finish_is_stopped() {
-        let began = Instant::now();
-        let answer = wait_up_to(started("sleep", &["30"]), Duration::from_millis(200));
-
-        assert!(began.elapsed() < Duration::from_secs(5), "it must not wait");
-
-        match answer {
-            Err(CardError::DrewNothing(why)) => {
-                assert!(why.contains("stopped"), "it should say so, got: {why}")
-            }
-            other => panic!("it should have given up, got {other:?}"),
-        }
-    }
-
-    /// And it is killed, not left running. One orphan per card adds up.
-    #[test]
-    fn the_one_it_stopped_is_really_gone() {
-        let mut child = started("sleep", &["30"]);
-        let id = child.id();
-
-        let _ = wait_up_to(started("sleep", &["30"]), Duration::from_millis(200));
-
-        // The one above was killed inside wait_up_to. This one proves the
-        // test itself can tell a live process from a dead one.
-        assert!(
-            child.try_wait().expect("askable").is_none(),
-            "{id} is alive"
-        );
-        let _ = child.kill();
-    }
-
-    /// Something that finishes on its own is not touched, and what it said
-    /// comes back — that is the only clue when no picture appears.
-    #[test]
-    fn something_that_finishes_hands_back_what_it_said() {
-        let said = wait_up_to(
-            started("sh", &["-c", "echo trouble here >&2"]),
-            Duration::from_secs(10),
-        )
-        .expect("it finished on its own");
-
-        assert!(said.contains("trouble here"), "got: {said}");
-    }
 }

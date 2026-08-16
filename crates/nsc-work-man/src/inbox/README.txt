@@ -25,6 +25,21 @@ A REFUSED MESSAGE IS NOT A SENT MESSAGE
   that says what went wrong is exactly the one that has to arrive.
 
 
+HOW /status ANSWERS
+
+  The WATCHER holds the live picture — which bands are sized, where price was
+  last, which zones it is sitting in. The inbox runs beside it and has none of
+  that.
+
+  So the watcher PUBLISHES A COPY whenever it changes, and the inbox reads the
+  latest one. Nothing is shared and nothing is locked: the reader gets whatever
+  the last published copy was, which for "is it running and what is close" is
+  exactly right.
+
+  The copy is taken before drawing, not held across it. Holding the borrow
+  while Chrome runs would stop the watcher publishing for a second or two.
+
+
 IT RUNS INSIDE THE BOT
 
   Spawned beside the watcher, so `cargo run -p nsc-work-man` is the whole
@@ -105,6 +120,10 @@ THE FILES
   conversation.rs  Working out what he meant, and what to say back. The
                 flow that ADDS levels lives here.
 
+  asked.rs      /help and /status — the two things he asks outright, plus
+                registering the commands with Telegram so they appear in the
+                tap-list beside the message box.
+
   one.rs        One pair's page — what it holds, and what he can do to it.
                 Taking a single level off is here.
 
@@ -143,6 +162,21 @@ FOUR THINGS THAT ARE DELIBERATE
   goes in, because every message here is parsed as HTML: a stray `<` in an
   error is an unclosed tag, and Telegram refuses the whole message. The reply
   that says what went wrong is exactly the one that has to arrive.
+
+
+HOW /status ANSWERS
+
+  The WATCHER holds the live picture — which bands are sized, where price was
+  last, which zones it is sitting in. The inbox runs beside it and has none of
+  that.
+
+  So the watcher PUBLISHES A COPY whenever it changes, and the inbox reads the
+  latest one. Nothing is shared and nothing is locked: the reader gets whatever
+  the last published copy was, which for "is it running and what is close" is
+  exactly right.
+
+  The copy is taken before drawing, not held across it. Holding the borrow
+  while Chrome runs would stop the watcher publishing for a second or two.
 
 
 IT RUNS INSIDE THE BOT

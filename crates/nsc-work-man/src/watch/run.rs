@@ -12,6 +12,7 @@ use nsc_core::levels::{Thickness, load_thickness};
 use nsc_core::when::{self, Allowed, Rules};
 
 use super::line::{self, Closed};
+use super::standing::{self, Snapshot, Standing};
 use super::{CALENDAR, Kit, THICKNESS, Watching, pulse, reload, trouble};
 
 /// How long to wait before opening the line again after it drops.
@@ -33,14 +34,6 @@ pub async fn run() -> Result<()> {
     let thickness = load_thickness(Path::new(THICKNESS))?;
     let calendar = when::load(Path::new(CALENDAR))?;
 
-    // **The inbox runs beside the watcher**, so one command is the whole bot.
-    // It was a second program, which meant two terminals and remembering both
-    // — and if it was not up, a level he sent went nowhere and nothing said so.
-    //
-    // They do not talk to each other. The inbox writes a file and the watcher
-    // notices it changed, which is how it already worked.
-    tokio::spawn(crate::inbox::run(client.clone()));
-
     // The same reading used when he sends a level mid-run. One way of turning
     // the files into bands, so the two cannot drift.
     let (mut watching, _) = reload::again(&client, thickness, HashMap::new()).await?;
@@ -48,6 +41,17 @@ pub async fn run() -> Result<()> {
     if watching.is_empty() {
         anyhow::bail!("no pairs have levels — send the bot /level to add some");
     }
+
+    // **The inbox runs beside the watcher**, so one command is the whole bot.
+    // It was a second program, which meant two terminals and remembering both
+    // — and if it was not up, a level he sent went nowhere and nothing said so.
+    //
+    // They do not talk to each other about levels: the inbox writes a file and
+    // the watcher notices it changed. But `/status` has to answer from the
+    // LIVE picture — which bands are sized, where price was last — so the
+    // watcher publishes a copy of that and the inbox reads the latest.
+    let (tell, standing) = standing::channel(snapshot(&watching, &calendar));
+    tokio::spawn(crate::inbox::run(client.clone(), standing));
 
     // This outlives the socket. Rebuilt on every reconnect, a dropped line
     // would re-announce every zone price is already at and forget which
@@ -76,11 +80,23 @@ pub async fn run() -> Result<()> {
                 watching = armed(&client, thickness, watching, &mut kit.pulse).await?;
             }
 
+            let _ = tell.send(snapshot(&watching, &calendar));
+
             tokio::time::sleep(WHILE_QUIET).await;
             continue;
         }
 
-        match line::listen(&client, &mut watching, thickness, &calendar, &mut kit).await {
+        let closed = line::listen(
+            &client,
+            &mut watching,
+            thickness,
+            &calendar,
+            &mut kit,
+            &tell,
+        )
+        .await;
+
+        match closed {
             // The line closed cleanly, the session did, or he sent a level.
             // Nothing is wrong.
             Ok(Closed::Line) => trouble.mended(&client, &mut kit.pulse).await?,
@@ -107,6 +123,27 @@ pub async fn run() -> Result<()> {
 
         eprintln!("Opening it again in {} seconds.", AGAIN.as_secs());
         tokio::time::sleep(AGAIN).await;
+    }
+}
+
+/// The live picture, for anything that asks rather than watches.
+pub(super) fn snapshot(watching: &HashMap<String, Watching>, calendar: &Rules) -> Snapshot {
+    // Sorted, so the list does not shuffle between askings. A HashMap hands
+    // them back in a different order every time, and a list that reorders
+    // itself looks like something changed when nothing did.
+    let mut seen: Vec<&Watching> = watching.values().collect();
+    seen.sort_by(|a, b| a.pair.symbol.cmp(&b.pair.symbol));
+
+    Snapshot {
+        pairs: seen
+            .iter()
+            .map(|one| Standing {
+                pair: one.pair.clone(),
+                bands: one.watch.bands(),
+                price: one.watch.last_price(),
+            })
+            .collect(),
+        opened: when::opened(Utc::now(), calendar),
     }
 }
 
@@ -142,5 +179,5 @@ fn say_what_the_calendar_allows(calendar: &Rules) {
         }
     }
 
-    println!("Send the bot /pairs to see them, or /level to add. docs/telegram.md.\n");
+    println!("Send the bot /help. Its commands are in the menu beside the box.\n");
 }

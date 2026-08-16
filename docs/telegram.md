@@ -13,6 +13,32 @@ cargo run -p nsc-work-man
 That one command is the watcher *and* the inbox. If it is not running, nothing
 you send goes anywhere, and nothing tells you.
 
+**You do not have to remember any of this.** The bot registers its commands
+with Telegram, so they appear in a tap-list next to the message box.
+
+---
+
+## `/status` — is it running, and is anything close?
+
+One card, whenever you like:
+
+> 🫀 **Still running** · 4 pairs · 16 zones
+>
+> XAU/USD ● ● ●  **281.70** from weekly 4,094.00
+> GBP/USD ● ● ● ●  **0.01724** from daily 1.37053
+
+The last column is the useful part — **the nearest zone on every pair.** It
+tells you what is brewing today without opening a chart.
+
+It is the same card as the morning heartbeat. That one only comes on a day
+nothing else did; this is the same question asked whenever you want.
+
+---
+
+## `/help` — the list
+
+Every command with one line on what it does. Also `/start`.
+
 ---
 
 ## `/pairs` — see everything, and change one

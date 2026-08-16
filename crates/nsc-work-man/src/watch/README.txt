@@ -59,6 +59,9 @@ THE FILES
 
   say.rs      Drawing a card and sending it.
 
+  standing.rs A copy of the live picture, published for the inbox to read when
+              he asks /status.
+
   trouble.rs  Telling him when something has gone wrong, and when it is
               fixed.
 

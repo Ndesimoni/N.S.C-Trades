@@ -24,6 +24,7 @@
 use anyhow::{Context, Result, anyhow};
 use nsc_core::levels::Timeframe;
 use serde_json::Value;
+use tokio::sync::watch;
 
 /// Only he may write levels.
 ///
@@ -55,6 +56,7 @@ const UNDO: &str = "↩ Undo";
 const YES: &str = "✓ Yes, stop it";
 const NO: &str = "✗ Keep it";
 
+mod asked;
 mod conversation;
 mod one;
 mod pairs;
@@ -74,9 +76,9 @@ const AGAIN: std::time::Duration = std::time::Duration::from_secs(15);
 /// **It is spawned beside the watcher, so it must not be able to stop.** If it
 /// ends, levels he sends go nowhere and nothing says so — which is the exact
 /// failure that made it worth folding in.
-pub async fn run(client: reqwest::Client) {
+pub async fn run(client: reqwest::Client, standing: watch::Receiver<crate::watch::Snapshot>) {
     loop {
-        if let Err(trouble) = listen(&client).await {
+        if let Err(trouble) = listen(&client, &standing).await {
             eprintln!("The inbox stopped listening: {trouble:#}");
         }
 
@@ -84,10 +86,15 @@ pub async fn run(client: reqwest::Client) {
     }
 }
 
-async fn listen(client: &reqwest::Client) -> Result<()> {
+async fn listen(
+    client: &reqwest::Client,
+    standing: &watch::Receiver<crate::watch::Snapshot>,
+) -> Result<()> {
     let token = std::env::var("TELEGRAM_BOT_TOKEN").context("TELEGRAM_BOT_TOKEN is not set")?;
     let mut adding = Adding::default();
     let mut seen_up_to: i64 = 0;
+
+    asked::register(client, &token).await;
 
     loop {
         // `timeout=30` makes Telegram hold the line open rather than answering
@@ -122,7 +129,7 @@ async fn listen(client: &reqwest::Client) -> Result<()> {
 
             println!("You said: {text}");
 
-            if let Err(trouble) = handle(client, &token, text.trim(), &mut adding).await {
+            if let Err(trouble) = handle(client, &token, text.trim(), &mut adding, standing).await {
                 println!("  -> {trouble:#}");
                 say(
                     client,

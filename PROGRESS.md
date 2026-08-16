@@ -61,7 +61,8 @@ cargo run -p nsc-work-man --bin levels -- GBPUSD
 
 ---
 
-**What he can send it** is written up for him in
+**What he can send it** — `/status`, `/help`, `/pairs`, `/level`, `/remove`,
+`/restore` — is written up for him in
 [docs/telegram.md](docs/telegram.md) — every command, what comes back, and
 what turns up on its own.
 
@@ -176,6 +177,12 @@ without waiting for it to happen. That was the last plain-text message going.
       **Two taps**, because it throws away every level he drew for that pair
       and the first tap happens while he is doing something else. The second
       one tells him how many levels are on it first
+- [x] **`/status` answers "is it running, and is anything close?"** whenever
+      he asks. The same card as the morning heartbeat, which only comes on a
+      day nothing else did
+- [x] **The commands are registered with Telegram**, so they appear in the
+      tap-list beside the message box and he never types one. `/help` lists
+      them too, because the file that describes them is on his Mac
 - [x] **`/pairs` shows them all, and one at a time.** Tap a pair to see what
       it holds and what can be done to it — add, take one off, stop watching
 - [x] **One level can be taken off.** Undo only ever reached what the last
@@ -442,6 +449,14 @@ stopped from his phone on 16 August. Not put back — that is his call.
       fire last week?"
 - [ ] **Rejected setups are not saved** — that is a `CLAUDE.md` rule and it
       needs rung 3 to exist first
+
+---
+
+## Asked for, not started
+
+- [ ] **The news.** What is coming up and what it says — so a level sitting in
+      front of a rate decision is not read the same way as one on a quiet
+      Thursday. Raised 16 August, deliberately left until the rest is settled
 
 ---
 

@@ -10,7 +10,10 @@ use nsc_core::when::{self, Allowed, Rules};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
 
+use super::run::snapshot;
+use super::standing::Snapshot;
 use super::{Kit, Watching, prices};
+use tokio::sync::watch as tell_of;
 
 /// Why the line stopped being held open.
 pub enum Closed {
@@ -31,6 +34,7 @@ pub async fn listen(
     thickness: Thickness,
     calendar: &Rules,
     kit: &mut Kit,
+    tell: &tell_of::Sender<Snapshot>,
 ) -> Result<Closed> {
     let key = std::env::var("TWELVE_DATA_API_KEY").context("TWELVE_DATA_API_KEY is not set")?;
     let url = format!("wss://ws.twelvedata.com/v1/quotes/price?apikey={key}");
@@ -90,6 +94,10 @@ pub async fn listen(
                 }
 
                 kit.closes.look(client, watching, thickness, calendar, &mut kit.pulse).await?;
+
+                // Where price last was has moved on. Anything asking /status
+                // should see today, not where it stood when the line opened.
+                let _ = tell.send(snapshot(watching, calendar));
             }
         }
     }

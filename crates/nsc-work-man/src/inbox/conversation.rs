@@ -10,7 +10,7 @@ use serde_json::json;
 use super::picture::show;
 use super::talking::say;
 use super::{NEW_PAIR, PAIRS, TIMEFRAMES, UNDO};
-use super::{one, pairs};
+use super::{asked, one, pairs};
 
 /// Where he is in the flow.
 ///
@@ -53,8 +53,17 @@ pub async fn handle(
     token: &str,
     text: &str,
     adding: &mut Adding,
+    standing: &tokio::sync::watch::Receiver<crate::watch::Snapshot>,
 ) -> Result<()> {
     let folder = Path::new(PAIRS);
+
+    if text == "/help" || text == "/start" {
+        return asked::help(client, token).await;
+    }
+
+    if text == "/status" {
+        return asked::status(client, token, standing).await;
+    }
 
     if let Some(answer) = pairs::heard(client, token, folder, text, adding).await {
         return answer;

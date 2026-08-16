@@ -29,9 +29,11 @@ mod reload;
 mod resumed;
 mod run;
 mod say;
+mod standing;
 mod trouble;
 
 pub use run::run;
+pub use standing::{Snapshot, Standing};
 
 pub(crate) use kit::{Kit, Watching};
 pub use trouble::dying;

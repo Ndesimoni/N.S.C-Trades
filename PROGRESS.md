@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 164 tests · clippy clean · it watches his levels, says what
+**Two crates · 170 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -419,9 +419,9 @@ end on the same second.
 
 Agreed 16 August, before anything new is added.
 
-### 0b. Ask for a candle when one is due, not every ten minutes
+### 0b. ~~Ask for a candle when one is due, not every ten minutes~~ — done
 
-**Noted 16 August. Second after the threading job, and much smaller.**
+**Done 16 August.** `watch/closes/due.rs`, six tests.
 
 **What it does now.** When price is at a zone, it asks the feed for that
 pair's 1-hour and 4-hour candles **every ten minutes** and lets the returned
@@ -449,11 +449,14 @@ This does **not** break the rule above. It is reading the feed's own stamp,
 not calculating a boundary — and the returned stamp is still what decides
 whether a candle is finished, exactly as now.
 
-Per pair per day it goes from about **288 asks to about 30**, and a close
-report stops being up to ten minutes late.
+Per pair per day it went from **288 asks to 60** — the hourly asked twice an
+hour instead of six times, the 4-hour twice per candle instead of
+twenty-four. And a close report is no longer up to ten minutes late; it lands
+when the candle does.
 
-Keep a floor of a minute or two between asks for the same pair, so a feed that
-returns a stale stamp cannot turn into a tight loop.
+There is a floor of one minute between asks about the same pair, because every
+moment worked out from a stale stamp is in the past, and "ask when the next is
+due" would then mean "ask again immediately, forever".
 
 ---
 

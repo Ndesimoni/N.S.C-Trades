@@ -17,6 +17,9 @@ THE FILES
   said.rs     What one report was about -- pair, interval, kind, zone.
               This is the key everything is remembered by.
 
+  due.rs      When a pair's next candle is worth asking about. See IT ASKS
+              WHEN A CANDLE IS DUE below.
+
   look.rs     The ten-minute check. Works out which candle has finished and
               which is far enough into itself to be worth a look.
 
@@ -29,13 +32,34 @@ THE FILES
 
 IT NEVER WORKS OUT WHEN A CANDLE CLOSES
 
-  It asks every ten minutes and lets the feed's own stamp say whether that is
-  one it has already reported.
+  The feed's own stamp says whether a candle is finished. Working the
+  boundaries out here would mean knowing where the feed puts its 4-hour
+  candles, which nobody has measured. Guessing wrong reports a candle that has
+  not happened -- the mistake that makes results look better rather than
+  broken.
 
-  Working the boundaries out here would mean knowing where the feed puts its
-  4-hour candles, which nobody has measured. Guessing wrong reports a candle
-  that has not happened -- the mistake that makes results look better rather
-  than broken.
+
+IT ASKS WHEN A CANDLE IS DUE, NOT ON A TIMER
+
+  It used to ask every ten minutes. A 4-hour candle closes six times a day, so
+  about 140 of every 144 asks found nothing new -- 288 requests a day per pair
+  to learn something that happens thirty times.
+
+  Now it reads the stamp the feed already handed back. Told a candle is
+  stamped 12:00 on the 4-hour, the feed has said where its own boundary is:
+  the twenty-minute look falls at 13:20 and the close at 16:00. It waits for
+  those.
+
+  THIS IS NOT THE SAME AS WORKING OUT A BOUNDARY. It is reading one the feed
+  stated, and the returned stamp is still what decides whether a candle has
+  finished. Nothing is assumed.
+
+  288 asks a day per pair down to 60. And a close report is no longer up to
+  ten minutes late -- it lands when the candle does.
+
+  There is a floor of one minute between asks about the same pair. Every
+  moment worked out from a stale stamp is in the past, and without the floor
+  "ask when the next is due" would mean "ask again immediately, forever".
 
 
 THE KEY IS PER ZONE, NOT PER CANDLE

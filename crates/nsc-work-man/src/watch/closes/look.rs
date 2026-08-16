@@ -3,23 +3,36 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use nsc_core::levels::Thickness;
 use nsc_core::when::Rules;
 use tokio::time::{Duration, Instant, sleep_until};
 
+use super::due::worth_asking_again;
 use super::fetch::{REPORT_ON, fetch};
 use super::said::Said;
 use crate::watch::{Watching, pulse};
 
-/// How often to look. On the hour would need a clock that agrees with the
-/// feed's; every ten minutes just asks.
+/// The longest it will go without waking.
+///
+/// **This is housekeeping, not the candle check.** The heartbeat, the calendar
+/// and the levels-changed look all ride on this tick. When a candle is due
+/// sooner than this, the tick is pulled forward to meet it.
 const LOOK_EVERY: Duration = Duration::from_secs(600);
 
 pub struct Closes {
     /// The last candle already reported, per pair, per interval, per kind, per
     /// zone. Keyed by the feed's own stamp, so nothing is reported twice.
     pub(super) told: HashMap<Said, String>,
+
+    /// When each pair and interval is next worth a request.
+    ///
+    /// **This is what stopped it asking every ten minutes.** A 4-hour candle
+    /// closes six times a day; asked on a timer, about 140 of every 144 asks
+    /// found nothing new. The feed's own stamp says when the next one is due,
+    /// so it waits for that instead.
+    due: HashMap<(String, &'static str), DateTime<Utc>>,
+
     next: Instant,
 }
 
@@ -27,6 +40,7 @@ impl Closes {
     pub fn new() -> Self {
         Closes {
             told: HashMap::new(),
+            due: HashMap::new(),
             // Not immediately. The bands were just sized, and the rate limit
             // does not care that these are different requests.
             next: Instant::now() + LOOK_EVERY,
@@ -48,6 +62,19 @@ impl Closes {
         self.next = Instant::now() + LOOK_EVERY;
     }
 
+    /// Pulls the next wake forward to meet a candle that is due sooner.
+    ///
+    /// **Never past `LOOK_EVERY`**, because the heartbeat and the calendar
+    /// ride on the same tick, and never sooner than now — a moment already
+    /// past would spin the loop.
+    fn wake_by(&mut self, at: DateTime<Utc>) {
+        let Ok(from_now) = (at - Utc::now()).to_std() else {
+            return;
+        };
+
+        self.next = self.next.min(Instant::now() + from_now);
+    }
+
     /// Asks about every pair price is currently at a zone of.
     pub async fn look(
         &mut self,
@@ -64,9 +91,22 @@ impl Closes {
             }
 
             for (interval, minutes) in REPORT_ON {
+                let waiting_on = (seen.pair.symbol.clone(), interval);
+
+                // **Nothing can have changed yet.** The feed already told us
+                // when this pair's next candle is due; asking before then is
+                // a request spent to be told the same thing again.
+                if let Some(due) = self.due.get(&waiting_on)
+                    && Utc::now() < *due
+                {
+                    self.wake_by(*due);
+                    continue;
+                }
+
                 // ONE REQUEST SERVES BOTH. The reply carries the candle that
                 // has just finished and the one still running, so the
                 // mid-candle look costs nothing on top of the close.
+                //
                 // **A candle that will not fetch is not the price line
                 // breaking.** This used to travel out of here, out of `listen`
                 // and into `run`, which dropped a perfectly good socket and —
@@ -86,6 +126,13 @@ impl Closes {
                 };
 
                 let now = Utc::now();
+                let waited = minutes * calendar.look_in_minutes / 60;
+
+                // Worked out before anything is reported, so a card that will
+                // not send cannot also cost the next request its timing.
+                let ask_again = worth_asking_again(&bars, minutes, waited, now);
+                self.due.insert(waiting_on, ask_again);
+                self.wake_by(ask_again);
 
                 let finished = bars
                     .iter()
@@ -106,8 +153,6 @@ impl Closes {
                 // Not on the open, either. Spot forex runs without a break so
                 // an open IS the last close — that message would repeat what
                 // arrived a minute earlier.
-                let waited = minutes * calendar.look_in_minutes / 60;
-
                 let running = bars.iter().find(|bar| {
                     !bar.finished_by(now, minutes).unwrap_or(true)
                         && bar.finished_by(now, waited).unwrap_or(false)

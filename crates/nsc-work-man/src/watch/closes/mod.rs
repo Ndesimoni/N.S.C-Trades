@@ -15,11 +15,13 @@
 //! that has not happened, and that is the mistake that makes results look
 //! better rather than broken.
 //!
+//!   due.rs      when a pair's next candle is worth asking about
 //!   said.rs     what one report was about — pair, interval, kind, zone
 //!   look.rs     the ten-minute check, and what it decides to ask about
 //!   report.rs   saying what a candle did, one zone at a time
 //!   fetch.rs    asking the feed, and never letting that end the run
 
+mod due;
 mod fetch;
 mod look;
 mod report;

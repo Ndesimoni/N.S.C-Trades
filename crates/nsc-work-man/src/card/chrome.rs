@@ -106,8 +106,15 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
 ///
 /// Killed rather than left, because a Chrome that will not exit is one more
 /// every time a card is drawn.
-fn wait_for(mut chrome: std::process::Child) -> Result<String, CardError> {
-    let give_up_at = Instant::now() + PATIENCE;
+fn wait_for(chrome: std::process::Child) -> Result<String, CardError> {
+    wait_up_to(chrome, PATIENCE)
+}
+
+/// The waiting itself, with the deadline handed in so a test can use a short
+/// one. Sixty seconds is the right answer for a card and the wrong one for a
+/// test that has to prove the deadline works.
+fn wait_up_to(mut chrome: std::process::Child, patience: Duration) -> Result<String, CardError> {
+    let give_up_at = Instant::now() + patience;
 
     // **Read on its own thread, while Chrome is still running.**
     //
@@ -147,7 +154,7 @@ fn wait_for(mut chrome: std::process::Child) -> Result<String, CardError> {
 
                 return Err(CardError::DrewNothing(format!(
                     "Chrome had not finished after {} seconds and was stopped.\n{}",
-                    PATIENCE.as_secs(),
+                    patience.as_secs(),
                     heard(),
                 )));
             }
@@ -202,4 +209,70 @@ fn trim(picture: &Path, keep: u32) -> Result<(), CardError> {
         })?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{CardError, wait_up_to};
+    use std::process::{Command, Stdio};
+    use std::time::{Duration, Instant};
+
+    fn started(program: &str, args: &[&str]) -> std::process::Child {
+        Command::new(program)
+            .args(args)
+            .stdout(Stdio::null())
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("it should start")
+    }
+
+    /// **The guard that the whole bot rests on.**
+    ///
+    /// A Chrome that draws the picture and then never exits left the thread
+    /// waiting here for good — and because that call blocks, the bot answered
+    /// nothing at all. No error, no log line, just silence.
+    #[test]
+    fn something_that_will_not_finish_is_stopped() {
+        let began = Instant::now();
+        let answer = wait_up_to(started("sleep", &["30"]), Duration::from_millis(200));
+
+        assert!(began.elapsed() < Duration::from_secs(5), "it must not wait");
+
+        match answer {
+            Err(CardError::DrewNothing(why)) => {
+                assert!(why.contains("stopped"), "it should say so, got: {why}")
+            }
+            other => panic!("it should have given up, got {other:?}"),
+        }
+    }
+
+    /// And it is killed, not left running. One orphan per card adds up.
+    #[test]
+    fn the_one_it_stopped_is_really_gone() {
+        let mut child = started("sleep", &["30"]);
+        let id = child.id();
+
+        let _ = wait_up_to(started("sleep", &["30"]), Duration::from_millis(200));
+
+        // The one above was killed inside wait_up_to. This one proves the
+        // test itself can tell a live process from a dead one.
+        assert!(
+            child.try_wait().expect("askable").is_none(),
+            "{id} is alive"
+        );
+        let _ = child.kill();
+    }
+
+    /// Something that finishes on its own is not touched, and what it said
+    /// comes back — that is the only clue when no picture appears.
+    #[test]
+    fn something_that_finishes_hands_back_what_it_said() {
+        let said = wait_up_to(
+            started("sh", &["-c", "echo trouble here >&2"]),
+            Duration::from_secs(10),
+        )
+        .expect("it finished on its own");
+
+        assert!(said.contains("trouble here"), "got: {said}");
+    }
 }

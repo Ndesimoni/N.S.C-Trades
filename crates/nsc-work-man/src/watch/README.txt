@@ -298,7 +298,7 @@ WHAT MUST NEVER STOP THE BOT
   ten seconds, and the bot says "stopped" and quits. It now keeps whatever
   bands that pair already had and tries again on the next look.
 
-  FETCHING A CANDLE. closes.rs asks for the newest candle when price is at a
+  FETCHING A CANDLE. closes/ asks for the newest candle when price is at a
   zone. That is a REST request on a completely different connection from the
   price websocket, and its failure used to drop the socket. Repeated, it told
   him the price line was down while the price line was perfectly fine.

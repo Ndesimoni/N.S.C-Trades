@@ -160,6 +160,16 @@ CHROME GETS A DEADLINE
   The bot was up, the log was clean, and every single thing he sent it went
   unanswered.
 
+  chrome.rs has three tests of its own on that deadline: that something which
+  will not finish is stopped, that it is really killed rather than just given
+  up on, and that something finishing normally still hands back what it said.
+  They use `sleep` rather than Chrome, so they need nothing installed.
+
+  Its stderr is read on its own thread WHILE it runs. A pipe holds about 64k,
+  and left unread until the process exits, a Chrome saying more than that
+  would block trying to say it -- and then never exit. Same shape as the bug
+  above.
+
 
 A FILE APPEARING IS NOT A PICTURE
 

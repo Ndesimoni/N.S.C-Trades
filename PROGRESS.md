@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 155 tests · clippy clean · it watches his levels, says what
+**Two crates · 162 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -327,7 +327,7 @@ crates/nsc-work-man/      EVERYTHING THAT REACHES
   inbox/        the other side of Telegram — his levels,
                 stopping a pair, /status and /help. Spawned
                 beside the watcher                         6 tests
-  card/         filling a template, letting Chrome draw   14 tests
+  card/         filling a template, letting Chrome draw   17 tests
   feed/         asking Twelve Data                         7 tests
   telegram/     sending — words, pictures, media groups    3 tests
   retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests

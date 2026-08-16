@@ -131,8 +131,9 @@ THE FILES
 
   picture.rs    Drawing where the levels landed.
 
-  talking.rs    Saying it, with buttons. And escaping anything that goes into
-                a message, because they are parsed as HTML.
+  talking.rs    Saying it, with buttons. It is also the one place that adds
+                the Close row, and it escapes anything going into a message,
+                because they are parsed as HTML.
 
   README.txt    This file.
 
@@ -290,3 +291,21 @@ WHAT IS NOT HERE YET
   Removing one particular level. Undo takes off what the LAST message added,
   which covers a typo but not "that 3800 from last week was wrong". For that
   he opens the file.
+
+
+BACKING OUT
+
+  Every keyboard carries a Close button on its own row. It is added in
+  talking.rs, in the one function that builds a keyboard, rather than at each
+  place that puts buttons up.
+
+  Doing it at each call site would work until somebody added the eleventh
+  keyboard and forgot -- and the one without a Close is exactly the flow he
+  gets stuck in, buttons covering his own keyboard, on a phone.
+
+  The tap is caught at the very top of conversation.rs, before /help, before
+  the pair pages and before the stop-watching confirmation. Anywhere he can
+  be, Close means the same thing.
+
+  It resets what the bot remembered and takes the buttons away. It undoes
+  nothing. He asked to be left alone, not to have his levels changed.

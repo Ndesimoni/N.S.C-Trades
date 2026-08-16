@@ -9,7 +9,7 @@ use serde_json::json;
 
 use super::picture::show;
 use super::talking::say;
-use super::{NEW_PAIR, PAIRS, TIMEFRAMES, UNDO};
+use super::{CLOSE, NEW_PAIR, PAIRS, TIMEFRAMES, UNDO};
 use super::{asked, one, pairs};
 
 /// Where he is in the flow.
@@ -56,6 +56,14 @@ pub async fn handle(
     standing: &tokio::sync::watch::Receiver<crate::watch::Snapshot>,
 ) -> Result<()> {
     let folder = Path::new(PAIRS);
+
+    // **Backing out.** Forgets where he was and takes the buttons away, so his
+    // own keyboard comes back. Nothing is undone — he has not asked for that,
+    // he has asked to be left alone.
+    if text == CLOSE {
+        *adding = Adding::default();
+        return say(client, token, "Closed.", None).await;
+    }
 
     if text == "/help" || text == "/start" {
         return asked::help(client, token).await;

@@ -41,6 +41,20 @@ Every command with one line on what it does. Also `/start`.
 
 ---
 
+## `✗ Close` — back out
+
+**On every set of buttons, on its own row.** Tap it and the buttons go away,
+your own keyboard comes back, and the bot forgets what it was in the middle of.
+
+There was no way out before. Once the buttons were up they stayed up, over your
+own keyboard, until you finished what you started — and a half-finished
+`/remove` looked exactly like a bot waiting for something.
+
+**It takes nothing away.** Closing part-way through `/level` does not undo the
+levels you already saved in that conversation; it just stops asking.
+
+---
+
 ## `/pairs` — see everything, and change one
 
 ```

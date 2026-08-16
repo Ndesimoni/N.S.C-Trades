@@ -46,6 +46,14 @@ const NEW_PAIR: &str = "+ new pair";
 const ADD: &str = "+ Add levels";
 const DROP: &str = "− Take one off";
 const STOP: &str = "✗ Stop watching";
+
+/// Backing out.
+///
+/// **Every keyboard carries it.** Without one the only ways out of a flow are
+/// finishing it or sending a command that happens to replace the buttons —
+/// and the buttons stay on his screen in the meantime, over his own keyboard,
+/// looking like the bot is waiting for something.
+const CLOSE: &str = "✗ Close";
 const UNDO: &str = "↩ Undo";
 
 /// Stopping a pair takes two taps, not one.

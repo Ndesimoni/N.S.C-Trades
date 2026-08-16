@@ -92,11 +92,12 @@ Kept for the reason, not the fix.
 
 | | Bug | Fixed |
 |---|---|---|
-| 🔴 | [The bot answered nothing, and looked healthy](fixed/chrome-profile-wedged-the-bot.md) | 16 Aug |
-| 🔴 | [Two copies running, and neither said so](fixed/two-copies-eating-his-messages.md) | 16 Aug |
 | 🔴 | [The report of where price stands never came](fixed/greeting-reported-nothing-and-marked-itself-done.md) | 16 Aug |
 
-**This folder starts on 16 August 2026.** Plenty was found and fixed before
-it — thirteen in one read-back alone — and those live in the git log rather
-than here. Writing them up now from memory would be guessing at detail, which
-is the one thing a bug file must not do.
+**This folder starts with that one**, on 16 August 2026, and it is the last
+bug found before the folder existed.
+
+Everything before it stays in the git log. Writing old ones up from memory
+would mean guessing at detail — and a bug file that guesses is worse than no
+bug file, because it gets believed. **From here on, one goes in as it is
+found.**

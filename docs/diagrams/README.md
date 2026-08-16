@@ -58,3 +58,26 @@ travelling 5,119% of its box before that was caught.
 
 **Still open:** whether a high reading is worth acting on at all, given it gives
 no direction.
+
+---
+
+## [What a doji is, as four numbers →](https://claude.ai/code/artifact/d42faa62-e237-414f-858b-22d5b836c33e)
+
+`doji-model.html` · **open — the model is agreed, the threshold is not**
+
+**Argues:** a candle should be measured before it is named. Four numbers come
+out — `body`, `upper`, `lower` as shares of the whole candle, and `reach` in
+ATR — and every one is a fact. The name comes after, from a threshold in
+`config/`.
+
+Move `doji_body` and nothing recompiles: 0.05 gives 203 dojis, 0.10 gives 394,
+0.20 gives 813, out of 3,546 live gold hourly candles.
+
+Real candles: six actual XAU/USD 1-hour candles drawn to their own proportions,
+including the borderline one at 0.127 that the threshold argues about.
+
+**Two things it already shows:** a doji is not rare — one hourly candle in nine
+at 0.10 — and two in five are too small to mean anything, which is what `reach`
+is for.
+
+**Still open:** the threshold, and the rest of the candle names.

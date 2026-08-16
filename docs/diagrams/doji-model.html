@@ -1,0 +1,248 @@
+<title>Anatomy of a Doji</title>
+<style>
+  :root {
+    --ground:#F5F6F9; --panel:#FFFFFF; --sunk:#ECEFF5;
+    --ink:#14181F; --ink-soft:#5B6472; --faint:#8A93A2; --rule:#DDE1E9;
+    --good:#1E3FA8; --bad:#A2665C;
+    --up:#3C7A5A; --down:#A2665C; --trend:rgba(30,63,168,.10); --trend-line:#1E3FA8;
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans:  ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0E1116; --panel:#161A21; --sunk:#1E242E;
+      --ink:#E8EBF1; --ink-soft:#98A1B0; --faint:#6B7686; --rule:#262C36;
+      --good:#7C9BFF; --bad:#C98B7F;
+      --up:#5FA982; --down:#C98B7F; --trend:rgba(124,155,255,.13); --trend-line:#7C9BFF;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0E1116; --panel:#161A21; --sunk:#1E242E;
+    --ink:#E8EBF1; --ink-soft:#98A1B0; --faint:#6B7686; --rule:#262C36;
+    --good:#7C9BFF; --bad:#C98B7F;
+    --up:#5FA982; --down:#C98B7F; --trend:rgba(124,155,255,.13); --trend-line:#7C9BFF;
+  }
+
+  body { background:var(--ground); color:var(--ink); font-family:var(--sans);
+         line-height:1.6; margin:0; padding:2.5rem 1.25rem 5rem; }
+  .wrap { max-width:1040px; margin:0 auto; display:flex; flex-direction:column; gap:2rem; }
+
+  h1 { font-family:var(--serif); font-weight:600; font-size:clamp(1.7rem,4vw,2.5rem);
+       line-height:1.15; margin:0 0 .5rem; text-wrap:balance; letter-spacing:-.01em; }
+  h2 { font-family:var(--serif); font-weight:600; font-size:1.25rem; margin:0 0 .6rem; }
+  p  { margin:0 0 .9rem; max-width:66ch; color:var(--ink-soft); }
+  p strong, li strong { color:var(--ink); font-weight:600; }
+  .lede { font-size:1.06rem; color:var(--ink-soft); max-width:64ch; }
+
+  .eyebrow { font-family:var(--mono); font-size:.72rem; letter-spacing:.14em;
+             text-transform:uppercase; color:var(--faint); margin:0 0 .7rem; }
+
+  .card { background:var(--panel); border:1px solid var(--rule); border-radius:10px;
+          padding:1.5rem 1.5rem 1.25rem; }
+
+  .real { display:flex; gap:.6rem; align-items:baseline; flex-wrap:wrap;
+          font-family:var(--mono); font-size:.78rem; color:var(--ink-soft);
+          background:var(--sunk); border:1px solid var(--rule); border-left:3px solid var(--good);
+          border-radius:6px; padding:.75rem 1rem; }
+  .real b { color:var(--ink); font-weight:600; }
+
+  .picks { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin:0 0 1rem; }
+  .picks span { font-family:var(--mono); font-size:.75rem; color:var(--faint);
+                letter-spacing:.08em; text-transform:uppercase; margin-right:.3rem; }
+  button { font-family:var(--mono); font-size:.85rem; color:var(--ink-soft);
+           background:var(--sunk); border:1px solid var(--rule); border-radius:6px;
+           padding:.45rem .85rem; cursor:pointer; transition:all .15s; }
+  button:hover { color:var(--ink); border-color:var(--faint); }
+  button[aria-pressed="true"] { background:var(--trend-line); border-color:var(--trend-line);
+                                color:var(--panel); font-weight:600; }
+  button:focus-visible { outline:2px solid var(--good); outline-offset:2px; }
+
+  .chart { width:100%; overflow-x:auto; }
+  svg { display:block; width:100%; height:auto; }
+
+  .reading { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+             gap:1rem; margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--rule); }
+  .reading div span { display:block; font-family:var(--mono); font-size:.7rem;
+                      letter-spacing:.1em; text-transform:uppercase; color:var(--faint); }
+  .reading div b { font-family:var(--mono); font-size:1.5rem; font-weight:600;
+                   color:var(--ink); font-variant-numeric:tabular-nums; }
+
+  table { width:100%; border-collapse:collapse; font-size:.9rem; margin:.5rem 0 0; }
+  th,td { text-align:left; padding:.55rem .5rem; border-bottom:1px solid var(--rule); }
+  th { font-family:var(--mono); font-size:.7rem; letter-spacing:.1em;
+       text-transform:uppercase; color:var(--faint); font-weight:500; }
+  td.n { font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right; }
+  ul { margin:0 0 .9rem; padding-left:1.1rem; color:var(--ink-soft); max-width:66ch; }
+  li { margin-bottom:.4rem; }
+  .foot { color:var(--faint); font-size:.85rem; }
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+
+  .anatomy { display:grid; grid-template-columns:minmax(220px,300px) 1fr; gap:2rem;
+             align-items:center; }
+  @media (max-width:640px){ .anatomy{grid-template-columns:1fr} }
+  .anatomy svg { width:100%; height:auto; }
+  .lb  { font-family:var(--mono); font-size:11px; fill:var(--faint); }
+  .lb2 { font-family:var(--mono); font-size:11px; fill:var(--ink-soft); }
+  .fields div { margin-bottom:1rem; }
+  .fields code { font-family:var(--mono); font-size:.85rem; color:var(--trend-line);
+                 background:var(--sunk); padding:.15rem .45rem; border-radius:4px; }
+  .fields p { margin:.35rem 0 0; font-size:.92rem; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+          gap:1.25rem; margin-top:1rem; }
+  .one { background:var(--sunk); border:1px solid var(--rule); border-radius:8px;
+         padding:1rem .75rem .85rem; text-align:center; }
+  .one h3 { font-family:var(--sans); font-size:.82rem; font-weight:600; margin:0 0 .1rem;
+            color:var(--ink); }
+  .one time { font-family:var(--mono); font-size:.68rem; color:var(--faint);
+              display:block; margin-bottom:.6rem; }
+  .one svg { height:150px; width:100%; }
+  .one dl { display:grid; grid-template-columns:auto auto; gap:.1rem .5rem; margin:.7rem 0 0;
+            font-family:var(--mono); font-size:.7rem; justify-content:center; }
+  .one dt { color:var(--faint); text-align:right; }
+  .one dd { margin:0; color:var(--ink); font-variant-numeric:tabular-nums; text-align:left; }
+  .one p { font-size:.76rem; margin:.6rem 0 0; color:var(--ink-soft); text-align:left;
+           line-height:1.45; }
+</style>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">nsc_trades · nsc-ta · the model, before the code</p>
+  <h1>What a doji is, as four numbers</h1>
+  <p class="lede">A candle is measured before it is named. Four numbers come out, and
+  every one of them is a fact two people would agree on. <strong>The name comes after,
+  from a threshold you can change.</strong></p>
+</header>
+
+<div class="real">
+  <b>Real candles.</b>
+  <span>Every candle shown below is a real XAU/USD 1-hour candle from Twelve Data,
+  drawn to its own proportions · 3,546 live candles measured · weekends and holidays
+  removed.</span>
+</div>
+
+<section class="card">
+  <h2>The four numbers</h2>
+  <div class="anatomy">
+    <svg viewBox="0 0 260 300" role="img" aria-label="One candle, labelled with body, upper wick and lower wick">
+      <line x1="130" y1="28" x2="130" y2="272" stroke="var(--ink-soft)" stroke-width="2.5"/>
+      <rect x="106" y="128" width="48" height="52" fill="var(--up)" rx="2"/>
+      <line x1="60" y1="28" x2="100" y2="28" stroke="var(--faint)" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="60" y1="128" x2="100" y2="128" stroke="var(--faint)" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="60" y1="180" x2="100" y2="180" stroke="var(--faint)" stroke-width="1" stroke-dasharray="3 3"/>
+      <line x1="60" y1="272" x2="100" y2="272" stroke="var(--faint)" stroke-width="1" stroke-dasharray="3 3"/>
+      <text x="56" y="32"  text-anchor="end" class="lb">high</text>
+      <text x="56" y="132" text-anchor="end" class="lb">close</text>
+      <text x="56" y="184" text-anchor="end" class="lb">open</text>
+      <text x="56" y="276" text-anchor="end" class="lb">low</text>
+      <line x1="186" y1="28" x2="186" y2="128" stroke="var(--trend-line)" stroke-width="2"/>
+      <line x1="186" y1="128" x2="186" y2="180" stroke="var(--bad)" stroke-width="2"/>
+      <line x1="186" y1="180" x2="186" y2="272" stroke="var(--trend-line)" stroke-width="2"/>
+      <text x="196" y="82"  class="lb2">upper</text>
+      <text x="196" y="158" class="lb2">body</text>
+      <text x="196" y="230" class="lb2">lower</text>
+      <line x1="238" y1="28" x2="238" y2="272" stroke="var(--ink-soft)" stroke-width="1"/>
+      <text x="248" y="154" class="lb2" transform="rotate(-90 248 154)" text-anchor="middle">reach</text>
+    </svg>
+    <div class="fields">
+      <div><code>body</code><p>How much of the candle is body. <b>0.20</b> here — a fifth.
+        A share of the whole, never a price.</p></div>
+      <div><code>upper</code><p>The wick above the body, same way. <b>0.41</b>.</p></div>
+      <div><code>lower</code><p>The wick below. <b>0.39</b>. The three always add to 1.</p></div>
+      <div><code>reach</code><p><b>The only one not a share.</b> The whole candle divided
+        by ATR — is this big <em>for this pair</em>? Three points is nothing on gold and
+        a week on the euro.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Where the name gets decided</h2>
+  <p>A doji is <em>a candle with almost no body</em>. “Almost” is the whole argument, and
+  it belongs in <code>config/</code> rather than in code.</p>
+  <div class="picks">
+    <span>doji_body</span>
+    <button data-th="0.05" aria-pressed="false">0.05</button>
+    <button data-th="0.1" aria-pressed="true">0.10</button>
+    <button data-th="0.15" aria-pressed="false">0.15</button>
+    <button data-th="0.2" aria-pressed="false">0.20</button>
+  </div>
+  <div class="reading">
+    <div><span>Called a doji</span><b id="count">—</b></div>
+    <div><span>Of all candles</span><b id="share">—</b></div>
+    <div><span>On gold, that is</span><b id="often">—</b></div>
+  </div>
+  <p style="margin-top:1.25rem">Move it and nothing recompiles — the same candles get a
+  different answer. <strong>That is the reason for the split.</strong> Bury the number
+  inside a function called <code>is_doji</code> and changing your mind means changing
+  code.</p>
+</section>
+
+<section class="card">
+  <h2>Real ones, from your own gold</h2>
+  <p>Every candle here actually printed. Drawn to its true proportions, with the four
+  numbers underneath.</p>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section class="card">
+  <h2>Two things the numbers already say</h2>
+  <ul>
+    <li><strong>A doji is not rare.</strong> At 0.10, one hourly gold candle in nine
+      qualifies — 394 of 3,546. On its own it is not a signal, it is a shape. What makes
+      it worth a message is <em>where</em> it printed, and that is your zones, not this
+      crate.</li>
+    <li><strong>Two in five are too small to mean anything.</strong> Of those 394, only
+      240 reached half a normal candle or more. The rest are dead-hour candles with tiny
+      bodies because nothing happened. <code>reach</code> is what tells them apart, and
+      it is why a share-of-the-candle number alone is not enough.</li>
+  </ul>
+  <p class="foot">This is the model, not a rule. Whether a doji at a zone is worth acting
+  on is a question for <code>nsc-strategy</code> and a backtest — <code>nsc-ta</code>
+  only ever says what a candle is.</p>
+</section>
+
+</div>
+
+<script>
+const EX = [{"key": "classic", "label": "Classic doji", "note": "Body almost nothing, wicks even. Nobody won the hour.", "i": 1994, "t": "2026-05-15 16:00:00", "o": 4567.9897, "h": 4581.0027, "l": 4557.8422, "c": 4567.6744, "body": 0.0136, "upper": 0.5619, "lower": 0.4245, "reach": 1.2295}, {"key": "dragonfly", "label": "Dragonfly", "note": "Sold down hard, bought all the way back.", "i": 109, "t": "2026-01-27 03:00:00", "o": 5092.3084, "h": 5103.1199, "l": 5057.611, "c": 5089.5992, "body": 0.0595, "upper": 0.2376, "lower": 0.7029, "reach": 2.0089}, {"key": "gravestone", "label": "Gravestone", "note": "Bought up hard, given all of it back.", "i": 3093, "t": "2026-07-20 11:00:00", "o": 4001.5063, "h": 4018.439, "l": 3996.9623, "c": 4002.2651, "body": 0.0353, "upper": 0.7531, "lower": 0.2116, "reach": 2.2207}, {"key": "longlegged", "label": "Long-legged", "note": "Both ways, a long way, and back to the start.", "i": 1051, "t": "2026-03-23 09:00:00", "o": 4492.1418, "h": 4532.2295, "l": 4467.9713, "c": 4493.6191, "body": 0.023, "upper": 0.6009, "lower": 0.3761, "reach": 2.6318}, {"key": "borderline", "label": "Borderline \u2014 0.127", "note": "A doji at 0.15, not at 0.10. This is the candle your threshold argues about.", "i": 1060, "t": "2026-03-23 18:00:00", "o": 4213.8048, "h": 4225.5899, "l": 4104.8153, "c": 4198.4286, "body": 0.1273, "upper": 0.0976, "lower": 0.7751, "reach": 2.1379}, {"key": "spinning", "label": "Spinning top \u2014 not a doji", "note": "Small body, but not small enough. This is what the line is for.", "i": 2851, "t": "2026-07-06 09:00:00", "o": 4189.0174, "h": 4202.0338, "l": 4176.7605, "c": 4184.0763, "body": 0.1955, "upper": 0.515, "lower": 0.2895, "reach": 2.7079}], COUNTS = {"0.05": 203, "0.1": 394, "0.15": 621, "0.2": 813}, TOTAL = 3546;
+const NS = 'http://www.w3.org/2000/svg';
+
+function candle(s) {
+  const H = 150, pad = 12, rng = s.h - s.l || 1;
+  const y = v => pad + (1 - (v - s.l) / rng) * (H - pad * 2);
+  const up = s.c >= s.o, col = up ? 'var(--up)' : 'var(--down)';
+  const top = Math.max(s.o, s.c), bot = Math.min(s.o, s.c);
+  return `<svg viewBox="0 0 60 ${H}" preserveAspectRatio="xMidYMid meet">
+    <line x1="30" y1="${y(s.h)}" x2="30" y2="${y(s.l)}" stroke="${col}" stroke-width="2.5"/>
+    <rect x="17" y="${y(top)}" width="26" height="${Math.max(y(bot) - y(top), 2)}"
+          fill="${col}" rx="1.5"/></svg>`;
+}
+
+document.getElementById('grid').innerHTML = EX.map(s => `
+  <div class="one">
+    <h3>${s.label}</h3><time>${s.t.slice(0,16)}</time>
+    ${candle(s)}
+    <dl><dt>body</dt><dd>${s.body.toFixed(3)}</dd>
+        <dt>upper</dt><dd>${s.upper.toFixed(2)}</dd>
+        <dt>lower</dt><dd>${s.lower.toFixed(2)}</dd>
+        <dt>reach</dt><dd>${s.reach.toFixed(1)}A</dd></dl>
+    <p>${s.note}</p>
+  </div>`).join('');
+
+function pick(th) {
+  const n = COUNTS[th];
+  document.getElementById('count').textContent = n;
+  document.getElementById('share').textContent = (n / TOTAL * 100).toFixed(1) + '%';
+  document.getElementById('often').textContent = 'about 1 in ' + Math.round(TOTAL / n);
+}
+
+document.querySelectorAll('button[data-th]').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('button[data-th]').forEach(o =>
+      o.setAttribute('aria-pressed', String(o === b)));
+    pick(b.dataset.th);
+  });
+});
+pick('0.1');
+</script>

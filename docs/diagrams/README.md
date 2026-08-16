@@ -81,3 +81,22 @@ at 0.10 — and two in five are too small to mean anything, which is what `reach
 is for.
 
 **Still open:** the threshold, and the rest of the candle names.
+
+---
+
+## [The three candles the tests are built on →](https://claude.ai/code/artifact/c655b344-a136-42bf-902f-49a8a07e5c11)
+
+`test-candles.html` · **reference**
+
+Every test in `crates/nsc-ta/src/candle/tests.rs` uses a candle that actually
+printed. This is what they look like, each with the hours either side.
+
+- **The doji**, 15 May 2026 16:00 — travelled $23.16, finished 31 cents from
+  where it started
+- **The marubozu**, 21 March 2026 00:00 — opened at its high, closed at its
+  low, $64 down, no wick at either end. The only candle in 5,000 measuring
+  exactly 1.0000
+- **The flat one**, 19 April 2025 07:00 — Easter Saturday, open high low and
+  close all 3326.27, and no shape at all
+
+Real candles: XAU/USD 1-hour and 4-hour from Twelve Data.

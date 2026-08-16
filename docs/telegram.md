@@ -33,6 +33,38 @@ tells you what is brewing today without opening a chart.
 It is the same card as the morning heartbeat. That one only comes on a day
 nothing else did; this is the same question asked whenever you want.
 
+**On a day nothing is watched it says so in words instead:**
+
+> 😴 **Resting**
+>
+> The market is shut, or today is one you have set aside. Nothing is watched
+> and nothing is fetched.
+>
+> **4** pairs · **13** zones are loaded and ready.
+
+The card's useful column is how far price is from the nearest zone — and on a
+quiet day no price has arrived, so every row would be a dash.
+
+**It always answers.** If the picture cannot be drawn it sends the words on
+their own. Replying "could not do that" to *is it running* is the one answer
+that would be worse than none.
+
+**On a day nothing is watched it says so in words instead:**
+
+> 😴 **Resting**
+>
+> The market is shut, or today is one you have set aside. Nothing is watched
+> and nothing is fetched.
+>
+> **4** pairs · **13** zones are loaded and ready.
+
+The card's useful column is how far price is from the nearest zone — and on a
+quiet day no price has arrived, so every row would be a dash.
+
+**It always answers.** If the picture cannot be drawn it sends the words on
+their own. Replying "could not do that" to *is it running* is the one answer
+that would be worse than none.
+
 ---
 
 ## `/help` — the list

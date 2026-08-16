@@ -161,6 +161,7 @@ pub(super) fn snapshot(watching: &HashMap<String, Watching>, calendar: &Rules) -
             })
             .collect(),
         opened: when::opened(Utc::now(), calendar),
+        quiet: when::allowed(Utc::now(), calendar) == Allowed::Silence,
     }
 }
 

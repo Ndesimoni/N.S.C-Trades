@@ -17,6 +17,20 @@ const SCALE: &str = "--force-device-scale-factor=2";
 /// animations halfway and the fonts before they have arrived.
 const SETTLE: &str = "--virtual-time-budget=4000";
 
+/// **Its own profile, so it never fights the browser he is using.**
+///
+/// Without this, Chrome reaches for the default profile — the one his own
+/// open browser is holding. It then exits without drawing, having already
+/// created the file, so the "did a picture appear?" check passed on nought
+/// bytes and the image reader failed with "unexpected end of file".
+///
+/// It happened intermittently, which is worse than always: `/status` worked
+/// when his browser was shut and failed when it was open, and nothing in the
+/// message said why.
+///
+/// Under `preview/`, which is already ignored by git.
+const PROFILE: &str = "preview/.chrome";
+
 /// How much shorter the page is than the window Chrome was asked for.
 ///
 /// **Measured, not guessed:** ask for 600 and the page gets 513, ask for 900
@@ -48,6 +62,7 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
             "--hide-scrollbars",
             SCALE,
             SETTLE,
+            &format!("--user-data-dir={PROFILE}"),
             &format!("--window-size={WIDTH},{}", height + RESERVED),
             &format!("--screenshot={}", out.display()),
             &format!("file://{}", page.display()),
@@ -55,9 +70,17 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
         .output()
         .map_err(|trouble| CardError::DrewNothing(trouble.to_string()))?;
 
-    // Chrome answers 0 whether it drew the card or its own error page, so the
-    // only honest check is whether a file appeared.
-    if !out.exists() {
+    // **Chrome answers 0 whether it drew the card, its own error page, or
+    // nothing at all** — so the only honest check is the file itself.
+    //
+    // `exists` was that check and it was not enough. Chrome creates the file
+    // before it writes to it, so a run that gave up left nought bytes behind
+    // and this said the card was drawn. What came back was the image reader
+    // failing on an empty file — "unexpected end of file" — which reads like a
+    // disk fault rather than what it was.
+    let drawn = std::fs::metadata(out).map(|about| about.len()).unwrap_or(0);
+
+    if drawn == 0 {
         return Err(CardError::DrewNothing(
             String::from_utf8_lossy(&done.stderr).into_owned(),
         ));

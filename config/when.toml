@@ -61,7 +61,8 @@ silent_days = ["saturday", "sunday"]
 #
 # Four rather than five: it is one 4-hour candle, so the window ends on a
 # boundary that exists rather than in the middle of one.
-settle_hours = 4
+#todo set settle_hours later on to 4
+settle_hours = 0
 
 
 # ── Days a trade may be talked about but not opened ─────────────────────────

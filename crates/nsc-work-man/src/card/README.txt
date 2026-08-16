@@ -128,3 +128,30 @@ THE COST OF ALL THIS
   Whatever machine runs the bot needs Chrome installed. Fine on a Mac. A real
   dependency on a server, and worth remembering before it goes anywhere but a
   laptop.
+
+
+CHROME GETS ITS OWN PROFILE
+===========================
+
+  It is run with --user-data-dir=preview/.chrome.
+
+  Without it, Chrome reaches for the DEFAULT profile -- the one his own open
+  browser is holding. It then exits without drawing anything.
+
+  That was intermittent, which is worse than always broken: /status worked
+  when his browser was shut and failed when it was open, and nothing in the
+  message said why.
+
+
+A FILE APPEARING IS NOT A PICTURE
+
+  Chrome answers 0 whether it drew the card, drew its own error page, or drew
+  nothing at all. So the file itself is the only honest check.
+
+  `out.exists()` was that check and it was not enough. Chrome CREATES the file
+  before it writes to it, so a run that gave up left nought bytes behind and
+  the check passed. What came back was the image reader failing on an empty
+  file -- "unexpected end of file" -- which reads like a disk fault rather
+  than like Chrome refusing to start.
+
+  It checks the size now.

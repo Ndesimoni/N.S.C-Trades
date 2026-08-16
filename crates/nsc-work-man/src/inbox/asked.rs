@@ -6,7 +6,7 @@
 
 use std::path::PathBuf;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use chrono::Utc;
 use nsc_core::when::beat_words;
 use tokio::sync::watch;
@@ -125,15 +125,43 @@ pub async fn status(
     let quiet = format!("{hours} hour{}", if hours == 1 { "" } else { "s" });
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
 
-    let out = PathBuf::from("preview").join("status.png");
-    let picture = card::heartbeat(&alive, &quiet, &stamp, &out).context("could not draw it")?;
+    let words = if now.quiet {
+        resting(&now)
+    } else {
+        beat_words(now.pairs.len(), now.zones())
+    };
 
-    telegram::send_to(
-        client,
-        &OWNER.to_string(),
-        &[&picture],
-        &beat_words(now.pairs.len(), now.zones()),
+    let out = PathBuf::from("preview").join("status.png");
+
+    // **It answers either way.** This is the one command whose whole job is
+    // "are you alive", and it used to reply "Could not do that" when the card
+    // would not draw — which is the single most misleading thing it could say.
+    // The words carry the answer; the picture only carries it better.
+    match card::heartbeat(&alive, &quiet, &stamp, &out) {
+        Ok(picture) => telegram::send_to(client, &OWNER.to_string(), &[&picture], &words)
+            .await
+            .map_err(Into::into),
+
+        Err(trouble) => {
+            eprintln!("Could not draw the status card: {trouble}");
+            say(client, token, &words, None).await
+        }
+    }
+}
+
+/// What to say on a day nothing is watched.
+///
+/// **The card is the wrong shape for it.** Its useful column is how far price
+/// is from the nearest zone, and on a quiet day no price has arrived — so
+/// every row reads as a dash and the message says nothing at all.
+fn resting(now: &Snapshot) -> String {
+    format!(
+        "😴 <b>Resting</b>\n\n\
+         The market is shut, or today is one you have set aside. Nothing is \
+         watched and nothing is fetched.\n\n\
+         <b>{}</b> pairs · <b>{}</b> zones are loaded and ready.\n\n\
+         <i>It opens the line when the next session does.</i>",
+        now.pairs.len(),
+        now.zones(),
     )
-    .await
-    .map_err(Into::into)
 }

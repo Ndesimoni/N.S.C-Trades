@@ -33,6 +33,12 @@ pub struct Snapshot {
     /// When this session opened, so `/status` can say how long it has been
     /// quiet without working the calendar out a second time.
     pub opened: DateTime<Utc>,
+
+    /// **Nothing is being watched today** — the weekend, or a day he has put
+    /// in `silent_days`. The line is not open and no price has arrived, so
+    /// every distance on the card would be blank. Saying so in a sentence
+    /// beats a card full of dashes.
+    pub quiet: bool,
 }
 
 impl Snapshot {

@@ -25,6 +25,21 @@ A REFUSED MESSAGE IS NOT A SENT MESSAGE
   that says what went wrong is exactly the one that has to arrive.
 
 
+/status ALWAYS ANSWERS
+
+  It used to reply "Could not do that" when the card would not draw, which is
+  the single most misleading thing it could say -- the whole job of this
+  command is telling him the bot is alive.
+
+  The words carry the answer; the picture only carries it better. If the card
+  fails, the words go on their own.
+
+  And on a day nothing is watched it says so in a sentence rather than drawing
+  a card of dashes. The card's useful column is how far price is from the
+  nearest zone, and on a quiet day no price has arrived, so every row would be
+  blank.
+
+
 HOW /status ANSWERS
 
   The WATCHER holds the live picture — which bands are sized, where price was
@@ -167,6 +182,21 @@ FOUR THINGS THAT ARE DELIBERATE
   goes in, because every message here is parsed as HTML: a stray `<` in an
   error is an unclosed tag, and Telegram refuses the whole message. The reply
   that says what went wrong is exactly the one that has to arrive.
+
+
+/status ALWAYS ANSWERS
+
+  It used to reply "Could not do that" when the card would not draw, which is
+  the single most misleading thing it could say -- the whole job of this
+  command is telling him the bot is alive.
+
+  The words carry the answer; the picture only carries it better. If the card
+  fails, the words go on their own.
+
+  And on a day nothing is watched it says so in a sentence rather than drawing
+  a card of dashes. The card's useful column is how far price is from the
+  nearest zone, and on a quiet day no price has arrived, so every row would be
+  blank.
 
 
 HOW /status ANSWERS

@@ -20,6 +20,12 @@ nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
 nsc-work-man    everything that reaches
 ```
 
+> **TOP PRIORITY, agreed 16 August:** draw cards off the price loop. Drawing
+> one blocks a worker thread for 2–10 seconds. Fine on his Mac, **stalls the
+> whole bot on a one-core cloud box** — and hosting is the plan. See
+> [Next, in this order](#next-in-this-order). Do it once a live session has
+> run clean.
+
 ---
 
 ## What this is
@@ -413,6 +419,43 @@ end on the same second.
 
 Agreed 16 August, before anything new is added.
 
+### 0. TOP PRIORITY — draw cards off the price loop
+
+**Agreed 16 August. This is the next code change, before rung 3 and before
+the news.**
+
+Drawing a card runs Chrome and *waits* for it. That wait is a plain blocking
+wait sitting inside async code, so for the **2 to 10 seconds** a card takes —
+60 in the worst case — one of Tokio's worker threads does nothing but poll
+Chrome.
+
+**What it costs today:** on his Mac there are eight or more workers, so prices
+keep arriving on the others and queue in the socket buffer. Nothing is lost.
+Alerts can be a few seconds late.
+
+**Where it actually bites:**
+
+- **Several cards at once.** Four pairs reaching zones together blocks four
+  workers.
+- **A small cloud box.** One or two cores and the whole bot stalls while a
+  card draws — no prices read, no messages answered. **Hosting is the plan,
+  so this is the one that matters.**
+
+**The fix:** `tokio::task::spawn_blocking`. Tokio keeps a separate pool for
+exactly this, and work sent there never touches the threads running the price
+loop.
+
+**The catch:** the card functions borrow — `&Pair`, `&Band` — and that pool
+needs owned values. So each call site clones its inputs first. They are small
+structs; the clone is nothing next to running Chrome.
+
+**Six call sites:** the alert, the candle close, the heartbeat, `/status`, the
+armed card, the trouble card.
+
+Held back deliberately on 16 August: it touches every path that sends
+anything, and the first live session had not been watched yet. **Do it once a
+live session has run clean.**
+
 1. ~~**Go over the file structure.**~~ Done 16 August — four files were over
    the 250-line limit, `watch/mod.rs` had an `impl` in it, `bin/cards/` had no
    README, and two READMEs named files that had become folders. Reading
@@ -437,12 +480,17 @@ stopped from his phone on 16 August. Not put back — that is his call.
 
 ## Still open
 
+- [ ] **Draw cards off the price loop — TOP PRIORITY.** A blocking wait on
+      Chrome sits inside async code, so a card holds a worker thread for 2–10
+      seconds. Harmless on eight cores, fatal on one. `spawn_blocking`, six
+      call sites, inputs cloned first. Full note under *Next, in this order*
 - [ ] **Rung 3 — the strategy.** Needs `nsc-strategy`, and needs two answers
       from him: what makes him *skip* a rejection, and where the stop goes.
       Everything else can be built without him
 - [ ] **It has never run through a live session.** Rungs 1 and 2, the
       twenty-minute look and the heartbeat have only been exercised through
-      `--bin cards`. First real test is Monday 21:00 UTC, when Tuesday opens
+      `--bin cards`. **First real test is Sunday 16 August 21:00 UTC** — the
+      Monday session, now that `monday` is out of `silent_days` for testing
 - [ ] **OANDA** — applied 14 August, nothing back. Worth having because it
       marks each candle finished or not, so the guessing stops
 - [ ] **Nothing is stored.** No database. A restart forgets every zone it was

@@ -47,6 +47,15 @@ const PIXELS_PER_POINT: u32 = 2;
 ///
 /// Both paths must already be absolute — see the note in `fill.rs` about what
 /// happens when they are not.
+///
+/// **This blocks, and it is called from async code.** For the two to ten
+/// seconds Chrome takes, one of Tokio's worker threads does nothing but wait
+/// here. On his Mac there are eight of them and prices keep arriving on the
+/// others; on a one-core box the whole bot stops until the card is drawn.
+///
+/// The fix is `spawn_blocking` at the six places that draw a card, which needs
+/// their inputs owned rather than borrowed. It is the top item in
+/// `PROGRESS.md`. Do not add a seventh caller without reading that first.
 pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
     if !Path::new(CHROME).exists() {
         return Err(CardError::NoChrome(CHROME.into()));

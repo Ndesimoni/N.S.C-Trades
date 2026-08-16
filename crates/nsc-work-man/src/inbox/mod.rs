@@ -21,10 +21,7 @@
 //! that was the mistake the old `settings.rs` made, and two lists disagree in
 //! the end.
 
-use anyhow::{Context, Result, anyhow};
 use nsc_core::levels::Timeframe;
-use serde_json::Value;
-use tokio::sync::watch;
 
 /// Only he may write levels.
 ///
@@ -72,82 +69,8 @@ mod pairs;
 mod picture;
 mod talking;
 
-use conversation::{Adding, handle};
-use talking::say;
-
 pub use talking::plainly;
 
-/// How long to wait before listening again after a failure.
-const AGAIN: std::time::Duration = std::time::Duration::from_secs(15);
+mod hearing;
 
-/// Listens forever, and never gives up.
-///
-/// **It is spawned beside the watcher, so it must not be able to stop.** If it
-/// ends, levels he sends go nowhere and nothing says so — which is the exact
-/// failure that made it worth folding in.
-pub async fn run(client: reqwest::Client, standing: watch::Receiver<crate::watch::Snapshot>) {
-    loop {
-        if let Err(trouble) = listen(&client, &standing).await {
-            eprintln!("The inbox stopped listening: {trouble:#}");
-        }
-
-        tokio::time::sleep(AGAIN).await;
-    }
-}
-
-async fn listen(
-    client: &reqwest::Client,
-    standing: &watch::Receiver<crate::watch::Snapshot>,
-) -> Result<()> {
-    let token = std::env::var("TELEGRAM_BOT_TOKEN").context("TELEGRAM_BOT_TOKEN is not set")?;
-    let mut adding = Adding::default();
-    let mut seen_up_to: i64 = 0;
-
-    asked::register(client, &token).await;
-
-    loop {
-        // `timeout=30` makes Telegram hold the line open rather than answering
-        // "nothing" instantly. One request every thirty seconds, not hundreds.
-        let url = format!(
-            "https://api.telegram.org/bot{token}/getUpdates?offset={}&timeout=30",
-            seen_up_to + 1
-        );
-
-        let reply: Value = client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|trouble| anyhow!("could not reach Telegram: {}", trouble.without_url()))?
-            .json()
-            .await
-            .context("Telegram answered, but not with JSON")?;
-
-        for update in reply["result"].as_array().into_iter().flatten() {
-            seen_up_to = update["update_id"].as_i64().unwrap_or(seen_up_to);
-            let message = &update["message"];
-
-            // Anything not from him is ignored without a word. A bot that
-            // argues with strangers is a bot that tells them it exists.
-            if message["from"]["id"].as_i64() != Some(OWNER) {
-                continue;
-            }
-
-            let Some(text) = message["text"].as_str() else {
-                continue;
-            };
-
-            println!("You said: {text}");
-
-            if let Err(trouble) = handle(client, &token, text.trim(), &mut adding, standing).await {
-                println!("  -> {trouble:#}");
-                say(
-                    client,
-                    &token,
-                    &format!("Could not do that:\n{}", plainly(&format!("{trouble:#}"))),
-                    None,
-                )
-                .await?;
-            }
-        }
-    }
-}
+pub use hearing::run;

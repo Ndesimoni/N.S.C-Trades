@@ -130,7 +130,11 @@ STOPPING A PAIR
 
 THE FILES
 
-  mod.rs        The front door, and the long poll that never gives up.
+  mod.rs        The front door -- what is inside and what the rest of the
+                bot can see.
+
+  hearing.rs    The long poll that never gives up, and reading what Telegram
+                answers. See ONLY ONE COPY AT A TIME below.
 
   conversation/ Working out what he meant, and what to say back. Its own
                 folder, with its own README. The
@@ -368,3 +372,20 @@ A BUTTON THAT IS NO LONGER TRUE
   Taking a level off says whether it was there. A price that is not on the
   pair changes nothing, which is right. But the reply said "1.28 taken off"
   either way, so a stale tap looked exactly like one that worked.
+
+
+ONLY ONE COPY AT A TIME
+
+  Telegram hands each message to whichever copy of the bot asks for it first.
+  Two running at once split his messages between them at random, and each one
+  looks like it is ignoring him.
+
+  Telegram does say so -- it refuses the poll with error 409, "Conflict:
+  terminated by other getUpdates request". But only `result` was ever read out
+  of the answer, and a refusal carries no `result`, so a refused poll looked
+  exactly like a quiet minute. The second copy span on silently, forever,
+  while he sent messages nothing was reading.
+
+  It now says which thing is wrong, every fifteen seconds, until one is shut
+  down. Same for any other refusal -- a bad token reads the same way and is a
+  very different evening.

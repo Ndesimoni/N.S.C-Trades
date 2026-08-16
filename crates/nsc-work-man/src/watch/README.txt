@@ -309,8 +309,14 @@ WHAT MUST NEVER STOP THE BOT
   waits quietly, the same as it does at the weekend, and picks the levels up
   when he sends some.
 
-  The rule under all three: A REQUEST THAT FAILS IS NOT THE PRICE LINE
-  BREAKING. Only the websocket itself going down is that.
+  SAYING THE LEVELS ARE ARMED. That used `?`, so Chrome refusing to start --
+  because his own browser held the profile -- killed the bot at startup, on
+  the one message whose only job is to say "your levels are live". They ARE
+  live either way.
+
+  The rule under all four: A THING THAT FAILS TO BE SAID IS NOT THE PRICE LINE
+  BREAKING, and a card that will not draw is not a reason to stop. Only the
+  websocket itself going down is that.
 
 
 THE OPENING HOURS ARE WATCHED, NOT SPOKEN ABOUT

@@ -130,17 +130,31 @@ THE COST OF ALL THIS
   laptop.
 
 
-CHROME GETS ITS OWN PROFILE
-===========================
+CHROME GETS A PROFILE OF ITS OWN, EVERY TIME
+============================================
 
-  It is run with --user-data-dir=preview/.chrome.
+  Chrome REFUSES TO START on a profile another Chrome is holding. It says
+  "Failed to create a ProcessSingleton for your profile directory" and gives
+  up.
 
-  Without it, Chrome reaches for the DEFAULT profile -- the one his own open
-  browser is holding. It then exits without drawing anything.
+  With no --user-data-dir it reaches for the DEFAULT profile, which is the one
+  his own open browser is holding. So cards failed whenever Chrome was open
+  and worked whenever it was not -- intermittent, which is worse than always
+  broken, and nothing in the message said why.
 
-  That was intermittent, which is worse than always broken: /status worked
-  when his browser was shut and failed when it was open, and nothing in the
-  message said why.
+  ONE FIXED FOLDER IS NOT ENOUGH EITHER. The bot draws while --bin cards is
+  drawing, and the watcher draws while the inbox answers /status. Any shared
+  folder is a lock two of them can want. Trying a fixed folder was the second
+  version of this fix and it broke the bot at startup.
+
+  So: a fresh folder per drawing, in the system temp folder, thrown away
+  after.
+
+  AND SWEPT, because throwing it away is not enough on its own. Chrome leaves
+  helper processes running for a moment after the one we waited on has gone,
+  and they build the folder straight back. Anything of ours older than an hour
+  goes at the start of the next drawing. An hour is far longer than a drawing
+  takes, so it can never delete one in use.
 
 
 A FILE APPEARING IS NOT A PICTURE

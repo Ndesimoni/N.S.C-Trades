@@ -17,19 +17,68 @@ const SCALE: &str = "--force-device-scale-factor=2";
 /// animations halfway and the fonts before they have arrived.
 const SETTLE: &str = "--virtual-time-budget=4000";
 
-/// **Its own profile, so it never fights the browser he is using.**
+/// **A profile of its own, for this one drawing.**
 ///
-/// Without this, Chrome reaches for the default profile — the one his own
-/// open browser is holding. It then exits without drawing, having already
-/// created the file, so the "did a picture appear?" check passed on nought
-/// bytes and the image reader failed with "unexpected end of file".
-///
-/// It happened intermittently, which is worse than always: `/status` worked
-/// when his browser was shut and failed when it was open, and nothing in the
+/// Chrome refuses to start on a profile another Chrome is holding — it says
+/// "Failed to create a ProcessSingleton for your profile directory" and gives
+/// up. With no `--user-data-dir` it reaches for the DEFAULT profile, which is
+/// the one his own open browser is holding, so cards failed whenever Chrome
+/// was open and worked whenever it was not. Intermittent, and nothing in the
 /// message said why.
 ///
-/// Under `preview/`, which is already ignored by git.
-const PROFILE: &str = "preview/.chrome";
+/// **One fixed folder is not enough either.** The bot draws cards while
+/// `--bin cards` is drawing one, and the watcher draws while the inbox
+/// answers `/status`. Any shared folder is a lock two of them can want.
+///
+/// So: a fresh one per drawing, thrown away after. Chrome builds it in about
+/// a second, which for a card sent every few minutes is nothing.
+fn own_profile() -> std::path::PathBuf {
+    let stamp = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|since| since.as_nanos())
+        .unwrap_or_default();
+
+    std::env::temp_dir().join(format!("{LEFTOVER}{}-{stamp}", std::process::id()))
+}
+
+/// What every throwaway profile is called, so the stale ones can be found.
+const LEFTOVER: &str = "nsc-chrome-";
+
+/// How long a profile has to sit there before it counts as abandoned.
+const ABANDONED: std::time::Duration = std::time::Duration::from_secs(3600);
+
+/// **Clears out profiles nobody is using.**
+///
+/// Deleting one the moment Chrome exits is not enough on its own: Chrome
+/// leaves helper processes running for a moment after the one we waited on has
+/// gone, and they build the folder straight back. One card every few minutes
+/// for a fortnight is a lot of folders.
+///
+/// So anything of ours older than an hour goes. An hour is far longer than a
+/// drawing takes, so this can never delete one in use — including one another
+/// copy of the bot is using right now.
+///
+/// Failing to tidy up is never worth stopping for. It is housekeeping.
+fn sweep_old_profiles() {
+    let Ok(entries) = std::fs::read_dir(std::env::temp_dir()) else {
+        return;
+    };
+
+    for old in entries.flatten() {
+        if !old.file_name().to_string_lossy().starts_with(LEFTOVER) {
+            continue;
+        }
+
+        let sat_there = old
+            .metadata()
+            .and_then(|about| about.modified())
+            .map(|at| at.elapsed().unwrap_or_default());
+
+        if sat_there.is_ok_and(|since| since > ABANDONED) {
+            let _ = std::fs::remove_dir_all(old.path());
+        }
+    }
+}
 
 /// How much shorter the page is than the window Chrome was asked for.
 ///
@@ -55,6 +104,9 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
 
     clear_the_way(out)?;
 
+    sweep_old_profiles();
+    let profile = own_profile();
+
     let done = Command::new(CHROME)
         .args([
             "--headless",
@@ -62,13 +114,18 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
             "--hide-scrollbars",
             SCALE,
             SETTLE,
-            &format!("--user-data-dir={PROFILE}"),
+            &format!("--user-data-dir={}", profile.display()),
             &format!("--window-size={WIDTH},{}", height + RESERVED),
             &format!("--screenshot={}", out.display()),
             &format!("file://{}", page.display()),
         ])
-        .output()
-        .map_err(|trouble| CardError::DrewNothing(trouble.to_string()))?;
+        .output();
+
+    // Thrown away whether it worked or not. Left behind, they pile up in the
+    // temp folder for as long as the bot runs.
+    let _ = std::fs::remove_dir_all(&profile);
+
+    let done = done.map_err(|trouble| CardError::DrewNothing(trouble.to_string()))?;
 
     // **Chrome answers 0 whether it drew the card, its own error page, or
     // nothing at all** — so the only honest check is the file itself.

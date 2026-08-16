@@ -198,8 +198,15 @@ async fn armed(
         kit.awake.forget(symbol);
     }
 
-    if !fresh.armed.is_empty() {
-        reload::say_it_is_armed(client, &fresh.watching, &mut kit.pulse).await?;
+    // **A card that will not draw is not a reason to stop.** This used `?`,
+    // so Chrome refusing to start — because his own browser held the profile
+    // — killed the bot at startup, on the one message that only says "your
+    // levels are live". The levels ARE live either way. Say what went wrong
+    // and carry on watching them.
+    if !fresh.armed.is_empty()
+        && let Err(trouble) = reload::say_it_is_armed(client, &fresh.watching, &mut kit.pulse).await
+    {
+        eprintln!("Could not say the levels are armed: {trouble:#}");
     }
 
     Ok(fresh.watching)

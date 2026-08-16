@@ -105,6 +105,15 @@ pub async fn handle(
         adding.pair = Some(name.clone());
         adding.timeframe = None;
 
+        // **He has moved to a different pair, so forget the last one's page.**
+        // These used to survive, and a level button from an older message then
+        // took its price off whichever pair he was last LOOKING at rather than
+        // the one he is now adding to. Telegram keeps old keyboards tappable
+        // forever, so that button is one thumb away for as long as the chat
+        // exists.
+        adding.chosen = None;
+        adding.dropping = false;
+
         let words = if existing.contains(&name) {
             format!("{name} — which timeframe?")
         } else {

@@ -324,6 +324,11 @@ A BUTTON THAT IS NO LONGER TRUE
 
   Two things guard against that, and both were bugs first:
 
+  Moving to a different pair forgets the page he was on. `chosen` and
+  `dropping` used to survive it, so a level button from an older message took
+  its price off whichever pair he was last LOOKING at rather than the one he
+  was adding to.
+
   A level button carries its chart name -- "weekly 1.21279", not "1.21279".
   Reading the last number off any message meant that while the take-one-off
   list was up, sending "1.28 1.31" -- which is how he is TOLD to add two

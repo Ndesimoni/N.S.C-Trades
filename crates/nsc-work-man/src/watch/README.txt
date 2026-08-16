@@ -49,7 +49,7 @@ THE FILES
 
   reload.rs   Noticing he has sent a level, without being restarted.
 
-  closes.rs   Rung 2 — what a candle at a zone is doing, and what it did.
+  closes/   Rung 2 — what a candle at a zone is doing, and what it did.
 
   pulse.rs    The heartbeat. Remembers when anything was last said, so a busy
               day stays quiet.
@@ -273,7 +273,7 @@ THE TWENTY-MINUTE LOOK
 
 IT NEVER WORKS OUT WHEN A CANDLE CLOSES
 
-  closes.rs asks every ten minutes for the newest candle and lets THE FEED'S
+  closes/ asks every ten minutes for the newest candle and lets THE FEED'S
   OWN STAMP say whether it is one already reported.
 
   Working the boundaries out here would mean knowing where the feed puts its

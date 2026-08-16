@@ -34,6 +34,9 @@ Only these four. Nothing else earns it, so the mark keeps meaning something.
   makes a backtest look *better*, which is what makes it dangerous.
 - **A dead bot that looks alive**, or a quiet day that looks like a dead bot.
   He stops trusting silence, and silence is the whole design.
+  **This includes a message that should have come and did not.** Nothing
+  arriving means nothing happened — so a missing message is not a smaller
+  version of a wrong one, it says something false just as loudly.
 - **A secret in a message** — the bot token or the API key.
 
 Everything else is 🟠 or 🟡, however annoying.
@@ -91,7 +94,7 @@ Kept for the reason, not the fix.
 |---|---|---|
 | 🔴 | [The bot answered nothing, and looked healthy](fixed/chrome-profile-wedged-the-bot.md) | 16 Aug |
 | 🔴 | [Two copies running, and neither said so](fixed/two-copies-eating-his-messages.md) | 16 Aug |
-| 🟠 | [The report of where price stands never came](fixed/greeting-reported-nothing-and-marked-itself-done.md) | 16 Aug |
+| 🔴 | [The report of where price stands never came](fixed/greeting-reported-nothing-and-marked-itself-done.md) | 16 Aug |
 
 **This folder starts on 16 August 2026.** Plenty was found and fixed before
 it — thirteen in one read-back alone — and those live in the git log rather

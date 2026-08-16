@@ -1,4 +1,4 @@
-# 🟠 The report of where price already stands never came
+# 🔴 The report of where price already stands never came
 
 **Found** 16 August 2026, checking what would run that evening.
 **Fixed** 16 August 2026 — `watch/line.rs` and `watch/resumed/awake.rs`.
@@ -22,8 +22,15 @@ reported**.
 
 ## What it cost
 
-One card a session, the one he was waiting for. Nothing wrong was sent, so
-🟠 rather than 🔴 — but it was the feature working exactly backwards.
+**Silence that lied.** Price sits in his zone as the session opens, nothing
+arrives, and silence in this bot means *nothing is near your levels*. He would
+have believed it. That is the third 🔴 case — he stops being able to trust the
+quiet, and the quiet is the whole design.
+
+Filed 🟠 at first, on the reasoning that no *wrong* message was sent. That was
+the wrong test. **A message that should have come and did not is exactly as
+misleading as a wrong one**, when the rule is that nothing arriving means
+nothing happened.
 
 ## The fix
 

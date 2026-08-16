@@ -13,14 +13,13 @@
 use std::path::Path;
 
 use anyhow::Result;
-use nsc_core::levels::{Pair, TIMEFRAMES_ORDER, known, load_pair, take_off, with_slash};
-use rust_decimal::Decimal;
+use nsc_core::levels::{Pair, TIMEFRAMES_ORDER, known, load_pair};
 use serde_json::json;
 
 use super::conversation::Adding;
-use super::pairs;
 use super::talking::say;
 use super::{ADD, DROP, STOP, TIMEFRAMES};
+use super::{dropping, pairs};
 
 /// Anything to do with one pair's page.
 ///
@@ -51,7 +50,7 @@ pub async fn heard(
         }
 
         if text == DROP {
-            return Some(offer_to_take_one_off(client, token, folder, &name, adding).await);
+            return Some(dropping::offer(client, token, folder, &name, adding).await);
         }
 
         if text == STOP {
@@ -61,9 +60,9 @@ pub async fn heard(
 
         // A level he tapped off the list of levels.
         if adding.dropping
-            && let Some(price) = price_on(text)
+            && let Some(price) = dropping::price_on(text)
         {
-            return Some(took_one_off(client, token, folder, &name, price, adding).await);
+            return Some(dropping::took_one_off(client, token, folder, &name, price, adding).await);
         }
     }
 
@@ -103,67 +102,6 @@ pub async fn show(
     say(client, token, &words, Some(buttons)).await
 }
 
-/// Its levels as buttons, one each, so he can take one off.
-pub async fn offer_to_take_one_off(
-    client: &reqwest::Client,
-    token: &str,
-    folder: &Path,
-    name: &str,
-    adding: &mut Adding,
-) -> Result<()> {
-    let Ok(pair) = load_pair(&folder.join(format!("{name}.toml"))) else {
-        return say(client, token, "That pair's file will not read.", None).await;
-    };
-
-    if pair.levels.is_empty() {
-        return say(client, token, "It has no levels on it.", None).await;
-    }
-
-    adding.dropping = true;
-
-    // The price as it is written in the file, so tapping it hands back exactly
-    // what is there and nothing has to be guessed at.
-    let buttons: Vec<Vec<String>> = pair
-        .levels
-        .iter()
-        .map(|line| vec![format!("{} {}", line.timeframe.name(), line.price)])
-        .collect();
-
-    say(
-        client,
-        token,
-        "Which one should come off?",
-        Some(json!(buttons)),
-    )
-    .await
-}
-
-/// Takes it off, and says what is left.
-pub async fn took_one_off(
-    client: &reqwest::Client,
-    token: &str,
-    folder: &Path,
-    name: &str,
-    price: Decimal,
-    adding: &mut Adding,
-) -> Result<()> {
-    adding.dropping = false;
-
-    let left = take_off(folder, name, price)?;
-    let words = format!(
-        "<b>{}</b> · {price} taken off\n\n{}",
-        with_slash(name),
-        listed(&left)
-    );
-
-    say(client, token, &words, Some(json!([[ADD, DROP], [STOP]]))).await
-}
-
-/// The price out of a button like `weekly 1.21279`.
-pub fn price_on(button: &str) -> Option<Decimal> {
-    button.rsplit_once(' ')?.1.parse().ok()
-}
-
 fn heading(pair: &Pair) -> String {
     format!(
         "<b>{}</b> — {} level{}",
@@ -174,7 +112,7 @@ fn heading(pair: &Pair) -> String {
 }
 
 /// What it holds, grouped by chart, in his own order.
-fn listed(pair: &Pair) -> String {
+pub(super) fn listed(pair: &Pair) -> String {
     let mut lines = Vec::new();
 
     for (word, kind) in TIMEFRAMES_ORDER {

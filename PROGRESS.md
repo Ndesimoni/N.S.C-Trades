@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 133 tests · clippy clean · it watches his levels, says what
+**Two crates · 140 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -315,7 +315,7 @@ crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
                 how long a timeframe is                    9 tests
   levels/       his lines, the bands round them, the
                 watching, what a candle did at one, and
-                what to say about it                      61 tests
+                what to say about it                      79 tests
   when/         whether it may speak, and the heartbeat   16 tests
   error/        retry or give up                           3 tests
 
@@ -324,10 +324,11 @@ crates/nsc-work-man/      EVERYTHING THAT REACHES
   watch/        THE BOT. Rungs 1 and 2, the calendar, the
                 heartbeat, reconnecting, and picking up a
                 level he sends while it runs
-  inbox/        the other side of Telegram — his levels, and
-                stopping a pair. Spawned beside the watcher
-  card/         filling a template, letting Chrome draw   12 tests
-  feed/         asking Twelve Data                         5 tests
+  inbox/        the other side of Telegram — his levels,
+                stopping a pair, /status and /help. Spawned
+                beside the watcher                         6 tests
+  card/         filling a template, letting Chrome draw   14 tests
+  feed/         asking Twelve Data                         7 tests
   telegram/     sending — words, pictures, media groups    3 tests
   retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests
   review.rs     one pair's levels, drawn

@@ -6,5 +6,6 @@ mod closing;
 mod pips;
 mod removing;
 mod saving;
+mod stopping;
 mod support;
 mod watching;

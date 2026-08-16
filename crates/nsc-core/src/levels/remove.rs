@@ -94,6 +94,20 @@ pub fn undo(folder: &Path, name: &str, count: usize) -> Result<Pair, LevelError>
     load_pair(&file)
 }
 
+/// What taking a level off did.
+pub struct TookOff {
+    /// The pair as it now stands.
+    pub pair: Pair,
+
+    /// **Whether that price was actually on it.**
+    ///
+    /// A price that is not there changes nothing, which is right — but the
+    /// reply is built from this, and without it he was told "1.28 taken off"
+    /// while the file sat untouched. Old keyboards stay tappable in Telegram
+    /// forever, so a stale button is one thumb away.
+    pub was_there: bool,
+}
+
 /// Takes one particular level off a pair.
 ///
 /// **Undo only reaches what the last message added.** That covers a typo the
@@ -106,12 +120,14 @@ pub fn undo(folder: &Path, name: &str, count: usize) -> Result<Pair, LevelError>
 ///
 /// Cuts the one block, and leaves everything else in the file exactly as it
 /// was, comments and all.
-pub fn take_off(folder: &Path, name: &str, price: Decimal) -> Result<Pair, LevelError> {
+pub fn take_off(folder: &Path, name: &str, price: Decimal) -> Result<TookOff, LevelError> {
     let file = folder.join(format!("{name}.toml"));
     let text = read(&file)?;
 
     let head_ends = text.find("\n[[level]]").unwrap_or(text.len());
     let (head, blocks) = text.split_at(head_ends);
+
+    let mut was_there = false;
 
     let kept: String = blocks
         .split_inclusive("\n[[level]]")
@@ -128,12 +144,19 @@ pub fn take_off(folder: &Path, name: &str, price: Decimal) -> Result<Pair, Level
 
             Some(block)
         })
-        .filter(|block| !says_price(block, price))
+        .filter(|block| {
+            let this_one = says_price(block, price);
+            was_there |= this_one;
+            !this_one
+        })
         .collect();
 
     write(&file, &format!("{head}{kept}"))?;
 
-    load_pair(&file)
+    Ok(TookOff {
+        pair: load_pair(&file)?,
+        was_there,
+    })
 }
 
 /// Is this the block for that price?

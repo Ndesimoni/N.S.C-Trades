@@ -47,7 +47,9 @@ THE FILES
   error.rs    CardError. A missing template is settled; a disk busy for a
               moment is not.
 
-  tests.rs    Fourteen tests, on the two things that have actually gone wrong.
+  tests/      Fourteen tests, on what has actually gone wrong. Split three
+              ways: the height read off a template, the words that go under a
+              picture, and what must never travel on a card.
 
   README.txt  This file.
 

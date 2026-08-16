@@ -21,7 +21,10 @@ THE FILES
 
   saving.rs    Levels arriving from his phone.
 
-  removing.rs  Undo, and stopping a pair altogether.
+  removing.rs  Undo, which reaches what the last message added, and taking
+               one level off by its price, which reaches any of them.
+
+  stopping.rs  Setting a whole pair aside, and putting it back.
 
   watching.rs  Firing once per touch, not once per price — and the two
                different distances for arriving and leaving.

@@ -66,6 +66,7 @@ const NO: &str = "✗ Keep it";
 
 mod asked;
 mod conversation;
+mod dropping;
 mod one;
 mod pairs;
 mod picture;

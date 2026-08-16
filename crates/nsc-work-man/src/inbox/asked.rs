@@ -63,12 +63,28 @@ pub async fn register(client: &reqwest::Client, token: &str) {
         .send()
         .await;
 
+    // **Reaching them is not the same as them agreeing.** Telegram answers 200
+    // with `{"ok": false}` when it refuses, so checking only for a network
+    // error printed "the command menu is set" over a menu that never appeared.
     match sent {
-        Ok(_) => println!("The command menu is set."),
         Err(trouble) => eprintln!(
             "Could not set the command menu: {}. They still work typed.",
             trouble.without_url()
         ),
+
+        Ok(reply) => match reply.json::<serde_json::Value>().await {
+            Ok(said) if said["ok"] == true => println!("The command menu is set."),
+
+            Ok(said) => eprintln!(
+                "Telegram would not set the command menu: {}. They still work typed.",
+                said["description"].as_str().unwrap_or("no reason given"),
+            ),
+
+            Err(trouble) => eprintln!(
+                "Telegram answered the command menu oddly: {}. They still work typed.",
+                trouble.without_url()
+            ),
+        },
     }
 }
 

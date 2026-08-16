@@ -117,7 +117,8 @@ THE FILES
 
   mod.rs        The front door, and the long poll that never gives up.
 
-  conversation.rs  Working out what he meant, and what to say back. The
+  conversation/ Working out what he meant, and what to say back. Its own
+                folder, with its own README. The
                 flow that ADDS levels lives here.
 
   asked.rs      /help and /status — the two things he asks outright, plus
@@ -125,11 +126,14 @@ THE FILES
                 tap-list beside the message box.
 
   one.rs        One pair's page — what it holds, and what he can do to it.
-                Taking a single level off is here.
 
   pairs.rs      Stopping a pair, and putting one back.
 
   picture.rs    Drawing where the levels landed.
+
+  dropping.rs   Taking one level off a pair. Each level goes up as its own
+                button reading "weekly 1.21279", and the chart name on it is
+                checked -- see BACKING OUT below for why.
 
   talking.rs    Saying it, with buttons. It is also the one place that adds
                 the Close row, and it escapes anything going into a message,
@@ -303,9 +307,29 @@ BACKING OUT
   keyboard and forgot -- and the one without a Close is exactly the flow he
   gets stuck in, buttons covering his own keyboard, on a phone.
 
-  The tap is caught at the very top of conversation.rs, before /help, before
+  The tap is caught at the very top of conversation/route.rs, before /help,
+  before
   the pair pages and before the stop-watching confirmation. Anywhere he can
   be, Close means the same thing.
 
   It resets what the bot remembered and takes the buttons away. It undoes
   nothing. He asked to be left alone, not to have his levels changed.
+
+
+A BUTTON THAT IS NO LONGER TRUE
+
+  Telegram keeps old keyboards tappable forever. He can scroll up a week and
+  press a button from a conversation that is long finished, and it arrives
+  looking exactly like one he pressed a second ago.
+
+  Two things guard against that, and both were bugs first:
+
+  A level button carries its chart name -- "weekly 1.21279", not "1.21279".
+  Reading the last number off any message meant that while the take-one-off
+  list was up, sending "1.28 1.31" -- which is how he is TOLD to add two
+  levels -- was read as "take 1.31 off", against whichever pair's page he was
+  last on.
+
+  Taking a level off says whether it was there. A price that is not on the
+  pair changes nothing, which is right. But the reply said "1.28 taken off"
+  either way, so a stale tap looked exactly like one that worked.

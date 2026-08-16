@@ -17,8 +17,14 @@ THE FILES
 
   mod.rs      The front door.
 
-  bar.rs      Bar and Series. What the feed sends, and what can be asked of
-              it.
+  bar.rs      Bar itself. What the feed sends, and the two questions worth
+              asking of one candle: when did it open, and has it finished.
+
+  series.rs   Series. The wrapper the feed puts a list of candles in.
+
+  normal.rs   normal_candle. How big a normal candle is, over a run of them --
+              the number every distance in this project is measured against.
+              Not on Bar, because ONE candle cannot answer it.
 
   interval.rs What a timeframe is called, and how long it lasts. Worked out
               from the feed's own spelling, so changing which timeframe a card

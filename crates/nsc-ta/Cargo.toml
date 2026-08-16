@@ -1,0 +1,34 @@
+# ── nsc-ta ─────────────────────────────────────────────────────────────────
+# READING A CHART. What a candle is, what a run of them does, and numbers off
+# the price series.
+#
+# It describes. It never decides. "This is a doji" belongs here; "this is a
+# buy" belongs in nsc-strategy. Keep that line and a rule can change without
+# touching a pattern, and a pattern can be added without touching a rule.
+#
+# NO NETWORK AND NO CLOCK, and not by discipline — there is no reqwest and no
+# tokio below, so nothing here CAN reach out. The compiler refuses.
+#
+# That is what lets the backtester and the live bot run this same code and get
+# the same answer. The moment analysis can fetch something, a backtest stops
+# describing the bot — and it does not look broken, it looks BETTER.
+# ─────────────────────────────────────────────
+
+[package]
+name    = "nsc-ta"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+
+# The Bar it reads. Never a second definition of a candle.
+nsc-core = { workspace = true }
+
+# Prices. Never f64.
+rust_decimal = { workspace = true }
+
+# His thresholds, read from config/candles.toml.
+serde = { workspace = true }
+
+# Named troubles the caller can act on.
+thiserror = { workspace = true }

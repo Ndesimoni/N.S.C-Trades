@@ -808,6 +808,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nsc-ta"
+version = "0.1.0"
+dependencies = [
+ "nsc-core",
+ "rust_decimal",
+ "serde",
+ "thiserror 2.0.20",
+]
+
+[[package]]
 name = "nsc-work-man"
 version = "0.1.0"
 dependencies = [

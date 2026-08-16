@@ -12,11 +12,12 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 172 tests · clippy clean · it watches his levels, says what
+**Three crates · 179 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
+nsc-ta          reading a chart         describes; never decides
 nsc-work-man    everything that reaches
 ```
 
@@ -324,6 +325,10 @@ crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
                 what to say about it                      79 tests
   when/         whether it may speak, and the heartbeat   16 tests
   error/        retry or give up                           3 tests
+
+crates/nsc-ta/            READING A CHART. It describes, it never decides
+  candle/       what ONE candle is -- four numbers, measured
+                before it is named                          7 tests
 
 crates/nsc-work-man/      EVERYTHING THAT REACHES
   main.rs       four lines — it runs the watcher

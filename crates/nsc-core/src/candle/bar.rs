@@ -1,18 +1,9 @@
-//! The candle itself.
+//! The candle itself, and what can be asked of it.
 
 use super::CandleError;
 use chrono::{DateTime, NaiveDateTime, TimeDelta, Utc};
 use rust_decimal::Decimal;
 use serde::Deserialize;
-
-/// What Twelve Data sends back for a time series request.
-///
-/// Only the part we need. Serde skips the `meta` block and anything else they
-/// add later, so a new field on their side cannot break this.
-#[derive(Debug, Deserialize)]
-pub struct Series {
-    pub values: Vec<Bar>,
-}
 
 /// One candle, in the feed's own words.
 ///
@@ -21,7 +12,6 @@ pub struct Series {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Bar {
     pub datetime: String,
-
     // Prices arrive as text — "4394.68931" — and go straight into Decimal.
     // They never touch a float, not even for a moment.
     #[serde(with = "rust_decimal::serde::str")]
@@ -80,37 +70,4 @@ impl Bar {
 
         (self.change() / self.open * Decimal::from(100)).round_dp(2)
     }
-}
-
-/// How big a normal candle is, over the last `count` of them.
-///
-/// **True range, not high minus low.** A candle that gapped away from the one
-/// before it moved further than its own body shows, and ignoring that makes
-/// every band too thin on exactly the days price is moving most.
-///
-/// `bars` are oldest first.
-pub fn normal_candle(bars: &[&Bar], count: usize) -> Option<Decimal> {
-    if bars.len() < 2 {
-        return None;
-    }
-
-    let ranges: Vec<Decimal> = bars
-        .windows(2)
-        .map(|pair| {
-            let (before, now) = (pair[0], pair[1]);
-
-            let high_low = now.high - now.low;
-            let gap_up = (now.high - before.close).abs();
-            let gap_down = (now.low - before.close).abs();
-
-            high_low.max(gap_up).max(gap_down)
-        })
-        .collect();
-
-    let recent = &ranges[ranges.len().saturating_sub(count)..];
-    if recent.is_empty() {
-        return None;
-    }
-
-    Some(recent.iter().sum::<Decimal>() / Decimal::from(recent.len()))
 }

@@ -521,9 +521,8 @@ stopped from his phone on 16 August. Not put back — that is his call.
 
 ## Still open
 
-**Bugs live in [`docs/bugs/`](docs/bugs/)** — one file each, marked 🔴 🟠 🟡
-by what they cost him. This list is work not started; that folder is things
-that are wrong.
+**Bugs live in [`docs/bugs/`](docs/bugs/)**, marked 🔴 🟠 🟡. This list is
+work not started; that folder is things that are wrong.
 
 - [ ] **Draw cards off the price loop — TOP PRIORITY.** A blocking wait on
       Chrome sits inside async code, so a card holds a worker thread for 2–10

@@ -24,9 +24,7 @@ Start here if the question is "how do I use it" rather than "how does it work".
 
 [`bugs/`](bugs/)
 
-Everything found and not yet fixed, one file per bug, marked by what it costs
-him — 🔴 serious, 🟠 real, 🟡 small. Fixed ones are kept too, because the
-reason one happened is worth more than the fix.
+One file per bug: what happens, how bad it is, how to fix it. 🔴 🟠 🟡
 
 ---
 

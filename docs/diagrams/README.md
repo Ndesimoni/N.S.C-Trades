@@ -36,3 +36,25 @@ every figure measured across all 5,000 held. Distances in ATR.
 
 **Still open:** the MA's *slope* as a direction gate, which this did not test,
 and whether any of it changes on the daily.
+
+---
+
+## [The range indicator is really a coil indicator →](https://claude.ai/code/artifact/de8ffd1f-2599-471e-a49e-c103d0a22a76)
+
+`ranges-on-gold.html` · **settled — do not trade inside what it calls a range**
+
+**Argues:** Choppiness marks gold's tight patches correctly, but what follows is
+the opposite of the label. On the 4-hour, price stayed inside the box **2% of
+the time** and travelled **106% of its width**. On the 1-hour, 7% and 104%. And
+the readings it calls *trending* are the calmer ones — 18% and 23% stayed put.
+
+A high reading is compression before a break, not a range to sell the top of. It
+never says which way.
+
+Real candles: XAU/USD 1-hour and 4-hour from Twelve Data, both timeframes on the
+page. **Weekends and holidays removed** — 1,412 of the 5,000 hourly candles had
+a range under 0.02% of price, and the first run of this reported price
+travelling 5,119% of its box before that was caught.
+
+**Still open:** whether a high reading is worth acting on at all, given it gives
+no direction.

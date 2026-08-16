@@ -349,3 +349,23 @@ THE OPENING HOURS ARE WATCHED, NOT SPOKEN ABOUT
   SETTLED IS NOT THE SAME AS TRADEABLE. Friday settles four hours in like any
   other day and still opens no trade. Gating the report on "may a trade be
   suggested" would silence it every Friday.
+
+
+THE GREETING IS ASKED AFTER THE PRICE, NOT BEFORE
+=================================================
+
+  line.rs feeds each price into `arrive` and THEN asks the greeting whether
+  it has anything to say. The order is the behaviour.
+
+  The greeting reports which zones price is RESTING IN. Nothing is resting
+  anywhere until a price has been fed in -- a fresh Watch has every band down
+  as Away and no last price at all.
+
+  Asked first, on the very first price of a session, it found nothing, sent
+  nothing, and marked the session as reported. The report of where price
+  already stood -- the whole reason it waits for the opening hours to pass --
+  never came, for the entire session.
+
+  It is guarded twice on purpose. The order here, and a check in
+  resumed/awake.rs that skips any pair no price has arrived for. Staying true
+  should not depend on two lines staying in one order.

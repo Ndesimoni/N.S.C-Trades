@@ -68,8 +68,19 @@ impl Awake {
         let now = Utc::now();
         let session = opened(now, calendar);
 
+        // **Only pairs a price has actually arrived for.**
+        //
+        // The report is of which zones price is RESTING IN, and nothing rests
+        // anywhere until a price has been fed in. Reported before that, it
+        // finds nothing, says nothing, and marks the session done — so the one
+        // message this file exists to send never comes.
+        //
+        // `line.rs` feeds the price in first. This is here so that staying
+        // true does not depend on two lines staying in that order.
         let owed: Vec<&String> = watching
-            .keys()
+            .iter()
+            .filter(|(_, seen)| seen.watch.last_price().is_some())
+            .map(|(symbol, _)| symbol)
             .filter(|symbol| self.greeted.get(*symbol) != Some(&session))
             .collect();
 

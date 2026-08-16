@@ -23,9 +23,14 @@ const AGAIN: std::time::Duration = std::time::Duration::from_secs(30);
 
 /// How often to wake on a day nothing is watched.
 ///
-/// **Only the heartbeat happens on those days**, and it is due at one moment.
-/// Ten minutes is close enough to it and cheap — nothing is fetched.
-const WHILE_QUIET: std::time::Duration = std::time::Duration::from_secs(600);
+/// **A minute, because this is also how late the session can open.** Nothing
+/// is fetched on a quiet day, so waking costs a look at the calendar and a
+/// glance at four files — and sleeping through the moment the market opens
+/// costs him the first ten minutes of it.
+///
+/// It is also how long a level he sends at the weekend sits unarmed, and the
+/// weekend is when he does his chart work.
+const WHILE_QUIET: std::time::Duration = std::time::Duration::from_secs(60);
 
 pub async fn run() -> Result<()> {
     dotenvy::dotenv().ok();

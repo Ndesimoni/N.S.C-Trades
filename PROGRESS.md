@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Two crates · 162 tests · clippy clean · it watches his levels, says what
+**Two crates · 164 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```

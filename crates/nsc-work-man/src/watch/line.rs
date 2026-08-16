@@ -74,11 +74,20 @@ pub async fn listen(
                 // ends the greeting knows exactly where price stands.
                 let settled = when::settled(Utc::now(), calendar);
 
-                kit.awake
-                    .greet(client, watching, thickness, calendar, &mut kit.pulse)
+                // **The price is recorded first, and the order matters.**
+                //
+                // The greeting reports which zones price is RESTING IN, and
+                // nothing is resting anywhere until a price has been fed in. On
+                // the very first price of a session the greeting used to run
+                // first, find nothing, send nothing — and mark the session
+                // greeted. The report of where price already stood, which is
+                // the whole reason this waits for the opening hours to pass,
+                // never came at all.
+                prices::heard(client, watching, thickness, &heard, &mut kit.pulse, settled)
                     .await?;
 
-                prices::heard(client, watching, thickness, &heard, &mut kit.pulse, settled)
+                kit.awake
+                    .greet(client, watching, thickness, calendar, &mut kit.pulse)
                     .await?;
             }
 

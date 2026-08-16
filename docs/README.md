@@ -20,6 +20,16 @@ Start here if the question is "how do I use it" rather than "how does it work".
 
 ---
 
+## Bugs
+
+[`bugs/`](bugs/)
+
+Everything found and not yet fixed, one file per bug, marked by what it costs
+him — 🔴 serious, 🟠 real, 🟡 small. Fixed ones are kept too, because the
+reason one happened is worth more than the fix.
+
+---
+
 ## The design
 
 ### [Broker to Telegram →](https://claude.ai/code/artifact/1093ff9f-f3b3-4af7-afd5-6377629ea1dd)

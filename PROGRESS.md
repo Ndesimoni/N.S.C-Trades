@@ -419,6 +419,44 @@ end on the same second.
 
 Agreed 16 August, before anything new is added.
 
+### 0b. Ask for a candle when one is due, not every ten minutes
+
+**Noted 16 August. Second after the threading job, and much smaller.**
+
+**What it does now.** When price is at a zone, it asks the feed for that
+pair's 1-hour and 4-hour candles **every ten minutes** and lets the returned
+timestamp say whether it is one already reported.
+
+**Why it polls at all.** Nothing tells us a candle closed. The price line
+sends prices, about one a second, and never says "the 14:00 hourly just
+finished". Approaching a zone, reaching it and sitting in it all cost nothing
+— they come off that line. Only *what the candle did* needs a request.
+
+And it deliberately does not work the boundaries out for itself. Nobody has
+measured where this feed puts its 4-hour candles, and guessing wrong reports a
+candle that has not finished — the one mistake that makes results look better
+rather than broken.
+
+**The waste.** A 4-hour candle closes six times a day. Asked every ten
+minutes, about **140 of every 144 asks find nothing new**. The hourly is five
+in six wasted.
+
+**The fix.** Once the feed hands back a candle stamped 14:00 on the 4-hour, it
+has told us where its own boundaries are. The next one is due at 18:00. Wait
+until then rather than asking twenty-four times in between.
+
+This does **not** break the rule above. It is reading the feed's own stamp,
+not calculating a boundary — and the returned stamp is still what decides
+whether a candle is finished, exactly as now.
+
+Per pair per day it goes from about **288 asks to about 30**, and a close
+report stops being up to ten minutes late.
+
+Keep a floor of a minute or two between asks for the same pair, so a feed that
+returns a stale stamp cannot turn into a tight loop.
+
+---
+
 ### 0. TOP PRIORITY — draw cards off the price loop
 
 **Agreed 16 August. This is the next code change, before rung 3 and before

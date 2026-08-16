@@ -1,7 +1,8 @@
 //! Driving Chrome, and cleaning up after it.
 
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
+use std::time::{Duration, Instant};
 
 use super::CardError;
 
@@ -17,68 +18,17 @@ const SCALE: &str = "--force-device-scale-factor=2";
 /// animations halfway and the fonts before they have arrived.
 const SETTLE: &str = "--virtual-time-budget=4000";
 
-/// **A profile of its own, for this one drawing.**
+/// How long Chrome gets before it is stopped.
 ///
-/// Chrome refuses to start on a profile another Chrome is holding — it says
-/// "Failed to create a ProcessSingleton for your profile directory" and gives
-/// up. With no `--user-data-dir` it reaches for the DEFAULT profile, which is
-/// the one his own open browser is holding, so cards failed whenever Chrome
-/// was open and worked whenever it was not. Intermittent, and nothing in the
-/// message said why.
-///
-/// **One fixed folder is not enough either.** The bot draws cards while
-/// `--bin cards` is drawing one, and the watcher draws while the inbox
-/// answers `/status`. Any shared folder is a lock two of them can want.
-///
-/// So: a fresh one per drawing, thrown away after. Chrome builds it in about
-/// a second, which for a card sent every few minutes is nothing.
-fn own_profile() -> std::path::PathBuf {
-    let stamp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|since| since.as_nanos())
-        .unwrap_or_default();
+/// **A card takes about two seconds.** A minute is far past generous, and it
+/// is not "forever" — which is what it had, and what wedged the whole bot: a
+/// Chrome that draws the picture and then never exits leaves the call waiting
+/// on it waiting for good. Nothing answered, not even `/help`, and nothing
+/// said why.
+const PATIENCE: Duration = Duration::from_secs(60);
 
-    std::env::temp_dir().join(format!("{LEFTOVER}{}-{stamp}", std::process::id()))
-}
-
-/// What every throwaway profile is called, so the stale ones can be found.
-const LEFTOVER: &str = "nsc-chrome-";
-
-/// How long a profile has to sit there before it counts as abandoned.
-const ABANDONED: std::time::Duration = std::time::Duration::from_secs(3600);
-
-/// **Clears out profiles nobody is using.**
-///
-/// Deleting one the moment Chrome exits is not enough on its own: Chrome
-/// leaves helper processes running for a moment after the one we waited on has
-/// gone, and they build the folder straight back. One card every few minutes
-/// for a fortnight is a lot of folders.
-///
-/// So anything of ours older than an hour goes. An hour is far longer than a
-/// drawing takes, so this can never delete one in use — including one another
-/// copy of the bot is using right now.
-///
-/// Failing to tidy up is never worth stopping for. It is housekeeping.
-fn sweep_old_profiles() {
-    let Ok(entries) = std::fs::read_dir(std::env::temp_dir()) else {
-        return;
-    };
-
-    for old in entries.flatten() {
-        if !old.file_name().to_string_lossy().starts_with(LEFTOVER) {
-            continue;
-        }
-
-        let sat_there = old
-            .metadata()
-            .and_then(|about| about.modified())
-            .map(|at| at.elapsed().unwrap_or_default());
-
-        if sat_there.is_ok_and(|since| since > ABANDONED) {
-            let _ = std::fs::remove_dir_all(old.path());
-        }
-    }
-}
+/// How often to look and see whether Chrome has finished.
+const GLANCE: Duration = Duration::from_millis(100);
 
 /// How much shorter the page is than the window Chrome was asked for.
 ///
@@ -104,9 +54,16 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
 
     clear_the_way(out)?;
 
-    sweep_old_profiles();
-    let profile = own_profile();
-
+    // **No `--user-data-dir`, and that is deliberate.**
+    //
+    // Left alone, headless Chrome makes its own throwaway profile, draws, and
+    // exits in about two seconds. Point it at a folder of our own and it
+    // writes the picture and then NEVER EXITS — so the call waiting on it
+    // waits for good, and the bot stops answering anything at all.
+    //
+    // That was tried, as a fix for a clash that turned out not to exist. The
+    // real clash was two copies of the bot writing the same card file. See
+    // inbox/hearing.rs.
     let done = Command::new(CHROME)
         .args([
             "--headless",
@@ -114,18 +71,15 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
             "--hide-scrollbars",
             SCALE,
             SETTLE,
-            &format!("--user-data-dir={}", profile.display()),
             &format!("--window-size={WIDTH},{}", height + RESERVED),
             &format!("--screenshot={}", out.display()),
             &format!("file://{}", page.display()),
         ])
-        .output();
+        .stdout(Stdio::null())
+        .stderr(Stdio::piped())
+        .spawn();
 
-    // Thrown away whether it worked or not. Left behind, they pile up in the
-    // temp folder for as long as the bot runs.
-    let _ = std::fs::remove_dir_all(&profile);
-
-    let done = done.map_err(|trouble| CardError::DrewNothing(trouble.to_string()))?;
+    let done = wait_for(done.map_err(|trouble| CardError::DrewNothing(trouble.to_string()))?)?;
 
     // **Chrome answers 0 whether it drew the card, its own error page, or
     // nothing at all** — so the only honest check is the file itself.
@@ -138,12 +92,53 @@ pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {
     let drawn = std::fs::metadata(out).map(|about| about.len()).unwrap_or(0);
 
     if drawn == 0 {
-        return Err(CardError::DrewNothing(
-            String::from_utf8_lossy(&done.stderr).into_owned(),
-        ));
+        return Err(CardError::DrewNothing(done));
     }
 
     trim(out, height * PIXELS_PER_POINT)
+}
+
+/// Waits for Chrome, but not forever.
+///
+/// **`output()` waits for good**, and Chrome can finish its work and then not
+/// exit. When that happened the bot stopped answering anything at all — the
+/// thread was stuck in here, and nothing in any log said so.
+///
+/// Killed rather than left, because a Chrome that will not exit is one more
+/// every time a card is drawn.
+fn wait_for(mut chrome: std::process::Child) -> Result<String, CardError> {
+    let give_up_at = Instant::now() + PATIENCE;
+
+    loop {
+        match chrome.try_wait() {
+            Err(trouble) => return Err(CardError::DrewNothing(trouble.to_string())),
+
+            // Finished on its own. Whatever it said is the reason if no
+            // picture appeared.
+            Ok(Some(_)) => {
+                let mut said = String::new();
+
+                if let Some(mut errors) = chrome.stderr.take() {
+                    use std::io::Read;
+                    let _ = errors.read_to_string(&mut said);
+                }
+
+                return Ok(said);
+            }
+
+            Ok(None) if Instant::now() >= give_up_at => {
+                let _ = chrome.kill();
+                let _ = chrome.wait();
+
+                return Err(CardError::DrewNothing(format!(
+                    "Chrome had not finished after {} seconds and was stopped",
+                    PATIENCE.as_secs()
+                )));
+            }
+
+            Ok(None) => std::thread::sleep(GLANCE),
+        }
+    }
 }
 
 /// Takes the last picture of this kind out of the way.

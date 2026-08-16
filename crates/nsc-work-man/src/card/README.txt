@@ -130,31 +130,35 @@ THE COST OF ALL THIS
   laptop.
 
 
-CHROME GETS A PROFILE OF ITS OWN, EVERY TIME
-============================================
+CHROME IS NEVER GIVEN A PROFILE FOLDER
+======================================
 
-  Chrome REFUSES TO START on a profile another Chrome is holding. It says
-  "Failed to create a ProcessSingleton for your profile directory" and gives
-  up.
+  Left alone, headless Chrome makes its own throwaway profile, draws, and
+  exits in about two seconds.
 
-  With no --user-data-dir it reaches for the DEFAULT profile, which is the one
-  his own open browser is holding. So cards failed whenever Chrome was open
-  and worked whenever it was not -- intermittent, which is worse than always
-  broken, and nothing in the message said why.
+  Point it at a folder of our own with --user-data-dir and it writes the
+  picture and then NEVER EXITS. The call waiting on it waits for good, and
+  because that call blocks, the bot stops answering ANYTHING -- not /status,
+  not /help, not a level he sends. Nothing in any log says why.
 
-  ONE FIXED FOLDER IS NOT ENOUGH EITHER. The bot draws while --bin cards is
-  drawing, and the watcher draws while the inbox answers /status. Any shared
-  folder is a lock two of them can want. Trying a fixed folder was the second
-  version of this fix and it broke the bot at startup.
+  That was tried here, as a fix for a profile clash that turned out not to
+  exist. The real clash was two copies of the bot writing the same card file,
+  which is inbox/hearing.rs's problem now.
 
-  So: a fresh folder per drawing, in the system temp folder, thrown away
-  after.
+  If you are ever tempted by --user-data-dir again: time it, and check the
+  process EXITS. The picture appearing is not the same as Chrome finishing --
+  that is exactly how this got missed the first time.
 
-  AND SWEPT, because throwing it away is not enough on its own. Chrome leaves
-  helper processes running for a moment after the one we waited on has gone,
-  and they build the folder straight back. Anything of ours older than an hour
-  goes at the start of the next drawing. An hour is far longer than a drawing
-  takes, so it can never delete one in use.
+
+CHROME GETS A DEADLINE
+======================
+
+  One minute, then it is killed. A card takes about two seconds, so a minute
+  is far past generous -- and it is not "forever", which is what it had.
+
+  The guard exists because the failure above had no symptom worth the name.
+  The bot was up, the log was clean, and every single thing he sent it went
+  unanswered.
 
 
 A FILE APPEARING IS NOT A PICTURE

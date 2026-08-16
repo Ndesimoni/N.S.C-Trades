@@ -1,22 +1,4 @@
-//! What to say when the opening hours are over.
-//!
-//! **The first thing each session is a report of what was FOUND**, never of
-//! anything arriving.
-//!
-//! Price can walk into a zone while the bot is quiet — over a weekend, or
-//! through the opening hours — and still be sitting there when it starts
-//! looking. The watcher fires on a *change*, so nothing would ever be said
-//! about it, and saying "arrived" would put Sunday's move on Monday's clock.
-//!
-//! ## Why it waits
-//!
-//! It used to go the moment the socket opened. The first hours of a day are
-//! where a move gets faked and taken back, so that report was of a position
-//! price had not committed to — and he would act on it, or learn to ignore it.
-//!
-//! Now it waits for the settle window to pass and then says where things
-//! actually stand. That is the same moment a trade becomes allowed, which is
-//! not a coincidence: it is the point the day is worth reading.
+//! The report itself, and what it remembers.
 
 use std::collections::HashMap;
 
@@ -25,7 +7,7 @@ use chrono::{DateTime, Duration, Utc};
 use nsc_core::levels::{News, Thickness, nearness};
 use nsc_core::when::{Rules, opened, settled};
 
-use super::{Watching, pulse, say};
+use crate::watch::{Watching, pulse, say};
 
 /// How long to leave it before trying the greeting again.
 ///
@@ -36,13 +18,16 @@ const BEFORE_TRYING_AGAIN: Duration = Duration::minutes(1);
 
 /// Whether this session has been greeted yet.
 pub struct Awake {
-    /// The session this has already reported for.
+    /// Which session each pair has already been reported for.
     ///
     /// **Per session, not per run.** It was a plain "have I greeted?" flag set
     /// once and never cleared, so a bot left running over a weekend greeted on
     /// the Friday and then never again — and the report of where price stands
     /// is exactly what he wants on the Sunday open, after two days of silence.
-    greeted: Option<DateTime<Utc>>,
+    ///
+    /// **And per pair, not per bot.** A pair he sends a level for mid-session
+    /// gets its bands built fresh, and is owed its own report — see `forget`.
+    pub(super) greeted: HashMap<String, DateTime<Utc>>,
 
     /// When it was last attempted, so a failure waits rather than being
     /// retried on the next price.
@@ -52,9 +37,20 @@ pub struct Awake {
 impl Awake {
     pub fn new() -> Self {
         Awake {
-            greeted: None,
+            greeted: HashMap::new(),
             tried: None,
         }
+    }
+
+    /// **This pair is owed a fresh report.**
+    ///
+    /// Called when its bands have been rebuilt, which happens when he sends a
+    /// level for it. He usually draws a level because price is NEAR it, and a
+    /// rebuilt `Watch` treats its first price as a baseline — so without this
+    /// he got "your levels are live" and then nothing at all about the zone
+    /// price was already sitting in.
+    pub fn forget(&mut self, symbol: &str) {
+        self.greeted.remove(symbol);
     }
 
     /// Reports every zone price is already at, once a session.
@@ -72,7 +68,12 @@ impl Awake {
         let now = Utc::now();
         let session = opened(now, calendar);
 
-        if self.greeted == Some(session) {
+        let owed: Vec<&String> = watching
+            .keys()
+            .filter(|symbol| self.greeted.get(*symbol) != Some(&session))
+            .collect();
+
+        if owed.is_empty() {
             return Ok(());
         }
 
@@ -93,10 +94,15 @@ impl Awake {
 
         self.tried = Some(now);
 
-        let mut all_said = true;
+        let owed: Vec<String> = owed.into_iter().cloned().collect();
 
-        for seen in watching.values() {
+        for symbol in owed {
+            let Some(seen) = watching.get(&symbol) else {
+                continue;
+            };
+
             let reach = seen.pair.reach(thickness);
+            let mut all_said = true;
 
             for band in seen.watch.resting_at() {
                 // Where price is now. `resting_at` says WHICH bands, the last
@@ -124,14 +130,15 @@ impl Awake {
                     }
                 }
             }
-        }
 
-        // **Marked only once it has actually been said.** Marked first, a
-        // failed send left the session greeted with nothing sent — and it is
-        // greeted once, so the zones price was already sitting in would never
-        // have been mentioned at all.
-        if all_said {
-            self.greeted = Some(session);
+            // **Marked only once it has actually been said**, and per pair, so
+            // one card failing does not cost the others their report. Marked
+            // first, a failed send left the session greeted with nothing sent
+            // — and it is greeted once a session, so the zones price was
+            // sitting in would never have been mentioned at all.
+            if all_said {
+                self.greeted.insert(symbol, session);
+            }
         }
 
         Ok(())

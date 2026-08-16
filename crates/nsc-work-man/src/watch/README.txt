@@ -54,7 +54,7 @@ THE FILES
   pulse.rs    The heartbeat. Remembers when anything was last said, so a busy
               day stays quiet.
 
-  resumed.rs  What to say when watching starts again — what it FOUND, never
+  resumed/  What to say when watching starts again — what it FOUND, never
               what arrived.
 
   say.rs      Drawing a card and sending it.
@@ -331,13 +331,14 @@ THE OPENING HOURS ARE WATCHED, NOT SPOKEN ABOUT
 
   WHAT ARRIVES WHEN THEY END. One report per zone price is actually sitting
   in, marked "already at" rather than "just arrived". That distinction is the
-  whole reason resumed.rs exists -- saying "arrived" would put a move made at
+  whole reason resumed/ exists -- saying "arrived" would put a move made at
   the open onto the clock of the moment the window closed.
 
-  THE GREETING IS PER SESSION, NOT PER RUN. It used to be a flag set once and
-  never cleared, so a bot left running from Friday greeted once and then never
-  again -- and the Sunday open, after two days of silence, is exactly when the
-  report is worth most. It now remembers WHICH session it greeted.
+  THE GREETING IS PER SESSION AND PER PAIR, NOT ONE FLAG FOR THE BOT. It used
+  to be set once and never cleared, which cost twice: a bot left running from
+  Friday greeted once and never again, and a level he sent mid-session got
+  "your levels are live" and then silence about the zone price was already
+  sitting in. See resumed/README.txt.
 
   SETTLED IS NOT THE SAME AS TRADEABLE. Friday settles four hours in like any
   other day and still opens no trade. Gating the report on "may a trade be

@@ -69,8 +69,9 @@ fn state() -> (Option<SystemTime>, usize) {
 pub struct Reloaded {
     pub watching: HashMap<String, Watching>,
 
-    /// Whether anything new was actually armed, so he can be told.
-    pub armed: bool,
+    /// The pairs whose bands were built fresh, so he can be told — and so the
+    /// greeting knows which ones it owes a "price is already here" report.
+    pub armed: Vec<String>,
 
     /// Pairs whose bands could not be sized this time, because the feed would
     /// not answer. **Not an error.** See the note on `again`.
@@ -98,7 +99,7 @@ pub async fn again(
     mut old: HashMap<String, Watching>,
 ) -> Result<Reloaded> {
     let mut now: HashMap<String, Watching> = HashMap::new();
-    let mut armed = false;
+    let mut armed = Vec::new();
     let mut not_sized = Vec::new();
 
     for name in known(Path::new(PAIRS)) {
@@ -147,7 +148,7 @@ pub async fn again(
         }
 
         println!("{} — now watching {} level(s)", pair.symbol, found.len());
-        armed = true;
+        armed.push(pair.symbol.clone());
 
         let watch = Watch::over(found, pair.reach(thickness));
         now.insert(pair.symbol.clone(), Watching { pair, watch });

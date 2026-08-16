@@ -13,7 +13,7 @@ use nsc_core::when::{self, Allowed, Rules};
 
 use super::line::{self, Closed};
 use super::standing::{self, Snapshot, Standing};
-use super::{CALENDAR, Kit, THICKNESS, Watching, pulse, reload, trouble};
+use super::{CALENDAR, Kit, THICKNESS, Watching, reload, trouble};
 
 /// How long to wait before opening the line again after it drops.
 ///
@@ -94,7 +94,7 @@ pub async fn run() -> Result<()> {
             // Sunday would have sat there unarmed until Tuesday.
             if kit.files.changed() {
                 println!("The levels changed. Reading them again.");
-                watching = armed(&client, thickness, watching, &mut kit.pulse).await?;
+                watching = armed(&client, thickness, watching, &mut kit).await?;
             }
 
             let _ = tell.send(snapshot(&watching, &calendar));
@@ -123,7 +123,7 @@ pub async fn run() -> Result<()> {
             // pair added to a live one would never be asked about.
             Ok(Closed::LevelsChanged) => {
                 trouble.mended(&client, &mut kit.pulse).await?;
-                watching = armed(&client, thickness, watching, &mut kit.pulse).await?;
+                watching = armed(&client, thickness, watching, &mut kit).await?;
 
                 // Straight back, no thirty-second pause. He is standing there
                 // having just sent it.
@@ -169,12 +169,13 @@ async fn armed(
     client: &reqwest::Client,
     thickness: Thickness,
     watching: HashMap<String, Watching>,
-    pulse: &mut pulse::Pulse,
+    kit: &mut Kit,
 ) -> Result<HashMap<String, Watching>> {
     let fresh = reload::again(client, thickness, watching).await?;
 
-    // Said out loud, because from his side an not_sized pair is silent — the
-    // level is in the file, the bot is running, and nothing is watching it.
+    // Said out loud, because from his side a pair that would not size is
+    // silent — the level is in the file, the bot is running, and nothing is
+    // watching it.
     if !fresh.not_sized.is_empty() {
         eprintln!(
             "Could not size {} this time. Keeping what they had and trying again.",
@@ -182,8 +183,22 @@ async fn armed(
         );
     }
 
-    if fresh.armed {
-        reload::say_it_is_armed(client, &fresh.watching, pulse).await?;
+    // **A pair built fresh is owed a report of where price already is.**
+    //
+    // He usually draws a level BECAUSE price is near it. Its `Watch` starts
+    // over, so the first price is only a baseline and produces no arrival —
+    // and the session had already been greeted, so nothing said price was
+    // sitting in the zone he had just drawn. He got "your levels are live"
+    // and then silence.
+    //
+    // Only the rebuilt pairs are forgotten, so the others are not announced
+    // to him a second time.
+    for symbol in &fresh.armed {
+        kit.awake.forget(symbol);
+    }
+
+    if !fresh.armed.is_empty() {
+        reload::say_it_is_armed(client, &fresh.watching, &mut kit.pulse).await?;
     }
 
     Ok(fresh.watching)

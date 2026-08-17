@@ -8,7 +8,7 @@ use serde_json::json;
 
 use super::super::talking::say;
 use super::super::{CLOSE, NEW_PAIR, PAIRS, TIMEFRAMES, UNDO};
-use super::super::{asked, one, pairs};
+use super::super::{asked, one, pairs, picture};
 use super::adding::Adding;
 use super::saving;
 
@@ -56,6 +56,21 @@ pub async fn handle(
         return say(client, token, "Which pair?", Some(json!(buttons))).await;
     }
 
+    // **The same page /pairs gives, one tap shorter.** Both land in the same
+    // place; this is for when he already knows which pair he wants to look at.
+    if text == "/chart" {
+        *adding = Adding::default();
+        adding.charting = true;
+
+        let pairs = known(folder);
+        if pairs.is_empty() {
+            return say(client, token, "You have no pairs yet. Send /level.", None).await;
+        }
+
+        let buttons: Vec<Vec<String>> = pairs.chunks(2).map(<[String]>::to_vec).collect();
+        return say(client, token, "Which pair?", Some(json!(buttons))).await;
+    }
+
     if text == UNDO {
         let Some((pair, count)) = adding.just_added.take() else {
             return say(client, token, "Nothing to undo", None).await;
@@ -82,6 +97,18 @@ pub async fn handle(
     // A pair: either one he tapped, or one he has just typed the name of.
     let existing = known(folder);
     let tapped = existing.iter().find(|name| name.eq_ignore_ascii_case(text));
+
+    // Tapped off /chart, so he wants to look at it rather than change it.
+    if adding.charting
+        && let Some(name) = tapped.cloned()
+    {
+        adding.charting = false;
+        adding.chart_of = Some(name.clone());
+
+        let names: Vec<&str> = TIMEFRAMES.iter().map(|(word, _)| *word).collect();
+        let words = format!("{name} — which chart?");
+        return say(client, token, &words, Some(json!([names]))).await;
+    }
 
     // Tapped off /pairs, so he wants to see it rather than add to it.
     if adding.browsing
@@ -114,6 +141,10 @@ pub async fn handle(
         adding.chosen = None;
         adding.dropping = false;
 
+        // Same reason: a chart question left hanging on the old pair would
+        // turn his next "Weekly" into a picture of a pair he has moved off.
+        adding.chart_of = None;
+
         let words = if existing.contains(&name) {
             format!("{name} — which timeframe?")
         } else {
@@ -122,6 +153,21 @@ pub async fn handle(
 
         let names: Vec<&str> = TIMEFRAMES.iter().map(|(word, _)| *word).collect();
         return say(client, token, &words, Some(json!([names]))).await;
+    }
+
+    // **A chart he asked for — checked before the adding flow's timeframe.**
+    //
+    // Both flows put up the same three buttons, and a button only sends its
+    // own word back, so "Weekly" arrives identical either way. `chart_of` is
+    // the only thing that says which question he is answering, and it is
+    // cleared here so the next "Weekly" is a level again.
+    if let Some(name) = adding.chart_of.clone()
+        && let Some((_, chart)) = TIMEFRAMES
+            .iter()
+            .find(|(word, _)| word.eq_ignore_ascii_case(text))
+    {
+        adding.chart_of = None;
+        return picture::of_pair(client, token, folder, &name, *chart).await;
     }
 
     // A timeframe — but only once a pair is chosen.

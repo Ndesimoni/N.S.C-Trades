@@ -35,4 +35,15 @@ pub struct Adding {
 
     /// He is picking which level to take off that pair.
     pub(in crate::inbox) dropping: bool,
+
+    /// He has sent /chart and is picking which pair to look at.
+    pub(in crate::inbox) charting: bool,
+
+    /// The pair he wants a chart of, waiting on him to pick which chart.
+    ///
+    /// **This is what tells the three timeframe buttons apart.** `Weekly` means
+    /// "add weekly levels" in one flow and "draw the weekly chart" in this one,
+    /// and the button sends the same word either way. Set, it is a chart he is
+    /// asking for; clear, it is a level he is adding.
+    pub(in crate::inbox) chart_of: Option<String>,
 }

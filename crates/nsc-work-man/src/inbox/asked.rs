@@ -22,9 +22,10 @@ use super::talking::say;
 ///
 /// **Also registered with Telegram**, so these appear in the tap-list beside
 /// the message box and he never types one.
-pub const COMMANDS: [(&str, &str); 5] = [
+pub const COMMANDS: [(&str, &str); 6] = [
     ("status", "Is it running, and what is close?"),
     ("pairs", "See your pairs, and change one"),
+    ("chart", "See a pair's chart"),
     ("level", "Add a level"),
     ("remove", "Stop watching a pair"),
     ("restore", "Put a stopped pair back"),

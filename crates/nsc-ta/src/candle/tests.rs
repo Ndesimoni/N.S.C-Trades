@@ -41,23 +41,14 @@ fn a_real_doji_is_almost_all_wick() {
     assert_eq!(shape.lower.round_dp(4), d("0.4245"));
 }
 
-/// **The three shares are shares of one candle**, so they come to one. If this
-/// ever fails by more than a hair, one of them is being measured against the
-/// wrong thing.
-///
-/// A HAIR, NOT EXACTLY. This candle gives 1.0000000000000000000000000001.
-/// Each share is its own division, each rounds at the 28th significant digit,
-/// and three of those do not add back to a clean one. `Decimal` keeps 0.1 +
-/// 0.2 honest — it does not make division exact.
-///
-/// So nothing downstream may test `body + upper + lower == 1`. Nothing needs
-/// to: the patterns compare each share against a threshold on its own.
+/// **The three shares are shares of one candle**, so they cannot come to
+/// anything else. If this ever fails, one of them is being measured against
+/// the wrong thing.
 #[test]
-fn the_three_shares_add_to_one_within_a_hair() {
+fn the_three_shares_always_add_to_one() {
     let shape = Shape::of(&doji(), d("20")).expect("it has a range");
-    let total = shape.body + shape.upper + shape.lower;
 
-    assert_eq!(total.round_dp(20), Decimal::ONE, "got {total}");
+    assert_eq!(shape.body + shape.upper + shape.lower, Decimal::ONE);
 }
 
 /// Gold, 21 March 2026. Opened at its high, closed at its low, 64 dollars

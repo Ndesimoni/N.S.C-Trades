@@ -7,7 +7,12 @@
 /// `1h` reads badly in a message and `1day` reads worse.
 pub fn timeframe_name(interval: &str) -> &str {
     match interval {
+        "1min" => "1 minute",
+        "5min" => "5 minute",
+        "15min" => "15 minute",
+        "30min" => "30 minute",
         "1h" => "1 hour",
+        "2h" => "2 hour",
         "4h" => "4 hour",
         "1day" => "daily",
         "1week" => "weekly",

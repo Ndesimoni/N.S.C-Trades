@@ -10,7 +10,7 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use nsc_core::levels::{load_pair, load_thickness};
+use nsc_core::levels::{Timeframe, load_pair, load_thickness};
 use nsc_work_man::{review, telegram};
 
 #[tokio::main]
@@ -31,8 +31,10 @@ async fn main() -> Result<()> {
         println!("{:7} {}", line.timeframe.name(), line.price);
     }
 
-    let picture = Path::new("preview").join("levels.png");
-    review::picture_of(&client, &pair, thickness, &picture).await?;
+    // The weekly, because this prints every level a pair has and only the
+    // weekly is wide enough to hold levels drawn years apart.
+    let out = Path::new("preview").join("levels.png");
+    let drawn = review::picture_of(&client, &pair, thickness, Timeframe::Weekly, &out).await?;
 
     let caption = format!(
         "📐 <b>{}</b> — the {} level{} you drew, on the weekly chart.",
@@ -41,7 +43,7 @@ async fn main() -> Result<()> {
         if pair.levels.len() == 1 { "" } else { "s" }
     );
 
-    telegram::send(&client, &[&picture], &caption).await?;
+    telegram::send(&client, &[&drawn.picture], &caption).await?;
     println!("\nSent to your channel.");
 
     Ok(())

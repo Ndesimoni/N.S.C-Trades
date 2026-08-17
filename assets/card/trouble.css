@@ -14,6 +14,14 @@
 .is-down   { --mood:#A6790C; --wash:#FBF5E6; }
 .is-back   { --mood:#1F9E7A; --wash:#EAF6F2; }
 
+/* A pair the feed will not serve. RED, the same as stopped, because it is the
+   same answer to "do I need to get up?" — it does not fix itself and no level
+   on that pair will ever fire until he does something.
+
+   The bot carries on watching the others, so it is not "stopped". But amber
+   would say "it is trying", and it is not trying. Nothing will change. */
+.is-dark   { --mood:#B3261E; --wash:#FBEDEC; }
+
 body{ background:var(--vault); }
 
 /* The stripe. It runs the whole height, so the colour is the first thing seen

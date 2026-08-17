@@ -100,3 +100,25 @@ printed. This is what they look like, each with the hours either side.
   close all 3326.27, and no shape at all
 
 Real candles: XAU/USD 1-hour and 4-hour from Twelve Data.
+
+---
+
+## [The five shapes, found in three years of gold →](https://claude.ai/code/artifact/21c85fd3-6d73-435e-a12a-9757f4fb70e3)
+
+`shapes-gallery.html` · **reference**
+
+Pin bar, doji, belt-hold, engulfing and tweezers — the five this project decided
+a trader actually reads, each with the clearest real example and the candles
+either side.
+
+**How often each turned up in 4,165 candles:** pin bar up 348, pin bar down 315,
+doji 241, engulfing up 231, engulfing down 194, tweezer bottom 167, tweezer top
+165, belt-hold up 152, belt-hold down 117.
+
+**A shape every twelve candles is not a signal, it is a description.** What makes
+one worth a message is the level it printed at, and that belongs to
+`nsc-strategy`.
+
+Real candles: XAU/USD 4-hour from Twelve Data, 23 Oct 2023 to 14 Aug 2026,
+weekends removed, found with the thresholds already in `config/ta.toml` and ATR
+worked out as it goes.

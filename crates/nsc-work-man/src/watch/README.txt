@@ -155,10 +155,10 @@ THE ONE MESSAGE THAT STILL GOES OUT ON A MONDAY
   Monday watches nothing, so without it a quiet Monday and a dead bot look
   exactly the same.
 
-  It is checked on the same ten-minute tick as the closes — and the tick is
-  pushed forward BEFORE anything decides to skip the check. Left until after
-  the work, a Monday leaves the deadline in the past and the loop spins as
-  fast as the processor will go.
+  It is checked on the same tick as the closes — at most ten minutes, sooner
+  when a candle is due — and the tick is pushed forward BEFORE anything decides
+  to skip the check. Left until after the work, a Monday leaves the deadline in
+  the past and the loop spins as fast as the processor will go.
 
 
 IT WATCHES NOTHING ON A MONDAY
@@ -266,15 +266,16 @@ THE TWENTY-MINUTE LOOK
   `look_in_minutes` in config/when.toml is set for the 1-hour and scaled for
   the rest: twenty minutes into an hour is eighty into a 4-hour.
 
-  The check runs every ten minutes, so the look lands somewhere between twenty
-  and thirty minutes in. Close enough for a heads-up; nothing decides anything
-  on it.
+  IT LANDS ON THE MINUTE, NOT IN A TEN-MINUTE WINDOW. It used to be checked on
+  a timer, so the look arrived somewhere between twenty and thirty minutes in.
+  closes/due.rs now reads the stamp the feed already handed back and wakes at
+  that candle's own look and close. Twenty minutes in means twenty.
 
 
 IT NEVER WORKS OUT WHEN A CANDLE CLOSES
 
-  closes/ asks every ten minutes for the newest candle and lets THE FEED'S
-  OWN STAMP say whether it is one already reported.
+  closes/ asks for the newest candle when that pair's next one is due, and lets
+  THE FEED'S OWN STAMP say whether it is one already reported.
 
   Working the boundaries out here would mean knowing where the feed puts its
   4-hour candles, which nobody has measured. Guessing wrong reports a candle

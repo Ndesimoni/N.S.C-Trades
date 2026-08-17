@@ -64,8 +64,14 @@ function draw(){
   document.documentElement.style.setProperty("--dir", down ? "var(--down)" : "var(--up)");
 
   document.getElementById("pair").innerHTML = close.symbol.replace("/", '<span>/</span>');
+
+  // THE CANDLE FIRST, THEN THE LEVEL IT HAPPENED AT. Two timeframes live on
+  // this card -- the candle's and the zone's -- and the level's used to sit
+  // alone in this slot, under the pair, next to the coloured dot. So a 5
+  // minute candle at a daily zone read as a daily candle at a glance, which is
+  // the one thing the card must not be wrong about.
   document.getElementById("which").innerHTML =
-    `${close.timeframe} level &nbsp;<b>${fmt(close.level)}</b>`;
+    `<b>${close.interval}</b> candle &nbsp;·&nbsp; ${close.timeframe} level &nbsp;<b>${fmt(close.level)}</b>`;
 
   // THE ACTION, not just where it ended. A wick that grazed the edge and a
   // candle that drove a third of the way in both "closed above".

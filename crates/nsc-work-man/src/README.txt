@@ -36,7 +36,10 @@ THE FILES
   telegram/     Sending. Several pictures go as one media group so the phone
                 buzzes once and each picture still opens on its own.
 
-  review.rs     Drawing a pair's levels, so he can see where they landed.
+  review/       Drawing a pair's levels, so he can see where they landed, on
+                whichever of his three charts he asked for. A folder because it
+                holds a type — how much of what he drew is actually on the
+                picture — and the tests that pin it.
 
   watch/        THE BOT. Rungs 1 and 2 — price reaching one of his zones, and
                 what a candle there did. The calendar, the heartbeat, and the

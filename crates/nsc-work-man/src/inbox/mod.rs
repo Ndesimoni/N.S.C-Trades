@@ -42,6 +42,7 @@ const NEW_PAIR: &str = "+ new pair";
 /// What he can do to one pair, from its own page.
 const ADD: &str = "+ Add levels";
 const DROP: &str = "− Take one off";
+const CHART: &str = "📈 Chart";
 const STOP: &str = "✗ Stop watching";
 
 /// Backing out.

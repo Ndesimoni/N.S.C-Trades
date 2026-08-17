@@ -54,3 +54,7 @@ price = "2984"
 # 5000, 4530 and 2700 in black, and 4270 in blue — but those numbers came from
 # measuring pixels, which this project has a rule against. They go in when he
 # reads them off and sends them.
+
+[[level]]
+timeframe = "daily"
+price = "4420.468"

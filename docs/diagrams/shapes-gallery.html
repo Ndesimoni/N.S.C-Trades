@@ -1,0 +1,227 @@
+<title>Five Shapes in Gold</title>
+<style>
+  :root {
+    --ground:#F5F6F9; --panel:#FFFFFF; --sunk:#ECEFF5;
+    --ink:#14181F; --ink-soft:#5B6472; --faint:#8A93A2; --rule:#DDE1E9;
+    --good:#1E3FA8; --bad:#A2665C;
+    --up:#3C7A5A; --down:#A2665C; --trend:rgba(30,63,168,.10); --trend-line:#1E3FA8;
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans:  ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:#0E1116; --panel:#161A21; --sunk:#1E242E;
+      --ink:#E8EBF1; --ink-soft:#98A1B0; --faint:#6B7686; --rule:#262C36;
+      --good:#7C9BFF; --bad:#C98B7F;
+      --up:#5FA982; --down:#C98B7F; --trend:rgba(124,155,255,.13); --trend-line:#7C9BFF;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:#0E1116; --panel:#161A21; --sunk:#1E242E;
+    --ink:#E8EBF1; --ink-soft:#98A1B0; --faint:#6B7686; --rule:#262C36;
+    --good:#7C9BFF; --bad:#C98B7F;
+    --up:#5FA982; --down:#C98B7F; --trend:rgba(124,155,255,.13); --trend-line:#7C9BFF;
+  }
+
+  body { background:var(--ground); color:var(--ink); font-family:var(--sans);
+         line-height:1.6; margin:0; padding:2.5rem 1.25rem 5rem; }
+  .wrap { max-width:1040px; margin:0 auto; display:flex; flex-direction:column; gap:2rem; }
+
+  h1 { font-family:var(--serif); font-weight:600; font-size:clamp(1.7rem,4vw,2.5rem);
+       line-height:1.15; margin:0 0 .5rem; text-wrap:balance; letter-spacing:-.01em; }
+  h2 { font-family:var(--serif); font-weight:600; font-size:1.25rem; margin:0 0 .6rem; }
+  p  { margin:0 0 .9rem; max-width:66ch; color:var(--ink-soft); }
+  p strong, li strong { color:var(--ink); font-weight:600; }
+  .lede { font-size:1.06rem; color:var(--ink-soft); max-width:64ch; }
+
+  .eyebrow { font-family:var(--mono); font-size:.72rem; letter-spacing:.14em;
+             text-transform:uppercase; color:var(--faint); margin:0 0 .7rem; }
+
+  .card { background:var(--panel); border:1px solid var(--rule); border-radius:10px;
+          padding:1.5rem 1.5rem 1.25rem; }
+
+  .real { display:flex; gap:.6rem; align-items:baseline; flex-wrap:wrap;
+          font-family:var(--mono); font-size:.78rem; color:var(--ink-soft);
+          background:var(--sunk); border:1px solid var(--rule); border-left:3px solid var(--good);
+          border-radius:6px; padding:.75rem 1rem; }
+  .real b { color:var(--ink); font-weight:600; }
+
+  .picks { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin:0 0 1rem; }
+  .picks span { font-family:var(--mono); font-size:.75rem; color:var(--faint);
+                letter-spacing:.08em; text-transform:uppercase; margin-right:.3rem; }
+  button { font-family:var(--mono); font-size:.85rem; color:var(--ink-soft);
+           background:var(--sunk); border:1px solid var(--rule); border-radius:6px;
+           padding:.45rem .85rem; cursor:pointer; transition:all .15s; }
+  button:hover { color:var(--ink); border-color:var(--faint); }
+  button[aria-pressed="true"] { background:var(--trend-line); border-color:var(--trend-line);
+                                color:var(--panel); font-weight:600; }
+  button:focus-visible { outline:2px solid var(--good); outline-offset:2px; }
+
+  .chart { width:100%; overflow-x:auto; }
+  svg { display:block; width:100%; height:auto; }
+
+  .reading { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+             gap:1rem; margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--rule); }
+  .reading div span { display:block; font-family:var(--mono); font-size:.7rem;
+                      letter-spacing:.1em; text-transform:uppercase; color:var(--faint); }
+  .reading div b { font-family:var(--mono); font-size:1.5rem; font-weight:600;
+                   color:var(--ink); font-variant-numeric:tabular-nums; }
+
+  table { width:100%; border-collapse:collapse; font-size:.9rem; margin:.5rem 0 0; }
+  th,td { text-align:left; padding:.55rem .5rem; border-bottom:1px solid var(--rule); }
+  th { font-family:var(--mono); font-size:.7rem; letter-spacing:.1em;
+       text-transform:uppercase; color:var(--faint); font-weight:500; }
+  td.n { font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right; }
+  ul { margin:0 0 .9rem; padding-left:1.1rem; color:var(--ink-soft); max-width:66ch; }
+  li { margin-bottom:.4rem; }
+  .foot { color:var(--faint); font-size:.85rem; }
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+
+  .gallery { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+             gap:1.5rem; margin-top:1.25rem; }
+  .shape { background:var(--sunk); border:1px solid var(--rule); border-radius:9px;
+           padding:1rem .9rem .9rem; }
+  .shape h3 { font-family:var(--sans); font-size:.95rem; font-weight:600; margin:0;
+              color:var(--ink); }
+  .shape time { font-family:var(--mono); font-size:.7rem; color:var(--faint);
+                display:block; margin:.1rem 0 .7rem; }
+  .shape svg { width:100%; height:150px; display:block; }
+  .shape dl { display:grid; grid-template-columns:repeat(4,1fr); gap:.15rem; margin:.8rem 0 0;
+              font-family:var(--mono); font-size:.68rem; text-align:center; }
+  .shape dt { color:var(--faint); }
+  .shape dd { margin:0; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .shape p { font-size:.78rem; margin:.7rem 0 0; color:var(--ink-soft); line-height:1.45; }
+  .shape .often { font-family:var(--mono); font-size:.68rem; color:var(--trend-line);
+                  margin-top:.5rem; }
+</style>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">nsc_trades · nsc-ta · every shape on the list</p>
+  <h1>The five shapes, found in three years of gold</h1>
+  <p class="lede">Pin bar, doji, belt-hold, engulfing and tweezers — the five this
+  project decided a trader actually reads. <strong>Here is the clearest real example
+  of each</strong>, with the candles either side, and how often each turned up.</p>
+</header>
+
+<div class="real">
+  <b>Real candles.</b>
+  <span>4,165 XAU/USD <b>4-hour</b> candles from Twelve Data, 23 October 2023 to
+  14 August 2026 · weekends and holidays removed · every shape found with the
+  thresholds already written in <code>config/ta.toml</code> · ATR worked out as it
+  goes, so each candle is judged against how big a normal candle was <em>at the
+  time</em>.</span>
+</div>
+
+<section class="card">
+  <h2>How often each turns up</h2>
+  <p>Over three years and 4,165 candles. <strong>None of these is rare</strong> — which
+  is the first thing worth knowing about all of them.</p>
+  <table>
+    <thead><tr><th>Shape</th><th class="n">Found</th><th class="n">Roughly</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td>Pin bar ↑</td><td class="n">348</td><td class="n">1 in 12</td><td>Long tail down, small body at the top</td></tr>
+      <tr><td>Pin bar ↓</td><td class="n">315</td><td class="n">1 in 13</td><td>The same shape upside down</td></tr>
+      <tr><td>Doji</td><td class="n">241</td><td class="n">1 in 17</td><td>Open and close in nearly the same place</td></tr>
+      <tr><td>Engulfing ↑</td><td class="n">231</td><td class="n">1 in 18</td><td>A body swallowing the one before it</td></tr>
+      <tr><td>Engulfing ↓</td><td class="n">194</td><td class="n">1 in 21</td><td>The same, the other way</td></tr>
+      <tr><td>Tweezer bottom</td><td class="n">167</td><td class="n">1 in 25</td><td>Two candles reaching the same low</td></tr>
+      <tr><td>Tweezer top</td><td class="n">165</td><td class="n">1 in 25</td><td>Two candles reaching the same high</td></tr>
+      <tr><td>Belt-hold ↑</td><td class="n">152</td><td class="n">1 in 27</td><td>Long candle opening at its low, no wick there</td></tr>
+      <tr><td>Belt-hold ↓</td><td class="n">117</td><td class="n">1 in 36</td><td>Long candle opening at its high</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:1rem"><strong>A shape every twelve candles is not a signal.</strong>
+  It is a description. What makes one worth a message is the level it printed at, and
+  that is not this crate's question.</p>
+</section>
+
+<section class="card">
+  <h2>One candle</h2>
+  <p>Measured from its own proportions alone. Nothing to the left of it matters.</p>
+  <div class="gallery" data-group="single"></div>
+</section>
+
+<section class="card">
+  <h2>Two candles</h2>
+  <p>These need the one before. <strong>That is the whole difference</strong> — and it
+  is why the code splits <code>candle/</code> from <code>pattern/</code>. A shape you can
+  read from one candle and a shape that needs two are different questions.</p>
+  <div class="gallery" data-group="pair"></div>
+</section>
+
+<section class="card">
+  <h2>Three things these pictures settle</h2>
+  <ul>
+    <li><strong>Hammer and inverted hammer are not separate shapes.</strong> A hammer
+      <em>is</em> a bullish pin bar. The textbook separates them by what came before —
+      a hammer follows a downtrend — and that is context, not shape. Context belongs to
+      <code>nsc-strategy</code>.</li>
+    <li><strong>One candle can be several things.</strong> The 7 June 2024 candle below
+      is both a bearish engulfing and a tweezer top. Both are true. Deciding which
+      matters needs the level, and that is not this crate's job.</li>
+    <li><strong>Two yardsticks, not one.</strong> Shape is measured as shares of the
+      candle's own height, so a fifth is a fifth on gold and on the euro. Size is
+      measured in ATR. Only the belt-hold and the tweezer tolerance need ATR, and both
+      are about size rather than shape.</li>
+  </ul>
+  <p class="foot">The thresholds are textbook defaults, taken on 12 August 2026 so the
+  detectors could be built. Nobody has chosen them yet. What replaces them is a pair of
+  charts — one setup taken and one passed that looked the same.</p>
+</section>
+
+</div>
+
+<script>
+const G = {"pin_up":{"bars":[{"t":"2025-10-16 03:00","o":4211.71,"h":4231.81,"l":4205.06,"c":4230.95},{"t":"2025-10-16 07:00","o":4230.95,"h":4247.41,"l":4219.82,"c":4238.42},{"t":"2025-10-16 11:00","o":4238.42,"h":4274.0,"l":4235.66,"c":4261.56},{"t":"2025-10-16 15:00","o":4261.65,"h":4262.4,"l":4225.28,"c":4246.92},{"t":"2025-10-16 19:00","o":4246.91,"h":4266.13,"l":4236.2,"c":4258.48},{"t":"2025-10-16 23:00","o":4258.47,"h":4297.89,"l":4246.18,"c":4292.64},{"t":"2025-10-17 03:00","o":4292.65,"h":4336.65,"l":4286.51,"c":4333.33},{"t":"2025-10-17 07:00","o":4333.07,"h":4530.0,"l":4333.0,"c":4436.75},{"t":"2025-10-17 11:00","o":4436.74,"h":4436.75,"l":4256.0,"c":4401.2},{"t":"2025-10-17 15:00","o":4401.27,"h":4432.13,"l":4351.0,"c":4382.34},{"t":"2025-10-17 19:00","o":4382.35,"h":4428.0,"l":4305.89,"c":4307.81},{"t":"2025-10-20 07:00","o":4231.0,"h":4265.0,"l":4231.0,"c":4242.46},{"t":"2025-10-20 11:00","o":4242.34,"h":4272.5,"l":4214.16,"c":4260.78},{"t":"2025-10-20 15:00","o":4260.77,"h":4268.29,"l":4220.16,"c":4245.67},{"t":"2025-10-20 19:00","o":4245.66,"h":4269.42,"l":4237.29,"c":4269.17}],"at":8,"pair":false,"stamp":"2025-10-17 11:00","shape":{"body":0.1966,"upper":0.0001,"lower":0.8033,"reach":3.09,"up":false},"count":348},"pin_down":{"bars":[{"t":"2025-08-14 23:00","o":3339.69,"h":3343.41,"l":3324.39,"c":3328.63},{"t":"2025-08-15 03:00","o":3328.59,"h":3334.07,"l":3327.16,"c":3330.23},{"t":"2025-08-15 07:00","o":3330.23,"h":3330.54,"l":3326.01,"c":3329.4},{"t":"2025-08-15 11:00","o":3329.4,"h":3338.0,"l":3328.12,"c":3337.11},{"t":"2025-08-15 15:00","o":3337.11,"h":3341.09,"l":3334.03,"c":3336.06},{"t":"2025-08-15 19:00","o":3335.88,"h":3340.03,"l":3330.13,"c":3336.66},{"t":"2025-08-18 07:00","o":3330.09,"h":3337.86,"l":3322.0,"c":3333.98},{"t":"2025-08-18 11:00","o":3333.98,"h":3353.64,"l":3333.4,"c":3350.79},{"t":"2025-08-18 15:00","o":3350.79,"h":3380.0,"l":3340.39,"c":3346.35},{"t":"2025-08-18 19:00","o":3346.35,"h":3353.2,"l":3339.57,"c":3339.64},{"t":"2025-08-18 23:00","o":3339.64,"h":3339.64,"l":3328.25,"c":3332.7},{"t":"2025-08-19 03:00","o":3332.76,"h":3333.14,"l":3326.63,"c":3331.75},{"t":"2025-08-19 07:00","o":3331.76,"h":3337.46,"l":3326.51,"c":3332.7},{"t":"2025-08-19 11:00","o":3332.7,"h":3337.98,"l":3329.25,"c":3334.29},{"t":"2025-08-19 15:00","o":3334.3,"h":3337.96,"l":3332.4,"c":3335.08}],"at":8,"pair":false,"stamp":"2025-08-18 15:00","shape":{"body":0.1121,"upper":0.7374,"lower":0.1505,"reach":2.64,"up":false},"count":315},"doji":{"bars":[{"t":"2025-02-07 19:00","o":2864.23,"h":2870.73,"l":2863.39,"c":2867.8},{"t":"2025-02-10 07:00","o":2861.4,"h":2870.31,"l":2860.45,"c":2867.63},{"t":"2025-02-10 11:00","o":2867.8,"h":2876.7,"l":2865.88,"c":2875.64},{"t":"2025-02-10 15:00","o":2875.65,"h":2896.67,"l":2874.55,"c":2895.72},{"t":"2025-02-10 19:00","o":2895.71,"h":2906.2,"l":2892.4,"c":2904.76},{"t":"2025-02-10 23:00","o":2904.7,"h":2911.44,"l":2896.6,"c":2909.08},{"t":"2025-02-11 03:00","o":2909.21,"h":2910.31,"l":2896.69,"c":2904.42},{"t":"2025-02-11 07:00","o":2904.45,"h":2921.7,"l":2903.02,"c":2917.9},{"t":"2025-02-11 11:00","o":2917.96,"h":2942.69,"l":2906.17,"c":2919.73},{"t":"2025-02-11 15:00","o":2919.71,"h":2929.54,"l":2907.46,"c":2913.54},{"t":"2025-02-11 19:00","o":2913.33,"h":2915.27,"l":2902.0,"c":2903.97},{"t":"2025-02-11 23:00","o":2903.95,"h":2906.63,"l":2881.9,"c":2904.83},{"t":"2025-02-12 03:00","o":2904.81,"h":2908.73,"l":2899.73,"c":2900.29},{"t":"2025-02-12 07:00","o":2900.26,"h":2900.81,"l":2894.25,"c":2898.63},{"t":"2025-02-12 11:00","o":2898.89,"h":2898.89,"l":2883.77,"c":2889.1}],"at":8,"pair":false,"stamp":"2025-02-11 11:00","shape":{"body":0.0485,"upper":0.6287,"lower":0.3228,"reach":2.31,"up":true},"count":241},"belt_up":{"bars":[{"t":"2026-01-27 23:00","o":5077.52,"h":5092.7,"l":5051.14,"c":5085.97},{"t":"2026-01-28 03:00","o":5085.53,"h":5102.02,"l":5077.43,"c":5099.2},{"t":"2026-01-28 07:00","o":5099.2,"h":5191.0,"l":5098.86,"c":5171.87},{"t":"2026-01-28 11:00","o":5171.77,"h":5246.43,"l":5159.49,"c":5234.88},{"t":"2026-01-28 15:00","o":5234.84,"h":5291.33,"l":5232.89,"c":5290.66},{"t":"2026-01-28 19:00","o":5290.96,"h":5312.93,"l":5245.93,"c":5261.51},{"t":"2026-01-28 23:00","o":5261.56,"h":5296.32,"l":5249.62,"c":5278.91},{"t":"2026-01-29 03:00","o":5278.79,"h":5329.23,"l":5270.94,"c":5327.18},{"t":"2026-01-29 07:00","o":5326.99,"h":5589.62,"l":5324.0,"c":5518.92},{"t":"2026-01-29 11:00","o":5521.23,"h":5550.59,"l":5453.04,"c":5546.73},{"t":"2026-01-29 15:00","o":5546.68,"h":5597.23,"l":5521.65,"c":5548.49},{"t":"2026-01-29 19:00","o":5548.57,"h":5552.89,"l":5474.51,"c":5522.88},{"t":"2026-01-29 23:00","o":5523.07,"h":5547.53,"l":5122.54,"c":5185.85},{"t":"2026-01-30 03:00","o":5186.18,"h":5373.56,"l":5179.38,"c":5310.53},{"t":"2026-01-30 07:00","o":5308.49,"h":5445.2,"l":5286.87,"c":5438.95}],"at":8,"pair":false,"stamp":"2026-01-29 07:00","shape":{"body":0.7226,"upper":0.2662,"lower":0.0113,"reach":3.94,"up":true},"count":152},"belt_down":{"bars":[{"t":"2024-10-30 15:00","o":2779.05,"h":2789.89,"l":2777.48,"c":2782.31},{"t":"2024-10-30 19:00","o":2782.23,"h":2786.53,"l":2778.51,"c":2778.65},{"t":"2024-10-30 23:00","o":2778.81,"h":2787.56,"l":2771.06,"c":2784.78},{"t":"2024-10-31 03:00","o":2784.94,"h":2790.01,"l":2783.15,"c":2787.56},{"t":"2024-10-31 07:00","o":2787.55,"h":2788.2,"l":2784.8,"c":2785.48},{"t":"2024-10-31 11:00","o":2785.62,"h":2790.1,"l":2783.65,"c":2784.62},{"t":"2024-10-31 15:00","o":2784.76,"h":2786.65,"l":2778.27,"c":2782.1},{"t":"2024-10-31 19:00","o":2782.23,"h":2783.18,"l":2773.41,"c":2779.57},{"t":"2024-10-31 23:00","o":2779.6,"h":2782.03,"l":2731.65,"c":2740.69},{"t":"2024-11-01 03:00","o":2741.02,"h":2749.78,"l":2738.15,"c":2746.56},{"t":"2024-11-01 07:00","o":2746.57,"h":2748.26,"l":2743.49,"c":2746.82},{"t":"2024-11-01 11:00","o":2746.99,"h":2751.98,"l":2745.02,"c":2751.84},{"t":"2024-11-01 15:00","o":2751.82,"h":2757.7,"l":2747.27,"c":2749.73},{"t":"2024-11-01 19:00","o":2749.74,"h":2755.51,"l":2744.9,"c":2753.03},{"t":"2024-11-04 07:00","o":2733.36,"h":2740.41,"l":2732.7,"c":2738.45}],"at":8,"pair":false,"stamp":"2024-10-31 23:00","shape":{"body":0.7723,"upper":0.0482,"lower":0.1794,"reach":3.91,"up":false},"count":117},"engulf_up":{"bars":[{"t":"2024-02-28 15:00","o":2030.98,"h":2032.12,"l":2027.9,"c":2028.15},{"t":"2024-02-28 19:00","o":2028.13,"h":2029.3,"l":2024.57,"c":2027.38},{"t":"2024-02-28 23:00","o":2027.36,"h":2037.91,"l":2027.01,"c":2031.89},{"t":"2024-02-29 03:00","o":2031.89,"h":2035.67,"l":2030.89,"c":2032.19},{"t":"2024-02-29 07:00","o":2032.24,"h":2035.61,"l":2032.16,"c":2034.74},{"t":"2024-02-29 11:00","o":2034.74,"h":2037.14,"l":2033.99,"c":2036.64},{"t":"2024-02-29 15:00","o":2036.63,"h":2037.9,"l":2034.47,"c":2037.4},{"t":"2024-02-29 19:00","o":2037.39,"h":2037.55,"l":2028.91,"c":2030.36},{"t":"2024-02-29 23:00","o":2030.36,"h":2050.77,"l":2028.17,"c":2047.9},{"t":"2024-03-01 03:00","o":2048.2,"h":2048.45,"l":2043.35,"c":2044.52},{"t":"2024-03-01 07:00","o":2044.48,"h":2045.52,"l":2042.9,"c":2044.38},{"t":"2024-03-01 11:00","o":2044.32,"h":2046.92,"l":2042.91,"c":2046.62},{"t":"2024-03-01 15:00","o":2046.6,"h":2048.9,"l":2043.5,"c":2045.48},{"t":"2024-03-01 19:00","o":2045.56,"h":2057.52,"l":2039.12,"c":2055.44},{"t":"2024-03-04 07:00","o":2082.38,"h":2086.3,"l":2082.22,"c":2083.56}],"at":8,"pair":true,"stamp":"2024-02-29 23:00","shape":{"body":0.7761,"upper":0.127,"lower":0.0969,"reach":3.43,"up":true},"count":231},"engulf_down":{"bars":[{"t":"2024-06-06 07:00","o":2357.05,"h":2357.57,"l":2354.6,"c":2355.78},{"t":"2024-06-06 11:00","o":2355.76,"h":2374.89,"l":2355.69,"c":2369.52},{"t":"2024-06-06 15:00","o":2369.51,"h":2371.47,"l":2360.03,"c":2362.97},{"t":"2024-06-06 19:00","o":2362.98,"h":2365.06,"l":2355.31,"c":2357.69},{"t":"2024-06-06 23:00","o":2357.68,"h":2378.48,"l":2353.65,"c":2372.95},{"t":"2024-06-07 03:00","o":2373.01,"h":2376.09,"l":2369.06,"c":2375.9},{"t":"2024-06-07 07:00","o":2376.71,"h":2379.34,"l":2375.78,"c":2378.52},{"t":"2024-06-07 11:00","o":2378.86,"h":2387.55,"l":2369.55,"c":2386.73},{"t":"2024-06-07 15:00","o":2386.77,"h":2387.77,"l":2342.65,"c":2347.4},{"t":"2024-06-07 19:00","o":2347.27,"h":2347.98,"l":2313.56,"c":2319.48},{"t":"2024-06-10 07:00","o":2297.34,"h":2300.16,"l":2294.27,"c":2297.12},{"t":"2024-06-10 11:00","o":2297.12,"h":2300.97,"l":2292.88,"c":2294.9},{"t":"2024-06-10 15:00","o":2294.91,"h":2297.6,"l":2287.86,"c":2292.73},{"t":"2024-06-10 19:00","o":2292.61,"h":2308.65,"l":2291.94,"c":2306.23},{"t":"2024-06-10 23:00","o":2306.39,"h":2313.82,"l":2300.52,"c":2313.01}],"at":8,"pair":true,"stamp":"2024-06-07 15:00","shape":{"body":0.8726,"upper":0.0222,"lower":0.1053,"reach":3.1,"up":false},"count":194},"tweezer_top":{"bars":[{"t":"2024-06-06 07:00","o":2357.05,"h":2357.57,"l":2354.6,"c":2355.78},{"t":"2024-06-06 11:00","o":2355.76,"h":2374.89,"l":2355.69,"c":2369.52},{"t":"2024-06-06 15:00","o":2369.51,"h":2371.47,"l":2360.03,"c":2362.97},{"t":"2024-06-06 19:00","o":2362.98,"h":2365.06,"l":2355.31,"c":2357.69},{"t":"2024-06-06 23:00","o":2357.68,"h":2378.48,"l":2353.65,"c":2372.95},{"t":"2024-06-07 03:00","o":2373.01,"h":2376.09,"l":2369.06,"c":2375.9},{"t":"2024-06-07 07:00","o":2376.71,"h":2379.34,"l":2375.78,"c":2378.52},{"t":"2024-06-07 11:00","o":2378.86,"h":2387.55,"l":2369.55,"c":2386.73},{"t":"2024-06-07 15:00","o":2386.77,"h":2387.77,"l":2342.65,"c":2347.4},{"t":"2024-06-07 19:00","o":2347.27,"h":2347.98,"l":2313.56,"c":2319.48},{"t":"2024-06-10 07:00","o":2297.34,"h":2300.16,"l":2294.27,"c":2297.12},{"t":"2024-06-10 11:00","o":2297.12,"h":2300.97,"l":2292.88,"c":2294.9},{"t":"2024-06-10 15:00","o":2294.91,"h":2297.6,"l":2287.86,"c":2292.73},{"t":"2024-06-10 19:00","o":2292.61,"h":2308.65,"l":2291.94,"c":2306.23},{"t":"2024-06-10 23:00","o":2306.39,"h":2313.82,"l":2300.52,"c":2313.01}],"at":8,"pair":true,"stamp":"2024-06-07 15:00","shape":{"body":0.8726,"upper":0.0222,"lower":0.1053,"reach":3.1,"up":false},"count":165},"tweezer_bottom":{"bars":[{"t":"2024-01-31 15:00","o":2033.93,"h":2038.65,"l":2033.32,"c":2036.71},{"t":"2024-01-31 19:00","o":2036.7,"h":2040.47,"l":2036.27,"c":2037.36},{"t":"2024-01-31 23:00","o":2037.38,"h":2056.03,"l":2036.12,"c":2052.35},{"t":"2024-02-01 03:00","o":2052.44,"h":2053.68,"l":2039.79,"c":2045.03},{"t":"2024-02-01 07:00","o":2045.03,"h":2046.02,"l":2031.04,"c":2039.98},{"t":"2024-02-01 11:00","o":2040.12,"h":2049.56,"l":2039.36,"c":2046.32},{"t":"2024-02-01 15:00","o":2046.4,"h":2046.65,"l":2041.22,"c":2042.92},{"t":"2024-02-01 19:00","o":2042.94,"h":2042.94,"l":2030.15,"c":2033.52},{"t":"2024-02-01 23:00","o":2033.4,"h":2053.06,"l":2030.38,"c":2051.98},{"t":"2024-02-02 03:00","o":2051.99,"h":2065.48,"l":2051.41,"c":2054.88},{"t":"2024-02-02 07:00","o":2054.82,"h":2056.35,"l":2053.56,"c":2054.93},{"t":"2024-02-02 11:00","o":2054.9,"h":2056.88,"l":2051.94,"c":2054.69},{"t":"2024-02-02 15:00","o":2054.65,"h":2057.01,"l":2054.14,"c":2055.11},{"t":"2024-02-02 19:00","o":2055.1,"h":2056.85,"l":2052.74,"c":2056.1},{"t":"2024-02-05 07:00","o":2041.71,"h":2042.32,"l":2039.24,"c":2039.41}],"at":8,"pair":true,"stamp":"2024-02-01 23:00","shape":{"body":0.8192,"upper":0.0476,"lower":0.1332,"reach":2.22,"up":true},"count":167}}, META = {"pin_up": ["Pin bar \u2191", "single", "A long tail down, a small body at the top, and almost no nose. Price went looking below and was refused."], "pin_down": ["Pin bar \u2193", "single", "The same shape the other way up. Textbook calls this a shooting star; it is one detector, not two."], "doji": ["Doji", "single", "Opened and closed within a twentieth of its own height, having travelled 2.3 normal candles to get nowhere."], "belt_up": ["Belt-hold \u2191", "single", "Opened at its low with no wick beneath, then held. A long candle that never traded below its open."], "belt_down": ["Belt-hold \u2193", "single", "Opened at its high and never went back up. The mirror of the one above."], "engulf_up": ["Engulfing \u2191", "pair", "The second body swallows the first, top and bottom, and turns it around. Both candles are worth seeing here."], "engulf_down": ["Engulfing \u2193", "pair", "The same, downward. This candle is also a tweezer top \u2014 one candle, two true statements."], "tweezer_top": ["Tweezer top", "pair", "Two candles reaching the same high, within a twentieth of a normal candle. Both were refused at the same price."], "tweezer_bottom": ["Tweezer bottom", "pair", "Two candles reaching the same low. The same shape swing detection used to throw away, because neither strictly beat the other."]};
+const NS = 'http://www.w3.org/2000/svg';
+
+function chart(set) {
+  const B = set.bars, N = B.length, at = set.at, pair = set.pair;
+  const W = 300, H = 150, T = 10, Bm = 10;
+  let lo = Math.min(...B.map(b => b.l)), hi = Math.max(...B.map(b => b.h));
+  const pad = (hi - lo) * 0.06 || 1; lo -= pad; hi += pad;
+  const span = hi - lo, step = W / N;
+  const y = v => T + (1 - (v - lo) / span) * (H - T - Bm);
+  const x = i => step * (i + 0.5);
+
+  let out = '';
+  // The one under test, and its partner when the shape needs two.
+  const from = pair ? at - 1 : at;
+  out += `<rect x="${step * from}" y="0" width="${step * (at - from + 1)}"
+           height="${H}" fill="var(--trend)"/>`;
+
+  const w = Math.max(step * 0.6, 3);
+  for (let i = 0; i < N; i++) {
+    const b = B[i], live = i >= from && i <= at;
+    const col = b.c >= b.o ? 'var(--up)' : 'var(--down)';
+    const op = live ? 1 : 0.28;
+    const top = y(Math.max(b.o, b.c)), bot = y(Math.min(b.o, b.c));
+    out += `<line x1="${x(i)}" y1="${y(b.h)}" x2="${x(i)}" y2="${y(b.l)}"
+             stroke="${col}" stroke-width="${live ? 2 : 1.2}" opacity="${op}"/>`;
+    out += `<rect x="${x(i) - w / 2}" y="${top}" width="${w}"
+             height="${Math.max(bot - top, live ? 2 : 1)}" fill="${col}"
+             opacity="${op}" rx="1"/>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${out}</svg>`;
+}
+
+for (const box of document.querySelectorAll('.gallery')) {
+  const want = box.dataset.group;
+  box.innerHTML = Object.keys(META)
+    .filter(k => META[k][1] === want && G[k])
+    .map(k => {
+      const set = G[k], s = set.shape, [name, , note] = META[k];
+      return `<div class="shape">
+        <h3>${name}</h3><time>${set.stamp}</time>
+        ${chart(set)}
+        <dl><dt>body</dt><dt>upper</dt><dt>lower</dt><dt>reach</dt>
+            <dd>${s.body.toFixed(2)}</dd><dd>${s.upper.toFixed(2)}</dd>
+            <dd>${s.lower.toFixed(2)}</dd><dd>${s.reach}A</dd></dl>
+        <p>${note}</p>
+        <p class="often">${set.count} in three years</p>
+      </div>`;
+    }).join('');
+}
+</script>

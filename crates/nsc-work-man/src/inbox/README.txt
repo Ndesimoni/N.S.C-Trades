@@ -74,8 +74,10 @@ IT RUNS INSIDE THE BOT
 ONE PAIR, AND WHAT HE CAN DO TO IT
 
       /pairs      ->  every pair he has
-      tap GBPUSD  ->  what it holds, and three things:
-                      [+ Add levels] [− Take one off] [✗ Stop watching]
+      tap GBPUSD  ->  what it holds, and four things:
+                      [+ Add levels] [− Take one off]
+                      [📈 Chart]
+                      [✗ Stop watching]
 
   THIS IS WHERE A LEVEL GETS TAKEN OFF. Undo only ever reached what the last
   message added — which covers a typo the moment it happens, and does nothing
@@ -91,6 +93,39 @@ ONE PAIR, AND WHAT HE CAN DO TO IT
 
   The comments in the file survive it. He is meant to be able to open one and
   read it.
+
+
+ASKING FOR A CHART
+
+      /chart  ->  which pair?  ->  [pair]  ->  which chart?  ->  picture
+      /pairs  ->  [pair]  ->  [📈 Chart]  ->  which chart?  ->  picture
+
+  TWO DOORS INTO THE SAME PLACE. /chart is for when he already knows which pair
+  he wants. The button is for when he is on the pair's page anyway, and it sits
+  next to the list of levels it is about to draw.
+
+  IT USED TO BE REACHABLE ONLY BY SAVING A LEVEL. The picture went out as the
+  reply to "here is where your levels landed", so seeing a chart meant adding
+  something in order to see one. bin/levels.rs could draw one, and that is on
+  his Mac rather than his phone.
+
+  THE THREE TIMEFRAME BUTTONS ARE SHARED WITH ADDING A LEVEL, and a button only
+  sends its own word back -- "Weekly" arrives identical either way. `chart_of`
+  on Adding is the only thing that says which question he is answering, and it
+  is checked BEFORE the adding flow's timeframe for exactly that reason.
+
+  It is cleared the moment the chart goes, so his next "Weekly" is a level
+  again. And it is cleared when he moves to a different pair: Telegram keeps old
+  keyboards tappable forever, so a chart question left hanging on the last pair
+  would turn a tap made a week later into a picture of the wrong one.
+
+  THE WEEKLY IS THE ONE THAT SHOWS EVERYTHING. His levels are years apart. The
+  daily and the 4-hour are for reading one level closely, and they will often
+  hold none of them at all -- 150 four-hour candles is about twenty-five days.
+
+  So the caption says when nothing reached. A chart that is correctly empty and
+  a chart whose bands failed to draw are otherwise the same picture, and he
+  would report the second one as a bug. See review/README.txt.
 
 
 PUTTING ONE BACK
@@ -148,7 +183,10 @@ THE FILES
 
   pairs.rs      Stopping a pair, and putting one back.
 
-  picture.rs    Drawing where the levels landed.
+  picture/      Sending him a picture of a pair. Two jobs that read
+                differently -- where the levels he just saved landed, and a
+                chart he asked to see. Its own folder, with its own README.
+                See ASKING FOR A CHART above.
 
   dropping.rs   Taking one level off a pair. Each level goes up as its own
                 button reading "weekly 1.21279", and the chart name on it is
@@ -174,129 +212,11 @@ HOW IT GOES
 
 FOUR THINGS THAT ARE DELIBERATE
 
-  1. THE BUTTONS ARE A REFUSED MESSAGE IS NOT A SENT MESSAGE
-
-  Telegram answers 200 with `ok: false` when it will not take a message. That
-  was printed to a terminal he is not watching, and `say` returned Ok — so
-  everything upstream believed he had been replied to.
-
-  He would have seen nothing, and had no way to tell that from a dead bot.
-
-  It is an error now. And the text of what went wrong is ESCAPED before it
-  goes in, because every message here is parsed as HTML: a stray `<` in an
-  error is an unclosed tag, and Telegram refuses the whole message. The reply
-  that says what went wrong is exactly the one that has to arrive.
-
-
-/status ALWAYS ANSWERS
-
-  It used to reply "Could not do that" when the card would not draw, which is
-  the single most misleading thing it could say -- the whole job of this
-  command is telling him the bot is alive.
-
-  The words carry the answer; the picture only carries it better. If the card
-  fails, the words go on their own.
-
-  And on a day nothing is watched it says so in a sentence rather than drawing
-  a card of dashes. The card's useful column is how far price is from the
-  nearest zone, and on a quiet day no price has arrived, so every row would be
-  blank.
-
-
-HOW /status ANSWERS
-
-  The WATCHER holds the live picture — which bands are sized, where price was
-  last, which zones it is sitting in. The inbox runs beside it and has none of
-  that.
-
-  So the watcher PUBLISHES A COPY whenever it changes, and the inbox reads the
-  latest one. Nothing is shared and nothing is locked: the reader gets whatever
-  the last published copy was, which for "is it running and what is close" is
-  exactly right.
-
-  The copy is taken before drawing, not held across it. Holding the borrow
-  while Chrome runs would stop the watcher publishing for a second or two.
-
-
-IT RUNS INSIDE THE BOT
-
-  Spawned beside the watcher, so `cargo run -p nsc-work-man` is the whole
-  thing.
-
-  It was a second program for a while. That meant two terminals and
-  remembering both — and if it was not up, a level he sent went NOWHERE and
-  nothing said so. He would find out days later when it never fired.
-
-  The two do not talk to each other. The inbox writes a pair's file and the
-  watcher notices the folder changed, which is how it already worked.
-
-  IT CANNOT STOP. If this task ends, levels go nowhere again — so it catches
-  its own trouble, waits fifteen seconds and listens again.
-
-
-ONE PAIR, AND WHAT HE CAN DO TO IT
-
-      /pairs      ->  every pair he has
-      tap GBPUSD  ->  what it holds, and three things:
-                      [+ Add levels] [− Take one off] [✗ Stop watching]
-
-  THIS IS WHERE A LEVEL GETS TAKEN OFF. Undo only ever reached what the last
-  message added — which covers a typo the moment it happens, and does nothing
-  at all for "that 1.15 from last week was wrong". That was the gap.
-
-  The levels come back as buttons, one each, written exactly as they are in the
-  file. Tapping one hands back what is there rather than anything having to be
-  guessed at.
-
-  The price is matched AS A NUMBER, the same way saving refuses a duplicate. He
-  may tap 1.15000 having typed 1.15, and as text those are two different
-  levels.
-
-  The comments in the file survive it. He is meant to be able to open one and
-  read it.
-
-
-PUTTING ONE BACK
-
-      /restore  ->  which one?  ->  [pair]  ->  back
-
-  ONE TAP. It takes nothing away, so there is nothing to be careful about.
-
-  It comes back under the PAIR'S OWN NAME, whatever the file is called — the
-  name on disk is bookkeeping, the name inside the file is the pair. Restoring
-  GBPUSD-2 lands as GBPUSD.
-
-  AND IT REFUSES TO LAND ON A PAIR HE IS ALREADY WATCHING. He may have stopped
-  a pair, drawn it again from scratch, and then reached for the old set —
-  which would replace the levels he is using with the ones he put aside, and
-  say nothing. It says so instead, and leaves both alone.
-
-
-STOPPING A PAIR
-
-      /remove   ->  which pair?  ->  [pair]  ->  stop it? / keep it
-
-  TWO TAPS, NOT ONE. It throws away every level he has drawn for that pair —
-  months of chart work — and the first tap is made on a phone while he is
-  doing something else. The second one tells him how many levels are on it
-  before he confirms.
-
-  AND IT IS MOVED, NOT DELETED. The file goes to config/pairs/removed/ and
-  comes back by being moved out again. The reply says where it went.
-
-  Retiring the same pair twice does not overwrite the first set. He may add it
-  back, draw it again and drop it again, and the first set is still the one he
-  spent an evening on.
-
-  The watcher notices within ten minutes, on its own, and stops watching it.
-
-
-THE FILES.
+  1. THE BUTTONS ARE THE FILES.
 
      Whatever is in config/pairs/ becomes a button. Not a list in this code —
      that was the mistake the old settings.rs made, and two lists always
-     disagree in
-     the end. A pair exists because its file exists.
+     disagree in the end. A pair exists because its file exists.
 
   2. IT ONLY OBEYS HIM.
 

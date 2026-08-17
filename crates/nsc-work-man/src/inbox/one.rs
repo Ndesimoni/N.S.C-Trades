@@ -2,8 +2,10 @@
 //!
 //! ```text
 //!   /pairs        ->  every pair he has
-//!   tap GBPUSD    ->  what it holds, and three things he can do
-//!                     [+ Add levels] [− Take one off] [✗ Stop watching]
+//!   tap GBPUSD    ->  what it holds, and four things he can do
+//!                     [+ Add levels] [− Take one off]
+//!                     [📈 Chart]
+//!                     [✗ Stop watching]
 //! ```
 //!
 //! **This is where a level gets taken off.** Undo only ever reached what the
@@ -18,7 +20,7 @@ use serde_json::json;
 
 use super::conversation::Adding;
 use super::talking::say;
-use super::{ADD, DROP, STOP, TIMEFRAMES};
+use super::{ADD, CHART, DROP, STOP, TIMEFRAMES};
 use super::{dropping, pairs};
 
 /// Anything to do with one pair's page.
@@ -53,6 +55,18 @@ pub async fn heard(
             return Some(dropping::offer(client, token, folder, &name, adding).await);
         }
 
+        // **Only remembers which pair, and asks.** Drawing takes Chrome the
+        // best part of ten seconds, so the chart itself is left to `route`
+        // once he has said which one he wants.
+        if text == CHART {
+            adding.dropping = false;
+            adding.chart_of = Some(name.clone());
+
+            let names: Vec<&str> = TIMEFRAMES.iter().map(|(word, _)| *word).collect();
+            let words = format!("{name} — which chart?");
+            return Some(say(client, token, &words, Some(json!([names]))).await);
+        }
+
         if text == STOP {
             adding.removing = false;
             return Some(pairs::ask_first(client, token, folder, name, adding).await);
@@ -82,7 +96,7 @@ pub async fn list(client: &reqwest::Client, token: &str, folder: &Path) -> Resul
     say(client, token, "Your pairs", Some(json!(buttons))).await
 }
 
-/// What one pair holds, and the three things he can do to it.
+/// What one pair holds, and the four things he can do to it.
 pub async fn show(
     client: &reqwest::Client,
     token: &str,
@@ -97,7 +111,7 @@ pub async fn show(
     };
 
     let words = format!("{}\n\n{}", heading(&pair), listed(&pair));
-    let buttons = json!([[ADD, DROP], [STOP]]);
+    let buttons = json!([[ADD, DROP], [CHART], [STOP]]);
 
     say(client, token, &words, Some(buttons)).await
 }

@@ -8,6 +8,7 @@
 //!     amber   the line is down and it is trying        no
 //!     green   it is back                               no
 //!     red     it has stopped and will not restart      yes
+//!     red     the feed will not serve some pairs       yes
 //! ```
 
 use std::path::{Path, PathBuf};
@@ -29,6 +30,17 @@ pub enum Wrong {
 
     /// It cannot recover and has stopped.
     Stopped,
+
+    /// **The feed will not send prices for some pairs.**
+    ///
+    /// The socket is open and the other pairs are watched perfectly, which is
+    /// exactly what makes this dangerous: a refused pair looks identical to a
+    /// pair where nothing is happening. Levels on it will never fire and
+    /// nothing else would ever say so.
+    PairsDark,
+
+    /// They are being served again.
+    PairsBack,
 }
 
 /// The line under the picture.
@@ -49,6 +61,10 @@ pub fn caption(wrong: Wrong) -> &'static str {
         Wrong::Stopped => {
             "🛑 <b>The bot has stopped.</b> Nothing is being watched until you start it."
         }
+        Wrong::PairsDark => {
+            "🛑 <b>Some pairs are not being watched.</b> The feed will not send prices for them."
+        }
+        Wrong::PairsBack => "✅ <b>Those pairs are being watched again.</b>",
     }
 }
 
@@ -87,6 +103,28 @@ pub fn trouble(
             "Nothing is being watched at all. This one does not fix itself.",
             "Start it again once the reason below is dealt with.",
             "Stopped",
+        ),
+
+        // **Red, like Stopped, and for the same reason** — it does not fix
+        // itself. The bot is running and the other pairs are watched perfectly,
+        // which is exactly what makes this one dangerous: a refused pair looks
+        // identical to a pair where nothing is happening.
+        Wrong::PairsDark => (
+            "dark",
+            "Some pairs are not being watched",
+            "and the feed will not send prices for them.",
+            "Levels on the pairs below will never fire. Everything else is watched as normal.",
+            "This does not clear on its own. It needs a plan that carries them, or those pairs removed.",
+            "Dark",
+        ),
+
+        Wrong::PairsBack => (
+            "back",
+            "Those pairs are being watched again",
+            "and the feed is sending prices for them.",
+            "Their levels can fire from now.",
+            "Anything that happened while they were dark was not seen, and cannot be.",
+            "Back",
         ),
     };
 

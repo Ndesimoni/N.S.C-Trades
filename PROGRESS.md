@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Three crates · 179 tests · clippy clean · it watches his levels, says what
+**Three crates · 193 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -68,8 +68,8 @@ cargo run -p nsc-work-man --bin levels -- GBPUSD
 
 ---
 
-**What he can send it** — `/status`, `/help`, `/pairs`, `/level`, `/remove`,
-`/restore` — is written up for him in
+**What he can send it** — `/status`, `/help`, `/pairs`, `/chart`, `/level`,
+`/remove`, `/restore` — is written up for him in
 [docs/telegram.md](docs/telegram.md) — every command, what comes back, and
 what turns up on its own.
 
@@ -191,7 +191,16 @@ without waiting for it to happen. That was the last plain-text message going.
       tap-list beside the message box and he never types one. `/help` lists
       them too, because the file that describes them is on his Mac
 - [x] **`/pairs` shows them all, and one at a time.** Tap a pair to see what
-      it holds and what can be done to it — add, take one off, stop watching
+      it holds and what can be done to it — add, take one off, chart, stop
+      watching
+- [x] **`/chart` draws a pair on any of his three charts**, 17 August. Two
+      doors — the command, and a 📈 button on the pair's page. It was only
+      reachable by SAVING a level before, so seeing a chart meant adding
+      something in order to see one
+- [x] **A chart with none of his levels on it says so.** 150 four-hour candles
+      is twenty-five days and his levels are years apart, so the daily and the
+      4-hour often hold none. A correctly empty chart and one whose bands
+      failed to draw are otherwise the same picture
 - [x] **One level can be taken off.** Undo only ever reached what the last
       message added: fine for a typo, useless for *"that 1.15 from last week
       was wrong"*. Matched on the price as a NUMBER, and the comments in the
@@ -342,7 +351,7 @@ crates/nsc-work-man/      EVERYTHING THAT REACHES
   feed/         asking Twelve Data                         7 tests
   telegram/     sending — words, pictures, media groups    3 tests
   retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests
-  review.rs     one pair's levels, drawn
+  review/       one pair's levels, drawn on whichever chart he asked for
   bin/cards/    draw ANY card without waiting for anything
   bin/levels.rs draw a pair's bands on demand
   bin/listen.rs the raw price stream, kept as proof

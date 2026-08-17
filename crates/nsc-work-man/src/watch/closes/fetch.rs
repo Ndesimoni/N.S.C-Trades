@@ -8,7 +8,21 @@ use crate::{feed, retry::keep_trying};
 
 /// The timeframes he executes on. The level's own timeframe says how thick the
 /// band is; these say which candles report.
-pub(super) const REPORT_ON: [(&str, i64); 2] = [("1h", 60), ("4h", 240)];
+///
+/// **The three small ones are here to watch the rules work**, not to trade on.
+/// Five minutes at a zone is a card every five minutes. Put it back to the two
+/// below once you have seen what you needed to see.
+///
+/// ```text
+ pub(super) const REPORT_ON: [(&str, i64); 2] = [("1h", 60), ("4h", 240)];
+/// ```
+// pub(super) const REPORT_ON: [(&str, i64); 5] = [
+//     ("5min", 5),
+//     ("15min", 15),
+//     ("30min", 30),
+//     ("1h", 60),
+//     ("4h", 240),
+// ];
 
 /// How many candles to ask for. Three is enough to find a finished one whether
 /// or not the newest is still forming.

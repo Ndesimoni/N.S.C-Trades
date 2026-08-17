@@ -122,3 +122,30 @@ one worth a message is the level it printed at, and that belongs to
 Real candles: XAU/USD 4-hour from Twelve Data, 23 Oct 2023 to 14 Aug 2026,
 weekends removed, found with the thresholds already in `config/ta.toml` and ATR
 worked out as it goes.
+
+---
+
+## [Twenty-two names, fewer shapes →](https://claude.ai/code/artifact/e9b99458-5f1b-42d3-a595-b14f6797bdac)
+
+`candle-taxonomy.html` · **settled — do not build a detector per name**
+
+**Argues:** the full single-candle list has 22 names on it, and the four numbers
+cannot tell all of them apart, because several are one shape wearing two names.
+
+| These two | Told apart by |
+|---|---|
+| Hammer / Hanging Man | a downtrend before it, or an uptrend |
+| Shooting Star / Inverted Hammer | an uptrend before it, or a downtrend |
+| Paper Umbrella | nothing — it *is* the hammer shape |
+| Takuri | a hammer with a longer tail. Same candle |
+| Long Bullish / Bullish Belt Hold | the same candle in the example found |
+
+Build one detector per name and two of them fire on the same candle, so a
+backtest counts one setup twice.
+
+**What the counts said:** spinning tops 408 in three years, one candle in ten. A
+true marubozu is rare — four bullish and three bearish in 4,165 — and almost
+every "marubozu" is really an opening or closing one. High-wave found exactly
+one, left as one rather than loosening the rule until a shape appeared.
+
+Real candles: XAU/USD 4-hour from Twelve Data, 23 Oct 2023 to 14 Aug 2026.

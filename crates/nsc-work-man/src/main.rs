@@ -14,10 +14,15 @@
 //! opposite of the rule the whole design rests on: SILENCE IS THE DEFAULT.
 
 use anyhow::Result;
+use nsc_data::sources::ibkr::IbkrConnection;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenvy::dotenv().ok();
+
+    let _ibkr = IbkrConnection::connect().await?;
+
+    println!("✅ IBKR PAPER CONNECTION WORKS!");
 
     let Err(trouble) = nsc_work_man::watch::run().await else {
         return Ok(());

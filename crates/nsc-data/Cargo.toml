@@ -1,0 +1,10 @@
+
+
+[package]
+name = "nsc-data"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+ibapi.workspace = true
+thiserror.workspace = true

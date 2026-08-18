@@ -7,7 +7,7 @@
 # ───────────────────────────────────────────────────────────────────────────
 [workspace]
 resolver = "3"
-members  = ["crates/nsc-core", "crates/nsc-ta", "crates/nsc-work-man"]
+members  = ["crates/nsc-core", "crates/nsc-ta", "crates/nsc-work-man", "crates/nsc-data"]
 
 
 [workspace.package]
@@ -15,10 +15,15 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace.dependencies]
+# ── Interactive Brokers ──
+ibapi = "2"
 
 # --- our own crates ---
 nsc-core = { path = "crates/nsc-core" }
 nsc-ta   = { path = "crates/nsc-ta" }
+nsc-data = { path = "crates/nsc-data" }
+
+
 
 
 # ── Talking to the outside world ──

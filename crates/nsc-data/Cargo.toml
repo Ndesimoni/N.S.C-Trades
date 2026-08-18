@@ -8,3 +8,4 @@ edition.workspace = true
 [dependencies]
 ibapi.workspace = true
 thiserror.workspace = true
+futures-util.workspace = true

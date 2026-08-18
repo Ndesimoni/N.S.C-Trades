@@ -22,6 +22,10 @@ async fn main() -> Result<()> {
 
     let _ibkr = IbkrConnection::connect().await?;
 
+    _ibkr.account_summary().await?;
+
+    println!("✅ IBKR PAPER CONNECTION WORKS!");
+
     println!("✅ IBKR PAPER CONNECTION WORKS!");
 
     let Err(trouble) = nsc_work_man::watch::run().await else {

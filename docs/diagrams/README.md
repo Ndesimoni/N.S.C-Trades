@@ -4,6 +4,107 @@ Pictures drawn to settle a question.
 
 ---
 
+## [Push then pin, in the wild →](https://claude.ai/code/artifact/f9b8ed11-659a-432a-84f2-b363f1a46fd4)
+
+`push-then-pin-found.html` · **open — measured once, and it did not continue**
+
+**Argues:** the settled rule hunted across all five pairs in `config/pairs` and
+every timeframe from 30 minutes up. **82 found** in 6,725 finished candles — 45
+`nsc-bull`, 37 `nsc-bear` — on every pair and every timeframe.
+
+The rule, as he settled it on 21 August 2026: **candle 1** mostly body (0.60 of
+its own height) **and at least the size of a normal candle**; **candle 2** a pin
+with a tail at least twice its body pointing *against* the push, nose or no
+nose, body big or small.
+
+Real candles: 5 pairs x 5 timeframes from Interactive Brokers, read 21 August
+2026. Shapes named by a decimal-exact mirror of `naming.rs`, **checked against
+the `read` binary's own output on all 6,725 candles — every name agrees**.
+
+**The uncomfortable part.** Each one followed for ten candles, entering at the
+open after the pin closes. It reached +1 normal candle before -1 in **29 of 75 —
+38%, where a coin flip is 50%**. It ran further against than in favour (1.65
+against, 1.17 for) and the median position was negative at 1, 3, 5 and 10
+candles. Every timeframe and four of five pairs point the same way. **The bigger
+the push, the worse it did** — 2.0x-plus pushes came back 21% and a median of
+-1.47, which is what exhaustion looks like rather than a pause.
+
+**Do not over-read it.** 80 trades is under the 100 this project's backtest rule
+sets as the floor; no spread or slippage was taken off; the +1/-1 stop and
+target are Claude's invention, not his; and **no level was involved** — all 80
+are shapes in open space, which is not how he trades them. The gold pair he
+circled is not in the numbers, because it closed the day before and has no ten
+candles after it.
+
+**Still open:** the same 82 measured against his levels, once gold's black zone
+is in `config/pairs/XAUUSD.toml`. That is the test that matters.
+
+---
+
+## [Push then pin →](https://claude.ai/code/artifact/3aa76e11-85f5-40cd-9116-5513dc9a2488)
+
+`push-then-pin.html` · **open — the pattern he trades, not yet built**
+
+**Argues:** a two-candle pattern he actually trades, drawn as **twenty pairs** —
+every combination of the setup. A momentum candle showing one side winning, then
+a pin bar whose tail points **against** the push and runs at least twice its own
+body. The tail is a failed pullback, which makes this a **continuation** pattern.
+Tail pointing the same way as the push is a different animal and he does not
+trade it; those two are kept on the page marked "not this".
+
+The two halves vary independently — four momentum candles, six pin bars — so each
+is walked through in full with the other held steady.
+
+Made-up candles for the shapes, drawn from the thresholds in
+`config/candles.toml` and named by a mirror of the running order in `naming.rs`.
+The one real example is gold, 19–20 August 2026, from Interactive Brokers.
+
+**He ruled out the indecision shapes.** Anything the code names a `spinning top`
+or a `high wave` — a small body with real wick on BOTH sides — is not his pattern,
+however long one of the wicks is. The pin has a tail one way and little or
+nothing the other.
+
+**Found while drawing it:** with no top, the body and the tail are the whole
+candle, so a 2x tail caps the body at exactly **1/3** — arithmetic, not a
+setting. `body.small` is 0.33, so the largest body his rule allows is turned away
+by one thousandth. The code also splits his one pin bar into **two names** by
+body size — dragonfly or gravestone doji under 0.05, long lower or upper wick
+above it — so a detector has to accept all four.
+
+**Settled since:** the pins the code turns away at the 1/3 body boundary are his
+too, and the family is named `nsc-bull` / `nsc-bear` — his own prefix, so his
+patterns never get mistaken for the textbook twelve.
+
+**Still open:** nothing joins the two halves into one pattern; the detector needs
+the tail's direction relative to the push; and `body.small` has to move to 0.3334
+or the pattern needs its own threshold in `config/patterns.toml`, since that
+setting is shared by every candle everywhere. See
+[Push then pin, in the wild](#) for what these actually did next.
+
+---
+
+## [One body, one wick →](https://claude.ai/code/artifact/187a99a3-1e54-46e9-9b0d-e3eb9cc6e39d)
+
+`two-gold-candles.html` · **open — the level these printed at is not in config**
+
+**Argues:** the two days he circled on gold did opposite things with the same
+kind of range. The 19th was **86.8% body** — a day that decided. The 20th was
+**72.0% lower wick** and closed 4.89 points from its open — a day that went 65
+points down and gave every one of them back. Drawn on one axis, the second is
+less than half the height of the first, which is the part the eye gets wrong.
+
+Real candles: 2 XAU/USD daily candles from Interactive Brokers, 19 and 20 August
+2026, named by `nsc-ta` against `config/candles.toml`. "Normal" is the average
+true range of the 14 days before each candle. Reach figures reproduce the
+`--bin read` output exactly (2.08x and 0.87x).
+
+**Still open:** the black zone these printed into is not in
+`config/pairs/XAUUSD.toml`, so the bot cannot see it. A shape is only worth
+anything once you know the level it printed at — that number has to be read off
+the axis and added before any of this becomes a signal.
+
+---
+
 ## [Where ADX says there is a trend →](https://claude.ai/code/artifact/cbc95367-6655-4e0e-9b75-aadd8b8b0769)
 
 `adx-on-gold.html` · **open**

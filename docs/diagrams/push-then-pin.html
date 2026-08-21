@@ -1,0 +1,167 @@
+<title>Push Then Pin</title>
+<style>
+  :root {
+    --ground:#F5F6F9; --panel:#FFFFFF; --sunk:#ECEFF5;
+    --ink:#14181F; --ink-soft:#5B6472; --faint:#8A93A2; --rule:#DDE1E9;
+    --good:#1E3FA8; --bad:#A2665C;
+    --up:#3C7A5A; --down:#A2665C; --wick:#8A93A2;
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans:  ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --ground:#0E1116; --panel:#161A21; --sunk:#1E242E;
+    --ink:#E8EBF1; --ink-soft:#98A1B0; --faint:#6B7686; --rule:#262C36;
+    --good:#7C9BFF; --bad:#C98B7F;
+    --up:#5FA982; --down:#C98B7F; --wick:#6B7686; } }
+  :root[data-theme="dark"] {
+    --ground:#0E1116; --panel:#161A21; --sunk:#1E242E;
+    --ink:#E8EBF1; --ink-soft:#98A1B0; --faint:#6B7686; --rule:#262C36;
+    --good:#7C9BFF; --bad:#C98B7F;
+    --up:#5FA982; --down:#C98B7F; --wick:#6B7686; }
+
+  * { box-sizing:border-box; }
+  body { background:var(--ground); color:var(--ink); font-family:var(--sans);
+         line-height:1.6; margin:0; padding:2.5rem 1.25rem 5rem; }
+  .wrap { max-width:1040px; margin:0 auto; display:flex; flex-direction:column; gap:2rem; }
+  h1 { font-family:var(--serif); font-weight:600; font-size:clamp(1.7rem,4vw,2.5rem);
+       line-height:1.15; margin:0 0 .5rem; text-wrap:balance; letter-spacing:-.01em; }
+  h2 { font-family:var(--serif); font-weight:600; font-size:1.25rem; margin:0 0 .6rem; }
+  h3 { font-family:var(--sans); font-size:.9rem; font-weight:600; margin:0; color:var(--ink); }
+  p { margin:0 0 .9rem; max-width:66ch; color:var(--ink-soft); }
+  p strong, li strong { color:var(--ink); font-weight:600; }
+  .lede { font-size:1.06rem; max-width:64ch; }
+  .eyebrow { font-family:var(--mono); font-size:.72rem; letter-spacing:.14em;
+             text-transform:uppercase; color:var(--faint); margin:0 0 .7rem; }
+  .card { background:var(--panel); border:1px solid var(--rule); border-radius:10px;
+          padding:1.5rem 1.5rem 1.25rem; }
+  .real { font-family:var(--mono); font-size:.78rem; color:var(--ink-soft);
+          background:var(--sunk); border:1px solid var(--rule);
+          border-left:3px solid var(--bad); border-radius:6px; padding:.75rem 1rem; }
+  .real b { color:var(--ink); }
+  svg { display:block; width:100%; height:auto; }
+
+  .grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:1.1rem; }
+  .grid4 { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1rem; }
+  .cell { background:var(--sunk); border:1px solid var(--rule); border-radius:9px;
+          padding:.9rem .9rem .8rem; display:flex; flex-direction:column; gap:.3rem; }
+  .cell.miss { border-style:dashed; opacity:.92; }
+  .tag { font-family:var(--mono); font-size:.68rem; letter-spacing:.1em;
+         text-transform:uppercase; color:var(--faint); }
+  .nm { font-family:var(--mono); font-size:.76rem; font-weight:600; }
+  .nm.ok { color:var(--up); } .nm.no { color:var(--bad); }
+  .why { font-size:.84rem; color:var(--ink-soft); margin:.15rem 0 0; }
+  .ratio { font-family:var(--mono); font-size:.72rem; color:var(--faint);
+           font-variant-numeric:tabular-nums; }
+  ul { margin:0 0 .9rem; padding-left:1.1rem; color:var(--ink-soft); max-width:66ch; }
+  li { margin-bottom:.4rem; }
+  code { font-family:var(--mono); font-size:.86em; background:var(--sunk);
+         padding:.1em .35em; border-radius:3px; color:var(--ink); }
+  .note { border-left:3px solid var(--good); background:var(--sunk); border-radius:6px;
+          padding:.85rem 1rem; font-size:.9rem; color:var(--ink-soft); }
+  .note b { color:var(--ink); }
+
+  table { width:100%; border-collapse:collapse; font-size:.85rem; margin:.6rem 0 .6rem; }
+  th,td { text-align:left; padding:.35rem .4rem; border-bottom:1px solid var(--rule); }
+  th { font-family:var(--mono); font-size:.66rem; letter-spacing:.09em;
+       text-transform:uppercase; color:var(--faint); font-weight:500; }
+  td.n { font-family:var(--mono); font-variant-numeric:tabular-nums; color:var(--ink); }
+
+  .grid3 { display:grid; grid-template-columns:repeat(auto-fit,minmax(212px,1fr)); gap:1rem; }
+  .rulebox { background:var(--panel); border:1px solid var(--rule);
+             border-left:3px solid var(--good); border-radius:10px;
+             padding:1.1rem 1.4rem; font-size:1.02rem; color:var(--ink-soft); }
+  .rulebox b { color:var(--ink); }
+  .split { display:grid; grid-template-columns:minmax(200px,240px) 1fr; gap:1.4rem;
+           align-items:start; }
+  @media (max-width:620px){ .split { grid-template-columns:1fr; } }
+</style>
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Diagram · two-candle pattern · proposed</p>
+  <h1>Push then pin</h1>
+  <p class="lede">Every combination of the setup, drawn as pairs. A momentum
+  candle that shows one side winning, then a pin bar whose tail points
+  <strong>against</strong> the push and runs at least <strong>twice its own
+  body</strong>.</p>
+</header>
+<div class="rulebox"><b>The tail opposes the push.</b> Push up needs a tail down;
+push down needs a tail up. The tail is a pullback that failed — which is what
+makes this a continuation pattern rather than a reversal one.</div>
+<div class="real"><b>Made-up candles</b> throughout, drawn from the thresholds in
+<code>config/candles.toml</code> and named by a mirror of the running order in
+<code>naming.rs</code>. The gold pair near the bottom is real and marked so. A
+diagram is an argument, not evidence — none of this says the pattern makes
+money.</div>
+<div class="rulebox" style="border-left-color:var(--faint)">The two halves vary
+<b>independently</b>: any of the four momentum candles works with any of the six
+pin bars. So each is shown in full with the other held steady, rather than
+printing all twenty-four crossings twice over.</div>
+<section class="card"><h2>Push up · the momentum candle varied</h2><p>The pin is held steady — a green body with no top — so only candle 1 changes.</p><div class="grid3">
+<div class="cell"><p class="tag">push up · tail down</p><h3>Marubozu</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="36.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="36.2" width="54" height="133.6" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="108.4" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="28.2" width="54" height="20.0" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long lower wick</p><p class="ratio">tail = 3.0x body</p></div>
+<div class="cell"><p class="tag">push up · tail down</p><h3>Closing marubozu</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="36.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="36.2" width="54" height="120.3" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="108.4" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="28.2" width="54" height="20.0" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm ok">closing marubozu<br>+ long lower wick</p><p class="ratio">tail = 3.0x body</p></div>
+<div class="cell"><p class="tag">push up · tail down</p><h3>Belt-hold</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="42.3" width="54" height="127.5" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="33.8" x2="210.0" y2="118.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="33.8" width="54" height="21.2" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm ok">belt-hold<br>+ long lower wick</p><p class="ratio">tail = 3.0x body</p></div>
+<div class="cell"><p class="tag">push up · tail down</p><h3>Long body</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="42.3" width="54" height="113.3" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="33.8" x2="210.0" y2="118.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="33.8" width="54" height="21.2" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm ok">long body<br>+ long lower wick</p><p class="ratio">tail = 3.0x body</p></div>
+</div></section>
+<section class="card"><h2>Push up · the pin varied</h2><p>Candle 1 is held steady as a marubozu, so only the pin changes. Every one of these is the pattern.</p><div class="grid3">
+<div class="cell"><p class="tag">push up · tail down</p><h3>Green body, no top</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="36.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="36.2" width="54" height="133.6" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="108.4" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="28.2" width="54" height="20.0" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long lower wick</p><p class="ratio">tail = 3.0x body</p></div>
+<div class="cell"><p class="tag">push up · tail down</p><h3>Red body, no top</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="36.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="36.2" width="54" height="133.6" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="108.4" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="28.2" width="54" height="20.0" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long lower wick</p><p class="ratio">tail = 3.0x body</p></div>
+<div class="cell"><p class="tag">push up · tail down</p><h3>Green body, small nose</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="36.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="36.2" width="54" height="133.6" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="108.4" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="37.8" width="54" height="16.0" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long lower wick</p><p class="ratio">tail = 3.4x body</p></div>
+<div class="cell"><p class="tag">push up · tail down</p><h3>Red body, small nose</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="36.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="36.2" width="54" height="133.6" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="108.4" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="37.8" width="54" height="16.0" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long lower wick</p><p class="ratio">tail = 3.4x body</p></div>
+<div class="cell"><p class="tag">push up · tail down</p><h3>Tiny body</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="36.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="36.2" width="54" height="133.6" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="108.4" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="33.0" width="54" height="3.2" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ dragonfly doji</p><p class="ratio">tail = 22.5x body</p></div>
+<div class="cell"><p class="tag">push up · tail down</p><h3>Biggest body, no top</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="36.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="36.2" width="54" height="133.6" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="108.4" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="28.2" width="54" height="26.5" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long lower wick</p><p class="ratio">tail = 2.0x body</p></div>
+</div></section>
+<section class="card"><h2>Push down · the momentum candle varied</h2><p>Mirrored. The pin is held steady — a red body with no bottom.</p><div class="grid3">
+<div class="cell"><p class="tag">push down · tail up</p><h3>Marubozu</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="161.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="28.2" width="54" height="133.6" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="89.6" x2="210.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="149.8" width="54" height="20.0" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long upper wick</p><p class="ratio">tail = 3.0x body</p></div>
+<div class="cell"><p class="tag">push down · tail up</p><h3>Closing marubozu</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="161.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="41.5" width="54" height="120.3" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="89.6" x2="210.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="149.8" width="54" height="20.0" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg><p class="nm ok">closing marubozu<br>+ long upper wick</p><p class="ratio">tail = 3.0x body</p></div>
+<div class="cell"><p class="tag">push down · tail up</p><h3>Belt-hold</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="28.2" width="54" height="127.5" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="79.2" x2="210.0" y2="164.2" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="142.9" width="54" height="21.2" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg><p class="nm ok">belt-hold<br>+ long upper wick</p><p class="ratio">tail = 3.0x body</p></div>
+<div class="cell"><p class="tag">push down · tail up</p><h3>Long body</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="42.3" width="54" height="113.3" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="79.2" x2="210.0" y2="164.2" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="142.9" width="54" height="21.2" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg><p class="nm ok">long body<br>+ long upper wick</p><p class="ratio">tail = 3.0x body</p></div>
+</div></section>
+<section class="card"><h2>Push down · the pin varied</h2><p>Mirrored. Candle 1 held steady, the pin walked through its six forms.</p><div class="grid3">
+<div class="cell"><p class="tag">push down · tail up</p><h3>Red body, no bottom</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="161.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="28.2" width="54" height="133.6" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="89.6" x2="210.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="149.8" width="54" height="20.0" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long upper wick</p><p class="ratio">tail = 3.0x body</p></div>
+<div class="cell"><p class="tag">push down · tail up</p><h3>Green body, no bottom</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="161.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="28.2" width="54" height="133.6" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="89.6" x2="210.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="149.8" width="54" height="20.0" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long upper wick</p><p class="ratio">tail = 3.0x body</p></div>
+<div class="cell"><p class="tag">push down · tail up</p><h3>Red body, small nose</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="161.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="28.2" width="54" height="133.6" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="89.6" x2="210.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="144.2" width="54" height="16.0" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long upper wick</p><p class="ratio">tail = 3.4x body</p></div>
+<div class="cell"><p class="tag">push down · tail up</p><h3>Green body, small nose</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="161.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="28.2" width="54" height="133.6" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="89.6" x2="210.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="144.2" width="54" height="16.0" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long upper wick</p><p class="ratio">tail = 3.4x body</p></div>
+<div class="cell"><p class="tag">push down · tail up</p><h3>Tiny body</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="161.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="28.2" width="54" height="133.6" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="89.6" x2="210.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="161.8" width="54" height="3.2" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ gravestone doji</p><p class="ratio">tail = 22.5x body</p></div>
+<div class="cell"><p class="tag">push down · tail up</p><h3>Biggest body, no bottom</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="161.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="28.2" width="54" height="133.6" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="89.6" x2="210.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="143.4" width="54" height="26.5" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg><p class="nm ok">marubozu<br>+ long upper wick</p><p class="ratio">tail = 2.0x body</p></div>
+</div></section>
+<section class="card"><h2>Yours, and one number stands in the way</h2><div class="split"><div><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="36.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="36.2" width="54" height="133.6" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="108.4" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="28.2" width="54" height="26.7" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm no" style="text-align:center">marubozu &nbsp;+&nbsp; plain</p><p class="ratio" style="text-align:center">tail = 2.00x body</p></div><div><p>No top at all, and a tail exactly <strong>twice</strong> the body — the biggest body your rule allows. By your rule it is in. The code calls it <code>plain</code> and will not name it a rejection at all.</p><p><strong>One setting does it.</strong> The body works out at 0.3333 of the candle and <code>body.small</code> is set at <strong>0.33</strong>. Nothing else blocks it — the tail passes, the nose is zero. Move that number to <strong>0.3334</strong> and this candle is named the same as every other pin bar above.</p><p class="why">Worth knowing before it moves: <code>body.small</code> is not private to this pattern. It decides what counts as a small body for every candle on every pair, so widening it renames candles far outside this setup. A setting that belongs to the pattern alone would live in <code>config/patterns.toml</code> instead.</p></div></div></section>
+<section class="card"><h2>Not the pattern</h2><p>Same two shapes, tail pointing the other way. Kept here so the difference sits on one screen — these are <strong>not</strong> what you trade.</p><div class="grid2">
+<div class="cell miss"><p class="tag">not this</p><h3>Push up, then a tail up</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="78.9" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="80.6" width="54" height="87.4" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="82.4" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="71.9" width="54" height="7.0" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg><p class="nm no">marubozu<br>+ long upper wick</p><p class="ratio">tail = 6.3x body</p><p class="why">The tail points the same way as the push. That is the push itself being refused, not the pullback.</p></div>
+<div class="cell miss"><p class="tag">not this</p><h3>Push down, then a tail down</h3><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="28.2" x2="90.0" y2="125.1" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="30.0" width="54" height="93.2" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="113.9" x2="210.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="118.6" width="54" height="4.7" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg><p class="nm no">marubozu<br>+ long lower wick</p><p class="ratio">tail = 10.0x body</p><p class="why">Same thing mirrored. The move ran out of road rather than shaking someone out.</p></div>
+</div></section>
+<section class="card"><h2>How big the body can get</h2>
+<p>With no top, the body and the tail are the whole candle. If the tail must be
+twice the body, then body + 2&middot;body fills it — so the body can never be more
+than <code>1/3</code>. That is arithmetic, not a setting you can loosen.</p>
+<p>Ask for a bigger body and you are asking for a shorter tail:</p>
+<table><tr><th>If the body is</th><th>most the tail can be</th><th>your 2x rule</th></tr>
+<tr><td class="n">0.33</td><td class="n">2.03x</td><td>passes</td></tr>
+<tr><td class="n">0.3333</td><td class="n">2.00x</td><td>passes — the limit</td></tr>
+<tr><td class="n">0.40</td><td class="n">1.50x</td><td>fails</td></tr>
+<tr><td class="n">0.50</td><td class="n">1.00x</td><td>fails</td></tr></table>
+<p>Turned round, the same sum gives the ceiling for any multiple you pick:
+<strong>a 3x tail caps the body at 0.25, a 4x tail at 0.20.</strong></p></section>
+<section class="card"><h2>You already have one on the chart</h2><p>Gold, 19 and 20 August 2026 — the two days circled on the TradingView screenshot. Push up, tail down, so it is the first family above.</p><div style="max-width:340px"><svg viewBox="0 0 300 210" role="img"><line x1="90.0" y1="39.1" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="43.4" width="54" height="113.4" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="87.3" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="41.5" width="54" height="3.2" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg></div><p class="nm ok" style="margin-top:.5rem">long body &nbsp;+&nbsp; long lower wick</p><p>Candle 1 ran <strong>2.1x a normal day</strong> at 86.8% body. Candle 2 has a tail of 65.07 points under a body of 4.89 — <strong>13.3x</strong>, far past the 2x minimum. Real candles, from Interactive Brokers.</p></section>
+<section class="card"><h2>Where this stands</h2>
+<ul>
+  <li><strong>The pieces exist; the pair does not.</strong> <code>nsc-ta</code> names
+  both halves and <code>config/candles.toml</code> already carries the 2x rule as
+  <code>rejection.tail_to_body</code>. Nothing joins them.</li>
+  <li><strong>The finder does not look for this.</strong> It finds twelve — engulfing
+  and harami both ways, tweezer top and bottom, piercing line, dark cloud cover,
+  morning and evening star, three white soldiers, three black crows. Not this one.</li>
+  <li><strong>Direction is the whole rule.</strong> Tail against the push is the
+  pattern; tail with the push is a different animal. A detector that ignored which
+  way the tail pointed would fire on twice as much and mean half as much.</li>
+  <li><strong>One shape, two names.</strong> The code splits the pin bar by body
+  size — under 0.05 it is a dragonfly or gravestone doji, above that a long lower or
+  upper wick. A detector has to accept all four or it will miss the cleanest ones.</li>
+  <li><strong>One number to settle.</strong> <code>body.small</code> at 0.33 turns
+  away the largest body the rule allows. 0.3334 admits it — but that setting is
+  shared by every candle everywhere, so the pattern may want its own instead.</li>
+  <li><strong>No level, no meaning.</strong> A pin bar in open space is noise. Gold's
+  black zone is still not in <code>config/pairs/XAUUSD.toml</code>.</li>
+</ul></section>
+</div>

@@ -11,10 +11,12 @@ use std::time::SystemTime;
 
 use anyhow::Result;
 use nsc_core::levels::{Thickness, Watch, known, load_pair};
+use nsc_data::sources::ibkr::IbkrConnection;
 
 use std::path::PathBuf;
 
-use super::{OWNER, PAIRS, PREVIEW, Watching, bands, pulse};
+use super::{Watching, bands, pulse};
+use crate::places::{OWNER, PAIRS, PREVIEW};
 use crate::{card, telegram};
 
 /// Remembers how the levels folder looked, so a change can be spotted.
@@ -86,7 +88,7 @@ pub struct Reloaded {
 ///
 /// **A pair that cannot be sized keeps the bands it already had.** This used
 /// to give back an error, and that error travelled all the way out of `run`
-/// and stopped the bot: he sent a level from his phone, Twelve Data was slow
+/// and stopped the bot: he sent a level from his phone, the feed was slow
 /// for ten seconds, and the bot said "stopped" and quit. Nothing was watched
 /// again until he noticed and restarted it — and the weekend, when he does his
 /// chart work, is exactly when he would not.
@@ -94,7 +96,7 @@ pub struct Reloaded {
 /// Gives back the new set, whether anything was armed, and which pairs the
 /// feed would not size.
 pub async fn again(
-    client: &reqwest::Client,
+    ibkr: &IbkrConnection,
     thickness: Thickness,
     mut old: HashMap<String, Watching>,
 ) -> Result<Reloaded> {
@@ -125,7 +127,7 @@ pub async fn again(
             continue;
         }
 
-        let found = match bands::for_pair(client, &pair, thickness).await {
+        let found = match bands::for_pair(ibkr, &pair, thickness).await {
             Ok(found) => found,
 
             // The feed would not answer. Keep whatever this pair already had

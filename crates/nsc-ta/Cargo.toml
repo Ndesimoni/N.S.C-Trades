@@ -27,8 +27,14 @@ nsc-core = { workspace = true }
 # Prices. Never f64.
 rust_decimal = { workspace = true }
 
+# Candle times. A swing carries two of them — where it sits, and when it could
+# first be known. PURE DATA: nothing here reads the clock, it only compares
+# times that were handed in.
+chrono = { workspace = true }
+
 # His thresholds, read from config/candles.toml.
 serde = { workspace = true }
+toml  = { workspace = true }
 
 # Named troubles the caller can act on.
 thiserror = { workspace = true }

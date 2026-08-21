@@ -6,6 +6,8 @@ use anyhow::Result;
 use chrono::{DateTime, Utc};
 use nsc_core::levels::Thickness;
 use nsc_core::when::Rules;
+use nsc_data::source::Interval;
+use nsc_data::sources::ibkr::IbkrConnection;
 use tokio::time::{Duration, Instant, sleep_until};
 
 use super::due::{when_next, worth_asking_again};
@@ -31,7 +33,7 @@ pub struct Closes {
     /// closes six times a day; asked on a timer, about 140 of every 144 asks
     /// found nothing new. The feed's own stamp says when the next one is due,
     /// so it waits for that instead.
-    due: HashMap<(String, &'static str), DateTime<Utc>>,
+    due: HashMap<(String, Interval), DateTime<Utc>>,
 
     next: Instant,
 }
@@ -79,6 +81,7 @@ impl Closes {
     pub async fn look(
         &mut self,
         client: &reqwest::Client,
+        ibkr: &IbkrConnection,
         watching: &HashMap<String, Watching>,
         thickness: Thickness,
         calendar: &Rules,
@@ -90,7 +93,8 @@ impl Closes {
                 continue;
             }
 
-            for (interval, minutes) in REPORT_ON {
+            for interval in REPORT_ON {
+                let minutes = interval.minutes();
                 let waiting_on = (seen.pair.symbol.clone(), interval);
 
                 // **Nothing can have changed yet.** The feed already told us
@@ -114,11 +118,12 @@ impl Closes {
                 // price line was down. It is a different connection entirely.
                 //
                 // Nothing is remembered, so the next look asks again.
-                let bars = match fetch(client, &seen.pair.symbol, interval).await {
+                let bars = match fetch(ibkr, &seen.pair.symbol, interval).await {
                     Ok(bars) => bars,
                     Err(trouble) => {
                         eprintln!(
-                            "Could not get the {interval} candle for {}: {trouble:#}",
+                            "Could not get the {} candle for {}: {trouble:#}",
+                            interval.spoken(),
                             seen.pair.symbol
                         );
                         continue;

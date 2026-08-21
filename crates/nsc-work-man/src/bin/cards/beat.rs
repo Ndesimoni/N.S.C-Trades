@@ -9,20 +9,25 @@ use nsc_core::levels::{self, Timeframe};
 use nsc_work_man::card::Wrong;
 use nsc_work_man::{card, telegram};
 
-use super::{NORMAL_OVER, OWNER, candles};
+use nsc_data::source::Interval;
+use nsc_data::sources::ibkr::IbkrConnection;
+
+use nsc_work_man::places::{OWNER, PAIRS, PREVIEW, THICKNESS};
+
+use super::{NORMAL_OVER, candles};
 
 /// The heartbeat, so it can be looked at without waiting for a quiet day.
-pub async fn heartbeat(client: &reqwest::Client) -> Result<()> {
-    let names = levels::known(Path::new("config/pairs"));
-    let thickness = levels::load_thickness(Path::new("config/levels.toml"))?;
+pub async fn heartbeat(client: &reqwest::Client, ibkr: &IbkrConnection) -> Result<()> {
+    let names = levels::known(Path::new(PAIRS));
+    let thickness = levels::load_thickness(Path::new(THICKNESS))?;
 
     // Sized off real candles, one request per pair. The bot itself does this
     // once at startup and never again; here it is the price of seeing the card
     // without waiting for a quiet morning.
     let mut loaded = Vec::new();
     for name in &names {
-        let pair = levels::load_pair(&Path::new("config/pairs").join(format!("{name}.toml")))?;
-        let weekly = candles(client, &pair.symbol, "1week").await?;
+        let pair = levels::load_pair(&Path::new(PAIRS).join(format!("{name}.toml")))?;
+        let weekly = candles(ibkr, &pair.symbol, Interval::Week).await?;
         let size = normal_candle(&weekly.iter().collect::<Vec<_>>(), NORMAL_OVER)
             .context("no candles came back")?;
 
@@ -49,7 +54,7 @@ pub async fn heartbeat(client: &reqwest::Client) -> Result<()> {
         .collect();
 
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
-    let out = PathBuf::from("preview").join("heartbeat.png");
+    let out = PathBuf::from(PREVIEW).join("heartbeat.png");
 
     let picture = card::heartbeat(&alive, "10 hours", &stamp, &out)?;
     let zones: usize = alive.iter().map(|a| a.bands.len()).sum();
@@ -88,7 +93,7 @@ pub async fn trouble(client: &reqwest::Client, which: Option<String>) -> Result<
     };
 
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
-    let out = PathBuf::from("preview").join("trouble.png");
+    let out = PathBuf::from(PREVIEW).join("trouble.png");
 
     let picture = card::trouble(wrong, minutes, detail, &stamp, &out)?;
 
@@ -105,10 +110,10 @@ pub async fn trouble(client: &reqwest::Client, which: Option<String>) -> Result<
 }
 
 /// The line he gets when a level he just sent goes live.
-pub async fn armed(client: &reqwest::Client) -> Result<()> {
-    let thickness = levels::load_thickness(Path::new("config/levels.toml"))?;
+pub async fn armed(client: &reqwest::Client, ibkr: &IbkrConnection) -> Result<()> {
+    let thickness = levels::load_thickness(Path::new(THICKNESS))?;
 
-    nsc_work_man::watch::say_it_is_armed(client, thickness).await?;
+    nsc_work_man::watch::say_it_is_armed(client, ibkr, thickness).await?;
     println!("Sent.");
 
     Ok(())

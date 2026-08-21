@@ -28,39 +28,46 @@ use std::path::Path;
 use anyhow::{Context, Result};
 use nsc_core::candle::{Bar, normal_candle};
 use nsc_core::levels::{self, Band, Pair, Thickness, Timeframe};
-use nsc_work_man::{feed, retry::keep_trying};
-
-/// His own inbox. Nothing drawn here is a signal.
-pub const OWNER: i64 = 6089491075;
+use nsc_data::source::{Interval, MarketDataSource};
+use nsc_data::sources::ibkr::IbkrConnection;
+use nsc_work_man::places::{PAIRS, THICKNESS};
+use nsc_work_man::retry::keep_trying;
 
 const HISTORY: usize = 60;
 pub const NORMAL_OVER: usize = 14;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    dotenvy::dotenv().ok();
+    nsc_work_man::secrets::load();
 
     let client = reqwest::Client::new();
     let wanted = std::env::args().nth(1).unwrap_or_else(|| "XAUUSD".into());
 
-    if wanted == "heartbeat" {
-        return beat::heartbeat(&client).await;
-    }
-
-    if wanted == "armed" {
-        return beat::armed(&client).await;
-    }
-
+    // The trouble cards are the only ones that need no candles at all, so they
+    // are answered before TWS is asked for anything.
     if wanted == "trouble" {
         return beat::trouble(&client, std::env::args().nth(2)).await;
     }
 
-    let file = Path::new("config/pairs").join(format!("{wanted}.toml"));
+    // TWS or IB Gateway has to be running. Every card but the trouble one is
+    // drawn on real candles — a made-up one would look better than the real
+    // thing ever does, which is the opposite of what a preview is for.
+    let ibkr = IbkrConnection::connect().await?;
+
+    if wanted == "heartbeat" {
+        return beat::heartbeat(&client, &ibkr).await;
+    }
+
+    if wanted == "armed" {
+        return beat::armed(&client, &ibkr).await;
+    }
+
+    let file = Path::new(PAIRS).join(format!("{wanted}.toml"));
     let pair = levels::load_pair(&file)
         .with_context(|| format!("no levels for {wanted} — is there a {}?", file.display()))?;
 
-    let thickness = levels::load_thickness(Path::new("config/levels.toml"))?;
-    let (band, bars) = first_band(&client, &pair, thickness).await?;
+    let thickness = levels::load_thickness(Path::new(THICKNESS))?;
+    let (band, bars) = first_band(&ibkr, &pair, thickness).await?;
 
     let asked = std::env::args().nth(2);
 
@@ -73,19 +80,19 @@ async fn main() -> Result<()> {
 
 /// The pair's first band, sized off real candles, plus hourly candles to draw.
 async fn first_band(
-    client: &reqwest::Client,
+    ibkr: &IbkrConnection,
     pair: &Pair,
     thickness: Thickness,
 ) -> Result<(Band, Vec<Bar>)> {
     let line = pair.levels.first().context("that pair has no levels")?;
 
     let interval = match line.timeframe {
-        Timeframe::Weekly => "1week",
-        Timeframe::Daily => "1day",
-        Timeframe::H4 => "4h",
+        Timeframe::Weekly => Interval::Week,
+        Timeframe::Daily => Interval::Day,
+        Timeframe::H4 => Interval::H4,
     };
 
-    let sizing = candles(client, &pair.symbol, interval).await?;
+    let sizing = candles(ibkr, &pair.symbol, interval).await?;
     let size = normal_candle(&sizing.iter().collect::<Vec<_>>(), NORMAL_OVER)
         .context("no candles came back")?;
 
@@ -95,18 +102,17 @@ async fn first_band(
         .next()
         .context("the level could not be turned into a band")?;
 
-    let hourly = candles(client, &pair.symbol, "1h").await?;
+    let hourly = candles(ibkr, &pair.symbol, Interval::H1).await?;
 
     Ok((band, hourly))
 }
 
 /// Candles, oldest first — the direction a chart is read in.
-pub async fn candles(client: &reqwest::Client, symbol: &str, interval: &str) -> Result<Vec<Bar>> {
-    let series = keep_trying(3, || feed::for_pair(client, symbol, interval, HISTORY))
+pub async fn candles(ibkr: &IbkrConnection, symbol: &str, interval: Interval) -> Result<Vec<Bar>> {
+    let mut bars = keep_trying(3, || ibkr.candles(symbol, interval, HISTORY))
         .await
-        .with_context(|| format!("could not get {interval} candles for {symbol}"))?;
+        .with_context(|| format!("could not get {} candles for {symbol}", interval.spoken()))?;
 
-    let mut bars = series.values;
     bars.reverse();
 
     Ok(bars)

@@ -11,7 +11,7 @@ use nsc_core::levels::{
 use nsc_work_man::{card, telegram};
 use rust_decimal::Decimal;
 
-use super::OWNER;
+use nsc_work_man::places::{OWNER, PREVIEW};
 
 /// Rung 1 — price at the zone.
 pub async fn draw_alert(
@@ -40,7 +40,7 @@ pub async fn draw_alert(
     }
 
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
-    let out = PathBuf::from("preview").join("alert.png");
+    let out = PathBuf::from(PREVIEW).join("alert.png");
 
     let picture = card::alert(pair, band, near, news, price, reach, &stamp, &out)?;
     let caption = levels::caption(pair, band, near, news, price);
@@ -95,7 +95,7 @@ pub async fn draw_close(
     let did = what_it_did(&band, bar);
     let was = action(&band, bar, thickness.kiss_depth);
     let forming = std::env::args().any(|arg| arg == "sofar");
-    let out = PathBuf::from("preview").join("close.png");
+    let out = PathBuf::from(PREVIEW).join("close.png");
 
     let picture = card::closed(pair, &band, bar, did, was, "1h", forming, &out)?;
     let caption = levels::closed_caption(pair, &band, bar, did, was, "1h", forming);

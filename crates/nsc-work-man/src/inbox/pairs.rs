@@ -17,7 +17,7 @@ use serde_json::json;
 
 use super::conversation::Adding;
 use super::talking::{plainly, say};
-use super::{NO, YES};
+use super::words::{NO, YES};
 
 /// Handles anything to do with stopping a pair.
 ///

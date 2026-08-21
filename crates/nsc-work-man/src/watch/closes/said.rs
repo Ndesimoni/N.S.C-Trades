@@ -1,5 +1,7 @@
 //! What one report was about.
 
+use nsc_data::source::Interval;
+
 /// Which of the two things was said about a candle.
 ///
 /// A candle gets spoken about **twice** — once part-way through, once when it
@@ -23,7 +25,13 @@ pub(super) enum Kind {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub(super) struct Said {
     pub(super) symbol: String,
-    pub(super) interval: &'static str,
+
+    /// **The timeframe as a type, not as its spelling.** It was a `&'static
+    /// str` while the feed's own words were carried around; two spellings of
+    /// the same timeframe would have been two different keys, and the same
+    /// candle would have reported twice.
+    pub(super) interval: Interval,
+
     pub(super) kind: Kind,
 
     /// The zone it was about, as written. `Band` is not hashable and the price

@@ -15,7 +15,7 @@ use nsc_core::candle::Bar;
 use nsc_core::levels::{self, Action, AtZone, Band, Nearness, News, Pair};
 use rust_decimal::Decimal;
 
-use super::{OWNER, PREVIEW};
+use crate::places::{OWNER, PREVIEW};
 
 /// Rung 1 — price has reached one of his zones.
 pub async fn alert(

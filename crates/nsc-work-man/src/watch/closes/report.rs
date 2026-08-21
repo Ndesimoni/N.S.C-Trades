@@ -3,9 +3,11 @@
 use chrono::Utc;
 use nsc_core::candle::Bar;
 use nsc_core::levels::{Band, Thickness, action, what_it_did};
+use nsc_data::source::Interval;
 
 use super::look::Closes;
 use super::said::{Kind, Said};
+use crate::card;
 use crate::watch::{Watching, pulse, say};
 
 impl Closes {
@@ -28,12 +30,16 @@ impl Closes {
         live: &[Band],
         bar: &Bar,
         thickness: Thickness,
-        interval: &'static str,
+        interval: Interval,
         forming: bool,
         pulse: &mut pulse::Pulse,
     ) -> bool {
         let kind = if forming { Kind::SoFar } else { Kind::Closed };
         let mut all_sent = true;
+
+        // The card templates were written against the feed's own spelling.
+        // One place turns the type back into it — see `card/spelling.rs`.
+        let written = card::as_written(interval);
 
         for band in live {
             let key = Said {
@@ -61,11 +67,11 @@ impl Closes {
             let what = if forming { "so far" } else { "closed" };
 
             println!(
-                "{} {interval} candle {} — {what} {was:?} at {}",
+                "{} {written} candle {} — {what} {was:?} at {}",
                 seen.pair.symbol, bar.datetime, band.price
             );
 
-            match say::closed(client, &seen.pair, band, bar, did, was, interval, forming).await {
+            match say::closed(client, &seen.pair, band, bar, did, was, written, forming).await {
                 Ok(()) => {
                     pulse.spoke(Utc::now());
                     self.told.insert(key, bar.datetime.clone());

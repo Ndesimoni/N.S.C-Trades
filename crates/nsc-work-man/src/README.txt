@@ -23,10 +23,19 @@ THE FILES
   main.rs       The flow, and nothing else. Read this first — it is short on
                 purpose, and every line of it hands off to one of the others.
 
-  feed/         Asking Twelve Data. One request, one answer.
-
   retry/        Doing a job again when the trouble says it is worth it. Here
                 and not in nsc-core because it SLEEPS — waiting is doing.
+
+  places.rs     WHERE THINGS ARE — his inbox, the settings files, and where
+                cards are drawn. One place, because his chat id was written
+                out in three files and config/pairs in five. None of them
+                disagreed, which is the only reason nobody noticed: two
+                copies of a string agree right up until one is changed.
+
+  secrets.rs    Reading .env, and SAYING SO when it will not read. dotenvy
+                stops at the first bad line and loads nothing after it, and
+                .ok() throws the reason away — so one unquoted value takes out
+                every setting below it in silence.
 
   card/         Filling in an HTML template and letting Chrome screenshot it.
                 A folder because it holds three jobs — putting the numbers in,
@@ -49,8 +58,8 @@ THE FILES
                 and for /remove. RUNS INSIDE THE BOT, beside the watcher.
 
   bin/          Small programs that are NOT the bot. cards/ draws any card on
-                demand, levels.rs draws a pair, listen.rs is the raw price
-                stream kept as proof.
+                demand, levels.rs draws a pair, listen.rs prints IBKR's raw
+                ticks so you can see what actually arrives.
 
   README.txt    This file.
 
@@ -60,14 +69,35 @@ HOW THEY CONNECT
   main.rs is four lines. It calls watch::run, and that is the whole bot.
 
     watch::run
+      -> IbkrConnection        the one line to TWS, opened at startup
       -> inbox::run            spawned beside it — levels from his phone
       -> bands::for_pair       size every band, once, at startup
-      -> the websocket         prices, free, about one a second
+      -> ibkr.prices           one subscription per pair, folded into one
          -> watch::prices      is price at a zone? -> say::alert
          -> watch::closes      what did the candle do? -> say::closed
          -> watch::pulse       said nothing today? -> the heartbeat
 
   Only the first line costs requests unless price is actually at a zone.
+
+
+WHERE PRICES COME FROM
+
+  NOT FROM THIS CRATE. Everything is IBKR, and IBKR lives in nsc-data.
+
+  Nothing here holds a broker's address, a key, or a wire format. The `feed/`
+  folder that used to ask Twelve Data was deleted on 20 August 2026 when the
+  feed changed, and that was the whole change on this side.
+
+  WHAT IBKR COSTS, WRITTEN DOWN SO IT IS NOT A SURPRISE:
+
+    - TWS OR IB GATEWAY MUST BE RUNNING AND LOGGED IN. There is no feed at
+      all without it, and no fallback.
+
+    - Gold needs its own market data subscription. Spot metals are not spot
+      forex at IBKR, and an account can have one and not the other.
+
+    - A price is the MIDDLE of the bid and the ask, worked out in nsc-data.
+      It has to be, because the candles come back as mid prices.
 
   main.rs used to be step one — fetch gold's last hourly candle, draw a card,
   send it, every time it ran. That is the opposite of silence-by-default, and

@@ -81,7 +81,8 @@ pub async fn send_to(
         .map_err(|trouble| SendError::Unreachable(quietly(trouble)))?;
 
     // Telegram refuses politely — `ok: false` inside a perfectly normal reply.
-    // The same trap Twelve Data sets with its 401, met twice in one afternoon,
+    // The same trap a feed sets when it refuses with a 200 and an error code
+    // in the body, met twice in one afternoon,
     // so it is a pattern rather than bad luck.
     if reply["ok"] != true {
         return Err(SendError::Refused(

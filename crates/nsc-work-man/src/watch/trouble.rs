@@ -21,7 +21,8 @@ use std::path::PathBuf;
 use crate::card::{self, Wrong};
 use crate::telegram;
 
-use super::{OWNER, PREVIEW, pulse};
+use super::pulse;
+use crate::places::{OWNER, PREVIEW};
 
 /// Remembers how long the line has been down, and whether he knows.
 pub struct Trouble {
@@ -143,6 +144,11 @@ pub async fn dying(client: &reqwest::Client, what: &str) {
 pub(super) fn scrub(what: &str) -> String {
     let mut clean = what.to_string();
 
+    // **The Twelve Data key is still on this list on purpose**, though nothing
+    // has asked that feed for anything since 20 August 2026. The key is still
+    // sitting in his `.env`, and a value that exists is a value that can end
+    // up in an error message. It comes off this list when it comes out of the
+    // file, not before.
     for name in ["TWELVE_DATA_API_KEY", "TELEGRAM_BOT_TOKEN"] {
         // Short ones are ignored. An unset or placeholder value could be a
         // couple of characters, and replacing those would gut the message.
@@ -184,4 +190,13 @@ async fn say(
     pulse.spoke(Utc::now());
 
     Ok(())
+}
+
+/// Reachable from the tests, and nowhere else.
+///
+/// The scrubbing itself is not worth making public — but a secret leaking is
+/// worth a test, and a test cannot check what it cannot call.
+#[cfg(test)]
+pub(crate) fn scrub_for_tests(what: &str) -> String {
+    scrub(what)
 }

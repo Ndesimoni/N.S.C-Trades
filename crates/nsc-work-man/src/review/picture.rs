@@ -5,10 +5,11 @@ use std::path::Path;
 use anyhow::{Context, Result};
 
 use crate::card;
-use crate::feed;
 use crate::retry::keep_trying;
 use nsc_core::candle::{Bar, normal_candle};
 use nsc_core::levels::{Pair, Thickness, Timeframe};
+use nsc_data::source::{Interval, MarketDataSource};
+use nsc_data::sources::ibkr::IbkrConnection;
 
 use super::drawn::{Drawn, on_the_chart};
 
@@ -18,16 +19,16 @@ const HISTORY: usize = 150;
 /// How many candles a "normal" one is averaged over. Fourteen is the usual.
 const NORMAL_OVER: usize = 14;
 
-/// What the feed calls each of his charts.
+/// Which candles each of his charts is drawn from.
 ///
-/// **`watch/bands.rs` holds this same list**, written out beside the fetch it
-/// does. Two lists of the same three names disagree in the end, and this is
-/// the one to pull them onto when that file is next touched.
-fn interval(chart: Timeframe) -> &'static str {
+/// **`watch/bands.rs` holds this same list**, beside the fetch it does. They
+/// are both `Interval` now, so the two can disagree about which timeframes
+/// get fetched but never about what a timeframe IS.
+fn interval(chart: Timeframe) -> Interval {
     match chart {
-        Timeframe::Weekly => "1week",
-        Timeframe::Daily => "1day",
-        Timeframe::H4 => "4h",
+        Timeframe::Weekly => Interval::Week,
+        Timeframe::Daily => Interval::Day,
+        Timeframe::H4 => Interval::H4,
     }
 }
 
@@ -46,14 +47,14 @@ fn interval(chart: Timeframe) -> &'static str {
 /// the weekly and the daily are fetched every time. Only the 4-hour costs a
 /// request of its own.
 pub async fn picture_of(
-    client: &reqwest::Client,
+    ibkr: &IbkrConnection,
     pair: &Pair,
     thickness: Thickness,
     chart: Timeframe,
     out: &Path,
 ) -> Result<Drawn> {
-    let weekly = candles(client, &pair.symbol, "1week").await?;
-    let daily = candles(client, &pair.symbol, "1day").await?;
+    let weekly = candles(ibkr, &pair.symbol, Interval::Week).await?;
+    let daily = candles(ibkr, &pair.symbol, Interval::Day).await?;
 
     let weekly_candle = normal_candle(&weekly.iter().collect::<Vec<_>>(), NORMAL_OVER)
         .context("no weekly candles came back")?;
@@ -77,7 +78,7 @@ pub async fn picture_of(
     let shown = match chart {
         Timeframe::Weekly => weekly,
         Timeframe::Daily => daily,
-        Timeframe::H4 => candles(client, &pair.symbol, interval(chart)).await?,
+        Timeframe::H4 => candles(ibkr, &pair.symbol, interval(chart)).await?,
     };
 
     // How much price the drawn candles actually cover. A band outside it is on
@@ -99,7 +100,7 @@ pub async fn picture_of(
         &drawn,
         &bands,
         &pair.symbol,
-        interval(chart),
+        card::as_written(interval(chart)),
         pair.digits,
         out,
     )?;
@@ -116,12 +117,11 @@ pub async fn picture_of(
 /// **Tries again if the trouble says it is worth it.** A dropped line clears
 /// on its own; a wrong key does not, and stops on the first go rather than
 /// looking like a dead connection for a minute.
-async fn candles(client: &reqwest::Client, symbol: &str, interval: &str) -> Result<Vec<Bar>> {
-    let series = keep_trying(3, || feed::for_pair(client, symbol, interval, HISTORY))
+async fn candles(ibkr: &IbkrConnection, symbol: &str, interval: Interval) -> Result<Vec<Bar>> {
+    let mut bars = keep_trying(3, || ibkr.candles(symbol, interval, HISTORY))
         .await
-        .with_context(|| format!("could not get {interval} candles for {symbol}"))?;
+        .with_context(|| format!("could not get {} candles for {symbol}", interval.spoken()))?;
 
-    let mut bars = series.values;
     bars.reverse();
 
     Ok(bars)

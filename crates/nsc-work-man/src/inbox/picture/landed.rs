@@ -7,6 +7,7 @@ use nsc_core::levels::{Pair, Timeframe};
 
 use super::super::talking::say;
 use super::sending::{draw, sent};
+use crate::places::PREVIEW;
 
 /// Draws the pair's levels and sends the picture.
 ///
@@ -18,13 +19,13 @@ use super::sending::{draw, sent};
 /// is worth saying, but the levels are already saved and safe. A picture
 /// failing must not look like a level being lost.
 pub async fn show(client: &reqwest::Client, token: &str, pair: &Pair) -> Result<()> {
-    let out = Path::new("preview").join("just-saved.png");
+    let out = Path::new(PREVIEW).join("just-saved.png");
     let caption = format!(
         "📍 <b>{}</b> — here is where your levels landed.",
         pair.symbol
     );
 
-    match draw(client, pair, Timeframe::Weekly, &out).await {
+    match draw(pair, Timeframe::Weekly, &out).await {
         Ok(drawn) => sent(client, &drawn, &caption).await,
         Err(trouble) => {
             println!("  -> Could not draw it: {trouble:#}");

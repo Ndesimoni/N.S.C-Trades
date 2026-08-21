@@ -16,4 +16,5 @@
 pub mod candle;
 pub mod error;
 pub mod levels;
+pub mod swing;
 pub mod when;

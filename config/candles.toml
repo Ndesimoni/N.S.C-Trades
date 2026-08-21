@@ -1,0 +1,73 @@
+# ── What a candle is called ────────────────────────────────────────────────
+#
+# These numbers decide what the bot SEES in one candle. Nothing here decides
+# what to do about it — that is nsc-strategy, and it does not exist yet.
+#
+# THEY ARE TEXTBOOK, NOT HIS. Taken as standard defaults so the naming could be
+# built, and they stay borrowed until a pair of charts — one he took, one he
+# passed that looked the same — replaces them.
+#
+# EVERY NUMBER IS A SHARE OF THE CANDLE'S OWN HEIGHT. A body that is a fifth of
+# its candle is a fifth on EURUSD and a fifth on gold. A threshold in points
+# works on the pair it was set on and quietly stops working on every other one.
+#
+# TWELVE SHAPES, NOT TWENTY-TWO. Four names on the textbook list are one shape
+# wearing two labels — a hammer and a hanging man are the same candle, told
+# apart by the trend before them, and a candle cannot know that.
+# ───────────────────────────────────────────────────────────────────────────
+
+[body]
+# At or under this there is no body worth the name.
+#
+# 0.05 found 241 dojis in 4,165 gold 4-hour candles — one in seventeen.
+doji = "0.05"
+
+# At or under this the body is small: a spinning top, or the stub at the far
+# end of a rejection.
+#
+# 0.33 is the textbook pin-bar limit. Loosen it and an ordinary candle with a
+# slightly longer wick starts reading as a rejection.
+small = "0.33"
+
+# At or over this the body is nearly the whole candle.
+strong = "0.60"
+
+
+[wick]
+# At or under this, a wick counts as none at all.
+#
+# IT CANNOT BE ZERO. In real forex there is nearly always a tick or two, so
+# "no wick" has to mean "almost none".
+#
+# MEASURED AGAINST REAL CANDLES, not chosen. At 0.05 the clearest closing
+# marubozu in three years — 4 March 2024, wicks of 0.009 and 0.033 — read as a
+# full marubozu, which is a shape found seven times in 4,165 candles. 0.02
+# keeps the two apart and still finds both true marubozu.
+missing = "0.02"
+
+# The short end of a dragonfly or a gravestone.
+#
+# A LOOSER NUMBER THAN "missing", AND IT HAS TO BE. A dragonfly is a long tail
+# down with almost nothing above — but "almost nothing" next to a tail of 0.90
+# is not the same as "almost nothing" at the end of a marubozu. The clearest
+# real dragonfly has 0.095 above it and the clearest gravestone 0.08 below;
+# judged by `missing` both came back as plain dojis.
+stub = "0.15"
+
+# At or over this, a wick is long.
+#
+# This is what separates a long-legged doji from a plain one, and a high wave
+# from a spinning top.
+long = "0.35"
+
+
+[rejection]
+# How many times the body the long wick must be.
+tail_to_body = "2.0"
+
+# The most the wick on the OTHER side may take.
+#
+# THIS IS WHAT KEEPS THE BODY AT THE FAR END FROM THE TAIL. Without it a candle
+# with long wicks both ways passes — and that shape means close to the opposite
+# thing: nobody won, rather than one side refused hard.
+nose = "0.25"

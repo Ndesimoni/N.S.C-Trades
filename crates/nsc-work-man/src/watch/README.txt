@@ -37,12 +37,16 @@ THE FILES
   kit.rs      What the watcher carries, and what has to survive the line
               dropping.
 
-  run.rs      THE SUPERVISION LOOP. Loading, the calendar, and what to do
+  run/      THE SUPERVISION LOOP. Loading, the calendar, and what to do
               when the line ends. Start here.
 
-  line.rs     Holding the price line open, and everything that can end it.
+  line/     Holding the price line open, and everything that can end it —
+              including a pair IBKR quietly refuses.
 
   bands.rs    Sizing a pair's bands, once, at startup.
+
+  breathe.rs  Waiting between requests. IBKR allows 60 in ten minutes, and
+              going over does not get refused -- it gets SLOWER.
 
   prices.rs   Every price off the line, against the bands. Says nothing on the
               overwhelming majority of them, which is the point.
@@ -75,7 +79,7 @@ A CARD THAT WILL NOT SEND IS NOT THE PRICE LINE BREAKING
   again, a wrong token stops on the first go. It was simply never asked.
 
   And after three goes, a failure is logged and the run carries on. Letting it
-  out dropped a perfectly good socket and told him the feed was down.
+  out dropped a perfectly good line and told him the feed was down.
 
   NOTHING IS MARKED AS SAID UNTIL IT HAS ACTUALLY GONE. That was wrong in four
   places at once, and each one lost something for good:
@@ -166,63 +170,11 @@ IT WATCHES NOTHING ON A MONDAY
   Not "stays quiet" — NOTHING. No prices checked, no candles fetched, no queue
   building up to be dumped on him on Tuesday morning.
 
-  The socket is still drained so it does not back up. Nothing on it is looked
-  at and nothing is remembered.
+  The line is not opened at all. There is nothing to drain, because nothing
+  was subscribed to.
 
   See nsc-core::when. Sunday evening is already Monday's session, which is not
   something the UTC calendar knows.
-
-
-A LEVEL SENT WHILE IT IS RUNNING IS PICKED UP
-
-  The levels used to be read ONCE, at startup. He would send one from his
-  phone, the inbox would save it correctly, the file would be right — and the
-  watcher would never look again. Nothing said so. The level simply did
-  nothing until the next restart, which might be days.
-
-  Now the folder is checked every ten minutes, BY THE CLOCK ON THE FILES.
-  Parsing every pair file to find out that nothing happened is work done for
-  nothing, and nothing is the normal answer. The count is checked too — a file
-  deleted leaves every remaining timestamp exactly as it was.
-
-  A PAIR WHOSE LEVELS ARE UNTOUCHED KEEPS THE WATCH IT ALREADY HAD. Rebuilt,
-  it would forget which zones price is sitting in and announce every one of
-  them again as though it had just arrived. Only the changed pair costs a
-  request.
-
-  The line is then closed and opened again, because THE SUBSCRIPTION IS FIXED
-  WHEN THE SOCKET OPENS — a pair added to a live one would never be asked
-  about. No thirty-second pause on that path; he is standing there having just
-  sent it.
-
-  IT ALSO HAPPENS ON QUIET DAYS. The weekend is exactly when he does his chart
-  work, and the check lived inside the socket loop at first — which does not
-  run on a quiet day. A level sent on Sunday sat unarmed until Tuesday.
-
-  He gets a card back: a tick, "Got it. Your levels are live", and the count
-  of what is being watched.
-
-  NO PAIR NAMES. He has just sent it — he knows what he sent, and
-  the inbox has already sent back a picture of where the bands landed, with
-  the pair on it in his colours. Repeating that is a second message telling
-  him something he already had.
-
-  What that picture cannot say is that they are being WATCHED. Saved and armed
-  were two separate states and nothing told him which one he had. That is the
-  whole job of this card.
-
-  The count is the one detail worth having: he sees the number went up.
-
-
-WHAT TUESDAY SAYS
-
-  Price can walk into a zone during Monday's silence and still be there when
-  Tuesday opens. The watcher fires on a CHANGE, so nothing would ever be said
-  about it.
-
-  So the first thing after silence is a report of what was FOUND. The card
-  says "already in the zone", not "arrived" — because nobody watched it happen
-  and an arrival card would put a Monday move on a Tuesday clock.
 
 
 WHAT IT COSTS
@@ -232,141 +184,37 @@ WHAT IT COSTS
   levels makes it seven.
 
   After that: NOTHING, unless price is actually at a zone. Prices come down
-  the socket for free.
+  the subscriptions for free — IBKR charges nothing for streaming quotes on a
+  pair the account is entitled to.
 
   Rung 2 only asks about pairs with a live zone. A quiet week costs nothing.
-  Gold sitting in a zone all day costs about 24 requests against a limit of
-  800.
+  Gold sitting in a zone all day costs about 24 requests.
+
+  THE LIMIT THAT SHAPES IT: 60 historical requests in any ten minutes. That is
+  one every ten seconds sustained, which is why BREATHE is ten seconds.
+
+  Go over it and IBKR does not refuse. IT PACES — the request just takes
+  longer, and then longer, and a candle report arrives late enough to be about
+  a candle he has already watched close on his own screen.
 
   Every request goes through a 7.5-second gap, which is 8 a minute exactly.
 
 
-THE TWENTY-MINUTE LOOK
+THE REST IS IN THE FOLDER IT IS ABOUT
 
-  A candle at one of his zones gets spoken about TWICE:
+  This file got long enough that nobody would read it end to end, which is the
+  exact thing the 250-line rule exists to stop. So the detail moved down to
+  the folder it describes:
 
-      about a third of the way in    what it has done SO FAR
-      when it finishes               what it did
+    closes/README.txt    the twenty-minute look, and why it NEVER works out
+                         when a candle closes for itself
 
-  The first is the only place in this project that reads a candle before it
-  has finished. It is allowed for the same reason the price alert is — it is a
-  heads-up and nothing more — and the card says so on its own face. IT MUST
-  NEVER REACH A STRATEGY.
+    run/README.txt       what must never stop the bot -- the four things that
+                         used to, and none of them the price line breaking.
+                         And how a level he sends is picked up mid-run
 
-  NOT ON THE OPEN. Spot forex runs Sunday to Friday without a break, so a
-  candle's open IS the last one's close. That message would repeat what
-  arrived a minute earlier.
+    resumed/README.txt   the opening hours: watched, not spoken about. And
+                         what Tuesday says about a move made on Monday
 
-  ONE REQUEST SERVES BOTH. The reply already carries the candle that just
-  finished and the one still running, so the look costs nothing on top.
-
-  The two are remembered apart. Keyed together, the look would silence the
-  close that follows it — the one that actually matters.
-
-  `look_in_minutes` in config/when.toml is set for the 1-hour and scaled for
-  the rest: twenty minutes into an hour is eighty into a 4-hour.
-
-  IT LANDS ON THE MINUTE, NOT IN A TEN-MINUTE WINDOW. It used to be checked on
-  a timer, so the look arrived somewhere between twenty and thirty minutes in.
-  closes/due.rs now reads the stamp the feed already handed back and wakes at
-  that candle's own look and close. Twenty minutes in means twenty.
-
-
-IT NEVER WORKS OUT WHEN A CANDLE CLOSES
-
-  closes/ asks for the newest candle when that pair's next one is due, and lets
-  THE FEED'S OWN STAMP say whether it is one already reported.
-
-  Working the boundaries out here would mean knowing where the feed puts its
-  4-hour candles, which nobody has measured. Guessing wrong reports a candle
-  that has not finished — and reading a candle early does not error, it makes
-  results look better.
-
-  A 4-HOUR CANDLE DOES NOT EXIST UNTIL ITS LAST HOUR HAS CLOSED. Three hourly
-  closes can pass with the 4-hour still saying nothing; the fourth is when it
-  speaks. Bar::finished_by is the single place that decides.
-
-
-WHAT MUST NEVER STOP THE BOT
-============================
-
-  It is meant to run for weeks. Three things used to end it, or end the
-  socket, and none of them were the price line actually breaking.
-
-  SIZING A PAIR'S BANDS. reload.rs asks the feed for history to work out how
-  thick a band should be. That answer used to travel out of run() and stop
-  the whole bot -- he sends a level from his phone, Twelve Data is slow for
-  ten seconds, and the bot says "stopped" and quits. It now keeps whatever
-  bands that pair already had and tries again on the next look.
-
-  FETCHING A CANDLE. closes/ asks for the newest candle when price is at a
-  zone. That is a REST request on a completely different connection from the
-  price websocket, and its failure used to drop the socket. Repeated, it told
-  him the price line was down while the price line was perfectly fine.
-
-  HAVING NOTHING TO WATCH. Removing the last pair left it subscribing to no
-  symbols at all. Nought refused out of nought asked read as every pair being
-  refused, so it reported the line as broken every thirty seconds. It now
-  waits quietly, the same as it does at the weekend, and picks the levels up
-  when he sends some.
-
-  SAYING THE LEVELS ARE ARMED. That used `?`, so Chrome refusing to start --
-  because his own browser held the profile -- killed the bot at startup, on
-  the one message whose only job is to say "your levels are live". They ARE
-  live either way.
-
-  The rule under all four: A THING THAT FAILS TO BE SAID IS NOT THE PRICE LINE
-  BREAKING, and a card that will not draw is not a reason to stop. Only the
-  websocket itself going down is that.
-
-
-THE OPENING HOURS ARE WATCHED, NOT SPOKEN ABOUT
-===============================================
-
-  settle_hours in config/when.toml is 4. For those four hours after a session
-  opens, the bot says nothing at all -- no approach, no in-the-zone, no candle
-  close.
-
-  It is not asleep. Prices come down the line and are checked against the
-  bands exactly as always, so `arrive` keeps its record of where price is and
-  which zones it is sitting in. Only the sending is held.
-
-  WHY. The first hours of a day are where a move gets faked and taken back. A
-  zone touched at the open and abandoned twenty minutes later is a buzz he has
-  to ignore, and a buzz he learns to ignore is one that costs him the alert
-  that mattered.
-
-  WHAT ARRIVES WHEN THEY END. One report per zone price is actually sitting
-  in, marked "already at" rather than "just arrived". That distinction is the
-  whole reason resumed/ exists -- saying "arrived" would put a move made at
-  the open onto the clock of the moment the window closed.
-
-  THE GREETING IS PER SESSION AND PER PAIR, NOT ONE FLAG FOR THE BOT. It used
-  to be set once and never cleared, which cost twice: a bot left running from
-  Friday greeted once and never again, and a level he sent mid-session got
-  "your levels are live" and then silence about the zone price was already
-  sitting in. See resumed/README.txt.
-
-  SETTLED IS NOT THE SAME AS TRADEABLE. Friday settles four hours in like any
-  other day and still opens no trade. Gating the report on "may a trade be
-  suggested" would silence it every Friday.
-
-
-THE GREETING IS ASKED AFTER THE PRICE, NOT BEFORE
-=================================================
-
-  line.rs feeds each price into `arrive` and THEN asks the greeting whether
-  it has anything to say. The order is the behaviour.
-
-  The greeting reports which zones price is RESTING IN. Nothing is resting
-  anywhere until a price has been fed in -- a fresh Watch has every band down
-  as Away and no last price at all.
-
-  Asked first, on the very first price of a session, it found nothing, sent
-  nothing, and marked the session as reported. The report of where price
-  already stood -- the whole reason it waits for the opening hours to pass --
-  never came, for the entire session.
-
-  It is guarded twice on purpose. The order here, and a check in
-  resumed/awake.rs that skips any pair no price has arrived for. Staying true
-  should not depend on two lines staying in one order.
+    line/README.txt      why the greeting is asked AFTER the price, and what
+                         happened for a whole session when it was not

@@ -20,3 +20,6 @@
 //! discipline. `Cargo.toml` has no `reqwest` and no `tokio`, so nothing here
 //! *can* reach out.
 pub mod candle;
+pub mod indicators;
+pub mod pattern;
+pub mod swings;

@@ -1,6 +1,8 @@
-# ── nsc-live ───────────────────────────────────────────────────────────────
-# The bot. Right now it does one thing: ask Twelve Data for a candle and print
-# it.
+# ── nsc-work-man ───────────────────────────────────────────────────────────
+# The bot. The watcher and the inbox, in one program.
+#
+# Prices and candles both come from IBKR, and they come through nsc-data.
+# Nothing in this crate knows a broker's address.
 #
 # It is a binary, not a library, so it uses anyhow for errors — something went
 # wrong, here is the trail, stop. Libraries will use thiserror instead, because
@@ -19,13 +21,15 @@ edition.workspace = true
 
 # What the bot knows. Pure — no feed, no Telegram, no Chrome.
 nsc-core = { workspace = true }
+
+# Reading a chart. It describes and never decides — see --bin read.
+nsc-ta = { workspace = true }
+
 nsc-data.workspace = true
 
 # Waiting on the network without freezing everything else.
 tokio   = { workspace = true }
 reqwest = { workspace = true }
-tokio-tungstenite = { workspace = true }
-futures-util = "0.3"
 
 
 

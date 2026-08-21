@@ -10,6 +10,7 @@
 //!   reading.rs   pulling the numbers out of a message
 
 mod adding;
+mod naming;
 mod reading;
 mod route;
 mod saving;

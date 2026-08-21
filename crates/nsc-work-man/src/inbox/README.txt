@@ -95,39 +95,6 @@ ONE PAIR, AND WHAT HE CAN DO TO IT
   read it.
 
 
-ASKING FOR A CHART
-
-      /chart  ->  which pair?  ->  [pair]  ->  which chart?  ->  picture
-      /pairs  ->  [pair]  ->  [📈 Chart]  ->  which chart?  ->  picture
-
-  TWO DOORS INTO THE SAME PLACE. /chart is for when he already knows which pair
-  he wants. The button is for when he is on the pair's page anyway, and it sits
-  next to the list of levels it is about to draw.
-
-  IT USED TO BE REACHABLE ONLY BY SAVING A LEVEL. The picture went out as the
-  reply to "here is where your levels landed", so seeing a chart meant adding
-  something in order to see one. bin/levels.rs could draw one, and that is on
-  his Mac rather than his phone.
-
-  THE THREE TIMEFRAME BUTTONS ARE SHARED WITH ADDING A LEVEL, and a button only
-  sends its own word back -- "Weekly" arrives identical either way. `chart_of`
-  on Adding is the only thing that says which question he is answering, and it
-  is checked BEFORE the adding flow's timeframe for exactly that reason.
-
-  It is cleared the moment the chart goes, so his next "Weekly" is a level
-  again. And it is cleared when he moves to a different pair: Telegram keeps old
-  keyboards tappable forever, so a chart question left hanging on the last pair
-  would turn a tap made a week later into a picture of the wrong one.
-
-  THE WEEKLY IS THE ONE THAT SHOWS EVERYTHING. His levels are years apart. The
-  daily and the 4-hour are for reading one level closely, and they will often
-  hold none of them at all -- 150 four-hour candles is about twenty-five days.
-
-  So the caption says when nothing reached. A chart that is correctly empty and
-  a chart whose bands failed to draw are otherwise the same picture, and he
-  would report the second one as a bug. See review/README.txt.
-
-
 PUTTING ONE BACK
 
       /restore  ->  which one?  ->  [pair]  ->  back
@@ -169,7 +136,8 @@ THE FILES
                 bot can see.
 
   hearing.rs    The long poll that never gives up, and reading what Telegram
-                answers. See ONLY ONE COPY AT A TIME below.
+                answers. conversation/README.txt says why, under
+                ONLY ONE COPY AT A TIME.
 
   conversation/ Working out what he meant, and what to say back. Its own
                 folder, with its own README. The
@@ -185,16 +153,27 @@ THE FILES
 
   picture/      Sending him a picture of a pair. Two jobs that read
                 differently -- where the levels he just saved landed, and a
-                chart he asked to see. Its own folder, with its own README.
-                See ASKING FOR A CHART above.
+                chart he asked to see. Its own folder, with its own README,
+                which is where ASKING FOR A CHART now lives.
 
   dropping.rs   Taking one level off a pair. Each level goes up as its own
                 button reading "weekly 1.21279", and the chart name on it is
-                checked -- see BACKING OUT below for why.
+                checked -- conversation/README.txt says why, under A BUTTON
+                THAT IS NO LONGER TRUE.
 
   talking.rs    Saying it, with buttons. It is also the one place that adds
                 the Close row, and it escapes anything going into a message,
                 because they are parsed as HTML.
+
+  checking.rs   IS THIS A PAIR IBKR WILL SERVE? Asks the broker, because
+                spelling cannot answer it -- AUDUSS is six letters that split
+                neatly into AUD/USS, and USS is not a currency.
+
+  words.rs      WHAT THE BUTTONS SAY. Buttons are not set up anywhere -- the
+                bot sends them with a message, and tapping one sends that
+                word back as an ordinary message. So the word ON the button
+                and the word the bot MATCHES ON have to be the same string,
+                which is why they all live in one file.
 
   README.txt    This file.
 
@@ -251,71 +230,16 @@ WHAT IS NOT HERE YET
   he opens the file.
 
 
-BACKING OUT
+THE REST IS IN THE FOLDER IT IS ABOUT
 
-  Every keyboard carries a Close button on its own row. It is added in
-  talking.rs, in the one function that builds a keyboard, rather than at each
-  place that puts buttons up.
+  This file got long enough that nobody would read it end to end, which is the
+  exact thing the 250-line rule exists to stop. So the detail moved down to
+  the folder it describes:
 
-  Doing it at each call site would work until somebody added the eleventh
-  keyboard and forgot -- and the one without a Close is exactly the flow he
-  gets stuck in, buttons covering his own keyboard, on a phone.
+    conversation/README.txt   backing out of a flow, a button that is no
+                              longer true, and why only ONE keyboard may be
+                              on his screen at a time
 
-  The tap is caught at the very top of conversation/route.rs, before /help,
-  before
-  the pair pages and before the stop-watching confirmation. Anywhere he can
-  be, Close means the same thing.
-
-  It resets what the bot remembered and takes the buttons away. It undoes
-  nothing. He asked to be left alone, not to have his levels changed.
-
-
-A BUTTON THAT IS NO LONGER TRUE
-
-  Telegram keeps old keyboards tappable forever. He can scroll up a week and
-  press a button from a conversation that is long finished, and it arrives
-  looking exactly like one he pressed a second ago.
-
-  Two things guard against that, and both were bugs first:
-
-  Moving to a different pair forgets the page he was on. `chosen` and
-  `dropping` used to survive it, so a level button from an older message took
-  its price off whichever pair he was last LOOKING at rather than the one he
-  was adding to.
-
-  A level button carries its chart name -- "weekly 1.21279", not "1.21279".
-  Reading the last number off any message meant that while the take-one-off
-  list was up, sending "1.28 1.31" -- which is how he is TOLD to add two
-  levels -- was read as "take 1.31 off", against whichever pair's page he was
-  last on.
-
-  Taking a level off says whether it was there. A price that is not on the
-  pair changes nothing, which is right. But the reply said "1.28 taken off"
-  either way, so a stale tap looked exactly like one that worked.
-
-
-ONLY ONE COPY AT A TIME
-
-  Telegram hands each message to whichever copy of the bot asks for it first.
-  Two running at once split his messages between them at random, and each one
-  looks like it is ignoring him.
-
-  Telegram does say so -- it refuses the poll with error 409, "Conflict:
-  terminated by other getUpdates request". But only `result` was ever read out
-  of the answer, and a refusal carries no `result`, so a refused poll looked
-  exactly like a quiet minute. The second copy span on silently, forever,
-  while he sent messages nothing was reading.
-
-  It now says which thing is wrong, every fifteen seconds, until one is shut
-  down. Same for any other refusal -- a bad token reads the same way and is a
-  very different evening.
-
-
-/status ON A QUIET DAY DRAWS NOTHING
-
-  It sends words and no picture.
-
-  The card's one useful column is how far price is from the nearest zone, and
-  on a quiet day no price has arrived to measure from -- every row would read
-  as a dash. It also saves running Chrome for the best part of ten seconds to
-  say nothing.
+    picture/README.txt        asking for a chart -- the two doors into it,
+                              and what the caption has to say when none of
+                              his levels reached

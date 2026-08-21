@@ -15,8 +15,8 @@ use crate::card::{self, Alive};
 use crate::telegram;
 use crate::watch::Snapshot;
 
-use super::OWNER;
 use super::talking::say;
+use crate::places::{OWNER, PREVIEW};
 
 /// What he can send, and what each one does.
 ///
@@ -135,7 +135,7 @@ pub async fn status(
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
 
     let words = beat_words(now.pairs.len(), now.zones());
-    let out = PathBuf::from("preview").join("status.png");
+    let out = PathBuf::from(PREVIEW).join("status.png");
 
     // **It answers either way.** This is the one command whose whole job is
     // "are you alive", and it used to reply "Could not do that" whenever the

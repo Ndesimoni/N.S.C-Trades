@@ -17,7 +17,7 @@ use serde_json::json;
 use super::conversation::Adding;
 use super::one::listed;
 use super::talking::say;
-use super::{ADD, DROP, STOP};
+use super::words::{ADD, DROP, STOP};
 
 /// Its levels as buttons, one each, so he can take one off.
 pub async fn offer(

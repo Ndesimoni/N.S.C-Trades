@@ -7,10 +7,12 @@ use nsc_core::levels::{known, undo, with_slash};
 use serde_json::json;
 
 use super::super::talking::say;
-use super::super::{CLOSE, NEW_PAIR, PAIRS, TIMEFRAMES, UNDO};
+use super::super::words::{CLOSE, NEW_PAIR, TIMEFRAMES, UNDO};
 use super::super::{asked, one, pairs, picture};
 use super::adding::Adding;
+use super::naming;
 use super::saving;
+use crate::places::PAIRS;
 
 /// Works out what he meant and answers.
 pub async fn handle(
@@ -127,7 +129,18 @@ pub async fn handle(
     }
 
     if tapped.is_some() || adding.naming {
-        let name = tapped.cloned().unwrap_or_else(|| text.to_uppercase());
+        // **A name he typed is checked with IBKR before ANYTHING is written.**
+        //
+        // A pair already on disk is not re-checked — startup sweeps those, and
+        // asking again would cost a connection every time he taps one.
+        let name = match tapped.cloned() {
+            Some(known) => known,
+            None => match naming::checked(client, token, text, adding).await? {
+                Some(name) => name,
+                None => return Ok(()),
+            },
+        };
+
         adding.naming = false;
         adding.pair = Some(name.clone());
         adding.timeframe = None;

@@ -39,7 +39,7 @@ THE TRAP, WHICH CAUGHT US ONCE
 
   TELEGRAM REFUSES POLITELY. A 200, and ok: false in the body.
 
-  A reply that parses is not a message that arrived. Twelve Data does the same
+  A reply that parses is not a message that arrived. A feed can do the same
   thing with a 401 — met twice in one afternoon, so it is a pattern rather
   than bad luck.
 

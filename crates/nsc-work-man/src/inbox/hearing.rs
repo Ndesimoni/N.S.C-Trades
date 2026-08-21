@@ -4,9 +4,10 @@ use anyhow::{Context, Result, anyhow, bail};
 use serde_json::Value;
 use tokio::sync::watch;
 
+use super::asked;
 use super::conversation::{Adding, handle};
 use super::talking::{plainly, say};
-use super::{OWNER, asked};
+use crate::places::OWNER;
 
 /// How long to wait before listening again after a failure.
 const AGAIN: std::time::Duration = std::time::Duration::from_secs(15);

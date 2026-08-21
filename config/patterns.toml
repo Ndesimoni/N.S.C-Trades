@@ -1,0 +1,132 @@
+# ── What a RUN of candles is called ────────────────────────────────────────
+#
+# One candle at a time is config/candles.toml. This file is what two or three
+# of them do together.
+#
+# THESE NUMBERS ARE TEXTBOOK, NOT HIS. Standard defaults so the detectors could
+# be built. They stay borrowed until a pair of charts — one he took, one he
+# passed that looked the same — replaces them.
+#
+# SHARES AND ATR, NEVER POINTS. A body that is a fifth of its candle is a fifth
+# on EURUSD and a fifth on gold. Anything about SIZE is in ATR for the same
+# reason.
+# ───────────────────────────────────────────────────────────────────────────
+
+[engulfing]
+# The least the FIRST candle's body may be, as a share of its own candle.
+#
+# WITHOUT THIS, ALMOST ANYTHING ENGULFS A DOJI and the word stops meaning
+# anything. Bodies only — wicks are ignored, which is the standard definition.
+min_first_body = "0.10"
+
+# How many times the first body the second must be.
+#
+# ── THIS ONE IS NOT IN THE TEXTBOOK, AND SPOT FOREX IS WHY ────────────────
+#
+# The textbook says the second body must cover the first. That rule assumes a
+# market that GAPS: the second candle can open away from where the first
+# closed, so covering it is a real thing to ask.
+#
+# SPOT FOREX DOES NOT GAP. The second candle opens EXACTLY where the first
+# closed — measured, on the clearest bullish engulfing in three years of gold:
+# first close 2030.36, second open 2030.36, identical. So one end of the
+# "covering" is free, every time, and the pattern collapses into "did it close
+# past the first candle's open".
+#
+# Left alone it found 54 engulfings in 300 candles — one candle in six. That
+# is not a reversal signal, that is a description of an ordinary afternoon.
+#
+# 1.5 asks the second body to be half again the first. The clearest real
+# example is 2.5x.
+min_second_of_first = "1.5"
+
+
+[harami]
+# The least the FIRST candle's body may be.
+#
+# A harami is a big candle followed by a small one that hides inside it. If the
+# first candle is not big, nothing is hiding.
+min_first_body = "0.50"
+
+# The most the SECOND candle's body may be, as a share of the FIRST body.
+#
+# Half. Bigger than that and it is not a pause, it is a second push.
+max_second_of_first = "0.50"
+
+
+[tweezers]
+# How close two extremes must be to count as the same price, in normal candles.
+#
+# TWO CANDLES NEVER SHARE A HIGH TO THE TICK, so this cannot be zero. In ATR
+# rather than points: five points is nothing on gold and a day on the euro.
+tolerance_reach = "0.05"
+
+
+[piercing]
+# How far into the first candle's body the second must close, as a share of
+# that body.
+#
+# Half. Less than that is a bounce; more than all of it is an engulfing, and
+# the two must not both fire on one candle.
+min_close_into_body = "0.50"
+
+# The least the FIRST candle's body may be. Same reason as engulfing.
+min_first_body = "0.50"
+
+
+[star]
+# The most of its own candle the MIDDLE body may take.
+#
+# THIS IS WHAT MAKES IT A STALL rather than a third push. A star is a long
+# move, a moment where nothing happened, then a long move back.
+max_middle_body = "0.30"
+
+# The least the two OUTER bodies must take of their own candles.
+#
+# Both have to be real moves, or the shape is three shrugs in a row.
+min_outer_body = "0.50"
+
+# How far into the FIRST candle's body the third must close, as a share of
+# that body. Half means it gave back half the push.
+min_close_into_body = "0.50"
+
+# ── The gap, and why it is a setting rather than a rule ────────────────────
+#
+# The classic Japanese morning star gaps away from the candle before it AND the
+# one after. SPOT FOREX DOES NOT GAP — it runs Sunday evening to Friday evening
+# without a break, so a candle's open IS the last one's close.
+#
+# Insist on the gap and this pattern can only form at the Sunday open, once a
+# week. So the gap is NOT required, and whether it was there is REPORTED
+# instead.
+#
+# An ABANDONED BABY is exactly the strict case: a star whose middle candle is a
+# doji and whose whole RANGE — not just its body — cleared both neighbours. It
+# is the best-evidenced pattern on the list at around 70%, and on spot forex it
+# will almost never appear. Both of those are true at once.
+require_gap = false
+
+
+[soldiers]
+# ── Three white soldiers, and three black crows ────────────────────────────
+#
+# Three candles marching the same way, each closing beyond the last.
+#
+# NO GAP AND NO VOLUME NEEDED, which is why these two survive the spot-forex
+# filter that removes the kicker and the three methods.
+
+# The least each of the three bodies must take of its own candle.
+#
+# All three have to be real moves. Three small bodies drifting one way is a
+# quiet afternoon, not a march.
+min_body = "0.50"
+
+# The most the wick AGAINST the move may take, on any of the three.
+#
+# THIS IS THE ONE THAT IS NOT FREE ON SPOT FOREX. The textbook also says each
+# candle must open inside the last one's body — but forex opens exactly ON the
+# last close, so that test passes every time and asks nothing.
+#
+# A long wick against the move means they were pushed back and came again.
+# That is a fight, not a march.
+max_wick_against = "0.25"

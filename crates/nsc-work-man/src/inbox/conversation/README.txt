@@ -55,3 +55,73 @@ WHY IT IS A FOLDER
 
   The bug that made this urgent was exactly that kind: `dropping` was set in
   one place and read 100 lines away, and nothing cleared it in between.
+
+
+BACKING OUT
+
+  Every keyboard carries a Close button on its own row. It is added in
+  talking.rs, in the one function that builds a keyboard, rather than at each
+  place that puts buttons up.
+
+  Doing it at each call site would work until somebody added the eleventh
+  keyboard and forgot -- and the one without a Close is exactly the flow he
+  gets stuck in, buttons covering his own keyboard, on a phone.
+
+  The tap is caught at the very top of conversation/route.rs, before /help,
+  before
+  the pair pages and before the stop-watching confirmation. Anywhere he can
+  be, Close means the same thing.
+
+  It resets what the bot remembered and takes the buttons away. It undoes
+  nothing. He asked to be left alone, not to have his levels changed.
+
+
+A BUTTON THAT IS NO LONGER TRUE
+
+  Telegram keeps old keyboards tappable forever. He can scroll up a week and
+  press a button from a conversation that is long finished, and it arrives
+  looking exactly like one he pressed a second ago.
+
+  Two things guard against that, and both were bugs first:
+
+  Moving to a different pair forgets the page he was on. `chosen` and
+  `dropping` used to survive it, so a level button from an older message took
+  its price off whichever pair he was last LOOKING at rather than the one he
+  was adding to.
+
+  A level button carries its chart name -- "weekly 1.21279", not "1.21279".
+  Reading the last number off any message meant that while the take-one-off
+  list was up, sending "1.28 1.31" -- which is how he is TOLD to add two
+  levels -- was read as "take 1.31 off", against whichever pair's page he was
+  last on.
+
+  Taking a level off says whether it was there. A price that is not on the
+  pair changes nothing, which is right. But the reply said "1.28 taken off"
+  either way, so a stale tap looked exactly like one that worked.
+
+
+ONLY ONE COPY AT A TIME
+
+  Telegram hands each message to whichever copy of the bot asks for it first.
+  Two running at once split his messages between them at random, and each one
+  looks like it is ignoring him.
+
+  Telegram does say so -- it refuses the poll with error 409, "Conflict:
+  terminated by other getUpdates request". But only `result` was ever read out
+  of the answer, and a refusal carries no `result`, so a refused poll looked
+  exactly like a quiet minute. The second copy span on silently, forever,
+  while he sent messages nothing was reading.
+
+  It now says which thing is wrong, every fifteen seconds, until one is shut
+  down. Same for any other refusal -- a bad token reads the same way and is a
+  very different evening.
+
+
+/status ON A QUIET DAY DRAWS NOTHING
+
+  It sends words and no picture.
+
+  The card's one useful column is how far price is from the nearest zone, and
+  on a quiet day no price has arrived to measure from -- every row would read
+  as a dash. It also saves running Chrome for the best part of ten seconds to
+  say nothing.

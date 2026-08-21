@@ -1,11 +1,34 @@
-
-
+# ── nsc-data ───────────────────────────────────────────────────────────────
+# WHERE PRICES COME FROM. One folder per broker, and a trait they all answer.
+#
+# It is a library, so it uses thiserror rather than anyhow: the caller has to
+# be able to tell a missing .env line from a dropped connection, because one
+# is worth retrying forever and the other never is.
+# ───────────────────────────────────────────────────────────────────────────
 [package]
-name = "nsc-data"
+name              = "nsc-data"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
-ibapi.workspace = true
-thiserror.workspace = true
-futures-util.workspace = true
+
+# The shared types. A Bar defined here as well would be a second Candle, and
+# the two would drift.
+nsc-core = { workspace = true }
+
+# Interactive Brokers.
+ibapi = { workspace = true }
+
+# Candle times. IBKR stamps bars in whatever timezone TWS was logged in with,
+# so every one of them is converted through an absolute instant to UTC.
+chrono = { workspace = true }
+
+# Prices. IBKR hands them over as f64 and this project never keeps one that
+# way — see sources/ibkr/candles.rs for where that lands.
+rust_decimal = { workspace = true }
+
+# Waiting on the network without freezing everything else.
+tokio = { workspace = true }
+
+# Errors: a named trouble the caller can act on.
+thiserror = { workspace = true }

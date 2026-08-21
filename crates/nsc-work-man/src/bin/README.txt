@@ -45,44 +45,63 @@ THE FILES
               It was called `alert` while that was all it drew. It draws every
               card now, and a folder named after one of them was a lie.
 
-  listen.rs   Opens Twelve Data's live price stream, asks for one symbol, and
-              prints whatever comes down the line. Kept as the proof.
+  listen.rs   Opens IBKR's live price line for one pair and prints every tick
+              whole. The window onto what IBKR actually sends.
+
+                  cargo run -p nsc-work-man --bin listen
+                  cargo run -p nsc-work-man --bin listen -- XAU/USD
+
+  read.rs     READ A CHART THE WAY THE CODE READS IT. Fetches real candles,
+              runs nsc-ta over them, prints the name the CODE gave each one
+              and a tally of what turned up.
+
+                  cargo run -p nsc-work-man --bin read -- XAU/USD 4h
+                  cargo run -p nsc-work-man --bin read -- EUR/USD 1h 120
+
+              It marks the newest candle STILL FORMING and leaves it out of
+              the tally. Its shape is not its shape yet.
+
+              Driven by the read-the-chart skill in .claude/skills/.
+
+  candles/    WHERE IBKR STARTS ITS DAY. See its own README.
+
+  after/      WHAT PRICE ACTUALLY DID NEXT after each pattern, against what an
+              ordinary candle did over the same stretch. The base rate is the
+              whole point, and the noise column is the second point. Its own
+              README.
 
   README.txt  This file.
 
 
 WHY listen.rs EXISTS
 
-  The whole design hangs on the websocket. Prices come down it for free, and
-  they are what tell us when price reaches one of his levels.
+  The whole design hangs on prices arriving. They cost nothing, and they are
+  what tell us when price reaches one of his levels. Everything else — the
+  candle at a zone — only happens once a price has got there.
 
-  The free plan lists the websocket as 8 credits, 1 connection, marked TRIAL.
-  Nobody knew whether it worked.
+  IT IS ALSO THE ONLY WAY TO SEE IBKR REFUSE. IBKR does not fail a
+  subscription it will not serve: it sends one notice down a line that stays
+  open, and then never sends a price. Nothing errors. On the bot that is
+  turned into a message; here you see it raw.
 
-  It does. What it answered, on 14 August 2026:
+  WHAT TO LOOK FOR:
 
-      the line opens              101 Switching Protocols
-      gold is allowed             status ok, XAU/USD in success, fails null
-      prices flow                 15 in 19.5 seconds, about one a second
-      what a price message is     symbol, timestamp, price. Nothing else
-
-  Three things it also showed, which shaped what came after:
-
-      - Several prices share the same timestamp. It is in whole seconds, so
-        it cannot be used to put prices in order.
-
-      - The price barely moves between messages. A touch test has to fire
-        ONCE when price enters a band, not once per message, or one touch
-        becomes twenty alerts. That is what nsc-core::levels::watch does.
-
-      - Gold comes back as exchange COMMODITY, a blend of sources. Crypto
-        comes from one exchange. That is why gold has five decimals and will
-        never match his broker exactly.
+      Bid and Ask arriving        the feed works
+      a Notice and no prices      IBKR is refusing that pair — almost always
+                                  a market data subscription the account
+                                  does not have
+      DelayedBid / DelayedAsk     no LIVE data for that pair. Fifteen minutes
+                                  behind, and the bot refuses to trade off it
+      nothing at all              TWS is not logged in, or the market is shut
 
 
-THE SYMBOL IN listen.rs IS TEMPORARY
+GOLD IS THE ONE TO CHECK
 
-  It says BTC/USD, on purpose. Gold is shut at the weekend and a silent line
-  looks exactly like a broken one; crypto trades all weekend.
+  XAU/USD goes to IBKR as a COMMODITY, not a forex pair, and spot metals are a
+  separate market data subscription from spot forex. A paper account often has
+  neither.
 
-  Change it back to XAU/USD when the market is open — Sunday 22:00 UTC.
+      cargo run -p nsc-work-man --bin listen -- XAU/USD
+
+  A silent line looks exactly like a shut market, so check it while the market
+  is open — it opens Sunday 17:00 New York.

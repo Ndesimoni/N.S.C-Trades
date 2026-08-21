@@ -63,3 +63,36 @@ IT GOES TO THE PRIVATE CHAT, NOT THE CHANNEL
 
   Both of them. This is him working, not a signal, and mixing the two turns the
   signal channel into a scratchpad.
+
+
+ASKING FOR A CHART
+
+      /chart  ->  which pair?  ->  [pair]  ->  which chart?  ->  picture
+      /pairs  ->  [pair]  ->  [📈 Chart]  ->  which chart?  ->  picture
+
+  TWO DOORS INTO THE SAME PLACE. /chart is for when he already knows which pair
+  he wants. The button is for when he is on the pair's page anyway, and it sits
+  next to the list of levels it is about to draw.
+
+  IT USED TO BE REACHABLE ONLY BY SAVING A LEVEL. The picture went out as the
+  reply to "here is where your levels landed", so seeing a chart meant adding
+  something in order to see one. bin/levels.rs could draw one, and that is on
+  his Mac rather than his phone.
+
+  THE THREE TIMEFRAME BUTTONS ARE SHARED WITH ADDING A LEVEL, and a button only
+  sends its own word back -- "Weekly" arrives identical either way. `chart_of`
+  on Adding is the only thing that says which question he is answering, and it
+  is checked BEFORE the adding flow's timeframe for exactly that reason.
+
+  It is cleared the moment the chart goes, so his next "Weekly" is a level
+  again. And it is cleared when he moves to a different pair: Telegram keeps old
+  keyboards tappable forever, so a chart question left hanging on the last pair
+  would turn a tap made a week later into a picture of the wrong one.
+
+  THE WEEKLY IS THE ONE THAT SHOWS EVERYTHING. His levels are years apart. The
+  daily and the 4-hour are for reading one level closely, and they will often
+  hold none of them at all -- 150 four-hour candles is about twenty-five days.
+
+  So the caption says when nothing reached. A chart that is correctly empty and
+  a chart whose bands failed to draw are otherwise the same picture, and he
+  would report the second one as a bug. See review/README.txt.

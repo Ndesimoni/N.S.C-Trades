@@ -7,6 +7,7 @@ use nsc_core::levels::{Pair, Timeframe, load_pair, with_slash};
 
 use super::super::talking::say;
 use super::sending::{draw, sent};
+use crate::places::PREVIEW;
 use crate::review::Drawn;
 
 /// Draws a pair on whichever chart he asked for, because he asked for it.
@@ -25,9 +26,9 @@ pub async fn of_pair(
         return say(client, token, "That pair's file will not read.", None).await;
     };
 
-    let out = Path::new("preview").join("asked-for.png");
+    let out = Path::new(PREVIEW).join("asked-for.png");
 
-    match draw(client, &pair, chart, &out).await {
+    match draw(&pair, chart, &out).await {
         Ok(drawn) => {
             let caption = caption(&pair, chart, &drawn);
             sent(client, &drawn, &caption).await

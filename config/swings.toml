@@ -1,0 +1,58 @@
+# ── How a swing proves itself ──────────────────────────────────────────────
+#
+# THE MOST IMPORTANT SETTINGS IN THE PROJECT. Levels, trendlines, Fibonacci
+# anchors and trend direction are ALL built from swing points.
+#
+# NO CANDLE COUNTING. A peak is not a peak because of how many candles sit
+# either side of it — that passes a lazy rounded top with twenty quiet candles
+# round it, and fails a sharp turn with four. WHAT PROVES A PEAK IS WHAT PRICE
+# DID AFTERWARDS.
+#
+# EVERY NUMBER HERE IS A SHARE OF A MOVE, never a distance. That is why the
+# same four work on the 4-hour and the daily, and on gold and EUR/USD.
+#
+# Settled 12 August 2026. docs/worksheets/swings.md.
+# ───────────────────────────────────────────────────────────────────────────
+
+# How much of the run must be given back for a peak to prove itself ON ITS OWN.
+#
+# Half of THAT move: a 300-point rally needs about 150 back, a 60-point rally
+# about 30. This is why a candle count never worked — the same rule holds
+# whether the turn took four candles or forty.
+confirm_retracement = "0.5"
+
+# The shallower give-back that counts once price has TAKEN THE PEAK OUT.
+#
+# ── THIS ONE MATTERS MORE THAN THE ONE ABOVE ──
+#
+# A strong move barely pauses. Insisting on half would read structure fine in
+# chop and GO BLIND IN A CLEAN TREND, which is exactly the market worth
+# trading.
+#
+# So a peak has two ways to prove itself:
+#
+#     depth        price gives back half the run
+#                  -> confirmed at the candle that reaches half
+#
+#     resumption   price gives back NEAR half, then takes the peak out
+#                  -> confirmed at the candle that clears the peak, and BOTH
+#                     ends of the pause are swings at once
+#
+# Same number as the strong-trend Fibonacci level, because it is the same
+# belief written once rather than two numbers that could drift apart.
+shallow_retracement = "0.382"
+
+# How big a run must be next to recent ones, or it is not a move at all.
+#
+# Without it, half of a tiny run is a tinier pullback and a quiet afternoon
+# fills with swings. Range worth trying: 0.5 to 0.75. Higher means fewer,
+# bigger swings.
+min_run_fraction = "0.5"
+
+# How far back "recent" reaches, counted in runs.
+#
+# COMPARED AGAINST THE BIGGEST REMEMBERED, NOT THE LAST ONE. Each run being
+# half the one before it would otherwise pass forever while the chain shrank to
+# nothing: 200, 120, 72, 43, 26. Against the biggest, the third already fails
+# and the shrinking stops.
+run_memory_legs = 5

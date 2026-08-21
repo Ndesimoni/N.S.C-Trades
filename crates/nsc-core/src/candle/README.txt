@@ -20,7 +20,6 @@ THE FILES
   bar.rs      Bar itself. What the feed sends, and the two questions worth
               asking of one candle: when did it open, and has it finished.
 
-  series.rs   Series. The wrapper the feed puts a list of candles in.
 
   normal.rs   normal_candle. How big a normal candle is, over a run of them --
               the number every distance in this project is measured against.
@@ -51,7 +50,7 @@ THE ANSWER IS TAKEN FROM THE CLOCK, NEVER FROM THE LIST
   The feed sends the newest candle first, so the obvious rule is "skip the
   first one". That rule is wrong, and it is wrong in a way that hides.
 
-  Ask Twelve Data at 18:00:02 and you get one of two things:
+  Ask the feed at 18:00:02 and you get one of two things:
 
     a price has already landed in the new hour
         -> the newest is the 18:00 candle, and the finished one is SECOND

@@ -18,7 +18,8 @@ use nsc_core::when::{Rules, beat_due, beat_words, opened};
 
 use std::path::PathBuf;
 
-use super::{OWNER, PREVIEW, Watching};
+use super::Watching;
+use crate::places::{OWNER, PREVIEW};
 
 /// Remembers when anything was last said, so the heartbeat knows to stay quiet.
 pub struct Pulse {

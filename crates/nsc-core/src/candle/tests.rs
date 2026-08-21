@@ -66,7 +66,7 @@ fn a_candle_finishes_the_instant_its_hour_is_up_and_not_before() {
 
 // This is why the rule cannot be "skip the first one in the list".
 //
-// Ask Twelve Data at 18:00:02 and the newest candle is either the 18:00 one,
+// Ask the feed at 18:00:02 and the newest candle is either the 18:00 one,
 // if a price has already landed, or the 17:00 one, if none has. In the first
 // case the finished candle is second in the list; in the second it is first.
 //

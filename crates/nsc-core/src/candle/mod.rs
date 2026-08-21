@@ -10,7 +10,6 @@ mod bar;
 mod error;
 mod interval;
 mod normal;
-mod series;
 
 #[cfg(test)]
 mod tests;
@@ -19,4 +18,3 @@ pub use bar::Bar;
 pub use error::CandleError;
 pub use interval::{minutes_for, timeframe_name};
 pub use normal::normal_candle;
-pub use series::Series;

@@ -51,3 +51,46 @@ WHY IT WAITS FOR THE SETTLE WINDOW
   NOT gated on "may a trade be suggested". Friday settles four hours in like
   any day and still opens no trade; gating on the trade would silence this
   every Friday.
+
+
+THE OPENING HOURS ARE WATCHED, NOT SPOKEN ABOUT
+===============================================
+
+  settle_hours in config/when.toml is 4. For those four hours after a session
+  opens, the bot says nothing at all -- no approach, no in-the-zone, no candle
+  close.
+
+  It is not asleep. Prices come down the line and are checked against the
+  bands exactly as always, so `arrive` keeps its record of where price is and
+  which zones it is sitting in. Only the sending is held.
+
+  WHY. The first hours of a day are where a move gets faked and taken back. A
+  zone touched at the open and abandoned twenty minutes later is a buzz he has
+  to ignore, and a buzz he learns to ignore is one that costs him the alert
+  that mattered.
+
+  WHAT ARRIVES WHEN THEY END. One report per zone price is actually sitting
+  in, marked "already at" rather than "just arrived". That distinction is the
+  whole reason resumed/ exists -- saying "arrived" would put a move made at
+  the open onto the clock of the moment the window closed.
+
+  THE GREETING IS PER SESSION AND PER PAIR, NOT ONE FLAG FOR THE BOT. It used
+  to be set once and never cleared, which cost twice: a bot left running from
+  Friday greeted once and never again, and a level he sent mid-session got
+  "your levels are live" and then silence about the zone price was already
+  sitting in. See resumed/README.txt.
+
+  SETTLED IS NOT THE SAME AS TRADEABLE. Friday settles four hours in like any
+  other day and still opens no trade. Gating the report on "may a trade be
+  suggested" would silence it every Friday.
+
+
+WHAT TUESDAY SAYS
+
+  Price can walk into a zone during Monday's silence and still be there when
+  Tuesday opens. The watcher fires on a CHANGE, so nothing would ever be said
+  about it.
+
+  So the first thing after silence is a report of what was FOUND. The card
+  says "already in the zone", not "arrived" — because nobody watched it happen
+  and an arrival card would put a Monday move on a Tuesday clock.

@@ -20,7 +20,7 @@ use serde_json::json;
 
 use super::conversation::Adding;
 use super::talking::say;
-use super::{ADD, CHART, DROP, STOP, TIMEFRAMES};
+use super::words::{ADD, CHART, DROP, STOP, TIMEFRAMES};
 use super::{dropping, pairs};
 
 /// Anything to do with one pair's page.

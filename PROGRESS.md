@@ -1,6 +1,6 @@
 # Progress
 
-Where the project actually is, as of **16 August 2026**.
+Where the project actually is, as of **20 August 2026**.
 
 Updated whenever a piece of work finishes — that is a rule in `CLAUDE.md`. A
 progress file that is out of date is worse than none, because the next decision
@@ -12,14 +12,21 @@ gets made against it.
 [ ]  not started
 ```
 
-**Three crates · 193 tests · clippy clean · it watches his levels, says what
+**Four crates · 263 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
 nsc-ta          reading a chart         describes; never decides
+nsc-data        where prices come from  IBKR, and nothing else knows its name
 nsc-work-man    everything that reaches
 ```
+
+> **THE FEED CHANGED ON 20 AUGUST.** Twelve Data is gone. Candles and live
+> prices both come from Interactive Brokers now, through `nsc-data`.
+> **Live prices confirmed on EUR/USD and on GOLD**, and candles come back.
+> One line in `.env` has to be quoted before it can reach Telegram.
+> See [The feed](#what-the-feed-actually-does--rewritten-20-august).
 
 > **TOP PRIORITY, agreed 16 August:** draw cards off the price loop. Drawing
 > one blocks a worker thread for 2–10 seconds. Fine on his Mac, **stalls the
@@ -52,7 +59,11 @@ last version of this project cleared out on 14 August 2026.
 cargo run -p nsc-work-man                    # THE BOT — watcher and inbox both
 cargo run -p nsc-work-man --bin cards -- …   # draw any card without waiting
 cargo run -p nsc-work-man --bin levels -- GBPUSD
+cargo run -p nsc-work-man --bin listen       # IBKR's raw ticks, EUR/USD
 ```
+
+**TWS or IB Gateway has to be running and logged in** for any of them but
+`--bin cards -- trouble`. There is no feed without it and no fallback.
 
 - [x] **The obvious command runs the real thing.** It used to run a leftover
       from step one that sent a gold card *every time it was called* — the
@@ -327,6 +338,8 @@ without waiting for it to happen. That was the last plain-text message going.
 ```
 crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
                           is what stops it, not a rule anybody remembers
+  swing/        one swing high or low, and its TWO times —
+                where it sits, and when it could be KNOWN     6 tests
   candle/       one candle, whether it has finished, and
                 how long a timeframe is                    9 tests
   levels/       his lines, the bands round them, the
@@ -337,7 +350,26 @@ crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
 
 crates/nsc-ta/            READING A CHART. It describes, it never decides
   candle/       what ONE candle is -- four numbers, measured
-                before it is named                          7 tests
+                before it is named, then TWELVE SHAPES it
+                can be. Thresholds in config/candles.toml   12 tests
+  pattern/      what a RUN of them does — engulfing, harami,
+                tweezers, piercing, dark cloud, and the star
+                with the abandoned baby inside it, and the
+                march — soldiers and crows                  17 tests
+  indicators/   FIBONACCI. Retracements over a move — it
+                stores the MOVE, not the levels, because
+                which move you measure is the whole game.
+                Settings recovered from a4a2170            11 tests
+  swings/       FINDING them. No candle counting — a peak is
+                proved by what price did afterwards. Two
+                routes, and the shallow one matters more      6 tests
+
+crates/nsc-data/          WHERE PRICES COME FROM. Nothing outside it
+                          knows which broker you use
+  source/       the question — the trait, what a timeframe
+                is, what a live price is                    4 tests
+  sources/ibkr/ the answer. Connecting, contracts, candles,
+                and the live tick line                     19 tests
 
 crates/nsc-work-man/      EVERYTHING THAT REACHES
   main.rs       four lines — it runs the watcher
@@ -348,13 +380,30 @@ crates/nsc-work-man/      EVERYTHING THAT REACHES
                 stopping a pair, /status and /help. Spawned
                 beside the watcher                         6 tests
   card/         filling a template, letting Chrome draw   17 tests
-  feed/         asking Twelve Data                         7 tests
   telegram/     sending — words, pictures, media groups    3 tests
   retry/        trying again. Lives here BECAUSE IT SLEEPS 3 tests
+  places.rs     where things are — his inbox, the settings
+                files, where cards are drawn. ONE COPY
+  secrets.rs    reading .env, and saying so when it
+                will not read                              3 tests
   review/       one pair's levels, drawn on whichever chart he asked for
   bin/cards/    draw ANY card without waiting for anything
   bin/levels.rs draw a pair's bands on demand
-  bin/listen.rs the raw price stream, kept as proof
+  bin/listen.rs IBKR's raw ticks — the window onto what
+                actually arrives
+  bin/read.rs   READ A CHART the way the code reads it — real
+                candles, nsc-ta over them, the name the CODE
+                gave each. Driven by the read-the-chart skill
+  bin/swings/   the swing finder on a real chart, and how
+                long each one took to become knowable
+  bin/fib/      the Fibonacci drawn on a real chart
+  bin/after/    WHAT PRICE DID NEXT after each pattern, against
+                the base rate and against noise. NOT a backtest
+  bin/candles/  WHERE IBKR STARTS ITS DAY. Lines each daily
+                candle's open up against the hourly opens —
+                the hour that shares the number is the
+                boundary. Refuses to answer on thin
+                evidence                                    4 tests
 
 assets/card/
   style.css      the palette, typefaces and page box — shared by all
@@ -375,6 +424,30 @@ config/
 
 - [x] **Every folder with code has a `README.txt`**, and every file — Rust,
       HTML and CSS — is under the 250-line limit
+- [x] **Checked by a script, 20 August**, against all four structure rules at
+      once: nothing over 250, no file holding a type and its own tests, every
+      `mod.rs` a front door with no types or logic in it, every code folder
+      with a README. All four pass
+- [x] **A second limit, added 20 August: no more than 170 lines of actual
+      CODE** — blank lines and comments do not count. Two limits because they
+      stop two different things: the 250 is how far you scroll, the 170 is how
+      much is going on. A 240-line file with barely a comment in it passes the
+      first and fails the second
+- [x] **Explaining deliberately costs nothing.** A limit that counted doc
+      comments would train everybody to delete them, and the first thing to go
+      is always the paragraph saying why the obvious approach was wrong
+- [x] **Nothing breaks it today.** The most code in any one file is 143 —
+      `card/zone.rs`, then `levels/tests/watching.rs` and `levels/alert.rs` at
+      141. So it costs nothing now and bites the next file that tries to do
+      two jobs. `CLAUDE.md` carries the one-line command that measures it
+- [x] **His chat id lived in three files and `config/pairs` in five.** None of
+      them disagreed, which is the only reason nobody noticed — two copies of
+      a string agree right up until one is changed. All of it is `places.rs`
+      now
+- [x] **`watch/README.txt` was 380 lines and `inbox/README.txt` 321.** Both
+      were past the point where anybody reads them end to end, which is the
+      thing the rule exists to stop. The detail moved down into the folder it
+      describes; nothing was dropped
 - [x] **Each card's styling lives beside it** as `<name>.css`. A card was a
       350-line file; the markup and script are what change, the CSS sits still
 - [x] **The design lives in HTML.** Edit the template, redraw, no rebuild
@@ -399,33 +472,123 @@ Mac. A real dependency on a server.
 
 ---
 
-## What the feed actually does — [x]
+## What the feed actually does — rewritten 20 August
 
-All measured, none read off their documentation.
-`docs/worksheets/twelve-data.md`.
+**The feed is Interactive Brokers.** Twelve Data is gone — candles and live
+prices both come from IBKR, through `nsc-data`.
 
-- [x] **Their day ends at 17:00 New York.** Checked by matching the daily
-      candle's open against thirty hours of hourly candles — exactly one
-      matched
-- [x] **Their week opens Sunday 17:00 New York**
-- [x] **The newest candle is always still forming**, and skipping the first in
-      the list is not the fix — position is right *most* of the time, which is
-      worse than being wrong always
-- [x] **The datetime field means two different things.** An hourly stamp is the
-      candle's open. A daily stamp is the date it *ends* on
-- [x] **The websocket works and it changes the cost of everything.** Prices
-      cost nothing, so a request only happens when price reaches a level
-- [ ] **Weekend daily candles exist and are noise** — ranges of 0.57 and 1.32
-      against 60–200 on a real day. **Not handled.** It has already cost one
-      wrong answer: a normal-hour measurement taken on a Saturday said gold
-      moves 0.73 an hour instead of 13.33, and nearly settled a rule the wrong
-      way
-- [ ] **Gold has never been watched ticking** — every socket test so far has
-      been on a shut market or on BTC/USD
+### What is built — [x]
 
-**8 requests a minute** is the limit that shapes everything. Friday 21:00 UTC
-is the worst moment of the week: the hour, the 4-hour, the day and the week all
-end on the same second.
+- [x] **Candles.** `MarketDataSource::candles` — newest first, stamps in UTC,
+      `MidPoint` prices, extended hours. Spot forex has no TRADES to ask for;
+      there is no exchange to trade on
+- [x] **The timezone fix is one line, and it is the whole fix.** IBKR stamps a
+      bar in whatever timezone TWS was logged in with — his is Dubai. Every
+      stamp goes through `unix_timestamp`, which is the same number in Dubai as
+      in London, so nothing has to know what TWS was set to
+- [x] **The timezone alias is registered before anything else.** TWS reports
+      the machine's zone as *"Gulf Standard Time"*, a Windows name the library
+      does not know, and without the alias connecting fails with an error that
+      says nothing about timezones
+- [x] **The live price line.** One subscription per pair, folded into one
+      channel in `nsc-data`, so the watcher kept the loop it always had
+- [x] **A price is the MIDDLE of the bid and the ask.** IBKR never sends a
+      price — it sends a bid, and separately an ask. It has to be the middle,
+      because the candles are mid prices: measured against a bid, a level looks
+      reached when the candle says it never was. On the euro that is a fifth of
+      a pip; on gold the spread is ~30 cents, which is most of a band edge
+- [x] **A market that has not moved says nothing.** Only a middle that actually
+      changed is passed on
+- [x] **A refusal cannot be silent.** IBKR does not fail a subscription it will
+      not serve — it sends one notice down a line that stays open and then
+      never sends a price. That is turned into `Heard::Refused` and reaches the
+      watcher, because otherwise it is indistinguishable from a quiet market
+- [x] **Delayed prices are refused out loud.** An account without live data is
+      served fifteen-minute-old prices *instead of nothing*. Dropped quietly
+      the bot goes silent; acted on, it says price is at his level a quarter of
+      an hour after it was
+- [x] **The farm chatter is ignored.** "Market data farm connection is OK"
+      arrives on every connection. Passed on it would report a healthy feed as
+      refused every time the bot started
+- [x] **A dead line reopens the whole connection.** TWS restarting leaves a
+      client that refuses every subscription forever, and subscribing again on
+      it fails identically. Only a fresh line fixes it
+- [x] **`/chart` comes in on its own client id.** One connection per id at
+      IBKR, and a second on the same id throws the first off — drawing a chart
+      would have knocked the bot off the feed
+
+### What the first live run showed — 20 August, market open
+
+- [x] **The account gets live forex prices.** EUR/USD bid and ask both
+      arriving, no notice, nothing delayed
+- [x] **IT SERVES GOLD.** `XAU/USD` goes over as a commodity through SMART and
+      the prices come back — bid 4461.39, ask 4461.73. This was the one that
+      could have sunk the whole switch
+- [x] **The spread on gold is 34 cents**, which settles the mid-price
+      question with a real number. Alerting off the bid would have been a
+      third of a band out on every gold level
+- [x] **Bid and ask arrive as `PriceSize`**, not as separate `Price` ticks —
+      both shapes are read, and the session High, Low, Close and Last that
+      arrive alongside are ignored. Taking `Close` for a price would have
+      alerted off yesterday's number
+- [x] **Sixty weekly candles was refused**, and that was a real bug. IBKR
+      will not take a duration over 52 weeks written as weeks — over that it
+      must be years. **No pair with weekly levels could be sized at all.**
+      Fixed, and pinned by eight tests
+- [x] **`.env` was silently half-loaded.** `IBAPI_TIMEZONE_ALIASES` has an
+      unquoted value with spaces, `dotenvy` refuses that line, and it **stops
+      there** — so both Telegram settings, which sit below it, never loaded.
+      `dotenv().ok()` threw the reason away. Now it says which line and what
+      it is called, and never prints the value
+
+### Still unchecked — [ ]
+- [x] ~~**WHERE DOES IBKR PUT ITS DAILY AND WEEKLY BOUNDARIES?**~~ MEASURED
+      20 August, market open. `docs/worksheets/ibkr-candles.md`
+- [ ] **AND `config/when.toml` IS WRONG — it says 17:00 New York, 21:00 UTC in
+      summer.** Gold's day actually starts **22:00 UTC** (17:00 CHICAGO, 6 of
+      6 candles agree). EUR/USD starts 21:15 UTC (17:15 New York), though only
+      2 of 6 could vote so that one is not settled.
+
+      **One setting cannot serve both** — they are 45 minutes apart, because
+      gold rolls on the metals clock and the euro on the forex one. Either
+      `day_ends` goes per-pair in `config/pairs/*.toml` beside `approach_pips`,
+      or it stops governing candles at all and only governs the calendar.
+      **Nobody has traced what actually reads it.** Not changed — it moves
+      every band on every pair
+- [ ] **Re-measure in November.** Every candle sampled was in August, one side
+      of the clock change. A fixed 22:00 UTC and a local 17:00 Chicago look
+      identical in summer and are an hour apart in winter Twelve Data's
+      day was measured — 17:00 New York — and that measurement **does not
+      transfer**. `config/when.toml` still holds 17:00 New York and it is now
+      an assumption rather than a finding.
+
+      Getting it wrong does not error. It shifts every daily and weekly band,
+      which shifts every level, which changes every signal — and it looks
+      completely normal on the way past. Measure it the same way the old one
+      was measured: match a daily candle's open against thirty hours of hourly
+      candles and see which one it lands on
+- [ ] **Does the datetime still mean two things?** On Twelve Data an hourly
+      stamp was the candle's open and a daily stamp was the date it *ended* on.
+      `Bar::opened_at` is written to that. Unchecked on IBKR
+- [ ] **Weekend daily candles** — noise on the old feed, and never handled. It
+      already cost one wrong answer: a normal-hour measurement taken on a
+      Saturday said gold moves 0.73 an hour instead of 13.33
+- [ ] **The bot itself has not run against IBKR.** Ticks and candles both
+      come back, but `.env` line 12 has to be quoted before it can say a word
+      on Telegram — see below
+- [ ] **`.env` NEEDS ONE FIX, AND IT IS HIS TO MAKE.** Line 12 must become
+      `IBAPI_TIMEZONE_ALIASES="Gulf Standard Time=Asia/Dubai"` — quotes round
+      the value. Until then no Telegram setting loads and the bot is mute.
+      (The alias is registered in code anyway, in `sources/ibkr/connect.rs`,
+      so the line could equally be deleted)
+
+**60 historical requests in any ten minutes** is the limit that shapes
+everything now — one every ten seconds sustained, which is why `BREATHE` is ten
+seconds. It is slightly *stricter* than the eight a minute before it.
+
+**And IBKR does not refuse when you go over. It PACES.** The request simply
+takes longer, and then longer, and a candle report arrives late enough to be
+about a candle he has already watched close on his own screen.
 
 ---
 
@@ -533,6 +696,47 @@ stopped from his phone on 16 August. Not put back — that is his call.
 
 ---
 
+## A typo used to create a pair that could never work — fixed 20 August
+
+He typed `auduss`. The bot answered **"AUDUSS is new. Which timeframe?"**,
+wrote `config/pairs/AUDUSS.toml` with `symbol = "AUD/USS"`, saved the level,
+and replied **"Saved. Could not draw the chart just now — the levels are
+safe."**
+
+Then nothing, forever, and nothing said why.
+
+- [x] **There was no validation anywhere.** One line — `text.to_uppercase()` —
+      and whatever he typed became a pair. `with_slash` splits any six letters
+      down the middle and `digits_for` guesses 5
+- [x] **The reply was the worst part.** *"just now"* says temporary and
+      *"safe"* says it will work. That message was written for a feed hiccup,
+      and a pair that can never exist wore it identically
+- [x] **It stayed broken quietly.** Every reload tried to size its bands, IBKR
+      refused, and the only record was an `eprintln!` to a terminal he is not
+      watching — while `/pairs` and the heartbeat listed it as watched
+- [x] **Now the broker is asked, because spelling cannot answer it.** `AUDUS`
+      and `AUDUSDD` are the wrong length; **`AUDUSS` is the right shape with a
+      currency that does not exist**, and that is exactly the typo a thumb
+      makes. `IbkrConnection::serves` asks `contract_details`
+- [x] **THREE ANSWERS, NOT A BOOL.** Yes, never-heard-of-it, and could-not-ask.
+      If the last two were ever folded together, one gateway outage would
+      retire every pair he owns
+- [x] **Files already on disk are swept once at startup** and moved to
+      `config/pairs/removed/` — **moved, never deleted**, back with one
+      `/restore`. He is told on Telegram, not in the terminal
+- [x] **The symbol is READ from the file, never guessed from its name.** Found
+      by reading the sweep back: `/restore` writes `GBPUSD-2.toml`, and working
+      that up into a symbol gives nonsense IBKR would rightly refuse — so the
+      first version would have retired a pair he was using
+- [ ] **Two bogus pairs are sitting in his config right now** — `AUDIS`
+      (`symbol = "AUDIS"`, no slash at all) and `AUDSSS` (`AUD/SSS`), one level
+      each. They go to `removed/` the next time the bot starts
+- [ ] **No "did you mean AUDUSD?"** IBKR's contract search can return near
+      matches, so the refusal could offer the right spelling as a tap. Not
+      built
+
+---
+
 ## Still open
 
 **Bugs live in [`docs/bugs/`](docs/bugs/)**, marked 🔴 🟠 🟡. This list is
@@ -545,12 +749,23 @@ work not started; that folder is things that are wrong.
 - [ ] **Rung 3 — the strategy.** Needs `nsc-strategy`, and needs two answers
       from him: what makes him *skip* a rejection, and where the stop goes.
       Everything else can be built without him
+- [ ] **NOTHING HAS RUN AGAINST A LIVE IBKR FEED.** The switch landed
+      20 August: it compiles, 203 tests pass, and not one tick has come down
+      the line. Run `--bin listen` first — it answers in one line whether the
+      account gets forex prices at all
+- [ ] **Gold may not be served.** `XAU/USD` is a commodity to IBKR and spot
+      metals are a separate market data subscription. He watches gold, and
+      there is no fallback feed any more
+- [ ] **IBKR's daily and weekly boundaries have never been measured.**
+      `config/when.toml` still says 17:00 New York, which was measured on
+      Twelve Data. Wrong, it shifts every band and every signal and looks
+      perfectly normal doing it
 - [ ] **It has never run through a live session.** Rungs 1 and 2, the
       twenty-minute look and the heartbeat have only been exercised through
-      `--bin cards`. **First real test is Sunday 16 August 21:00 UTC** — the
-      Monday session, now that `monday` is out of `silent_days` for testing
-- [ ] **OANDA** — applied 14 August, nothing back. Worth having because it
-      marks each candle finished or not, so the guessing stops
+      `--bin cards`
+- [ ] **No fallback feed.** Twelve Data went on 20 August. TWS not logged in
+      means no bot at all — worth reconsidering once IBKR has been watched for
+      a week
 - [ ] **Nothing is stored.** No database. A restart forgets every zone it was
       already sitting in, and there is no record to answer "why did nothing
       fire last week?"

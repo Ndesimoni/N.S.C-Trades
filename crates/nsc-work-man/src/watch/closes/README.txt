@@ -86,3 +86,49 @@ NOTHING SAID IS NOTHING REMEMBERED
 
   A card that fails to send is not marked either, so the next look tries it
   again. A close is the thing he is waiting for.
+
+
+THE TWENTY-MINUTE LOOK
+
+  A candle at one of his zones gets spoken about TWICE:
+
+      about a third of the way in    what it has done SO FAR
+      when it finishes               what it did
+
+  The first is the only place in this project that reads a candle before it
+  has finished. It is allowed for the same reason the price alert is — it is a
+  heads-up and nothing more — and the card says so on its own face. IT MUST
+  NEVER REACH A STRATEGY.
+
+  NOT ON THE OPEN. Spot forex runs Sunday to Friday without a break, so a
+  candle's open IS the last one's close. That message would repeat what
+  arrived a minute earlier.
+
+  ONE REQUEST SERVES BOTH. The reply already carries the candle that just
+  finished and the one still running, so the look costs nothing on top.
+
+  The two are remembered apart. Keyed together, the look would silence the
+  close that follows it — the one that actually matters.
+
+  `look_in_minutes` in config/when.toml is set for the 1-hour and scaled for
+  the rest: twenty minutes into an hour is eighty into a 4-hour.
+
+  IT LANDS ON THE MINUTE, NOT IN A TEN-MINUTE WINDOW. It used to be checked on
+  a timer, so the look arrived somewhere between twenty and thirty minutes in.
+  closes/due.rs now reads the stamp the feed already handed back and wakes at
+  that candle's own look and close. Twenty minutes in means twenty.
+
+
+IT NEVER WORKS OUT WHEN A CANDLE CLOSES
+
+  closes/ asks for the newest candle when that pair's next one is due, and lets
+  THE FEED'S OWN STAMP say whether it is one already reported.
+
+  Working the boundaries out here would mean knowing where the feed puts its
+  4-hour candles, which nobody has measured. Guessing wrong reports a candle
+  that has not finished — and reading a candle early does not error, it makes
+  results look better.
+
+  A 4-HOUR CANDLE DOES NOT EXIST UNTIL ITS LAST HOUR HAS CLOSED. Three hourly
+  closes can pass with the 4-hour still saying nothing; the fourth is when it
+  speaks. Bar::finished_by is the single place that decides.

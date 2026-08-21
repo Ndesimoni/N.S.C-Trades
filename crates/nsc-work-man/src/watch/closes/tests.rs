@@ -3,13 +3,15 @@
 //! Nothing here reaches the feed. These pin the KEY — which is the thing that
 //! decides whether he hears about a candle at all.
 
+use nsc_data::source::Interval;
+
 use super::look::Closes;
 use super::said::{Kind, Said};
 
 fn about(band: &str, kind: Kind) -> Said {
     Said {
         symbol: "XAU/USD".to_string(),
-        interval: "1h",
+        interval: Interval::H1,
         kind,
         band: band.to_string(),
     }

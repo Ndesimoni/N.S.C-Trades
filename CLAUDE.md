@@ -104,6 +104,35 @@ The bugs that hurt in this project are the quiet ones — a boundary an hour
 out, a candle read one too early — and quiet bugs hide in files nobody reads
 end to end.
 
+**And no more than 170 lines of actual code.** This one counts only lines that
+are neither blank nor a comment. Written out, a line counts unless it is empty
+or starts with `//`, `///` or `//!`.
+
+Two limits, because they stop two different things.
+
+The 250 is about the *file* — how far you scroll to hold it in your head.
+The 170 is about the *thinking* — how much is actually going on in it. A file
+can pass the first and fail the second: 240 lines with barely a comment in it
+is a file doing far too much and telling you nothing about why.
+
+**Explaining does not count against you, and that is deliberate.** The prose
+in this project is not decoration — it is where the reasons live, and the
+reasons are what stop the same bug being reintroduced next month. A limit that
+punished a doc comment would quietly train everybody to delete them, and the
+first thing to go is always the paragraph explaining why the obvious approach
+was wrong.
+
+So: write as much explanation as the thing needs. If a file is over 170 lines
+of code, it is not because it is well documented — it is because it is doing
+more than one job, and it wants splitting.
+
+```sh
+# what is doing the most, code only
+find crates -name '*.rs' | while read f; do
+  printf '%4d %s\n' "$(grep -cvE '^\s*(//|$)' "$f")" "$f"
+done | sort -rn | head
+```
+
 **A module that defines a type and has tests is a folder, not a file.** If it
 has a `struct` or an `enum` in it *and* a `#[cfg(test)]` block, it starts as a
 folder — whatever its length.

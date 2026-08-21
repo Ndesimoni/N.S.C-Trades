@@ -8,7 +8,7 @@ use serde_json::json;
 
 use super::super::picture::show;
 use super::super::talking::say;
-use super::super::{TIMEFRAMES, UNDO};
+use super::super::words::{TIMEFRAMES, UNDO};
 use super::adding::Adding;
 use super::reading::prices_in;
 

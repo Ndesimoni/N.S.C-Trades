@@ -3,7 +3,7 @@
 use anyhow::{Context, Result, anyhow};
 use serde_json::{Value, json};
 
-use super::OWNER;
+use crate::places::OWNER;
 
 /// Sends a message, with buttons or without.
 ///
@@ -68,7 +68,7 @@ fn keys(keyboard: Option<Value>) -> Value {
         _ => return json!({ "remove_keyboard": true }),
     };
 
-    rows.push(json!([super::CLOSE]));
+    rows.push(json!([super::words::CLOSE]));
 
     json!({
         "keyboard": rows,
@@ -101,7 +101,7 @@ mod tests {
         let rows = put_up["keyboard"].as_array().expect("rows");
 
         assert_eq!(rows.len(), 3, "the Close row should have been added");
-        assert_eq!(rows[2], json!([super::super::CLOSE]));
+        assert_eq!(rows[2], json!([super::super::words::CLOSE]));
 
         // On its own row, not tacked onto the end of a real one — a mis-tap
         // beside "Weekly" would otherwise back him out of what he was doing.

@@ -1,0 +1,25 @@
+# ── Rung 3 — a shape, at a level ────────────────────────────────────────────
+#
+# ONE RULE: a shape he trades, sitting at a level he drew.
+#
+# Settled 25 August 2026. The reasoning is in docs/worksheets/strategies.md and
+# that file is the specification — when it and the code disagree, it wins.
+# ───────────────────────────────────────────────────────────────────────────
+
+# ── How far outside a band still counts as "at" it ──────────────────────────
+#
+# A SHARE OF THAT BAND'S OWN THICKNESS, never a distance.
+#
+# Half, his answer on 25 August. Inside the band is inside — there is no depth
+# rule and no touch rule. Asked whether the pin had to touch the band he said
+# it need not, and that touching was no problem either, so distance is the only
+# test.
+#
+# Written as a price it would be right on one pair and wrong on every other: a
+# band on gold is about 78 points and on the euro about 0.004.
+#
+# WHAT IT IS MEASURED FROM is not a setting, because it is not a preference —
+# a push is measured from its pin's tail tip, because the tail is the pullback
+# that failed and the level is what stopped it. See shape.rs.
+# ───────────────────────────────────────────────────────────────────────────
+reach_of_band = "0.5"

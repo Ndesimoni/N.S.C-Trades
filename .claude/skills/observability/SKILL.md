@@ -29,7 +29,7 @@ logs, and a real problem going unnoticed.
 Useless: `"checked EURUSD H1"`.
 
 Useful: `"EURUSD H1: no setup — place check failed, 1 of 2 needed (level yes,
-fibonacci no), price 0.8 ATR from the nearest level"`.
+harami yes), price 0.8 normal candles from the nearest level"`.
 
 The second answers "why did nothing fire?" without rerunning anything. That
 question comes up constantly in Phase 3, and it is the whole reason the

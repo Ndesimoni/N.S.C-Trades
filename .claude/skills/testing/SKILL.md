@@ -45,7 +45,7 @@ changes underneath it. That is why these files are committed.
 
 ## Golden files — regenerate deliberately
 
-Change swing detection and every golden file downstream changes. That is
+Change how a shape is detected and every golden file downstream changes. That is
 expected.
 
 **Read what changed. Ask which levels moved and whether you agree.**
@@ -55,7 +55,7 @@ depends on — and it shows up as a green test suite.
 
 ## What to check
 
-- No swing used before the candle that confirmed it
+- No candle read before it closed
 - Unfinished candles ignored completely
 - The same setup on EURUSD and GBPJPY scores the same
 - Each must-pass rule can reject on its own, and which layer rejected is

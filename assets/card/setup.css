@@ -1,0 +1,76 @@
+/* ── setup.html ─────────────────────────────────────────────────────────────
+   THIS CARD'S OWN STYLING. Palette and typefaces are shared, in style.css. */
+
+  /* Fixed. Two candles and a sentence — it does not grow with anything. */
+  :root{ --card-height:398px; }
+
+  .top{
+    background:var(--panel);
+    height:112px;padding:0 40px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    border-bottom:3px solid var(--brass);
+  }
+  .eyebrow{
+    margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--mute);
+  }
+  .top h1{
+    font-family:var(--display);font-weight:800;font-size:34px;
+    letter-spacing:-.02em;margin:0;line-height:1;
+  }
+  .top__right{ text-align:right;display:flex;flex-direction:column;gap:6px }
+  .top__right b{
+    font-family:var(--data);font-weight:500;font-size:15px;color:var(--ink);
+    letter-spacing:.04em;
+  }
+  .top__right span{ font-size:12px;color:var(--mute) }
+
+  .body{ display:flex;align-items:center;gap:34px;padding:16px 40px 0 }
+
+  /* THE SAME SHAPE AS THE viewBox, so nothing is scaled. They disagreed once
+     and the chart floated in a field of white, drawn smaller than it should
+     have been — a picture with a price on it gets believed like a number. */
+  .chart{ width:280px;height:200px;flex:0 0 auto }
+  svg{ display:block;width:280px;height:200px }
+
+  /* HIS COLOURS, and they are a specification rather than a design choice. */
+  .band.black  { fill:#000000;fill-opacity:.07 }
+  .band.blue   { fill:#2962FF;fill-opacity:.09 }
+  .band.yellow { fill:#E6A400;fill-opacity:.12 }
+  .line.black  { stroke:#000000 }
+  .line.blue   { stroke:#2962FF }
+  .line.yellow { stroke:#E6A400 }
+  .line{ stroke-width:1;stroke-dasharray:5 4;opacity:.65 }
+
+  .wick{ stroke:var(--mute);stroke-width:2 }
+  .candle.up   { fill:var(--up);fill-opacity:.3;stroke:var(--up);stroke-width:2 }
+  .candle.down { fill:var(--down);fill-opacity:.3;stroke:var(--down);stroke-width:2 }
+
+  .said{ flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;gap:14px }
+
+  /* THE ONE SENTENCE. Written by nsc-strategy, not by this card — if the rules
+     cannot write it, the rules are too loose. */
+  .sentence{
+    font-family:var(--display);font-weight:600;font-size:21px;line-height:1.35;
+    letter-spacing:-.01em;color:var(--ink);margin:0;
+  }
+  .zone{
+    margin:0;font-family:var(--data);font-size:13px;color:var(--mute);
+    display:flex;align-items:center;gap:9px;
+  }
+  .dot{ width:10px;height:10px;border-radius:50%;flex:0 0 auto }
+  .dot.black { background:#000000 }
+  .dot.blue  { background:#2962FF }
+  .dot.yellow{ background:#E6A400 }
+  .zone b{ color:var(--ink);font-weight:500 }
+
+  .foot{
+    position:absolute;bottom:0;left:0;right:0;
+    height:46px;padding:0 40px;border-top:1px solid var(--rule);
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;color:var(--mute);letter-spacing:.03em;
+    background:var(--panel-2);
+  }
+  .foot span:last-child{ letter-spacing:.1em;text-transform:uppercase }
+
+  body{ position:relative }

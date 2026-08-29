@@ -111,8 +111,8 @@ fn report(symbol: &str, interval: Interval, bars: &[Bar], rules: &pattern::Rules
 ///
 /// **Without this the table is a Rorschach test.** On 200 tries a fair coin
 /// lands 3.5 points either side of 50% as a matter of course, so a pattern
-/// "beating the market by 3" is a pattern doing nothing. And with twelve
-/// patterns at four horizons there are forty-eight numbers here: a third of
+/// "beating the market by 3" is a pattern doing nothing. And with fourteen
+/// patterns at four horizons there are fifty-six numbers here: a third of
 /// them will clear one standard error by luck.
 fn noise(tried: usize) -> f64 {
     if tried == 0 {
@@ -128,7 +128,8 @@ fn claims_up(found: Pattern) -> bool {
         Pattern::Engulfing { up }
         | Pattern::Harami { up }
         | Pattern::Star { up, .. }
-        | Pattern::Marching { up } => up,
+        | Pattern::Marching { up }
+        | Pattern::Push { up } => up,
         Pattern::Tweezer { top } => !top,
         Pattern::PiercingLine => true,
         Pattern::DarkCloudCover => false,

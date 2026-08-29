@@ -24,12 +24,22 @@ THE FILES
 
   two.rs      Engulfing, harami, tweezers, piercing line, dark cloud cover.
 
+  push.rs     HIS OWN -- nsc-bull and nsc-bear. A push that shows one side
+              winning, then a pin whose long tail points AGAINST it. The only
+              pattern in this folder that is not from a textbook.
+
+              THE nsc- PREFIX DOES NOT MEAN "HIS OWN". It is the house
+              namespace, and a textbook pattern he has adopted wears it too --
+              nsc-bullish-engulfing is the engulfing out of any book. What the
+              prefix marks is that the pattern is part of HIS system, not who
+              invented it.
+
   three.rs    The star with the abandoned baby inside it, and the march --
               three white soldiers and three black crows.
 
   finding.rs  The one way in, and the order they are tested.
 
-  tests/      Seventeen tests, on runs that actually printed.
+  tests/      Thirty tests, on runs that actually printed.
 
   README.txt  This file.
 

@@ -1,6 +1,6 @@
 ---
 name: diagram
-description: Use when drawing a picture to settle a question about how the bot reads a chart — comparing two readings of a rule, showing what a setting does, or putting real candles on screen with the swings and levels the code found. Also use when a diagram needs updating because the rule it shows has changed.
+description: Use when drawing a picture to settle a question about how the bot reads a chart — comparing two readings of a rule, showing what a setting does, or putting real candles on screen with the shapes and levels the code found. Also use when a diagram needs updating because the rule it shows has changed.
 ---
 
 # Drawing a picture to settle a question
@@ -20,7 +20,7 @@ The good ones so far all did one of three things:
 - **Two readings of the same data**, side by side, so the trader can point at
   the one that matches what he sees
 - **What a setting does** — the same chart at two values of one number
-- **Real candles**, with the swings and levels the actual code found on them
+- **Real candles**, with the shapes and levels the actual code found on them
 
 ## Where it goes
 
@@ -103,8 +103,9 @@ When you change a rule, go and look at the pictures of it. Either update the
 page and republish to the same URL, or mark it superseded in `README.md` and
 say what replaced it.
 
-`swing-lookback.html` still describes candle counting, which the run-and-
-pullback rule replaced. That is the failure this section exists to stop.
+Seven pages were deleted on 29 August 2026 for exactly this reason — four on
+the chart patterns and three on the indicators, all removed from the project
+the same day. A picture of code that is gone still gets believed.
 
 ## Publishing
 

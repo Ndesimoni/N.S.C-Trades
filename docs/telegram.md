@@ -67,6 +67,38 @@ that would be worse than none.
 
 ---
 
+## `/news` — what is coming up
+
+Tap it and you get two buttons.
+
+| | |
+|---|---|
+| **📅 Today** | The whole day |
+| **🗓 This week** | The whole week, grouped by day |
+
+**Both show everything, and every row says which side of now it is on.** One
+that has gone is marked `PASSED` and greyed. One still to come carries how
+long — *in 45m*, *in 10h 53m*, *in 3d 10h*.
+
+Nothing is left out. A week with its first three days missing does not read as
+a week, it reads as a quiet one — and "nothing left today" and "three already
+gone" are different afternoons.
+
+The heading counts both: **1 gone · 17 to come**.
+
+Each row is the time, the currency, what it is, and a coloured stripe for how
+hard it usually hits. **Red is high, orange is medium** — the same colours
+ForexFactory uses, so you never have to translate.
+
+**Low impact is left out.** It is three quarters of the file and it moves
+nothing. What counts is set in `config/news.toml` and it is the same setting
+the automatic warnings use, so the list and the cards can never disagree.
+
+On a day with nothing on it you get a line of text rather than a card. Running
+Chrome for ten seconds to draw the word "nothing" is not worth it.
+
+---
+
 ## `/help` — the list
 
 Every command with one line on what it does. Also `/start`.
@@ -226,11 +258,17 @@ instead:
 |---|---|
 | 👀 **approaching** | price comes near one of your zones |
 | 🔔 **in the zone** | and again when it goes in |
-| ⏳ **so far** | about a third of the way into a candle at your zone |
-| 🕯 **closed** | that candle finishes — kissed it, pushed back, closed inside, cut through |
+| 🕯 **closed** | that candle finishes **outside the band** — a rejection, or a break |
+| 📅 **coming up** | 30 minutes before a high or medium impact release |
 | 📐 **got it** | a level you just sent is now being watched |
 | 🫀 **still running** | 07:00 UTC, and only on a day nothing else was sent |
 | ⚠️ ✅ 🛑 | the price line went down, came back, or the bot stopped |
+
+**A candle that settled inside the zone says nothing.** You already got the
+alert when price arrived; a card saying it is still there is the same news
+twice. The rejection still comes — a wick into the zone that closed back out
+finishes *above* or *below* the band. Turn it back on with `only_breaks` in
+`config/levels.toml`.
 
 **Nothing arrives on a quiet hour.** That is the whole design — send something
 every hour and by the second week you stop opening them, and then you miss the
@@ -239,6 +277,10 @@ one that mattered.
 **Nothing at all arrives Saturday, Sunday or Monday.** The weekend is the
 market being shut; Monday is your own rule. The heartbeat still goes out, or a
 quiet Monday and a dead bot would look exactly the same.
+
+**News warnings are the exception and they keep their own clock.** They are not
+about your levels, so they do not wait on the price line or on the session —
+Tokyo CPI prints on a Sunday evening whether or not anything is being watched.
 
 ---
 
@@ -251,7 +293,10 @@ cargo run -p nsc-work-man --bin cards -- XAUUSD              approaching
 cargo run -p nsc-work-man --bin cards -- XAUUSD 4120         in the zone
 cargo run -p nsc-work-man --bin cards -- XAUUSD 4120 found   already in
 cargo run -p nsc-work-man --bin cards -- XAUUSD close        a candle's close
-cargo run -p nsc-work-man --bin cards -- XAUUSD close 4375.6 sofar
+cargo run -p nsc-work-man --bin cards -- news                what is coming up
+cargo run -p nsc-work-man --bin cards -- news busy           several at once
+cargo run -p nsc-work-man --bin cards -- news today          the day's list
+cargo run -p nsc-work-man --bin cards -- news week           the week's list
 cargo run -p nsc-work-man --bin cards -- heartbeat
 cargo run -p nsc-work-man --bin cards -- armed
 cargo run -p nsc-work-man --bin cards -- trouble down|back|stopped

@@ -4,10 +4,11 @@ nsc-ta — reading a chart
 
 WHAT THIS CRATE IS FOR
 
-  Describing what is on a chart. Swings, levels, trends, candle shapes.
+  Describing what is on a chart. CANDLES AND WHAT A RUN OF THEM DOES --
+  nothing else.
 
   IT DESCRIBES, IT NEVER DECIDES. "This candle is a pin bar" belongs here.
-  "Therefore buy" does not — that is nsc-strategy, and it does not exist yet.
+  "Therefore buy" does not — that is nsc-strategy.
 
 
 IT CANNOT REACH ANYTHING
@@ -49,12 +50,21 @@ THE FILES
   README.txt  This file.
 
 
-WHAT IS NOT HERE YET
+WHAT IS DELIBERATELY NOT HERE
 
-  Swings, support and resistance, trendlines, Fibonacci and trend direction
-  are all planned and none are written.
+  Swings, chart patterns, trendlines, Fibonacci and the indicators were all
+  built and then REMOVED on 29 August 2026, at his word: he does his own
+  analysis and draws his own levels, and the bot works with candlesticks.
 
-  TREND IS THE ONE THAT BLOCKS THINGS. A hammer and a hanging man are the same
-  candle; what separates them is the trend before it. Until swings exist, this
-  crate can only say `long lower wick` -- and it should. The levels the bot
-  watches today are the ones HE DREW, read from config/pairs -- see nsc-core.
+  That was not a retreat. The swing finder had a ratchet in it that left it
+  blind -- 51 swings in 30,000 candles, and none at all on the Aussie 1-hour
+  after March 2025 -- and everything above it stood on that. Taking the chart
+  patterns out took the bug with them, because nothing needs swings any more.
+
+  TREND IS THE ONE THING THIS COSTS. A hammer and a hanging man are the same
+  candle; what separates them is the trend before it. Without swings this crate
+  can only say `long lower wick` -- and it should say exactly that, rather than
+  guess.
+
+  The levels the bot watches are the ones HE DREW, read from config/pairs --
+  see nsc-core.

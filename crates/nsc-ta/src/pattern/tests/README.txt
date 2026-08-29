@@ -17,6 +17,16 @@ THE FILES
 
   three.rs    The star, the abandoned baby and the march. Ten tests.
 
+  push.rs     HIS OWN -- nsc-bull and nsc-bear. Eight tests, including the
+              two he circled on his own chart, a pin with a body of exactly
+              nothing, and a pin whose body lands on exactly one third.
+
+  naming.rs   That every pattern has its OWN name and says how many candles
+              it needs, and what the nsc- prefix means. Five tests. Neither was checked until nsc-bull and
+              nsc-bear arrived -- and candles() ends in a catch-all arm, so a
+              three-candle pattern added later would quietly answer two and
+              be handed one candle too few. The compiler cannot see that.
+
   README.txt  This file.
 
 

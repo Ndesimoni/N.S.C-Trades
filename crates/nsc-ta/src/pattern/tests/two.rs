@@ -21,6 +21,41 @@ fn a_real_bullish_engulfing_is_found() {
     );
 }
 
+/// **The same real engulfing, on a busier day, is not one.**
+///
+/// Its candle reaches 22.60 points. Against the 18-point normal candle of
+/// February 2024 that is 1.26 of one and it counts; against a 30-point normal
+/// it is 0.75 and it does not.
+///
+/// **Nothing about the shape changed** — both body tests are shares of the
+/// first candle and both still pass. What changed is whether anything
+/// happened, and that is the half `min_reach` exists to ask about.
+#[test]
+fn an_engulfing_that_did_not_move_is_not_one() {
+    use rust_decimal::Decimal;
+
+    // The day it printed: a real reversal.
+    assert_eq!(
+        read(&engulf_up(), normal_2024()),
+        Some(Pattern::Engulfing { up: true })
+    );
+
+    // The same candles where an ordinary candle is 30 points: a shrug.
+    //
+    // **It does not go quiet — it comes back a TWEEZER.** `tweezer` is tried
+    // after engulfing and it has no size test of its own, so a shape refused
+    // for being small can still be named something weaker. That costs nothing
+    // today because rung 3 does not trade tweezers, and it is pinned here so
+    // nobody discovers it by surprise the day one is added.
+    assert!(
+        !matches!(
+            read(&engulf_up(), Decimal::from(30)),
+            Some(Pattern::Engulfing { .. })
+        ),
+        "an engulfing reaching 0.75 of a normal candle was still called one"
+    );
+}
+
 /// And the bearish one.
 #[test]
 fn a_real_bearish_engulfing_is_found() {
@@ -109,4 +144,67 @@ fn one_candle_is_never_a_pattern() {
     let bars = engulf_up();
 
     assert_eq!(read(&bars[..1], normal_2024()), None);
+}
+
+
+// ── the harami, which had no tests at all until 29 August 2026 ─────────────
+
+/// Gold, 21 April 2022: a real one.
+#[test]
+fn a_harami_is_found() {
+    use rust_decimal::Decimal;
+
+    assert_eq!(
+        read(&harami_down(), Decimal::from(4)),
+        Some(Pattern::Harami { up: false })
+    );
+}
+
+/// **The big candle has to be big, and `min_first_body` does not ask that.**
+///
+/// It only says the first candle is mostly body — which a five-point candle in
+/// a dead hour also is. This one reaches 11.61 points: 2.90 normal candles on
+/// the day it printed, and 0.58 of one where an ordinary candle is 20.
+///
+/// **The small candle is left alone deliberately.** Its smallness IS the
+/// pattern, and a floor under it would ask the pause not to be a pause.
+#[test]
+fn a_harami_whose_big_candle_is_not_big_is_not_one() {
+    use rust_decimal::Decimal;
+
+    // As with the engulfing, it does not fall silent — it is renamed to
+    // something with no size test. What matters is that it is no longer a
+    // harami, so it can never reach rung 3.
+    assert!(
+        !matches!(
+            read(&harami_down(), Decimal::from(20)),
+            Some(Pattern::Harami { .. })
+        ),
+        "a harami whose big candle reached 0.58 of a normal candle was still \
+         called one"
+    );
+}
+
+/// **Every size rule here is a FLOOR, and bigger is always fine.**
+///
+/// Confirmed by him on 29 August 2026: *"it should not be exactly like that, it
+/// could have a minimum, greater or equal to."*
+///
+/// The same real harami against a tiny normal candle reaches 11 of one, and it
+/// is still a harami. Nothing in `min_first_reach` or `min_reach` has an upper
+/// end, and nothing ever should — a shape does not stop being itself by being
+/// bigger than asked.
+#[test]
+fn bigger_than_the_minimum_is_always_still_the_shape() {
+    use rust_decimal::Decimal;
+
+    for normal in [1u32, 2, 3, 4] {
+        assert_eq!(
+            read(&harami_down(), Decimal::from(normal)),
+            Some(Pattern::Harami { up: false }),
+            "a harami reaching {} normal candles was refused — the floor has \
+             grown a ceiling",
+            11.61 / f64::from(normal)
+        );
+    }
 }

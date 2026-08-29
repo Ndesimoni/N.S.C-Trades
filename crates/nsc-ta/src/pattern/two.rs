@@ -18,14 +18,14 @@ pub(super) fn ending_at(
     normal: Decimal,
     rules: &Rules,
 ) -> Option<Pattern> {
-    engulfing(first, second, rules)
+    engulfing(first, second, normal, rules)
         .or_else(|| piercing(first, second, rules))
-        .or_else(|| harami(first, second, rules))
+        .or_else(|| harami(first, second, normal, rules))
         .or_else(|| tweezer(first, second, normal, rules))
 }
 
 /// A body swallowing the one before it whole.
-fn engulfing(first: &Bar, second: &Bar, rules: &Rules) -> Option<Pattern> {
+fn engulfing(first: &Bar, second: &Bar, normal: Decimal, rules: &Rules) -> Option<Pattern> {
     let (one, two) = (Body::of(first), Body::of(second));
 
     // **Without this, almost anything engulfs a doji** and the word stops
@@ -47,11 +47,19 @@ fn engulfing(first: &Bar, second: &Bar, rules: &Rules) -> Option<Pattern> {
         return None;
     }
 
+    // **AND IT HAS TO HAVE MOVED.** Everything above is shape — both tests are
+    // shares of the first candle, so a tiny candle swallowing a tinier one
+    // clears them while nothing happened. A quiet candle in a dead hour is not
+    // a reversal however neatly it covers its neighbour.
+    if second.high - second.low < normal * rules.engulfing.min_reach {
+        return None;
+    }
+
     Some(Pattern::Engulfing { up: two.up })
 }
 
 /// A big candle, then a small one hiding inside its body.
-fn harami(first: &Bar, second: &Bar, rules: &Rules) -> Option<Pattern> {
+fn harami(first: &Bar, second: &Bar, normal: Decimal, rules: &Rules) -> Option<Pattern> {
     let (one, two) = (Body::of(first), Body::of(second));
 
     if one.share(first) < rules.harami.min_first_body {
@@ -65,6 +73,13 @@ fn harami(first: &Bar, second: &Bar, rules: &Rules) -> Option<Pattern> {
     // Small ENOUGH. A body two-thirds of the one before it is inside it and is
     // still a second push rather than a pause.
     if two.size() > one.size() * rules.harami.max_second_of_first {
+        return None;
+    }
+
+    // **THE BIG ONE HAS TO BE BIG.** `min_first_body` only says the first
+    // candle is mostly body, which a five-point candle in a dead hour also is.
+    // The small candle is the point of the pattern and is left alone.
+    if first.high - first.low < normal * rules.harami.min_first_reach {
         return None;
     }
 

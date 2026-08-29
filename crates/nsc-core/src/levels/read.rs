@@ -30,6 +30,25 @@ pub struct Thickness {
     /// the same event, and the card says which.
     #[serde(default = "a_quarter")]
     pub kiss_depth: Decimal,
+
+    /// **Only send a close card when the candle finished OUTSIDE the band.**
+    ///
+    /// His call, 26 August 2026. A candle that settled inside the zone is the
+    /// most common of the three outcomes and the one that says least — price
+    /// is there, undecided, and he already knew that from the approach alert.
+    ///
+    /// **It does not lose the rejection.** A wick into the zone that closed
+    /// back out finishes above or below the band, so it still sends.
+    ///
+    /// Here rather than in the code because it is a preference about what he
+    /// wants to hear, and preferences belong in `config/`.
+    #[serde(default = "yes")]
+    pub only_breaks: bool,
+}
+
+/// The default for `only_breaks` — his setting as of 26 August 2026.
+fn yes() -> bool {
+    true
 }
 
 /// What `kiss_depth` is when a file predates it.

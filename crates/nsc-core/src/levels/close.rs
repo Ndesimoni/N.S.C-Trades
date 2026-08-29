@@ -35,6 +35,24 @@ impl AtZone {
     pub fn worth_saying(self) -> bool {
         self != AtZone::Missed
     }
+
+    /// **Did it finish on the other side of the band?**
+    ///
+    /// Settled with him on 26 August 2026: a close card only goes out for
+    /// this, not for a candle that settled inside the zone.
+    ///
+    /// **It still keeps the rejection**, which is the thing that mattered.
+    /// A candle that wicked into the zone from above and closed back above it
+    /// is `ClosedAbove` — so "a wick counts" survives untouched. What is
+    /// dropped is `ClosedInside`: price sitting in the zone, undecided, which
+    /// is the most common of the three and the one that says least.
+    ///
+    /// **Above or below, and the card names which.** A break and a rejection
+    /// wear the same value here and are told apart by where the candle came
+    /// from — that is `Action`, not this.
+    pub fn left_the_band(self) -> bool {
+        matches!(self, AtZone::ClosedAbove | AtZone::ClosedBelow)
+    }
 }
 
 /// What this candle did at this band.

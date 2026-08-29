@@ -20,14 +20,17 @@
 //!   look.rs     the ten-minute check, and what it decides to ask about
 //!   report.rs   saying what a candle did, one zone at a time
 //!   fetch.rs    asking the feed, and never letting that end the run
+//!   setups.rs   RUNG 3 — a shape he trades, at a level he drew
 
 mod due;
 mod fetch;
 mod look;
 mod report;
 mod said;
+mod setups;
 
 #[cfg(test)]
 mod tests;
 
 pub use look::Closes;
+pub use setups::settings;

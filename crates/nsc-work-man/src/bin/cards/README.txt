@@ -8,7 +8,10 @@ WHAT THIS IS FOR
       cargo run -p nsc-work-man --bin cards -- XAUUSD 4120         in the zone
       cargo run -p nsc-work-man --bin cards -- XAUUSD 4120 found   already in
       cargo run -p nsc-work-man --bin cards -- XAUUSD close        a close
-      cargo run -p nsc-work-man --bin cards -- XAUUSD close 4375.6 sofar
+      cargo run -p nsc-work-man --bin cards -- setup
+      cargo run -p nsc-work-man --bin cards -- news
+      cargo run -p nsc-work-man --bin cards -- setup
+      cargo run -p nsc-work-man --bin cards -- news busy
       cargo run -p nsc-work-man --bin cards -- heartbeat
       cargo run -p nsc-work-man --bin cards -- armed
       cargo run -p nsc-work-man --bin cards -- trouble down|back|stopped
@@ -23,6 +26,22 @@ WHAT THIS IS FOR
 THE FILES
 
   main.rs     Which card he asked for, and the candles the zone ones need.
+
+  found.rs    THE SETUP CARD, rung 3. No TWS either -- it runs on the two
+              gold candles off his own screenshot, 19 and 20 August 2026.
+
+              THE CANDLES ARE REAL AND THE ZONE IS PLACED FOR THE PICTURE.
+              Said out loud in the file rather than left to be assumed: a real
+              zone has to be where price actually was.
+
+  soon.rs     THE NEWS CARD, drawn against the real calendar. The only card
+              here that needs no TWS at all -- the economic calendar is a
+              plain web page with no key on it.
+
+              `news` draws the next release he would be told about. `news
+              busy` draws the BUSIEST group of the week, which is the one
+              worth looking at: one release is the easy case, and four at once
+              is what the layout has to survive.
 
   zone.rs     The two zone cards — price at a level, and a candle at one.
 

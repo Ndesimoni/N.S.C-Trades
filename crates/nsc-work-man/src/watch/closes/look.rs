@@ -36,11 +36,22 @@ pub struct Closes {
     due: HashMap<(String, Interval), DateTime<Utc>>,
 
     next: Instant,
+
+    /// The two settings rung 3 needs, read once at startup.
+    ///
+    /// **`None` turns rung 3 off and leaves everything else running.** A
+    /// missing or unreadable `config/strategy.toml` must not cost him the
+    /// alerts and the closes — those are the job, and the shape at the level
+    /// is what was added on top. It is said out loud at startup rather than
+    /// swallowed, because rules that quietly never fire look exactly like a
+    /// quiet week.
+    rung_three: Option<(nsc_strategy::Rules, nsc_ta::pattern::Rules)>,
 }
 
 impl Closes {
-    pub fn new() -> Self {
+    pub fn new(rung_three: Option<(nsc_strategy::Rules, nsc_ta::pattern::Rules)>) -> Self {
         Closes {
+            rung_three,
             told: HashMap::new(),
             due: HashMap::new(),
             // Not immediately. The bands were just sized, and the rate limit
@@ -84,7 +95,7 @@ impl Closes {
         ibkr: &IbkrConnection,
         watching: &HashMap<String, Watching>,
         thickness: Thickness,
-        calendar: &Rules,
+        _calendar: &Rules,
         pulse: &mut pulse::Pulse,
     ) -> Result<()> {
         for seen in watching.values() {
@@ -131,9 +142,8 @@ impl Closes {
                 };
 
                 let now = Utc::now();
-                let waited = minutes * calendar.look_in_minutes / 60;
 
-                let ask_again = worth_asking_again(&bars, minutes, waited, now);
+                let ask_again = worth_asking_again(&bars, minutes, now);
 
                 let finished = bars
                     .iter()
@@ -143,30 +153,43 @@ impl Closes {
 
                 if let Some(bar) = finished {
                     all_sent &= self
-                        .say(client, seen, &live, bar, thickness, interval, false, pulse)
+                        .say(client, seen, &live, bar, thickness, interval, pulse)
                         .await;
+
+                    // **Rung 3, and only ever on a finished candle.** A shape
+                    // halfway through a candle is not a shape, and one that
+                    // un-forms before the close would have been a message
+                    // about something that never happened.
+                    //
+                    // It carries its own key, so a candle worth both messages
+                    // — what it did at the band, and the shape it completed —
+                    // sends both.
+                    // Copied out first — both are small `Copy` structs, and
+                    // holding a borrow of `self` across a call that needs
+                    // `&mut self` is what the borrow checker is for.
+                    if let Some((rules, patterns)) = self.rung_three {
+                        self.setup(
+                            client, seen, &live, &bars, bar, interval, &patterns, &rules, pulse,
+                        )
+                        .await;
+                    }
                 }
 
-                // ── the look into a candle still running ──
+                // **NOTHING HERE READS AN UNFINISHED CANDLE ANY MORE.**
                 //
-                // THE ONE PLACE IN THIS PROJECT THAT READS AN UNFINISHED
-                // CANDLE. It is allowed here for the reason the price alert is
-                // allowed: it is a heads-up and nothing more, and the card says
-                // so on its face. IT MUST NEVER REACH A STRATEGY.
+                // There used to be a mid-candle look — a third of the way in,
+                // marked "so far" on the card's face. It was the one place in
+                // this project that read a candle still running.
                 //
-                // Not on the open, either. Spot forex runs without a break so
-                // an open IS the last close — that message would repeat what
-                // arrived a minute earlier.
-                let running = bars.iter().find(|bar| {
-                    !bar.finished_by(now, minutes).unwrap_or(true)
-                        && bar.finished_by(now, waited).unwrap_or(false)
-                });
-
-                if let Some(bar) = running {
-                    all_sent &= self
-                        .say(client, seen, &live, bar, thickness, interval, true, pulse)
-                        .await;
-                }
+                // Taken out on 27 August 2026, his call. Two messages per zone
+                // visit and never three: the alert when price arrives, and the
+                // close when the candle finishes OUTSIDE the band. A third one
+                // in between was a heads-up about a heads-up.
+                //
+                // **Its going is worth more than the card was.** The rule that
+                // matters most here is that a candle still forming is
+                // invisible to the analysis, and the exception was the only
+                // thing standing between that rule and being true everywhere.
 
                 // **Set after the cards have gone, not before.** Pushed
                 // forward first, a card that would not send waited for the

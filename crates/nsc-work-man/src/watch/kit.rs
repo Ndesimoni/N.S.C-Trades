@@ -25,9 +25,11 @@ pub(crate) struct Kit {
 }
 
 impl Kit {
-    pub fn new() -> Self {
+    /// `rung_three` is `None` when `config/strategy.toml` would not read.
+    /// Everything else runs; only the shape-at-a-level messages stop.
+    pub fn new(rung_three: Option<(nsc_strategy::Rules, nsc_ta::pattern::Rules)>) -> Self {
         Kit {
-            closes: closes::Closes::new(),
+            closes: closes::Closes::new(rung_three),
             awake: resumed::Awake::new(),
             pulse: pulse::Pulse::new(),
             files: reload::Files::look(),

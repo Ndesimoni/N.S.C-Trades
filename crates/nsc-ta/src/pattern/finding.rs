@@ -3,7 +3,7 @@
 use nsc_core::candle::Bar;
 use rust_decimal::Decimal;
 
-use super::{Pattern, Rules, three, two};
+use super::{Pattern, Rules, push, three, two};
 
 /// What pattern, if any, **finishes on the last candle handed in**.
 ///
@@ -31,7 +31,13 @@ pub fn ending_at(bars: &[&Bar], normal: Decimal, rules: &Rules) -> Option<Patter
     }
 
     if last >= 2 {
-        return two::ending_at(bars[last - 2], bars[last - 1], normal, rules);
+        // **His own pattern goes before the textbook ones, because it is the
+        // stricter statement.** It is the only one that tests the first
+        // candle's SIZE as well as its shape, and a push-then-pin very often
+        // also fits harami — the pin's small body sits inside the push's big
+        // one. Reporting both would let a backtest count one setup twice.
+        return push::ending_at(bars[last - 2], bars[last - 1], normal, rules)
+            .or_else(|| two::ending_at(bars[last - 2], bars[last - 1], normal, rules));
     }
 
     None

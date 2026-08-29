@@ -17,6 +17,13 @@ WHAT THIS FOLDER IS FOR
 
 THE FILES
 
+  history/    PULL YEARS OF CANDLES ONCE and keep them on disk, so a detector
+              can be worked on without asking IBKR the same question fifty
+              times. Writes data/history/<pair>-<timeframe>.csv.
+
+  scan/       LOOK AT EVERY PAIR on the 1-hour and the 4-hour and say what is
+              at his levels right now.
+
   levels.rs   Draws a pair's levels on its weekly chart and sends the
               picture. For checking that our band sits where his does.
 
@@ -31,7 +38,8 @@ THE FILES
                   --bin cards -- XAUUSD close          a candle's close
                   --bin cards -- XAUUSD close 4375.6   ...against a made-up
                                                        level it actually met
-                  --bin cards -- XAUUSD close 4375.6 sofar   still running
+                  --bin cards -- news                  what is coming up
+                  --bin cards -- news busy             several at once
                   --bin cards -- heartbeat             the quiet-day card
                   --bin cards -- armed                 a level going live
                   --bin cards -- trouble down|back|stopped
@@ -51,17 +59,6 @@ THE FILES
                   cargo run -p nsc-work-man --bin listen
                   cargo run -p nsc-work-man --bin listen -- XAU/USD
 
-  read.rs     READ A CHART THE WAY THE CODE READS IT. Fetches real candles,
-              runs nsc-ta over them, prints the name the CODE gave each one
-              and a tally of what turned up.
-
-                  cargo run -p nsc-work-man --bin read -- XAU/USD 4h
-                  cargo run -p nsc-work-man --bin read -- EUR/USD 1h 120
-
-              It marks the newest candle STILL FORMING and leaves it out of
-              the tally. Its shape is not its shape yet.
-
-              Driven by the read-the-chart skill in .claude/skills/.
 
   candles/    WHERE IBKR STARTS ITS DAY. See its own README.
 

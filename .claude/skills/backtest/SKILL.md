@@ -56,7 +56,7 @@ Suspect the machinery before celebrating. In order of likelihood:
 Every run saves its full settings and the code version. A result means nothing
 without knowing which version of the chart-reading code produced it.
 
-Comparing across a change to swing detection is comparing two different
+Comparing across a change to how a shape is detected is comparing two different
 systems — and doing it by accident is how a "promising" setting gets adopted
 on the strength of a bug.
 

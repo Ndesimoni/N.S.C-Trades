@@ -169,7 +169,7 @@ from Chrome.
 From step 5 a signal carries a picture. Rules for it:
 
 **Draw what the bot read, not a prettier version.** If a level sits in the
-wrong place or a swing appears where he sees none, the picture should show
+wrong place or a shape is named where he sees none, the picture should show
 that. Every signal is then a check on the code, and he will spot in a glance
 what no table of numbers would ever reveal.
 

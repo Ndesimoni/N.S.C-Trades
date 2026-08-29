@@ -62,7 +62,7 @@ The error kinds exist to answer one question: **retry, or give up?**
 ## After any work on the feed
 
 Run `nsc-data::gaps`. Bad data does not fail loudly — a missing hour shifts a
-swing, which shifts a level, which changes every signal after it, and the
+candle, which changes what shape is named on it and every signal after, and the
 backtest still finishes and prints a believable number.
 
 And when the connection comes back, **fill in what you missed before carrying

@@ -2,6 +2,76 @@
 
 Pictures drawn to settle a question.
 
+**Seven pages were removed on 29 August 2026** — four about the chart patterns
+(the curvy, the doubles, the swing finder) and three about the indicators. Those
+features were taken out of the project the same day, and a diagram of code that
+no longer exists is worse than no diagram, because it gets believed.
+
+---
+
+## [Two shapes added →](https://claude.ai/code/artifact/e5db4109-29ba-4cfb-bf84-796b9711e185)
+
+`two-added.html` · **open — the shapes, not yet the signals**
+
+**Argues:** harami and marching joined rung 3 on 29 August 2026, and two size
+floors went in with them. Real examples of all four kinds, found by
+`pattern::ending_at` with the floors on, with the dashed pair showing exactly
+what the size test measured.
+
+**What the floors changed:** harami 26,788 → 16,596 (−38%), engulfing 36,560 →
+~21,900 (−40%). **Marching deliberately got none** — 96% already reach a normal
+candle, and a threshold that never refuses anything is worse than none.
+
+**It says plainly what it cannot show.** Every level he has drawn is weekly or
+daily and only 1-hour and 4-hour candles are on disk, so no band can be sized
+without guessing at a daily candle. These are the shapes; the level half of the
+setup is untested until TWS is up.
+
+---
+
+## [The six he does not trade →](https://claude.ai/code/artifact/5421c6ee-823c-45a7-82de-9273f454d503)
+
+`six-untraded.html` · **open — six named patterns, none of them measured**
+
+**Argues:** what every pattern `nsc-ta` can name but rung 3 ignores actually looks
+like — harami, tweezer, piercing line, dark cloud cover, star and marching, **two
+real examples of each**, found by `pattern::ending_at` with today's
+`config/patterns.toml`. So what is drawn is what the code calls it, not a
+textbook picture.
+
+The two examples of each come from different pairs and different years, and the
+dashed line marks the price the pattern is about — the shared low on a tweezer,
+halfway into candle 1 on a piercing line.
+
+**The abandoned baby is missing and that is a finding.** It needs a gap either
+side of the middle candle, and spot forex does not gap, so the sweep found none
+at all in 270,000 candles. The code can name a shape it will never meet.
+
+**Nothing here has been measured.** There is no evidence any of the six is worth
+adding to rung 3, and none that it is not.
+
+---
+
+## [Push then pin, on gold and the Aussie →](https://claude.ai/code/artifact/f20543a0-55a5-4e1c-b682-961b683b1d25)
+
+`gold-and-aussie-pushes.html` · **open — the two pairs he asked about, and neither continued**
+
+**Argues:** his setup, cut down to the two pairs he watches most. **19 found on
+each.** Gold reached +1 normal candle before -1 in 47% of them with a median of
++0.08; the Aussie in 36%, median -0.02. Gold is the best of the five pairs and it
+is still a coin flip.
+
+Same real candles as the sweep below — Interactive Brokers, 21-22 August 2026,
+five timeframes. Nothing here is a live read.
+
+**It also records a count that does not reconcile.** The sweep is written down as
+82 found, as 80 in its own breakdown, and as 75 followed. The rows sum to 80. It
+changes no conclusion and it needs settling, because an unreconciled count is how
+a real mistake hides.
+
+**Says three times what it cannot tell you:** it is not a live read, trend is not
+built, and none of these had a level under them.
+
 ---
 
 ## [Push then pin, in the wild →](https://claude.ai/code/artifact/f9b8ed11-659a-432a-84f2-b363f1a46fd4)
@@ -102,63 +172,6 @@ true range of the 14 days before each candle. Reach figures reproduce the
 `config/pairs/XAUUSD.toml`, so the bot cannot see it. A shape is only worth
 anything once you know the level it printed at — that number has to be read off
 the axis and added before any of this becomes a signal.
-
----
-
-## [Where ADX says there is a trend →](https://claude.ai/code/artifact/cbc95367-6655-4e0e-9b75-aadd8b8b0769)
-
-`adx-on-gold.html` · **open**
-
-**Argues:** the textbook ADX threshold of 25 does not fit gold. On 5,000 hours
-it calls 57% of all time a trend, and the median reading is 27 — the threshold
-sits at the middle of normal.
-
-Real candles: 501 XAU/USD 1-hour from Twelve Data, 18 May to 8 June 2026, with
-the percentages measured across all 5,000 held. Tap a threshold and watch the
-shading change.
-
-**Still open:** which number, and whether ADX earns its place beside
-Choppiness at all.
-
----
-
-## [A moving average is not a level on gold →](https://claude.ai/code/artifact/abeaddcf-1e2f-40df-8934-14283b7bdb23)
-
-`ma-on-gold.html` · **settled — do not use EMAs as levels on the 1-hour**
-
-**Argues:** on XAU/USD 1-hour, an EMA does neither of the things it is meant to.
-It crosses price 4 to 18 times a week, so which side price is on is not a trend.
-And the textbook pullback — rising EMA, candle touches it, closes above — came
-back **under 50% on all five periods tested** (10, 20, 50, 100, 150), with the 20
-at 41% on 360 touches and the 50 at 38% on 167.
-
-Real candles: 501 XAU/USD 1-hour from Twelve Data, 18 May to 8 June 2026, with
-every figure measured across all 5,000 held. Distances in ATR.
-
-**Still open:** the MA's *slope* as a direction gate, which this did not test,
-and whether any of it changes on the daily.
-
----
-
-## [The range indicator is really a coil indicator →](https://claude.ai/code/artifact/de8ffd1f-2599-471e-a49e-c103d0a22a76)
-
-`ranges-on-gold.html` · **settled — do not trade inside what it calls a range**
-
-**Argues:** Choppiness marks gold's tight patches correctly, but what follows is
-the opposite of the label. On the 4-hour, price stayed inside the box **2% of
-the time** and travelled **106% of its width**. On the 1-hour, 7% and 104%. And
-the readings it calls *trending* are the calmer ones — 18% and 23% stayed put.
-
-A high reading is compression before a break, not a range to sell the top of. It
-never says which way.
-
-Real candles: XAU/USD 1-hour and 4-hour from Twelve Data, both timeframes on the
-page. **Weekends and holidays removed** — 1,412 of the 5,000 hourly candles had
-a range under 0.02% of price, and the first run of this reported price
-travelling 5,119% of its box before that was caught.
-
-**Still open:** whether a high reading is worth acting on at all, given it gives
-no direction.
 
 ---
 

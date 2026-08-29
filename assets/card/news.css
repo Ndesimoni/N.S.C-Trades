@@ -1,0 +1,134 @@
+/* ── news.html ──────────────────────────────────────────────────────────────
+   THIS CARD'S OWN STYLING. The palette, the typefaces and the page box are
+   shared and live in style.css; only what makes this card different is here.
+
+   fill.rs drops it in where the template says __OWN__, so the HTML file stays
+   a thing you can read end to end. */
+
+  /* WORKED OUT, not typed. The card grows a row per release — three
+     Australian CPI numbers print in one second and share a card. fill.rs
+     reads this AFTER the facts go in, which is the only reason a number can
+     be put here at all. */
+  :root{
+    --card-height:/*__TALL__*/px;
+
+    /* FOREXFACTORY'S SPELLING, not a design choice. He reads that calendar
+       every day. Red meaning anything other than "high" here would make the
+       card disagree with the site it was copied from — and then he would have
+       to translate, every time, under time pressure. */
+    --high:#E04B45;
+    --medium:#E08A1E;
+    --low:#D8B41A;
+    --other:#98A1A8;
+  }
+
+  .red    { --tone:var(--high) }
+  .orange { --tone:var(--medium) }
+  .yellow { --tone:var(--low) }
+  .grey   { --tone:var(--other) }
+
+
+  /* ── the header ─────────────────────────────────────────────────────── */
+
+  /* HEIGHTS ARE FIXED HERE, not left to the content.
+
+     soon.rs works out how tall the whole card is and Chrome shoots a window
+     that size — so if a row grows past what Rust expected, the last one is
+     simply cut off. That happened: a header reading "4 releases" over three
+     rows, because the row constant had been copied from the heartbeat, whose
+     rows are one line and these are two.
+
+     Pinning them means the two numbers cannot drift apart. Change one here,
+     change its twin in soon.rs. */
+  .top{
+    background:var(--panel);
+    height:132px;
+    padding:0 40px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    border-bottom:3px solid var(--rule);
+  }
+  .top > div:first-child{ display:flex;flex-direction:column;justify-content:center }
+  /* The card's one beat of colour, and it is the HEAVIEST rating on it — not
+     the first one the feed happened to list. A card carrying one high and two
+     mediums is a high-impact card. */
+  .worst-red    .top{ border-bottom-color:var(--high) }
+  .worst-orange .top{ border-bottom-color:var(--medium) }
+  .worst-yellow .top{ border-bottom-color:var(--low) }
+
+  .eyebrow{
+    margin:0 0 6px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--mute);
+  }
+  .top h1{
+    font-family:var(--display);font-weight:800;font-size:34px;
+    letter-spacing:-.02em;margin:0 0 6px;line-height:1;
+  }
+  .at{
+    margin:0;font-size:14px;color:var(--mute);letter-spacing:.02em;
+  }
+  .top__right{ text-align:right;display:flex;flex-direction:column;gap:6px }
+  .top__right b{
+    font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);
+  }
+  .top__right span{ font-size:12px;color:var(--mute);letter-spacing:.04em }
+
+
+  /* ── one release per row ────────────────────────────────────────────── */
+
+  .list{ padding:8px 40px 0 }
+
+  /* 71 of row and a hairline. Its twin is PER_EVENT in soon.rs. */
+  .row{
+    display:flex;align-items:center;gap:14px;
+    height:71px;padding:0;border-bottom:1px solid var(--grid);
+  }
+  .row:last-child{ border-bottom:0 }
+
+  /* The rating, as a bar rather than a dot. A dot at this size reads as
+     decoration; a bar down the side of the row reads as a rating. */
+  .chip{
+    width:4px;align-self:stretch;min-height:26px;border-radius:2px;
+    background:var(--tone);flex:0 0 auto;
+  }
+
+  /* THE CURRENCY IS A BADGE. Same reason as calendar.css: it is the first
+     thing he checks, so it must not be the quietest thing on the row.
+
+     Neutral -- the stripe already carries impact. */
+  .ccy{
+    font-family:var(--data);font-weight:500;font-size:14px;
+    letter-spacing:.08em;color:var(--ink);
+    background:var(--panel);border:1px solid var(--rule);border-radius:5px;
+    padding:5px 0;width:56px;text-align:center;flex:0 0 auto;
+  }
+
+  .what{ display:flex;flex-direction:column;gap:4px;min-width:0 }
+  .what > b{
+    font-family:var(--display);font-weight:600;font-size:17px;
+    letter-spacing:-.01em;color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+
+  .nums{ display:flex;gap:18px;align-items:baseline;font-size:13px }
+  .nums u{
+    text-decoration:none;color:var(--mute);
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    margin-right:6px;
+  }
+  .nums b{ font-family:var(--data);font-weight:500;color:var(--ink) }
+  .nums--none{ color:var(--mute);font-style:italic }
+
+
+  /* ── the footer ─────────────────────────────────────────────────────── */
+
+  /* 45 and a hairline. Its twin is the 46 in soon.rs. */
+  .foot{
+    position:absolute;bottom:0;left:0;right:0;
+    height:46px;padding:0 40px;border-top:1px solid var(--rule);
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;color:var(--mute);letter-spacing:.03em;
+    background:var(--panel-2);
+  }
+  .foot span:last-child{ letter-spacing:.1em;text-transform:uppercase }
+
+  body{ position:relative }

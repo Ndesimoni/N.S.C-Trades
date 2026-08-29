@@ -13,6 +13,11 @@ use crate::watch::{Watching, pulse, say};
 impl Closes {
     /// Says what one candle did at every zone price is at.
     ///
+    /// **Only finished candles reach here.** The mid-candle "so far" card was
+    /// taken out on 27 August 2026 — two messages per zone visit and never
+    /// three, and with it went the only place in this project that read a
+    /// candle still running.
+    ///
     /// **Each zone is decided on its own.** They used to be remembered
     /// together, which cost twice: a second zone coming live mid-hour never
     /// got that hour's candle at all, and one card failing to send made every
@@ -31,10 +36,8 @@ impl Closes {
         bar: &Bar,
         thickness: Thickness,
         interval: Interval,
-        forming: bool,
         pulse: &mut pulse::Pulse,
     ) -> bool {
-        let kind = if forming { Kind::SoFar } else { Kind::Closed };
         let mut all_sent = true;
 
         // The card templates were written against the feed's own spelling.
@@ -45,7 +48,7 @@ impl Closes {
             let key = Said {
                 symbol: seen.pair.symbol.clone(),
                 interval,
-                kind,
+                kind: Kind::Closed,
                 band: band.price.to_string(),
             };
 
@@ -63,15 +66,24 @@ impl Closes {
                 continue;
             }
 
+            // **A candle that settled INSIDE the zone says nothing he does not
+            // already know.** He gets an alert when price arrives; a candle
+            // closing there as well is the same news twice.
+            //
+            // The rejection survives: a wick into the zone that closed back
+            // out finishes above or below the band, so it still sends.
+            if thickness.only_breaks && !did.left_the_band() {
+                continue;
+            }
+
             let was = action(band, bar, thickness.kiss_depth);
-            let what = if forming { "so far" } else { "closed" };
 
             println!(
-                "{} {written} candle {} — {what} {was:?} at {}",
+                "{} {written} candle {} — closed {was:?} at {}",
                 seen.pair.symbol, bar.datetime, band.price
             );
 
-            match say::closed(client, &seen.pair, band, bar, did, was, written, forming).await {
+            match say::closed(client, &seen.pair, band, bar, did, was, written).await {
                 Ok(()) => {
                     pulse.spoke(Utc::now());
                     self.told.insert(key, bar.datetime.clone());

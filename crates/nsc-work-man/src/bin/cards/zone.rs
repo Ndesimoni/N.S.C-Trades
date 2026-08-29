@@ -94,11 +94,10 @@ pub async fn draw_close(
 
     let did = what_it_did(&band, bar);
     let was = action(&band, bar, thickness.kiss_depth);
-    let forming = std::env::args().any(|arg| arg == "sofar");
     let out = PathBuf::from(PREVIEW).join("close.png");
 
-    let picture = card::closed(pair, &band, bar, did, was, "1h", forming, &out)?;
-    let caption = levels::closed_caption(pair, &band, bar, did, was, "1h", forming);
+    let picture = card::closed(pair, &band, bar, did, was, "1h", &out)?;
+    let caption = levels::closed_caption(pair, &band, bar, did, was, "1h");
 
     telegram::send_to(client, &OWNER.to_string(), &[&picture], &caption).await?;
 

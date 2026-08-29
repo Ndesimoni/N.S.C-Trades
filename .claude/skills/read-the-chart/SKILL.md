@@ -41,7 +41,7 @@ That a shape is common or rare in the window read.
 
 **May not:**
 
-- **The trend.** Swings are not built. Nothing in this project can yet say
+- **The trend.** Swings were removed on 29 August 2026. Nothing here can say
   which way a chart is going, so never answer "is gold bullish". Say it is not
   built.
 - **A pattern the code does not detect.** Engulfing, tweezers, harami, stars —

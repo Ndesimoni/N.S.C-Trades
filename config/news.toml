@@ -1,0 +1,69 @@
+# ── The economic calendar ───────────────────────────────────────────────────
+#
+# What is coming up, so a level sitting in front of a rate decision is not read
+# the same way as one on a quiet Thursday.
+#
+# The feed is ForexFactory's weekly file. It is free, needs no key, and it is
+# the calendar he already reads — so the bot's week and his week are the same
+# list. A source that disagreed with his screen would get distrusted the same
+# way levels that lag his chart do.
+# ───────────────────────────────────────────────────────────────────────────
+
+# THE WHOLE WEEK, IN ONE FILE. There is no next-week version — that URL 404s.
+# So on Friday evening the bot knows nothing about Monday until this rolls over.
+url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+
+
+# ── How often to download it ────────────────────────────────────────────────
+#
+# TWO DOWNLOADS EVERY FIVE MINUTES IS THE LIMIT, and it is shared across all
+# four formats of the same file. Go over and it does NOT return an error — it
+# returns an HTML page saying "Request Denied", with a normal 200.
+#
+# That is the third time this project has met that exact thing: Twelve Data
+# refused with a polite {"code": 401}, Telegram with a polite ok: false. A
+# reply that parses is not a reply that worked.
+#
+# Six hours is four downloads a day. Far under the limit, and often enough to
+# pick up a time that moved or a forecast that was revised.
+# ───────────────────────────────────────────────────────────────────────────
+refresh_hours = 6
+
+
+# ── Which events are worth a message ────────────────────────────────────────
+#
+# BY IMPACT ONLY, NEVER BY CURRENCY. Filtering to the currencies in
+# config/pairs would go quietly blind the day a new pair is added — the pair
+# would be watched and its news would not, and nothing would say so.
+#
+# High and medium. Low is the noise floor: it is most of the file and it moves
+# nothing.
+#
+# MATCHED BY NAME, NOT BY NUMBER. A rating this list does not name is ignored
+# rather than guessed at, so a fourth level appearing in the feed one day goes
+# quiet instead of arriving as though it were high.
+# ───────────────────────────────────────────────────────────────────────────
+impacts = ["High", "Medium"]
+
+
+# ── How long before ─────────────────────────────────────────────────────────
+#
+# Thirty minutes. Long enough to close something or stand aside, short enough
+# that it is still in mind when the number prints.
+# ───────────────────────────────────────────────────────────────────────────
+warn_minutes = 30
+
+
+# ── Do not warn about something that already happened ───────────────────────
+#
+# THE RESTART CASE. The bot comes back at 14:00 and the file is full of events
+# from this morning. Without this it sends the lot, all at once, all useless.
+#
+# So an event only earns a message while it is between warn_minutes away and
+# stale_minutes past. Outside that window it is history and it says nothing.
+#
+# Five minutes, because an event that just fired is still worth knowing about
+# and one from this morning is not. Same reason the zone alert separates
+# "is in" from "was already in" — a Monday move must never get a Tuesday clock.
+# ───────────────────────────────────────────────────────────────────────────
+stale_minutes = 5

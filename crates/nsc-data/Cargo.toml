@@ -32,3 +32,12 @@ tokio = { workspace = true }
 
 # Errors: a named trouble the caller can act on.
 thiserror = { workspace = true }
+
+# Asking the economic calendar for the week's file. IBKR's API carries news
+# headlines but no macro calendar at all -- no rate decisions, no payrolls --
+# so "what is coming up" has to come from somewhere else.
+reqwest = { workspace = true }
+
+# Reading what comes back. The calendar is plain JSON with no key on it.
+serde      = { workspace = true }
+serde_json = { workspace = true }

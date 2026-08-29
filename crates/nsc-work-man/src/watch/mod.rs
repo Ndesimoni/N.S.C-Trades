@@ -24,6 +24,7 @@ mod breathe;
 mod closes;
 mod kit;
 mod line;
+mod news;
 mod prices;
 mod pulse;
 mod reload;
@@ -33,6 +34,9 @@ mod say;
 mod standing;
 mod trouble;
 
+pub use bands::for_pair as size_bands;
+pub use closes::settings as rung_three;
+pub use news::run as watch_the_news;
 pub use run::{run, say_it_is_armed};
 pub use standing::{Snapshot, Standing};
 pub use trouble::dying;

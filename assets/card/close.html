@@ -76,24 +76,15 @@ function draw(){
   // THE ACTION, not just where it ended. A wick that grazed the edge and a
   // candle that drove a third of the way in both "closed above".
   const chip = document.getElementById("chip");
-  chip.textContent = close.forming ? `so far · ${close.action}` : close.action;
+  chip.textContent = close.action;
 
-  if(close.forming){
-    chip.classList.add("is-forming");
-  } else {
-    if(close.did !== "inside") chip.classList.add("is-out");
-    if(close.did === "missed") chip.classList.add("is-miss");
-  }
+  if(close.did !== "inside") chip.classList.add("is-out");
+  if(close.did === "missed") chip.classList.add("is-miss");
 
   document.getElementById("stamp").textContent = close.stamp;
   document.getElementById("what").textContent =
-    close.forming ? `${close.interval} candle · still running` : `${close.interval} close`;
+    `${close.interval} close`;
   document.getElementById("say").textContent = close.note;
-
-  if(close.forming){
-    document.getElementById("what-it-is").textContent =
-      "Still running — not a close, and never a signal";
-  }
 
   document.getElementById("c").textContent = fmt(close.close);
   document.getElementById("o").textContent = fmt(close.open);
@@ -195,7 +186,7 @@ function zone(){
     add("line", {class:"wick is-in", x1:CANDLE_X, y1:y(inTop), x2:CANDLE_X, y2:y(inBot)});
 
   const bodyTop = Math.min(y(close.open), y(close.close));
-  add("rect", {class:"candle" + (close.forming ? " is-forming" : ""),
+  add("rect", {class:"candle",
                x:CANDLE_X - 13, y:bodyTop, width:26,
                height:Math.max(Math.abs(y(close.close) - y(close.open)), 3), rx:2});
 

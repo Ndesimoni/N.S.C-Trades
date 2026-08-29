@@ -17,7 +17,7 @@ first — it is the fastest tell.
 **Code that asks "am I backtesting?"** This breaks the one promise the whole
 design exists to make.
 
-**Using data from the future.** A swing used before it was confirmed. An
+**Using data from the future.** A candle read before it closed. An
 unfinished candle read. Reading candle 101 while analysing candle 100. A
 bigger-timeframe candle handed out before its period ended.
 

@@ -59,10 +59,6 @@
   .chip.is-miss{background:var(--mute);border-color:var(--mute)}
   /* STILL RUNNING. Hollow, and in the quiet grey — nothing on this card is
      settled, and it must not carry the weight of a finished one. */
-  .chip.is-forming{
-    background:transparent;border-color:var(--mute);color:var(--mute);
-    border-style:dashed;
-  }
   .top__stamp{font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--mute)}
 
 
@@ -118,9 +114,6 @@
     font-family:var(--data);font-size:11px;letter-spacing:.04em;fill:var(--mute);
   }
   .zone .candle{fill:var(--dir);stroke:rgba(0,0,0,.2);stroke-width:1}
-  /* A candle that has not finished is drawn hollow, the way an unfilled order
-     is. The shape is honest; the fill would claim it is done. */
-  .zone .candle.is-forming{fill:none;stroke:var(--dir);stroke-width:2.5}
   .zone .lead{stroke:var(--lead);stroke-width:1.2;fill:none}
   .zone .lead.is-close{stroke:var(--brass);stroke-width:1.6;opacity:.85}
   .zone text{font-family:var(--data);font-size:13px;fill:var(--ink);font-variant-numeric:tabular-nums}

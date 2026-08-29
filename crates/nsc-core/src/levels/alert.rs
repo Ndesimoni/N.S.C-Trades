@@ -138,22 +138,9 @@ pub fn closed_caption(
     did: AtZone,
     was: Action,
     interval: &str,
-    forming: bool,
 ) -> String {
     let show = |value: Decimal| pretty(value, pair.digits);
     let each = timeframe_name(interval);
-
-    if forming {
-        return format!(
-            "⏳ <b>{}</b> — the {} candle is still running. So far it has <b>{}</b> your {} zone at {}. Price is {}.",
-            pair.symbol,
-            each,
-            happening(was, did),
-            band.timeframe.name(),
-            show(band.price),
-            show(bar.close),
-        );
-    }
 
     format!(
         "🕯 <b>{}</b> — the {} candle <b>{}</b> your {} zone at {}. It closed at {}.",

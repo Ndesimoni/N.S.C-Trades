@@ -40,6 +40,27 @@ min_first_body = "0.10"
 # example is 2.5x.
 min_second_of_first = "1.5"
 
+# ── The least the ENGULFING candle may reach, in normal candles ─────────────
+#
+# ── SHAPE IS NOT SIZE, AND BOTH SETTINGS ABOVE ARE SHAPE ───────────────────
+#
+# They are shares of the FIRST candle. A tiny candle swallowing a tinier one
+# clears them both while nothing at all has happened.
+#
+# MEASURED 29 AUGUST 2026 over 270,000 candles: 39% OF ENGULFINGS REACHED LESS
+# THAN ONE NORMAL CANDLE, and the smallest reached 0.11 of one. The median is
+# 1.16, so this floor cuts a little under half.
+#
+# Same number as min_push_reach, because it is the same belief written once: a
+# real move is at least the size of an ordinary candle.
+#
+# REACH, AND DELIBERATELY NOT BODY. A reversal at a level has a rejection wick
+# by nature. His own AUD/USD trigger on 25 August 2026 reached 2.47 normal
+# candles with a body of 37% — a "mostly body" test would have thrown away the
+# exact candle he pointed at.
+# ───────────────────────────────────────────────────────────────────────────
+min_reach = "1.0"
+
 
 [harami]
 # The least the FIRST candle's body may be.
@@ -52,6 +73,19 @@ min_first_body = "0.50"
 #
 # Half. Bigger than that and it is not a pause, it is a second push.
 max_second_of_first = "0.50"
+
+# ── The least the FIRST, BIG candle may reach, in normal candles ────────────
+#
+# THE BIG ONE HAS TO BE BIG. min_first_body only says it is mostly body, which
+# a five-point candle in a dead hour also is.
+#
+# Measured 29 August 2026: 38% of haramis had a first candle reaching less than
+# one normal candle. Median 1.18.
+#
+# THE SMALL CANDLE IS LEFT ALONE. Its smallness is the whole pattern — putting
+# a floor under it would ask the pause not to be a pause.
+# ───────────────────────────────────────────────────────────────────────────
+min_first_reach = "1.0"
 
 
 [tweezers]
@@ -130,3 +164,90 @@ min_body = "0.50"
 # A long wick against the move means they were pushed back and came again.
 # That is a fight, not a march.
 max_wick_against = "0.25"
+
+
+# ── nsc-bull and nsc-bear: a push, then a pin that gets refused ────────────
+#
+# HIS OWN, AND THE ONLY BLOCK IN THIS FILE THAT IS. Everything above is a
+# borrowed textbook default waiting to be replaced. This was settled with him
+# on 21 August 2026, against real candles on five pairs.
+#
+# Two candles. A PUSH that shows one side winning, then a PIN whose long tail
+# points AGAINST the push -- a pullback that failed.
+#
+# THE TAIL MUST OPPOSE THE PUSH. A tail the same way as the push is the push
+# itself being refused, and he does not trade it. Ignore the direction and this
+# fires on twice as much and means half as much.
+#
+# ── THE PAIR DOES NOT MATTER AND NEITHER DOES THE TIMEFRAME ───────────────
+#
+# His instruction, 22 August 2026, and it is also why the numbers below are
+# written the way they are.
+#
+# A setup is a SHAPE. The same shape on the euro's 30-minute and on gold's
+# weekly is the same setup. Nothing here asks which pair it came off or which
+# timeframe -- and nothing here ever should.
+#
+# That is what every threshold below being a SHARE or an ATR MULTIPLE buys you.
+# Write one of them in points instead and it would work on the pair it was set
+# on and quietly stop working on every other one. Measured on 21 August across
+# all five pairs and five timeframes, these numbers found the pattern on every
+# pair and every timeframe without a single per-pair adjustment.
+# ───────────────────────────────────────────────────────────────────────────
+
+[push]
+# The least the PUSH candle's body may be, as a share of its own candle.
+#
+# Same 0.60 that config/candles.toml calls a strong body -- marubozu, closing
+# marubozu, belt-hold and long body all clear it.
+min_push_body = "0.60"
+
+# The least the PUSH candle may REACH, in normal candles.
+#
+# ── SHAPE IS NOT SIZE, AND THIS IS THE HALF THAT GETS FORGOTTEN ───────────
+#
+# "Mostly body" says one side won. It says nothing about whether anything
+# actually happened. A quiet candle in a dead hour can be 90% body and move
+# less than a fifth of a normal candle.
+#
+# Measured on 21 August 2026 across all five pairs and five timeframes: with no
+# size test at all, 146 pairs matched -- and 67 of them, 45%, had a push
+# SMALLER than a normal candle. The smallest reached 0.2x. Adding this floor
+# cut 146 to 82 and every one that survived is a real move.
+min_push_reach = "1.0"
+
+# The most of its own candle the PIN's body may take.
+#
+# A THIRD IS THE CEILING AND IT IS ARITHMETIC, NOT TASTE. With no nose the body
+# and the tail ARE the whole candle, so a tail of twice the body leaves the
+# body at most 1/3. Anything above this is refused by the tail test anyway.
+#
+# 0.3334 rather than 0.3333 so the exact one-third candle gets in. That is not
+# a rounding nicety: on a five-decimal pair the range is a whole number of
+# ticks, so whenever it lands on 3n ticks with a body of n the body falls on
+# EXACTLY one third. Four real pins did precisely that in one week.
+max_pin_body = "0.3334"
+
+# The most the PIN's whole range may be, as a share of the PUSH's range.
+#
+# A PULLBACK THAT MOVED FURTHER THAN THE PUSH IS NOT A PULLBACK. The pin is
+# price trying to take the move back and failing. If it covers more ground than
+# the move it is answering, the push was the smaller event.
+#
+# THIS IS A SIZE TEST AND NOT AN ENGULFING ONE, deliberately. The pin may still
+# poke past the push's high or low. On a continuation setup, price making a new
+# extreme and being thrown straight back is the strength of the thing, not a
+# fault -- and insisting the push COVER the pin refuses gold's daily on 20
+# August 2026, the clearest example he has, over a high 16.70 points too far.
+max_pin_of_push = "1.0"
+
+# How many times its own body the PIN's tail must be. His rule, in his words:
+# "a long tail which is minimum twice the candle body".
+min_tail_of_body = "2.0"
+
+# The most the wick at the PIN's OTHER end may take of its candle.
+#
+# WHAT KEEPS INDECISION OUT. A small body with real wick on BOTH sides is a
+# spinning top -- nobody won -- and that means close to the opposite of a
+# refusal. He struck those out by name twice while this was being drawn.
+max_nose = "0.25"

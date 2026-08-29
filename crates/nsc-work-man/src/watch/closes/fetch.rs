@@ -25,9 +25,19 @@ pub(super) const REPORT_ON: [Interval; 2] = [Interval::H1, Interval::H4];
 //     Interval::H4,
 // ];
 
-/// How many candles to ask for. Three is enough to find a finished one whether
-/// or not the newest is still forming.
-const FEW: usize = 3;
+/// How many candles to ask for.
+///
+/// **Three would do for rung 2** — enough to find a finished one whether or
+/// not the newest is still forming.
+///
+/// **Rung 3 needs a normal candle, and that is an average over fourteen.** A
+/// shape is judged against how big a normal candle was AT THAT MOMENT, so the
+/// candles it is averaged from have to come back in the same request.
+///
+/// Twenty costs nothing: the same request, reaching further back. IBKR paces
+/// on the NUMBER of requests in ten minutes, not on how many bars each asks
+/// for — so this is free and asking twice would not have been.
+const FEW: usize = 20;
 
 /// The last few candles, newest first.
 ///

@@ -1,0 +1,283 @@
+<title>Push Then Pin on Gold and Aussie</title>
+<style>
+  :root {
+    --ground:#F5F6F9; --panel:#FFFFFF; --sunk:#ECEFF5;
+    --ink:#14181F; --ink-soft:#5B6472; --faint:#8A93A2; --rule:#DDE1E9;
+    --good:#1E3FA8; --bad:#A2665C;
+    --up:#3C7A5A; --down:#A2665C; --wick:#8A93A2;
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans:  ui-sans-serif, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono:  ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --ground:#0E1116; --panel:#161A21; --sunk:#1E242E;
+    --ink:#E8EBF1; --ink-soft:#98A1B0; --faint:#6B7686; --rule:#262C36;
+    --good:#7C9BFF; --bad:#C98B7F;
+    --up:#5FA982; --down:#C98B7F; --wick:#6B7686; } }
+  :root[data-theme="dark"] {
+    --ground:#0E1116; --panel:#161A21; --sunk:#1E242E;
+    --ink:#E8EBF1; --ink-soft:#98A1B0; --faint:#6B7686; --rule:#262C36;
+    --good:#7C9BFF; --bad:#C98B7F;
+    --up:#5FA982; --down:#C98B7F; --wick:#6B7686; }
+
+  * { box-sizing:border-box; }
+  body { background:var(--ground); color:var(--ink); font-family:var(--sans);
+         line-height:1.6; margin:0; padding:2.5rem 1.25rem 5rem; }
+  .wrap { max-width:1040px; margin:0 auto; display:flex; flex-direction:column; gap:2rem; }
+  h1 { font-family:var(--serif); font-weight:600; font-size:clamp(1.7rem,4vw,2.5rem);
+       line-height:1.15; margin:0 0 .5rem; text-wrap:balance; letter-spacing:-.01em; }
+  h2 { font-family:var(--serif); font-weight:600; font-size:1.25rem; margin:0 0 .6rem; }
+  h3 { font-family:var(--sans); font-size:.9rem; font-weight:600; margin:0; color:var(--ink); }
+  p { margin:0 0 .9rem; max-width:66ch; color:var(--ink-soft); }
+  p strong, li strong { color:var(--ink); font-weight:600; }
+  .lede { font-size:1.06rem; max-width:64ch; }
+  .eyebrow { font-family:var(--mono); font-size:.72rem; letter-spacing:.14em;
+             text-transform:uppercase; color:var(--faint); margin:0 0 .7rem; }
+  .card { background:var(--panel); border:1px solid var(--rule); border-radius:10px;
+          padding:1.5rem 1.5rem 1.25rem; }
+  .real { font-family:var(--mono); font-size:.78rem; color:var(--ink-soft);
+          background:var(--sunk); border:1px solid var(--rule);
+          border-left:3px solid var(--bad); border-radius:6px; padding:.75rem 1rem; }
+  .real b { color:var(--ink); }
+  svg { display:block; width:100%; height:auto; }
+
+  .grid2 { display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:1.1rem; }
+  .cell { background:var(--sunk); border:1px solid var(--rule); border-radius:9px;
+          padding:.9rem .9rem .8rem; display:flex; flex-direction:column; gap:.3rem; }
+  .tag { font-family:var(--mono); font-size:.68rem; letter-spacing:.1em;
+         text-transform:uppercase; color:var(--faint); }
+  .nm { font-family:var(--mono); font-size:.76rem; font-weight:600; }
+  .nm.ok { color:var(--up); } .nm.no { color:var(--bad); }
+  .why { font-size:.84rem; color:var(--ink-soft); margin:.15rem 0 0; }
+  .ratio { font-family:var(--mono); font-size:.72rem; color:var(--faint);
+           font-variant-numeric:tabular-nums; }
+  ul { margin:0 0 .9rem; padding-left:1.1rem; color:var(--ink-soft); max-width:66ch; }
+  li { margin-bottom:.4rem; }
+  code { font-family:var(--mono); font-size:.86em; background:var(--sunk);
+         padding:.1em .35em; border-radius:3px; color:var(--ink); }
+  .note { border-left:3px solid var(--good); background:var(--sunk); border-radius:6px;
+          padding:.85rem 1rem; font-size:.9rem; color:var(--ink-soft); }
+  .note b { color:var(--ink); }
+  .warn { border-left:3px solid var(--bad); background:var(--sunk); border-radius:6px;
+          padding:.85rem 1rem; font-size:.9rem; color:var(--ink-soft); }
+  .warn b { color:var(--ink); }
+
+  .scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:.85rem; margin:.6rem 0; }
+  th,td { text-align:left; padding:.4rem .45rem; border-bottom:1px solid var(--rule); }
+  th { font-family:var(--mono); font-size:.66rem; letter-spacing:.09em;
+       text-transform:uppercase; color:var(--faint); font-weight:500; }
+  td.hit { font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right;
+           color:var(--ink); }
+
+  .pair { background:var(--panel); border:1px solid var(--rule); border-radius:10px;
+          padding:1.4rem; display:flex; flex-direction:column; gap:.9rem; }
+  .pairhead { display:flex; align-items:baseline; justify-content:space-between;
+              gap:1rem; flex-wrap:wrap; }
+  .pairhead h2 { margin:0; }
+  .verdict { font-family:var(--mono); font-size:.7rem; letter-spacing:.1em;
+             text-transform:uppercase; padding:.2rem .55rem; border-radius:99px;
+             border:1px solid var(--rule); color:var(--faint); background:var(--sunk); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:1rem; }
+  .stats div span { display:block; font-family:var(--mono); font-size:.66rem;
+                    letter-spacing:.1em; text-transform:uppercase; color:var(--faint);
+                    margin-bottom:.15rem; }
+  .big { font-family:var(--mono); font-size:1.55rem; font-weight:600; color:var(--ink);
+         font-variant-numeric:tabular-nums; line-height:1.1; }
+  .big.flat { color:var(--faint); }
+  .twocol { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:1.4rem; }
+  hr { border:0; border-top:1px solid var(--rule); margin:0; }
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">nsc_trades · docs/diagrams</p>
+  <h1>Push then pin, on gold and the Aussie</h1>
+  <p class="lede">Your two-candle setup — a push, then a pin whose tail points
+  <em>against</em> it. The code swept both pairs across five timeframes and found
+  <strong>19 on each</strong>. This page shows what it found and what price did next.</p>
+</header>
+
+<div class="real">
+  <b>REAL CANDLES.</b> Interactive Brokers, swept 21–22 August 2026 across
+  30m · 1h · 4h · 1d · 1w, in 6,725 finished candles. Every one was judged against
+  the normal candle size <b>at the moment it printed</b>, never today's. The 38 on
+  gold and the Aussie are below.
+</div>
+
+<div class="warn">
+  <b>This is a measurement, not a backtest.</b> It uses closes only — no spread,
+  no slippage, and no stop anywhere. And <b>none of these had a level under
+  them</b>. A pin bar only means something at a level; that is the part this
+  sweep does not know about.
+</div>
+
+<section class="card">
+  <p class="eyebrow">What the code looks for</p>
+  <h2>Two candles, and the tail decides</h2>
+  <p><strong>Candle 1 — the push.</strong> Mostly body, so one side plainly won,
+  <strong>and at least the size of a normal candle</strong>. Shape alone is not
+  momentum: a quiet candle in a dead hour can be nearly all body and mean nothing.</p>
+  <p><strong>Candle 2 — the pin.</strong> A tail at least twice its own body,
+  pointing <strong>against</strong> the push, with little or nothing at the other
+  end — and no bigger than the push, because a pullback that covered more ground
+  than the move it answers is not a pullback.</p>
+  <div class="note"><b>The tail must oppose the push, and that is the whole rule.</b>
+  A tail pointing the same way is the push being refused — a different animal.
+  Ignore which way it points and this fires on twice as much and means half as much.</div>
+</section>
+
+<hr>
+
+<div class="twocol">
+
+  <section class="pair">
+    <div class="pairhead">
+      <h2>Gold · XAU/USD</h2>
+      <span class="verdict">did not continue</span>
+    </div>
+    <div class="stats">
+      <div><span>found</span><p class="big">19</p></div>
+      <div><span>reached +1 first</span><p class="big">47%</p></div>
+      <div><span>median at 10</span><p class="big flat">+0.08</p></div>
+    </div>
+    <p>Forty-seven percent is a coin flip. The median is <strong>+0.08 of a normal
+    candle</strong> ten candles later — near enough to nothing that it is the
+    market, not the pattern. It ran 1.71 for and 1.71 against: exactly even.</p>
+    <div class="grid2">
+      <div class="cell"><p class="tag">XAU/USD · 1d</p><h3>2026-08-20</h3>
+        <svg viewBox="0 0 300 210" role="img" aria-label="A long green push, then a small pin with a long upper tail."><line x1="90.0" y1="39.1" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="43.4" width="54" height="113.4" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="28.2" x2="210.0" y2="87.3" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="41.5" width="54" height="3.2" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg>
+        <p class="nm ok">nsc-bull</p>
+        <p class="ratio">long body · reach 2.1x · tail 13.3x</p>
+        <p class="why"><b>The one off your own screenshot.</b></p></div>
+      <div class="cell"><p class="tag">XAU/USD · 4h</p><h3>2026-08-20 16:00</h3>
+        <svg viewBox="0 0 300 210" role="img" aria-label="A green push, then a small pin with a tail below."><line x1="90.0" y1="28.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="58.5" width="54" height="85.5" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="42.0" x2="210.0" y2="88.0" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="47.3" width="54" height="11.2" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/></svg>
+        <p class="nm ok">nsc-bull</p>
+        <p class="ratio">long body · reach 2.6x · tail 2.6x</p></div>
+      <div class="cell"><p class="tag">XAU/USD · 1h</p><h3>2026-08-20 07:00</h3>
+        <svg viewBox="0 0 300 210" role="img" aria-label="A green push, then a pin with a long lower tail."><line x1="90.0" y1="28.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="48.2" width="54" height="110.0" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="43.8" x2="210.0" y2="139.6" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="48.2" width="54" height="24.6" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg>
+        <p class="nm ok">nsc-bull</p>
+        <p class="ratio">long body · reach 1.0x · tail 2.7x</p></div>
+      <div class="cell"><p class="tag">XAU/USD · 1d</p><h3>2026-01-02</h3>
+        <svg viewBox="0 0 300 210" role="img" aria-label="A long red push down, then a tiny pin with a tail above."><line x1="90.0" y1="28.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="28.2" width="54" height="129.3" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="134.9" x2="210.0" y2="160.2" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="149.7" width="54" height="4.5" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg>
+        <p class="nm ok">nsc-bear</p>
+        <p class="ratio">reach 6.0x · tail 3.3x body</p></div>
+    </div>
+  </section>
+
+  <section class="pair">
+    <div class="pairhead">
+      <h2>The Aussie · AUD/USD</h2>
+      <span class="verdict">did not continue</span>
+    </div>
+    <div class="stats">
+      <div><span>found</span><p class="big">19</p></div>
+      <div><span>reached +1 first</span><p class="big">36%</p></div>
+      <div><span>median at 10</span><p class="big flat">−0.02</p></div>
+    </div>
+    <p>Worse than gold and worse than a coin flip. Thirty-six percent reached a
+    normal candle in profit before losing one. It ran <strong>1.22 for and 1.77
+    against</strong> — when it went wrong it went further wrong than it ever went
+    right.</p>
+    <div class="grid2">
+      <div class="cell"><p class="tag">AUD/USD · 30m</p><h3>2026-08-21 06:00</h3>
+        <svg viewBox="0 0 300 210" role="img" aria-label="A green push, then a pin with a long lower tail."><line x1="90.0" y1="28.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="47.1" width="54" height="103.9" rx="1.5" fill="var(--up)" fill-opacity=".28" stroke="var(--up)" stroke-width="2"/><line x1="210.0" y1="47.1" x2="210.0" y2="132.1" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="47.1" width="54" height="18.9" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg>
+        <p class="nm ok">nsc-bull</p>
+        <p class="ratio">long body · reach 1.5x · tail 3.5x</p></div>
+      <div class="cell"><p class="tag">AUD/USD · 30m</p><h3>2026-08-20 05:00</h3>
+        <svg viewBox="0 0 300 210" role="img" aria-label="A long red push down, then a pin with a tail above."><line x1="90.0" y1="28.2" x2="90.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="63.0" y="28.2" width="54" height="121.4" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/><line x1="210.0" y1="109.1" x2="210.0" y2="169.8" stroke="var(--wick)" stroke-width="2"/><rect x="183.0" y="149.6" width="54" height="20.2" rx="1.5" fill="var(--down)" fill-opacity=".28" stroke="var(--down)" stroke-width="2"/></svg>
+        <p class="nm ok">nsc-bear</p>
+        <p class="ratio">belt-hold · reach 1.0x · tail 2.0x</p></div>
+    </div>
+    <div class="note">Both Aussie examples printed on the <b>30-minute</b>. The
+    setup is a shape — the pair and the timeframe never change what it is. That is
+    why the same two rules found it on gold's daily and the Aussie's half-hour with
+    no adjustment at all.</div>
+  </section>
+
+</div>
+
+<section class="card">
+  <p class="eyebrow">Side by side</p>
+  <h2>Neither pair carried on</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>slice</th><th>n</th><th>reached +1 first</th><th>median at 10</th><th>ran for</th><th>ran against</th></tr></thead>
+      <tbody>
+        <tr><td><b>XAU/USD</b></td><td class="hit">19</td><td class="hit">47%</td><td class="hit">+0.08</td><td class="hit">1.71</td><td class="hit">1.71</td></tr>
+        <tr><td>USD/CAD</td><td class="hit">15</td><td class="hit">42%</td><td class="hit">−0.73</td><td class="hit">1.09</td><td class="hit">1.61</td></tr>
+        <tr><td><b>AUD/USD</b></td><td class="hit">19</td><td class="hit">36%</td><td class="hit">−0.02</td><td class="hit">1.22</td><td class="hit">1.77</td></tr>
+        <tr><td>EUR/USD</td><td class="hit">15</td><td class="hit">35%</td><td class="hit">−0.96</td><td class="hit">0.71</td><td class="hit">1.57</td></tr>
+        <tr><td>GBP/USD</td><td class="hit">12</td><td class="hit">22%</td><td class="hit">−0.01</td><td class="hit">0.87</td><td class="hit">1.61</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Gold is the best of the five and it is still a coin flip.</strong> It is
+  the only pair whose median is on the right side of nought, and it is +0.08 —
+  eight hundredths of a normal candle. Read the direction of travel, not the
+  decimals; every cell here is small.</p>
+</section>
+
+<section class="card">
+  <p class="eyebrow">The finding that argues against it</p>
+  <h2>The bigger the push, the worse it did</h2>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>push size</th><th>n</th><th>reached +1 first</th><th>median at 10</th></tr></thead>
+      <tbody>
+        <tr><td>1.0–1.5x normal</td><td class="hit">39</td><td class="hit">43%</td><td class="hit">−0.02</td></tr>
+        <tr><td>1.5–2.0x normal</td><td class="hit">26</td><td class="hit">41%</td><td class="hit">−0.38</td></tr>
+        <tr><td>2.0x and over</td><td class="hit">15</td><td class="hit">21%</td><td class="hit">−1.46</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>If this were momentum carrying on, a bigger push should have helped.
+  It did the opposite</strong> — which is what you would expect if a hard push
+  meeting a rejection is exhaustion rather than a pause.</p>
+</section>
+
+<section class="card">
+  <p class="eyebrow">Read this before acting on the page</p>
+  <h2>Three things this cannot tell you</h2>
+  <ul>
+    <li><strong>It is not a live read.</strong> These are the candles swept on
+    21–22 August. Nothing here says what gold or the Aussie is doing right now —
+    that needs TWS logged in and <code>--bin read</code>.</li>
+    <li><strong>Trend is not built.</strong> Swing highs and lows are found, and
+    trend would be counted off them — but nothing in the code names a direction
+    yet. So no page and no answer here says gold is bullish or bearish.</li>
+    <li><strong>No level was under any of these.</strong> That is the missing
+    half. A pin bar in open space is a shape; a pin bar at a level you drew is the
+    setup. This sweep did not know where your levels were.</li>
+  </ul>
+  <div class="note"><b>The sample is under the hundred this project's own backtest
+  rule asks for.</b> The direction of these numbers is clear enough to act on, but
+  the precision is not.</div>
+</section>
+
+<section class="card">
+  <p class="eyebrow">Open — found while drawing this page</p>
+  <h2>The counts in the first sweep do not reconcile</h2>
+  <p>The same measurement is written down three ways, and they disagree:</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>where</th><th>says</th></tr></thead>
+      <tbody>
+        <tr><td><code>README.md</code> and the sweep header</td><td class="hit">82 found · 45 bull · 37 bear</td></tr>
+        <tr><td>the breakdown table on the same page</td><td class="hit">80 · 43 bull · 37 bear</td></tr>
+        <tr><td>the outcome line, and <code>PROGRESS.md</code></td><td class="hit">29 of 75 followed</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The per-pair and per-timeframe rows both sum to <strong>80</strong>, so that is
+  what the outcome figures on this page rest on. The likely reason for a smaller
+  followed count is that the newest setups had fewer than ten candles after them —
+  <strong>but nobody has checked that, so it is a guess and it is written here as
+  one.</strong></p>
+  <div class="warn"><b>It does not change the direction of anything.</b> 29 of 75 is
+  39%, 30 of 80 is 38%, and both are a long way under a coin flip. It needs settling
+  because an unreconciled count is how a real mistake hides.</div>
+</section>
+
+</div>

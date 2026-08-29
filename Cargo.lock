@@ -844,16 +844,30 @@ dependencies = [
  "chrono",
  "ibapi",
  "nsc-core",
+ "reqwest",
  "rust_decimal",
+ "serde",
+ "serde_json",
  "thiserror 2.0.20",
  "tokio",
+]
+
+[[package]]
+name = "nsc-strategy"
+version = "0.1.0"
+dependencies = [
+ "nsc-core",
+ "nsc-ta",
+ "rust_decimal",
+ "serde",
+ "thiserror 2.0.20",
+ "toml",
 ]
 
 [[package]]
 name = "nsc-ta"
 version = "0.1.0"
 dependencies = [
- "chrono",
  "nsc-core",
  "rust_decimal",
  "serde",
@@ -871,6 +885,7 @@ dependencies = [
  "image",
  "nsc-core",
  "nsc-data",
+ "nsc-strategy",
  "nsc-ta",
  "reqwest",
  "rust_decimal",

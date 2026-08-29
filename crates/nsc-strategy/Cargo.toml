@@ -1,0 +1,35 @@
+# ── nsc-strategy ────────────────────────────────────────────────────────────
+#
+# THE RULES ARE APPLIED HERE, AND ONLY HERE. The backtester and the live bot
+# both come through this crate; neither has a second copy.
+#
+# IT CANNOT REACH ANYTHING, and not by discipline. There is no tokio, no
+# reqwest, no sqlx and no clock in this file, so the compiler refuses. That is
+# what lets a backtest run the SAME rules the bot runs.
+#
+# If this file ever gains one of those, the change is wrong. The moment the
+# rules can fetch something, a backtest stops describing the bot — and it does
+# not look broken when that happens. It looks BETTER.
+# ───────────────────────────────────────────────────────────────────────────
+[package]
+name              = "nsc-strategy"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+
+# What the bot knows — a candle, a level, a band.
+nsc-core = { workspace = true }
+
+# Reading a chart. Shapes are named there and judged here.
+nsc-ta = { workspace = true }
+
+# Prices. Never f64.
+rust_decimal = { workspace = true }
+
+# His settings, out of config/strategy.toml.
+serde = { workspace = true }
+toml  = { workspace = true }
+
+# A named trouble the caller can act on.
+thiserror = { workspace = true }

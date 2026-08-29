@@ -24,6 +24,13 @@ pub(super) const DROP: &str = "− Take one off";
 pub(super) const CHART: &str = "📈 Chart";
 pub(super) const STOP: &str = "✗ Stop watching";
 
+/// The two halves of /news.
+///
+/// **Today shows the whole day, the week shows what is left of it.** Different
+/// questions: the first is "what am I in for", the second is "what is coming".
+pub(super) const TODAY: &str = "📅 Today";
+pub(super) const WEEK: &str = "🗓 This week";
+
 /// Backing out.
 ///
 /// **Every keyboard carries it.** Without one the only ways out of a flow are

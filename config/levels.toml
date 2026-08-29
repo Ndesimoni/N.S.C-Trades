@@ -77,3 +77,22 @@ approach_pips = 4.0
 #
 # 0.25 on his gold weekly band is about 19 points in.
 kiss_depth = 0.25
+
+
+# ── Which closes are worth a card ───────────────────────────────────────────
+#
+# ONLY WHEN THE CANDLE FINISHED OUTSIDE THE BAND. His call, 26 August 2026.
+#
+# A candle that touched the zone and settled INSIDE it is the most common of
+# the three outcomes and the one that says least — price is there, undecided,
+# and the approach alert already told him that. A card as well is the same news
+# twice, and a message he stops opening is a message he misses when it matters.
+#
+# IT DOES NOT LOSE THE REJECTION, which is the thing that mattered. A wick into
+# the zone that closed back out finishes ABOVE or BELOW the band, so it still
+# sends — "a wick counts" is untouched.
+#
+# Set it to false to hear about every candle that touched a zone, however it
+# ended. That is the old behaviour.
+# ───────────────────────────────────────────────────────────────────────────
+only_breaks = true

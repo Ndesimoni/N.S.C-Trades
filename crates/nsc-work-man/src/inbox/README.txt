@@ -143,9 +143,18 @@ THE FILES
                 folder, with its own README. The
                 flow that ADDS levels lives here.
 
-  asked.rs      /help and /status — the two things he asks outright, plus
+  asked.rs      /help and /status — two of the things he asks outright, plus
                 registering the commands with Telegram so they appear in the
                 tap-list beside the message box.
+
+  coming.rs     /news — what is on the economic calendar. Two buttons:
+                TODAY shows the whole day including what has already printed,
+                THIS WEEK shows what is left of it.
+
+                IT READS THE SAME config/news.toml as the warnings that arrive
+                on their own, so the list he pulls up and the cards that come
+                unasked can never disagree about what counts.
+
 
   one.rs        One pair's page — what it holds, and what he can do to it.
 

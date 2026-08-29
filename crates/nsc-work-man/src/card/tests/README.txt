@@ -1,7 +1,7 @@
 TESTS FOR THE CARDS
 ===================
 
-Fourteen tests, and every one of them exists because something actually went
+Seventeen tests, and every one of them exists because something actually went
 wrong. None of them draw a card -- that needs Chrome, and Chrome is not on a
 build machine.
 
@@ -15,6 +15,16 @@ THE FILES
                reading the FIRST --card-height found meant a card could never
                override the shared one. Last wins now, which is what a browser
                does.
+
+  growing.rs   A card that grows a row per release, and the height Chrome is
+               asked for.
+
+               The bug: the news card's row constant was copied from the
+               heartbeat, whose rows are one line where these are two. Chrome
+               shoots a WINDOW, not a page, so the fourth release was simply
+               cut off -- a card headed "4 releases" with three on it, and
+               nothing failed. The heights are pinned in news.css now and this
+               reads that file to check the two still agree.
 
   words.rs     Rounding on the way out, and the line that goes under the
                picture.

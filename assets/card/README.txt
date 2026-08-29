@@ -64,20 +64,24 @@ THE FILES
                 numbers in a message have to be compared in his head; a band
                 with a dot on it does not.
 
-  close.html    A CANDLE AT ONE OF HIS ZONES. The chip names WHAT IT DID —
-                kissed it, pushed back, closed inside, cut through — and the
-                drawing shows it against the band.
+  close.html    A CANDLE THAT FINISHED OUTSIDE ONE OF HIS ZONES. The chip
+                names WHAT IT DID — kissed it, pushed back, cut through — and
+                the drawing shows it against the band.
 
-                IT DRAWS TWO DIFFERENT THINGS: a candle that has finished, and
-                one still running twenty minutes in. The second is the only
-                place in this project that reads a candle early, so the card
-                cannot be allowed to look final:
+                ONLY WHEN IT CLOSED OUTSIDE THE BAND, since 26 August 2026. A
+                candle that settled inside the zone says nothing he does not
+                already know from the approach alert. The REJECTION survives:
+                a wick into the zone that closed back out finishes above or
+                below the band. `only_breaks` in config/levels.toml.
 
-                    the chip goes hollow and dashed, and reads "so far"
-                    the candle body is drawn HOLLOW, like an unfilled order
-                    the footer says "not a close, and never a signal"
+                IT USED TO DRAW TWO THINGS — a finished candle, and one still
+                running twenty minutes in, with a hollow chip and a hollow
+                body so it could not be mistaken for a close.
 
-                Where it ENDS is the whole point, and it has not ended.
+                That second card went on 27 August 2026, and the hollow
+                styling with it. NOTHING IN THIS PROJECT READS AN UNFINISHED
+                CANDLE ANY MORE, so there is no longer a case to draw
+                differently.
 
   heartbeat.html  THE ONLY CARD THAT SAYS NOTHING IS WRONG. Sent on a day
                 nothing else was, at 07:00 UTC. Every pair, its levels as
@@ -87,6 +91,72 @@ THE FILES
                 The dots earn their place: a pair that quietly lost its daily
                 levels shows up as a missing blue dot, where a count of 16
                 would still look fine.
+
+                ITS HEIGHT IS WORKED OUT, not typed — see below.
+
+  setup.html    RUNG 3 -- A SHAPE HE TRADES, AT A LEVEL HE DREW. The two
+                candles drawn on the band, and the one sentence that explains
+                them.
+
+                THE SENTENCE IS WRITTEN BY nsc-strategy, not by the card. If
+                the rules cannot write it in one line, the rules are too loose
+                -- that is a test of the rules and it belongs beside them.
+
+                THE BAND AND THE CANDLES SHARE ONE SCALE. Drawn separately
+                they would agree in the numbers and disagree in the picture,
+                and a picture with a price on it is believed exactly like a
+                number.
+
+                THE viewBox AND THE CSS BOX ARE THE SAME SHAPE. They disagreed
+                once and the chart floated in a field of white, drawn smaller
+                than it should have been.
+
+                IT NEVER SAYS BUY. Where the stop goes has not been settled, so
+                the footer says what it is: a reading, not a trade.
+
+
+  calendar.html WHAT IS ON THE CALENDAR — today, or the rest of the week.
+                Sent when he asks with /news, never on its own.
+
+                A LIST, NOT A RELEASE. Every row carries its own time, and the
+                forecast and previous are left off: eighteen rows of numbers
+                is a spreadsheet, and he is reading it on a phone.
+
+                The week grows a heading per day. Today does not -- a heading
+                over a list that is all one day is a line saying nothing.
+
+                NOTHING IS LEFT OUT -- EVERY ROW SAYS WHICH SIDE OF NOW IT
+                IS ON. Gone ones read PASSED and are greyed; the rest carry
+                how long they have: in 45m, in 10h 53m, in 3d 10h.
+
+                A week with its first three days missing does not read as a
+                week, it reads as a quiet one. And "nothing left today" and
+                "three already gone" are different afternoons.
+
+                The header counts both halves -- "1 gone / 17 to come" --
+                because "18 releases" does not say whether the day is over.
+
+                THE COUNTDOWN IS NOT COLOURED. The stripe already carries
+                impact, and a second colour on the same row competes with it.
+
+                ITS HEIGHT IS WORKED OUT, not typed — see below.
+
+  news.html     WHAT IS ABOUT TO PRINT ON THE ECONOMIC CALENDAR. Sent thirty
+                minutes ahead, so a level sitting in front of a rate decision
+                is not read like one on a quiet Thursday.
+
+                RED IS HIGH, ORANGE IS MEDIUM, YELLOW IS LOW -- and that is
+                FOREXFACTORY'S SPELLING, not a design choice. He reads that
+                calendar every day. Red meaning anything else here would make
+                him translate the card, every time, under time pressure.
+
+                The rule under the header takes the HEAVIEST rating on the
+                card, not the first one listed. One high and two mediums is a
+                high-impact card.
+
+                ONE CARD PER RELEASE, NOT PER LINE. Three Australian CPI
+                numbers print in the same second and share a card. Sent apart
+                they would buzz his phone three times for one event.
 
                 ITS HEIGHT IS WORKED OUT, not typed — see below.
 
@@ -117,21 +187,6 @@ THE FILES
                 not shout. He is not going to debug it, but "connection
                 refused" and "invalid API key" are different evenings.
 
-  readout.html  NOT SENT BY ANYTHING RIGHT NOW. Where price sat inside one
-                candle, drawn tall with leader lines out to High, Open, Close
-                and Low.
-
-                It was the caption card for the hourly message in step one,
-                and that message is gone — silence is the default. close.html
-                does the same job better, on a band.
-
-                Kept because the leader-line treatment was worked out here and
-                rung 3 may want it. If it is still unsent when rung 3 lands,
-                delete it. The candle drawn tall on
-                the left, with leader lines out to High, Open, Close and Low.
-                Sent when the detail is wanted, not every hour.
-
-  README.txt    This file.
 
 
 THEY ARE PIECES, NOT A SET
@@ -193,11 +248,24 @@ TWO THINGS THAT WILL CATCH YOU
      Change the design, change that number. It is measured by hand on every
      card but one, which is a known rough edge.
 
-     THE EXCEPTION IS heartbeat.html. It grows a row per pair, so it writes
-     `--card-height:/*__TALL__*/px` and Rust fills the number in. That works
-     because fill.rs reads the height AFTER the facts go in, and if the marker
-     is ever left unfilled the card FAILS rather than falling back on the
-     shared height and clipping the last pair off.
+     THREE EXCEPTIONS: heartbeat.html, news.html and calendar.html. They grow
+     a row each -- per pair, per release -- so they write `--card-height:/*__TALL__*/px` and
+     Rust fills the number in. That works because fill.rs reads the height
+     AFTER the facts go in, and if the marker is ever left unfilled the card
+     FAILS rather than falling back on the shared height and clipping the last
+     row off.
+
+     news.css AND calendar.css GO FURTHER AND PIN THEIR PARTS. The header, the row
+     and the footer are given fixed heights rather than being left to grow
+     with their content, and card/soon.rs adds those same numbers up.
+
+     That is there because it went wrong: the row constant had been copied
+     from heartbeat.html, whose rows are ONE line where these are two. Chrome
+     shoots a window, not a page, so the fourth release was simply cut off --
+     a card headed "4 releases" with three on it, and nothing failed. It reads
+     as a quieter week, not as a bug.
+
+     card/tests/growing.rs now reads news.css and checks the two still agree.
 
      style.css carries a shared one and every template gets it dropped in at
      the top. A card wanting its own puts it FURTHER DOWN, because the last

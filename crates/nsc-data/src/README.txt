@@ -13,12 +13,17 @@ WHAT THIS CRATE IS FOR
 
 THE FILES
 
-  lib.rs      The front door — two modules and nothing else.
+  lib.rs      The front door — three modules and nothing else.
 
   source/     WHAT THE BOT ASKS FOR. The trait every feed answers, what a
               timeframe is, and what a live price is.
 
   sources/    WHO ANSWERS. One folder per broker.
+
+  news/       THE ECONOMIC CALENDAR, and the one thing here that is not the
+              broker. IBKR's API carries news headlines but no macro calendar
+              at all, so "what is coming up" comes from ForexFactory's weekly
+              file instead.
 
   README.txt  This file.
 
@@ -47,6 +52,11 @@ THE FEED IS IBKR, AND ONLY IBKR
 
     - IBKR sends a bid and an ask, never a price. The middle is worked out in
       sources/ibkr/ticks/.
+
+    - IT HAS NO ECONOMIC CALENDAR. Six news calls, all of them headlines from
+      a provider, and a Wall Street Horizon feed of corporate earnings. No
+      rate decisions, no payrolls. That is why news/ exists and why it is the
+      only thing in this crate with a second company's address in it.
 
 
 IT IS A LIBRARY, SO IT USES thiserror

@@ -17,7 +17,6 @@ timezone = "America/New_York"
 silent_days = ["saturday", "sunday", "monday"]
 no_new_trades = ["friday"]
 settle_hours = 4
-look_in_minutes = 20
 heartbeat_at = "07:00"
 trouble_after_minutes = 5
 "#,

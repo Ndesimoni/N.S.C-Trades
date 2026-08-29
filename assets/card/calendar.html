@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>calendar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /*__STYLE__*/
+
+  /*__OWN__*/
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <p class="eyebrow">On the calendar</p>
+    <h1 id="heading"></h1>
+  </div>
+  <div class="top__right">
+    <b id="count"></b>
+    <span id="stamp"></span>
+  </div>
+</header>
+
+<section class="list" id="list"></section>
+
+<footer class="foot">
+  <span>High and medium only — the rest is the noise floor</span>
+  <span id="key"></span>
+</footer>
+
+<script>
+// Rust replaces this line. Already filtered, already sorted.
+const cal = /*__DAYS__*/;
+
+function draw(){
+  document.getElementById("heading").textContent = cal.heading;
+
+  // **Both halves, because they answer different questions.** "17 releases"
+  // does not say whether the day is over. "5 gone · 12 to come" does.
+  document.getElementById("count").textContent =
+    cal.gone === 0
+      ? `${cal.count} to come`
+      : cal.upcoming === 0
+        ? `${cal.gone} gone · none left`
+        : `${cal.gone} gone · ${cal.upcoming} to come`;
+
+  document.getElementById("stamp").textContent = cal.stamp;
+
+  // Only name the ratings actually on the card.
+  const seen = [...new Set(cal.events.map(e => e.colour))];
+  const names = {red:"high", orange:"medium", yellow:"low", grey:"other"};
+  document.getElementById("key").textContent =
+    ["red","orange","yellow","grey"].filter(c => seen.includes(c))
+      .map(c => names[c]).join(" · ");
+
+  const list = document.getElementById("list");
+
+  // A quiet day is a real answer and it has to look like one, not like a card
+  // that failed to fill in.
+  if(cal.events.length === 0){
+    const empty = document.createElement("div");
+    empty.className = "row empty";
+    empty.textContent = "Nothing that clears the bar.";
+    list.appendChild(empty);
+    return;
+  }
+
+  let lastDay = null;
+
+  for(const event of cal.events){
+    // ONLY THE WEEK GETS DAY HEADINGS. Today is one day, and a heading over a
+    // list that is all the same day is a line that says nothing.
+    if(cal.days && event.day !== lastDay){
+      const head = document.createElement("div");
+      head.className = "day";
+      head.textContent = event.day;
+      list.appendChild(head);
+      lastDay = event.day;
+    }
+
+    const row = document.createElement("div");
+    row.className = `row ${event.colour}${event.printed ? " done" : ""}`;
+
+    // EVERY ROW SAYS WHICH SIDE OF NOW IT IS ON. Passed ones are marked
+    // rather than dropped: "nothing left today" and "three already gone" are
+    // different afternoons, and only one of them is quiet.
+    //
+    // The ones still to come carry how long — that is the part he acts on.
+    const mark = event.printed
+      ? `<span class="mark mark--gone">passed</span>`
+      : `<span class="mark mark--soon">${event.away}</span>`;
+
+    row.innerHTML =
+      `<span class="chip"></span>` +
+      `<span class="time">${event.time}</span>` +
+      `<span class="ccy">${event.currency}</span>` +
+      `<span class="what">${event.title}</span>` +
+      mark;
+
+    list.appendChild(row);
+  }
+}
+
+draw();
+</script>
+</body>
+</html>

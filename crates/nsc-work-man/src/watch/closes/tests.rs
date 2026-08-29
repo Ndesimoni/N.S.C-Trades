@@ -25,7 +25,7 @@ fn about(band: &str, kind: Kind) -> Said {
 /// a full hour for news the bot was holding.
 #[test]
 fn a_second_zone_on_the_same_candle_is_still_owed_a_report() {
-    let mut closes = Closes::new();
+    let mut closes = Closes::new(None);
 
     closes.told.insert(
         about("4120", Kind::Closed),
@@ -46,7 +46,7 @@ fn a_second_zone_on_the_same_candle_is_still_owed_a_report() {
 /// The next candle is a new candle, on a zone already reported.
 #[test]
 fn the_next_candle_at_the_same_zone_reports_again() {
-    let mut closes = Closes::new();
+    let mut closes = Closes::new(None);
 
     closes.told.insert(
         about("4120", Kind::Closed),
@@ -56,14 +56,20 @@ fn the_next_candle_at_the_same_zone_reports_again() {
     assert!(!closes.already_said(&about("4120", Kind::Closed), "2026-08-16 14:00:00"));
 }
 
-/// A candle is spoken about twice — part-way through, then when it finishes.
-/// Remembered together, the twenty-minute look would silence the close.
+/// **A candle can still be worth two messages** — what it did at the band, and
+/// the shape it completed. Remembered under one key, whichever arrived second
+/// would be silenced.
+///
+/// This test used to be about the mid-candle look, which was the other thing a
+/// candle got spoken about. That card went on 27 August 2026; rung 3 took over
+/// as the second message and the reason for keeping the kinds apart is
+/// unchanged.
 #[test]
-fn the_look_does_not_silence_the_close_that_follows_it() {
-    let mut closes = Closes::new();
+fn a_setup_does_not_silence_the_close_on_the_same_candle() {
+    let mut closes = Closes::new(None);
 
     closes.told.insert(
-        about("4120", Kind::SoFar),
+        about("4120", Kind::Setup),
         "2026-08-16 13:00:00".to_string(),
     );
 

@@ -27,6 +27,10 @@ nsc-ta = { workspace = true }
 
 nsc-data.workspace = true
 
+# THE RULES. Applied here and nowhere else — this crate calls into it and never
+# re-implements a test of its own.
+nsc-strategy.workspace = true
+
 # Waiting on the network without freezing everything else.
 tokio   = { workspace = true }
 reqwest = { workspace = true }

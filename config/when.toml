@@ -72,24 +72,6 @@ settle_hours = 0
 no_new_trades = ["friday"]
 
 
-# ── Looking into a candle that has not finished ─────────────────────────────
-#
-# How far into a forming candle before it may report what it is doing.
-#
-# NOT ON THE OPEN. Spot forex runs Sunday evening to Friday evening with no
-# break, so a candle's open IS the last one's close — the same number. An open
-# message repeats what arrived a minute earlier.
-#
-# Twenty minutes in, it has done something worth seeing.
-#
-# THIS NUMBER IS SET FOR THE 1-HOUR CANDLE AND SCALED FOR THE OTHERS. It is
-# really "a third of the way in" — so on a 4-hour candle the look happens at
-# 80 minutes, not 20. Set it to 30 and you get halfway on both.
-#
-# THIS READS A CANDLE THAT HAS NOT FINISHED, which is forbidden everywhere
-# else in this project. It is allowed here for the same reason the price alert
-# is: it is a heads-up and nothing more. IT MUST NEVER REACH THE STRATEGY.
-look_in_minutes = 20
 
 
 # ── The heartbeat ───────────────────────────────────────────────────────────

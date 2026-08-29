@@ -33,15 +33,12 @@ const FLOOR: Duration = Duration::minutes(1);
 
 /// When this pair and interval is next worth a request.
 ///
-/// Two moments matter for any candle: the point it is far enough in to report
-/// what it is doing so far, and the point it finishes. Whichever comes next is
-/// the answer.
-pub(super) fn worth_asking_again(
-    bars: &[Bar],
-    minutes: i64,
-    look_after: i64,
-    now: DateTime<Utc>,
-) -> DateTime<Utc> {
+/// **One moment matters now: the point the candle finishes.**
+///
+/// There used to be two — the close, and a third of the way in, when the
+/// mid-candle "so far" card was due. That card went on 27 August 2026, and
+/// with it the only reason to wake before a candle had ended.
+pub(super) fn worth_asking_again(bars: &[Bar], minutes: i64, now: DateTime<Utc>) -> DateTime<Utc> {
     let floor = now + FLOOR;
 
     // Newest first, so this is the candle currently running — or the one that
@@ -50,21 +47,13 @@ pub(super) fn worth_asking_again(
         return floor;
     };
 
-    let (Some(step), Some(look)) = (
-        Duration::try_minutes(minutes),
-        Duration::try_minutes(look_after),
-    ) else {
+    let Some(step) = Duration::try_minutes(minutes) else {
         return floor;
     };
 
-    // This candle's look and close, then the next one's — because the newest
-    // candle we were handed may already be finished.
-    let moments = [
-        opened + look,
-        opened + step,
-        opened + step + look,
-        opened + step + step,
-    ];
+    // This candle's close, then the next one's — because the newest candle we
+    // were handed may already be finished.
+    let moments = [opened + step, opened + step + step];
 
     moments
         .into_iter()
@@ -120,27 +109,27 @@ mod tests {
 
     /// **The 4-hour, which is where the waste was.** A candle opened at 12:00
     /// runs to 16:00. Asked at 12:30, the next thing worth asking about is the
-    /// twenty-minute look at 13:20 — not ten minutes from now.
+    /// close at 16:00 — not ten minutes from now, and no longer a mid-candle
+    /// look at 13:20 either.
     #[test]
-    fn it_waits_for_the_look_into_the_running_candle() {
+    fn it_waits_for_the_close_and_nothing_sooner() {
         let due = worth_asking_again(
             &[opened("2026-08-17 12:00:00")],
             240,
-            80,
             at("2026-08-17T12:30:00Z"),
         );
 
-        assert_eq!(due, at("2026-08-17T13:20:00Z"));
+        assert_eq!(due, at("2026-08-17T16:00:00Z"));
     }
 
-    /// Past the look, the next thing is the close itself — three and a half
-    /// hours off, not ten minutes.
+    /// **Three and a half hours of silence, and that is correct.** The
+    /// mid-candle card was the only thing that ever broke it, and it went on
+    /// 27 August 2026.
     #[test]
-    fn then_it_waits_for_the_close() {
+    fn it_does_not_wake_part_way_through_any_more() {
         let due = worth_asking_again(
             &[opened("2026-08-17 12:00:00")],
             240,
-            80,
             at("2026-08-17T13:30:00Z"),
         );
 
@@ -148,19 +137,20 @@ mod tests {
     }
 
     /// The newest candle handed back can already be finished — no price has
-    /// landed in the new one yet. Then it is the NEXT candle's moments that
-    /// matter.
+    /// landed in the new one yet. Then it is the NEXT candle's close that
+    /// matters.
     #[test]
     fn a_finished_candle_points_at_the_next_one() {
         let due = worth_asking_again(
             &[opened("2026-08-17 12:00:00")],
             60,
-            20,
             at("2026-08-17T13:05:00Z"),
         );
 
-        // 13:00 opened, so its look is 13:20.
-        assert_eq!(due, at("2026-08-17T13:20:00Z"));
+        // The 12:00 candle has closed, so the next moment is the 13:00 one
+        // closing at 14:00. It used to be 13:20 — that was its mid-candle
+        // look, and that card went on 27 August 2026.
+        assert_eq!(due, at("2026-08-17T14:00:00Z"));
     }
 
     /// **A stale stamp must not become a tight loop.** Every moment worked out
@@ -168,7 +158,7 @@ mod tests {
     #[test]
     fn a_stamp_from_last_week_still_waits() {
         let now = at("2026-08-17T12:00:00Z");
-        let due = worth_asking_again(&[opened("2026-08-10 12:00:00")], 60, 20, now);
+        let due = worth_asking_again(&[opened("2026-08-10 12:00:00")], 60, now);
 
         assert!(due >= now + Duration::minutes(1), "got {due}");
     }
@@ -179,10 +169,7 @@ mod tests {
     fn nothing_back_waits_the_floor() {
         let now = at("2026-08-17T12:00:00Z");
 
-        assert_eq!(
-            worth_asking_again(&[], 60, 20, now),
-            now + Duration::minutes(1)
-        );
+        assert_eq!(worth_asking_again(&[], 60, now), now + Duration::minutes(1));
     }
 
     /// Everything sent, so wait for the candle the feed pointed at.
@@ -211,7 +198,7 @@ mod tests {
     #[test]
     fn a_stamp_we_cannot_read_waits_the_floor() {
         let now = at("2026-08-17T12:00:00Z");
-        let due = worth_asking_again(&[opened("last Tuesday")], 60, 20, now);
+        let due = worth_asking_again(&[opened("last Tuesday")], 60, now);
 
         assert_eq!(due, now + Duration::minutes(1));
     }

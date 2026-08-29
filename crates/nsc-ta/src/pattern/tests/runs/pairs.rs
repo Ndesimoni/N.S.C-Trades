@@ -88,3 +88,26 @@ pub(in crate::pattern::tests) fn dark_cloud() -> Vec<Bar> {
         ),
     ]
 }
+
+/// **A real harami — gold, 21 April 2022.** A candle up 7.88 points inside a
+/// range of 11.61, then a small one down 2.42 sitting inside that body.
+///
+/// A normal candle at the time was 4.47, so the big one reaches 2.60 of one.
+pub(in crate::pattern::tests) fn harami_down() -> Vec<Bar> {
+    vec![
+        bar(
+            "2022-04-21 12:00:00",
+            "1939.92",
+            "1949.17",
+            "1937.56",
+            "1947.8",
+        ),
+        bar(
+            "2022-04-21 13:00:00",
+            "1947.8",
+            "1949.7",
+            "1943.35",
+            "1945.38",
+        ),
+    ]
+}

@@ -189,3 +189,82 @@ fn opening_outside_is_never_a_gap_in() {
 
     assert!(!gapped_in(&band, &before, &now));
 }
+
+// ── which closes earn a card ───────────────────────────────────────────────
+
+/// **Only a candle that finished outside the band.** His call, 26 August 2026.
+///
+/// A candle that settled inside the zone is the most common of the three and
+/// the one that says least — the approach alert already told him price was
+/// there, and a card as well is the same news twice.
+#[test]
+fn only_a_close_outside_the_band_counts_as_a_break() {
+    assert!(AtZone::ClosedAbove.left_the_band());
+    assert!(AtZone::ClosedBelow.left_the_band());
+
+    assert!(
+        !AtZone::ClosedInside.left_the_band(),
+        "price sitting undecided in the zone is not a break"
+    );
+    assert!(!AtZone::Missed.left_the_band());
+}
+
+/// **The rejection survives, and that is the point of the whole rule.**
+///
+/// A candle that wicked down into the zone and closed back above it finishes
+/// as `ClosedAbove` — so "a wick counts" is untouched by dropping the
+/// closed-inside card.
+#[test]
+fn a_wick_in_and_a_close_back_out_still_earns_a_card() {
+    let band = Band {
+        timeframe: Timeframe::Weekly,
+        price: d("4500"),
+        top: d("4550"),
+        bottom: d("4450"),
+    };
+
+    // Opened above, wicked down into the band, closed back above it.
+    let rejected = Bar {
+        datetime: "2026-08-26 00:00:00".into(),
+        open: d("4600"),
+        high: d("4610"),
+        low: d("4470"),
+        close: d("4590"),
+    };
+
+    let did = what_it_did(&band, &rejected);
+
+    assert_eq!(did, AtZone::ClosedAbove);
+    assert!(
+        did.left_the_band(),
+        "the rejection he waits for must not be dropped with the quiet ones"
+    );
+}
+
+/// The one that is dropped: in and stayed in.
+#[test]
+fn a_candle_that_settled_in_the_zone_is_the_one_dropped() {
+    let band = Band {
+        timeframe: Timeframe::Weekly,
+        price: d("4500"),
+        top: d("4550"),
+        bottom: d("4450"),
+    };
+
+    let settled = Bar {
+        datetime: "2026-08-26 00:00:00".into(),
+        open: d("4560"),
+        high: d("4565"),
+        low: d("4480"),
+        close: d("4510"),
+    };
+
+    let did = what_it_did(&band, &settled);
+
+    assert_eq!(did, AtZone::ClosedInside);
+    assert!(
+        did.worth_saying(),
+        "it still had something to do with the zone"
+    );
+    assert!(!did.left_the_band(), "but it is not a break, so no card");
+}

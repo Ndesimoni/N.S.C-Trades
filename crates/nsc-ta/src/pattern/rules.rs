@@ -19,6 +19,7 @@ pub struct Rules {
     pub piercing: Piercing,
     pub star: Star,
     pub soldiers: Soldiers,
+    pub push: Push,
 }
 
 #[derive(Debug, Clone, Copy, Deserialize)]
@@ -39,6 +40,22 @@ pub struct Engulfing {
     ///
     /// Left alone that found one engulfing every six candles on gold.
     pub min_second_of_first: Decimal,
+
+    /// The least the ENGULFING candle may reach, in normal candles.
+    ///
+    /// **SHAPE IS NOT SIZE, and both settings above are shape.** They are
+    /// shares of the FIRST candle, so a tiny candle swallowing a tinier one
+    /// passes them both while nothing has happened.
+    ///
+    /// Measured 29 August 2026 over 270,000 candles: **39% of engulfings
+    /// reached less than one normal candle**, the smallest 0.11 of one. That is
+    /// the same hole `[push]` found and plugged with `min_push_reach`.
+    ///
+    /// **Reach, and deliberately not body.** A reversal at a level has a
+    /// rejection wick by nature — his own AUD/USD trigger of 25 August reached
+    /// 2.47 normal candles with a 37% body, and a body test would have thrown
+    /// away the one candle he pointed at.
+    pub min_reach: Decimal,
 }
 
 #[derive(Debug, Clone, Copy, Deserialize)]
@@ -49,6 +66,15 @@ pub struct Harami {
 
     /// The most the second body may be, as a share of the FIRST body.
     pub max_second_of_first: Decimal,
+
+    /// The least the FIRST, BIG candle may reach, in normal candles.
+    ///
+    /// **The big one carries the move, so it is the one that has to be big.**
+    /// The small candle is the point of the pattern and is left alone.
+    ///
+    /// Same hole as the engulfing: 38% of haramis had a first candle reaching
+    /// less than one normal candle, measured 29 August over 270,000 candles.
+    pub min_first_reach: Decimal,
 }
 
 #[derive(Debug, Clone, Copy, Deserialize)]
@@ -103,6 +129,44 @@ pub struct Soldiers {
     /// A long wick against the move means they were pushed back and came
     /// again: a fight, not a march.
     pub max_wick_against: Decimal,
+}
+
+/// **His own pattern.** A push, then a pin whose tail opposes it.
+///
+/// **These are his, not the textbook's.** Every other block in this file is a
+/// borrowed default waiting to be replaced. This one was settled with him on
+/// 21 August 2026, against real candles on five pairs.
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub struct Push {
+    /// The least the PUSH candle's body may be, as a share of its own candle.
+    pub min_push_body: Decimal,
+
+    /// The least the PUSH candle may reach, in normal candles.
+    ///
+    /// **The half that gets forgotten.** Body share is shape; this is size.
+    /// Without it a quiet candle that happens to be all body counts as
+    /// momentum.
+    pub min_push_reach: Decimal,
+
+    /// The most of its own candle the PIN's body may take.
+    pub max_pin_body: Decimal,
+
+    /// The most the PIN's whole range may be, as a share of the PUSH's range.
+    ///
+    /// **A pullback that moved further than the push is not a pullback.** The
+    /// pin is meant to be price trying to take the move back and failing. If
+    /// it covers more ground than the move it is answering, the push was the
+    /// smaller event and the shape is telling a different story.
+    pub max_pin_of_push: Decimal,
+
+    /// How many times its own body the PIN's tail must be.
+    pub min_tail_of_body: Decimal,
+
+    /// The most the wick at the PIN's other end may take of its candle.
+    ///
+    /// **What keeps indecision out.** Real wick both sides is a spinning top:
+    /// nobody won, which is close to the opposite of a refusal.
+    pub max_nose: Decimal,
 }
 
 /// What can go wrong reading them.

@@ -5,7 +5,11 @@
 //!     cargo run -p nsc-work-man --bin cards -- XAUUSD 4120        in the zone
 //!     cargo run -p nsc-work-man --bin cards -- XAUUSD 4120 found  already in
 //!     cargo run -p nsc-work-man --bin cards -- XAUUSD close       a close
-//!     cargo run -p nsc-work-man --bin cards -- XAUUSD close 4375.6 sofar
+//!     cargo run -p nsc-work-man --bin cards -- news               what is coming up
+//!     cargo run -p nsc-work-man --bin cards -- news busy          several at once
+//!     cargo run -p nsc-work-man --bin cards -- news today         the day's list
+//!     cargo run -p nsc-work-man --bin cards -- news week          the week's list
+//!     cargo run -p nsc-work-man --bin cards -- setup              a rung 3 signal
 //!     cargo run -p nsc-work-man --bin cards -- heartbeat          the quiet day
 //!     cargo run -p nsc-work-man --bin cards -- armed             a level went live
 //!     cargo run -p nsc-work-man --bin cards -- trouble down       the line is off
@@ -21,6 +25,8 @@
 //! labels crowd.
 
 mod beat;
+mod found;
+mod soon;
 mod zone;
 
 use std::path::Path;
@@ -47,6 +53,25 @@ async fn main() -> Result<()> {
     // are answered before TWS is asked for anything.
     if wanted == "trouble" {
         return beat::trouble(&client, std::env::args().nth(2)).await;
+    }
+
+    // The news card needs no candles either — the economic calendar is a plain
+    // web page. So it is answered before TWS is asked for anything, which
+    // means the design can be looked at with the gateway shut.
+    // The bank consensus needs no candles either — a plain web endpoint with
+    // no key on it. Answered before TWS is asked for anything.
+    // Rung 3, drawn on the two gold candles off his own screenshot. No TWS.
+    if wanted == "setup" {
+        return found::setup(&client).await;
+    }
+
+    if wanted == "news" {
+        return match std::env::args().nth(2).as_deref() {
+            Some("today") => soon::calendar(&client, nsc_core::news::Span::Today).await,
+            Some("week") => soon::calendar(&client, nsc_core::news::Span::Week).await,
+            Some("busy") => soon::news(&client, true).await,
+            _ => soon::news(&client, false).await,
+        };
     }
 
     // TWS or IB Gateway has to be running. Every card but the trouble one is

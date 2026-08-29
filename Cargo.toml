@@ -7,7 +7,7 @@
 # ───────────────────────────────────────────────────────────────────────────
 [workspace]
 resolver = "3"
-members  = ["crates/nsc-core", "crates/nsc-ta", "crates/nsc-work-man", "crates/nsc-data"]
+members  = ["crates/nsc-core", "crates/nsc-ta", "crates/nsc-strategy", "crates/nsc-work-man", "crates/nsc-data"]
 
 
 [workspace.package]
@@ -22,6 +22,7 @@ ibapi = "2"
 nsc-core = { path = "crates/nsc-core" }
 nsc-ta   = { path = "crates/nsc-ta" }
 nsc-data = { path = "crates/nsc-data" }
+nsc-strategy = { path = "crates/nsc-strategy" }
 
 
 

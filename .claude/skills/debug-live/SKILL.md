@@ -47,7 +47,8 @@ Almost always time, not analysis. In order:
 2. Does the daily close time match your broker's day?
 3. Did the feed drop candles? Run the gap check for that period.
 
-A missing hour shifts a swing, which shifts a level. Nothing errors.
+A missing hour changes what a candle looks like, and so what shape is named
+on it. Nothing errors.
 
 ## "It sent something obviously wrong"
 

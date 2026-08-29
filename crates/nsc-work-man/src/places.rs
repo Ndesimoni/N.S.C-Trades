@@ -29,5 +29,18 @@ pub const THICKNESS: &str = "config/levels.toml";
 /// The trading day, the silent days, and when the heartbeat is due.
 pub const CALENDAR: &str = "config/when.toml";
 
+/// The economic calendar — where the week's file comes from, which ratings
+/// earn a message, and how long before one to say so.
+///
+/// **Not the same thing as `CALENDAR` above**, which is the trading week. This
+/// one is rate decisions and payrolls.
+pub const NEWS: &str = "config/news.toml";
+
+/// Rung 3 — how far outside a band still counts as at it.
+pub const STRATEGY: &str = "config/strategy.toml";
+
+/// How a run of candles is named — needed to find a shape at all.
+pub const PATTERNS: &str = "config/patterns.toml";
+
 /// Where cards are drawn, so the design can be opened in a browser.
 pub const PREVIEW: &str = "preview";

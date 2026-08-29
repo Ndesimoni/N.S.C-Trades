@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>news</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /*__STYLE__*/
+
+  /*__OWN__*/
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <p class="eyebrow">Coming up</p>
+    <h1 id="away"></h1>
+    <p class="at" id="at"></p>
+  </div>
+  <div class="top__right">
+    <b id="count"></b>
+    <span id="stamp"></span>
+  </div>
+</header>
+
+<section class="list" id="list"></section>
+
+<footer class="foot">
+  <span>Nothing has happened yet — this is the calendar, not the chart</span>
+  <span id="key"></span>
+</footer>
+
+<script>
+// Rust replaces this line. The minutes are already worked out — the card
+// reads no clock, exactly like every other one.
+const news = /*__NEWS__*/;
+
+function draw(){
+  // "in 30 minutes", and "now" once it is on top of us. A card headed
+  // "in 0 minutes" reads like something failed to fill in.
+  //
+  // PAST NINETY IT COUNTS IN HOURS. The watcher never sends one that far out,
+  // but the preview does and warn_minutes is his to change — and "in 1081
+  // minutes" is a number nobody reads as eighteen hours.
+  const m = news.minutes;
+  const hours = h => `In ${h} hour${h === 1 ? "" : "s"}`;
+  document.getElementById("away").textContent =
+    m > 90 ? hours(Math.round(m / 60))
+    : m > 1 ? `In ${m} minutes`
+    : m === 1 ? "In a minute"
+    : m === 0 ? "Right now"
+    : "Just printed";
+
+  document.getElementById("at").textContent = news.when;
+
+  document.getElementById("count").textContent =
+    `${news.count} release${news.count === 1 ? "" : "s"}`;
+
+  document.getElementById("stamp").textContent = news.stamp;
+
+  document.body.classList.add(`worst-${news.worst}`);
+
+  // Only name the ratings actually on this card. A key for a rating that is
+  // not here teaches him nothing.
+  const seen = [...new Set(news.events.map(e => e.colour))];
+  const names = {red:"high", orange:"medium", yellow:"low", grey:"other"};
+  document.getElementById("key").textContent =
+    ["red","orange","yellow","grey"].filter(c => seen.includes(c))
+      .map(c => names[c]).join(" · ");
+
+  const list = document.getElementById("list");
+
+  for(const event of news.events){
+    const row = document.createElement("div");
+    row.className = `row ${event.colour}`;
+
+    // A speech has no numbers. Ruling an empty column for it looks like the
+    // card broke; leaving the space blank says there is nothing to say.
+    const numbers = event.numbers
+      ? `<span class="nums">` +
+        `<u>forecast</u> <b>${event.forecast}</b>` +
+        `<u>previous</u> <b>${event.previous}</b>` +
+        `</span>`
+      : `<span class="nums nums--none">no number — this one is words</span>`;
+
+    row.innerHTML =
+      `<span class="chip"></span>` +
+      `<span class="ccy">${event.currency}</span>` +
+      `<span class="what"><b>${event.title}</b>${numbers}</span>`;
+
+    list.appendChild(row);
+  }
+}
+
+draw();
+</script>
+</body>
+</html>

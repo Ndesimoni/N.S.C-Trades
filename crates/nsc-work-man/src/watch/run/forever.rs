@@ -12,7 +12,7 @@ use nsc_core::levels::load_thickness;
 use nsc_core::when::{self, Allowed, Rules};
 use nsc_data::sources::ibkr::IbkrConnection;
 
-use crate::places::{CALENDAR, THICKNESS};
+use crate::places::{CALENDAR, NEWS, PATTERNS, STRATEGY, THICKNESS};
 use crate::watch::line::{self, Closed};
 use crate::watch::standing;
 use crate::watch::{Kit, reload, trouble};
@@ -79,6 +79,33 @@ pub async fn run() -> Result<()> {
         );
     }
 
+    // **The economic calendar runs beside the watcher too**, and on its own
+    // clock. It needs no prices, no bands and no IBKR — only the time and the
+    // internet — so it does not belong inside the price loop, which blocks for
+    // hours at a stretch waiting on the socket.
+    //
+    // **A missing or broken config/news.toml does NOT stop the bot.** Saying
+    // what price is doing at his levels is the job; knowing what is on the
+    // calendar is an addition to it. Refusing to start over the addition would
+    // trade the whole thing for a part of it.
+    //
+    // It is said out loud rather than swallowed, because news that quietly
+    // never arrives looks exactly like a quiet week.
+    match nsc_core::news::load(Path::new(NEWS)) {
+        Ok(rules) => {
+            println!(
+                "Watching the economic calendar — {} events get a card {} minutes ahead.",
+                rules.impacts.join(" and ").to_lowercase(),
+                rules.warn_minutes
+            );
+            tokio::spawn(crate::watch::watch_the_news(client.clone(), rules));
+        }
+        Err(trouble) => eprintln!(
+            "No news warnings: {trouble}\n\
+             Everything else is running. Fix {NEWS} and restart to turn them on."
+        ),
+    }
+
     // **The inbox runs beside the watcher**, so one command is the whole bot.
     // It was a second program, which meant two terminals and remembering both
     // — and if it was not up, a level he sent went nowhere and nothing said so.
@@ -93,7 +120,30 @@ pub async fn run() -> Result<()> {
     // This outlives the socket. Rebuilt on every reconnect, a dropped line
     // would re-announce every zone price is already at and forget which
     // candles it had already reported.
-    let mut kit = Kit::new();
+    // **Rung 3's settings, read once.** A shape he trades, at a level he drew.
+    //
+    // **Unreadable settings turn rung 3 off and leave everything else
+    // running.** The alerts and the closes are the job; the shape at the level
+    // was added on top of them, and refusing to start over the addition would
+    // trade the whole thing for a part of it.
+    //
+    // Said out loud rather than swallowed, because rules that quietly never
+    // fire look exactly like a quiet week.
+    let rung_three = match crate::watch::rung_three(STRATEGY, PATTERNS) {
+        Ok(both) => {
+            println!("Rung 3 is on — a shape you trade, at a level you drew.");
+            Some(both)
+        }
+        Err(trouble) => {
+            eprintln!(
+                "Rung 3 is OFF: {trouble:#}\n\
+                 Alerts and closes still run. Fix {STRATEGY} and restart."
+            );
+            None
+        }
+    };
+
+    let mut kit = Kit::new(rung_three);
     let mut trouble = trouble::Trouble::new();
 
     say_what_the_calendar_allows(&calendar);

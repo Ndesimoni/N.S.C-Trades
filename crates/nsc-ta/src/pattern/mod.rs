@@ -7,6 +7,7 @@
 //!     rules.rs    the thresholds, out of config/patterns.toml
 //!     body.rs     a candle's body as PRICES, not as a share
 //!     two.rs      engulfing, harami, tweezers, piercing, dark cloud
+//!     push.rs     HIS own — a push, then a pin that gets refused
 //!     three.rs    the star, and the abandoned baby inside it
 //!     finding.rs  the one way in, and the order they are tested
 //! ```
@@ -17,6 +18,7 @@
 mod body;
 mod finding;
 mod named;
+mod push;
 mod rules;
 mod three;
 mod two;
@@ -26,4 +28,4 @@ mod tests;
 
 pub use finding::ending_at;
 pub use named::Pattern;
-pub use rules::{Engulfing, Harami, Piercing, Rules, RulesError, Star, Tweezers, load};
+pub use rules::{Engulfing, Harami, Piercing, Push, Rules, RulesError, Star, Tweezers, load};

@@ -18,7 +18,7 @@ WHAT THIS CRATE IS FOR
 
 WHY THAT MATTERS MORE THAN IT SOUNDS
 
-  The analysis lives here — swings, structure, and eventually the strategies.
+  The analysis lives here — candles, levels, and the shapes on them.
 
   The backtester and the live bot have to run THE SAME analysis and get THE
   SAME answer. That only holds if the analysis physically cannot fetch
@@ -42,6 +42,11 @@ THE FOLDERS
 
   when/       Whether the bot may speak at all — the trading day, the silent
               days, and the heartbeat.
+
+  news/       THE ECONOMIC CALENDAR. What is coming up, and whether it is
+              close enough to be worth saying. Not the same thing as when/,
+              which is the trading week — this is rate decisions and payrolls.
+              It holds the address the file comes from and cannot fetch it.
 
   error/      Everything that can go wrong, and the one question each answers:
               try again, or give up?

@@ -64,14 +64,13 @@ pub fn closed(
     did: AtZone,
     was: Action,
     interval: &str,
-    forming: bool,
     out: &Path,
 ) -> Result<PathBuf, CardError> {
     fill::draw(
         CLOSE,
         &[(
             "/*__CLOSE__*/",
-            close_facts(pair, band, bar, did, was, interval, &bar.datetime, forming).to_string(),
+            close_facts(pair, band, bar, did, was, interval, &bar.datetime).to_string(),
         )],
         out,
     )
@@ -138,7 +137,6 @@ fn close_facts(
     was: Action,
     interval: &str,
     stamp: &str,
-    forming: bool,
 ) -> Value {
     let digits = pair.digits;
     let deep = levels::how_deep(band, bar);
@@ -156,11 +154,7 @@ fn close_facts(
         "colour":     band.timeframe.colour(),
         "interval":   timeframe_name(interval),
         "action":     name,
-        "note":       if forming { FORMING } else { means },
-        // STILL RUNNING. The card has to say so on its face — this is the one
-        // place in the project that reads a candle before it has finished, and
-        // a card that looked final would put a guess where a fact belongs.
-        "forming":    forming,
+        "note":       means,
         // Which way the candle came from, so the little picture on the left
         // puts it on the right side of the line.
         "side":       match did {
@@ -193,10 +187,3 @@ fn deep_words(deep: Decimal) -> String {
         format!("{percent}%")
     }
 }
-
-/// What a card says when the candle has not finished.
-///
-/// **Where it ends is the whole point**, and it has not ended. Everything on
-/// the card is where it stands right now and could be the opposite in forty
-/// minutes.
-const FORMING: &str = "This candle is still running. Where it closes is what counts — this is only what it has done so far.";

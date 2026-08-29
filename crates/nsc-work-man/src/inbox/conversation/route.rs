@@ -7,8 +7,8 @@ use nsc_core::levels::{known, undo, with_slash};
 use serde_json::json;
 
 use super::super::talking::say;
-use super::super::words::{CLOSE, NEW_PAIR, TIMEFRAMES, UNDO};
-use super::super::{asked, one, pairs, picture};
+use super::super::words::{CLOSE, NEW_PAIR, TIMEFRAMES, TODAY, UNDO, WEEK};
+use super::super::{asked, coming, one, pairs, picture};
 use super::adding::Adding;
 use super::naming;
 use super::saving;
@@ -38,6 +38,24 @@ pub async fn handle(
 
     if text == "/status" {
         return asked::status(client, token, standing).await;
+    }
+
+    // **Before the pair flows.** These are two fixed words that belong to
+    // nothing else, and answering them early means a half-finished /level
+    // cannot swallow one.
+    if text == "/news" {
+        *adding = Adding::default();
+        return coming::ask(client, token).await;
+    }
+
+    if text == TODAY {
+        *adding = Adding::default();
+        return coming::show(client, token, nsc_core::news::Span::Today).await;
+    }
+
+    if text == WEEK {
+        *adding = Adding::default();
+        return coming::show(client, token, nsc_core::news::Span::Week).await;
     }
 
     if let Some(answer) = pairs::heard(client, token, folder, text, adding).await {

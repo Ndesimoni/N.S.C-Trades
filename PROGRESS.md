@@ -1,6 +1,6 @@
 # Progress
 
-Where the project actually is, as of **20 August 2026**.
+Where the project actually is, as of **29 August 2026**.
 
 Updated whenever a piece of work finishes — that is a rule in `CLAUDE.md`. A
 progress file that is out of date is worse than none, because the next decision
@@ -12,15 +12,86 @@ gets made against it.
 [ ]  not started
 ```
 
-**Four crates · 263 tests · clippy clean · it watches his levels, says what
+**Five crates · 335 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
 nsc-core        what the bot knows      no reqwest, no tokio — it CANNOT reach
 nsc-ta          reading a chart         describes; never decides
 nsc-data        where prices come from  IBKR, and nothing else knows its name
+nsc-strategy    the rules, in one place  no tokio, no reqwest — it CANNOT reach
 nsc-work-man    everything that reaches
 ```
+
+> **CUT BACK ON 29 AUGUST, AT HIS WORD.** *"We would only work with
+> candlesticks and I will do my analysis and draw my levels and send them."*
+>
+> **Gone:** the bank consensus and `/banks`; the chart patterns (`nsc-ta::chart`
+> — the curvy); **swings**; the indicators and Fibonacci. About 2,000 lines and
+> 70 tests, with their config, cards, worksheets, diagrams and binaries.
+>
+> **The swing-finder bug went with them.** A ratchet in `memory.rs` had left it
+> blind — 51 swings in 30,000 candles, none at all on the Aussie 1-hour after
+> March 2025 — and every chart pattern stood on it. Nothing needs swings now, so
+> the biggest known defect in the project no longer has anything to break.
+>
+> **What it costs:** trend. A hammer and a hanging man are the same candle and
+> only the trend before it separates them, so `nsc-ta` says `long lower wick`
+> and stops there. That is the honest answer rather than a guess.
+>
+> **Rungs 1, 2 and 3 were never touched** — they read his levels and two-candle
+> shapes, and no swing was ever in that path.
+
+> **RUNG 3 TRADES FOUR SHAPES AS OF 29 AUGUST**, up from two. Harami and
+> marching joined his push-then-pin and the engulfing, at his word.
+>
+> **And three of the four had no size test.** Only `[push]` asked whether the
+> candle actually moved. Measured over 270,000 candles: **39% of engulfings and
+> 38% of haramis reached less than one normal candle** — shapely, and nothing
+> happened. `min_reach` and `min_first_reach` went in at 1.0, the same number
+> and the same argument `[push]` already used.
+>
+> **Marching deliberately got no floor.** 96% already clear one, so the setting
+> would refuse almost nothing — and a threshold that never says no is worse than
+> none, because the next person believes it is protecting them.
+>
+> **The harami had no tests at all** before this. It has five now, on a real
+> gold harami from 21 April 2022.
+>
+> **Still to do on it:** the three tiers he asked for — in the zone, within half
+> a band, and bold-but-away — are designed and not built. See
+> [Still open](#still-open).
+
+> **RUNG 3 IS WIRED TO TELEGRAM — 25 AUGUST.** A shape he trades at one of
+> his zones now draws a card and sends it: the two candles on the band, and
+> the one sentence the rules wrote. It rides on the candles rung 2 already
+> fetched, so it costs no extra request, and it **only ever fires on a
+> finished candle**.
+
+> **RUNG 3 EXISTS — 25 AUGUST.** `nsc-strategy` was an empty folder this
+> morning. **One rule:** a shape he trades — `nsc-bull`, `nsc-bear`, or an
+> engulfing either way — sitting inside a zone or within half a band of it.
+> Three strategies were described and collapsed into one, because the *place*
+> test was identical for all of them. Spec in
+> `docs/worksheets/strategies.md`. **Nothing is wired to Telegram yet, and the
+> stop is still unanswered.** See [Rung 3](#rung-3--a-shape-at-a-level--x-25-august).
+
+> **IT WATCHES THE ECONOMIC CALENDAR AS OF 25 AUGUST.** A card thirty minutes
+> before a high or medium impact release — red for high, orange for medium,
+> ForexFactory's own spelling because that is the calendar he reads. It runs
+> beside the price watcher on its own clock and needs no IBKR. **Drawn against
+> the real feed and checked, but it has never fired on a live release.**
+> See [The news](#the-news--x-25-august).
+
+> **HIS FIRST OWN PATTERN LANDED ON 22 AUGUST.** `nsc-bull` and `nsc-bear` —
+> a push that shows one side winning, then a pin whose long tail points
+> *against* it. Everything else in `pattern/` is a textbook shape; this one is
+> his, which is what the `nsc-` prefix is for. Settings live in a `[push]`
+> block of their own so no threshold is shared with general candle naming.
+> **Measured, and it did not continue:** followed for ten candles across five
+> pairs it reached +1 normal candle before -1 in 29 of 75. That is 80 trades
+> with no level under them, which is under the hundred this project's own
+> backtest rule asks for — see `docs/diagrams/push-then-pin-found.html`.
 
 > **THE FEED CHANGED ON 20 AUGUST.** Twelve Data is gone. Candles and live
 > prices both come from Interactive Brokers now, through `nsc-data`.
@@ -60,10 +131,14 @@ cargo run -p nsc-work-man                    # THE BOT — watcher and inbox bot
 cargo run -p nsc-work-man --bin cards -- …   # draw any card without waiting
 cargo run -p nsc-work-man --bin levels -- GBPUSD
 cargo run -p nsc-work-man --bin listen       # IBKR's raw ticks, EUR/USD
+cargo run -p nsc-work-man --bin cards -- news       # what is coming up
+cargo run -p nsc-work-man --bin cards -- news busy  # several releases at once
 ```
 
 **TWS or IB Gateway has to be running and logged in** for any of them but
-`--bin cards -- trouble`. There is no feed without it and no fallback.
+`--bin cards -- trouble` and `--bin cards -- news`. There is no feed without
+it and no fallback. The news card is the exception because the economic
+calendar is a plain web page with no key on it.
 
 - [x] **The obvious command runs the real thing.** It used to run a leftover
       from step one that sent a gold card *every time it was called* — the
@@ -97,8 +172,9 @@ one that mattered.
 | **1** | price comes near a zone | an **alert card** — *approaching* |
 | **1** | and again when it goes **in** | the same card — *in the zone* |
 | **2** | a candle that **touched** a zone finishes | a **close card** — the candle drawn on the band, named by what it did |
-| **·** | a third of the way into that candle | the same card, marked *so far* — hollow chip, hollow candle, *not a close* |
-| **3** | it closed there **and** a strategy matched | **not built.** Needs `nsc-strategy`, which needs his answers |
+| **3** | a shape he trades prints at one of his zones | a **setup card** — the two candles on the band, and one sentence. Never says buy |
+| **·** | 30 min before a high or medium impact release | a **news card** — what prints, whose currency, forecast and previous, red for high |
+| **?** | he sends `/news` and taps *Today* or *This week* | a **calendar card** — every release with its time, grouped by day, each marked *passed* or counting down |
 | **·** | 07:00 UTC, only if nothing else was sent | a **heartbeat card** — every pair, its levels as dots in his colours, the nearest zone on each |
 | **·** | he sends a level while it is running | an **armed card** — a tick, and the count |
 | **·** | the line breaks, comes back, or it stops | a **trouble card** — severity in the colour |
@@ -146,12 +222,20 @@ without waiting for it to happen. That was the last plain-text message going.
       outside — the exact shape of a rejection, but the level *broke*
 - [x] **Once per candle**, not once per visit. His decision: while price is at
       a zone he wants to watch it candle by candle
+- [x] **ONLY A CLOSE OUTSIDE THE BAND — 26 August.** A candle that settled
+      *inside* the zone no longer sends. He already got the alert when price
+      arrived; a card saying it is still there is the same news twice, and a
+      message he stops opening is one he misses when it matters.
+      **The rejection survives** — a wick into the zone that closed back out
+      finishes above or below the band. `only_breaks` in `config/levels.toml`
+      turns the old behaviour back on
 - [x] **A 4-hour candle does not exist until its last hour has closed.** Three
       hourly closes can pass with the 4-hour silent
-- [x] **The twenty-minute look** — the same candle, part-way through, marked
-      *so far*. `look_in_minutes`, scaled per timeframe
-- [x] **It is the only place that reads an unfinished candle**, and the card
-      says so on its face. It must never reach a strategy
+- [x] **~~The twenty-minute look~~ — GONE, 27 August.** A third message per
+      zone visit was a heads-up about a heads-up. Its going matters more than
+      the card did: **nothing in this project reads an unfinished candle any
+      more**, so "a candle still forming is invisible to the analysis" is now
+      true everywhere rather than true with one exception
 - [x] **No "a candle opened in the zone" message.** Spot forex runs without a
       break, so an open *is* the last close. Only a **gap** carries anything
 - [x] **It costs nothing when nothing is happening.** Only pairs with price at
@@ -234,6 +318,178 @@ without waiting for it to happen. That was the last plain-text message going.
       screenshot, and they stay out until he reads them off
 - [ ] **0.35 was only ever verified on gold.** 62 pips on the pound is
       unchecked — one screenshot settles it
+
+## Rung 3 — a shape, at a level — [x] 25 August
+
+**The crate exists and it is pure.** `nsc-strategy` had been an empty folder
+since 16 August. Spec: `docs/worksheets/strategies.md`, and that file wins over
+the code.
+
+- [x] **One rule, not three.** He described three strategies; the *place* test
+      was identical in all of them, so they are one rule with four shapes
+- [x] **The shapes he trades**: `nsc-bull`, `nsc-bear`, bullish engulfing,
+      bearish engulfing. `pattern/` names twelve and he trades four — the rest
+      are on every candlestick page, not on his chart
+- [x] **Inside the band, or within half a band of its edge.** His number,
+      25 August. A share of that band's own thickness, never a distance
+- [x] **NO TOUCH RULE.** Asked whether the pin had to touch he said it need
+      not, and that touching was no problem either. Distance is the only test
+- [x] **Measured from the tail tip** — the pin's low on a bull, its high on a
+      bear. Argued from what the pattern *is*: the tail is a pullback that
+      failed, so if it reached the level, the level is what stopped it
+- [x] **The nearest zone wins**, not the first one loaded. Which zone a shape
+      printed at is the whole content of the signal
+- [x] **Breaking the band is reported, never required.** He was asked whether
+      the break was the trigger and said the shape at the zone is a signal
+      either way
+- [x] **It cannot reach anything, and that is proved rather than promised.**
+      Dropping a `reqwest::Client` into it fails to compile:
+      `error[E0433]: use of unresolved module or unlinked crate`
+- [x] **One sentence per signal**, and a test that pins it never saying *buy*,
+      *sell*, *entry*, *target* or *stop*
+- [x] **Eighteen tests**, on the two gold candles off his own screenshot. The
+      one that matters: the same shape with the zone moved a thousand points
+      away is **not** a signal
+
+**Why this rung is a test rather than an answer.** `nsc-bull` and `nsc-bear`
+were measured on 22 August: followed for ten candles they reached +1 normal
+candle before -1 in **29 of 75, where a coin flip is 50%** — and **none of
+those had a level under them**. This crate is the test of whether the level is
+the missing half. If these come back at 38% too, the level does not save it,
+and that is a finding rather than a failure.
+
+- [x] **~~Nothing is wired to Telegram.~~** Done the same day. `setup.html`,
+      `card/setup.rs`, `watch/closes/setups.rs`, and
+      `--bin cards -- setup` to look at one without waiting
+- [x] **It rides on rung 2's candles**, so a signal costs no extra request.
+      The fetch went from three candles to twenty, because a normal candle is
+      an average over fourteen — and IBKR paces on the number of requests, not
+      on how many bars each asks for, so it is free
+- [x] **ONLY EVER ON A FINISHED CANDLE.** A shape halfway through a candle is
+      not a shape, and one that un-forms before the close would have been a
+      message about something that never happened
+- [x] **The history is cut at the candle being judged**, so nothing after it
+      can be read — the lookahead rule as the shape of the call rather than a
+      discipline
+- [x] **Its own key**, so a candle worth both messages — what it did at the
+      band, and the shape it completed — sends both
+- [x] **Chrome runs off the price loop** via `spawn_blocking`, like the news
+      card. The six older cards still block a worker
+- [x] **Unreadable `config/strategy.toml` turns rung 3 off** and leaves the
+      alerts and closes running, loudly
+- [ ] **Where the stop goes — still unanswered.** Asked for since 16 August. A
+      signal with no stop is a reading, not a trade, and version 1 says so
+      plainly rather than implying an entry
+- [ ] **What makes him skip one.** The `skip` layer has nothing in it. Every
+      qualifying shape at a level will fire until he says what he leaves alone
+- [ ] **Nothing has measured these against the 38%.** That needs
+      `nsc-backtest`, which does not exist
+
+---
+
+
+## The news — [x] 25 August
+
+**A level in front of a rate decision is not the same level as one on a quiet
+Thursday.** Asked for on 16 August, built on the 25th.
+
+- [x] **The source is ForexFactory's weekly file.** Free, no key, no signup —
+      and it is the calendar he already reads, so the bot's week and his week
+      are the same list. A source that disagreed with his screen would get
+      distrusted the way levels that lag his chart do
+- [x] **IBKR cannot do this.** Its API has six news calls and every one is
+      headlines from a provider. No rate decisions, no payrolls, nothing
+      scheduled. There is a Wall Street Horizon calendar and it is corporate
+      earnings, for stocks. Checked in `ibapi` 2.12
+- [x] **A card thirty minutes ahead**, `warn_minutes` in `config/news.toml`
+- [x] **High and medium, every currency.** His call, and it is the right one:
+      filtering by currency would go quietly blind the day he adds a pair —
+      the pair watched and its news not, with nothing saying so
+- [x] **Red is high, orange is medium.** ForexFactory's spelling, not a design
+      choice. Red meaning anything else would make him translate the card
+      every time, under time pressure
+- [x] **The header's rule takes the heaviest rating on the card**, not the
+      first one listed. One high and two mediums is a high-impact card
+- [x] **One card per release, not per line.** Three Australian CPI numbers
+      print in the same second and share a card. Apart, they buzz his phone
+      three times for one event
+- [x] **A window with two edges, and the far one is the point.** An event
+      speaks from 30 minutes before until 5 after. Without the far edge a bot
+      restarting at two in the afternoon finds the week's file full of this
+      morning and sends every one of them at once
+- [x] **Once per release, and it survives a re-read.** The file is downloaded
+      every six hours and the same event is in every copy — so "already said"
+      is kept by time, currency and title together. The time alone will not do
+      and neither will the title
+- [x] **It fails quiet.** Calendar down, rate-limited, config missing → say so
+      in the terminal and carry on with what it had. Nothing about the news
+      may stop the bot saying what price is doing at his levels
+- [x] **The refusal that arrives looking like a success.** Over two downloads
+      in five minutes ForexFactory sends an HTML page saying "Request Denied"
+      under a normal 200. Handed to the JSON parser that reads as "the feed
+      changed shape" — which is *give up* — and one busy afternoon would have
+      retired the watcher for good. **Third time this project has met this**:
+      Twelve Data's `{"code": 401}`, Telegram's `ok: false`, now this
+- [x] **Chrome runs off the loop.** `spawn_blocking` from the start. The six
+      older cards still block a worker and that is the top open bug; there was
+      no reason to add a seventh
+- [x] **It runs beside the price watcher**, spawned like the inbox. It needs
+      no prices and no IBKR, and the price loop blocks for hours on the socket
+      — a check living inside it would only run when the line dropped
+- [x] **`--bin cards -- news`, `news busy`, `news today`, `news week`** draw
+      every shape on demand, with no TWS at all. `busy` picks the busiest group
+      of the week, which is the one the layout has to survive
+
+**And `/news` asks for the list, whenever he wants it.** Added the same day.
+
+- [x] **In the tap-list beside the message box**, registered with Telegram
+- [x] **Two buttons.** *📅 Today* is the whole day; *🗓 This week* is what is
+      left of it. Different questions — "what am I in for" and "what is coming"
+- [x] **NOTHING IS LEFT OUT OF EITHER LIST — every row says which side of now
+      it is on.** Gone ones read *PASSED* and are greyed; the rest carry how
+      long they have: *in 45m*, *in 10h 53m*, *in 3d 10h*
+- [x] **The header counts both halves** — *1 gone · 17 to come*. "18 releases"
+      does not say whether the day is over
+- [x] **The units shrink as it gets closer.** Two days out the minutes do not
+      matter; forty minutes out they are the only thing that does — and "in 0h"
+      reads as a card that failed to fill in
+- [x] **The countdown is not coloured.** The stripe already carries impact and
+      a second colour on the row would compete with it
+- [x] **A list, not a release.** Its own card: every row carries its own time
+      and the forecast is left off. Eighteen rows of numbers is a spreadsheet
+      and he reads it on a phone
+- [x] **The week grows a heading per day and today grows none** — a heading
+      over a list that is all one day is a line saying nothing
+- [x] **Same `config/news.toml` as the warnings**, so the list he pulls up and
+      the cards that arrive unasked can never disagree about what counts
+- [x] **Nothing on the calendar gets words, not a card.** Running Chrome for
+      ten seconds to draw the word "nothing" is the mistake `/status` already
+      made on a resting day
+- [x] **It answers either way.** Chrome fails or Telegram refuses the photo and
+      the caption still carries the answer. He asked outright, so no reply is
+      indistinguishable from a dead bot
+- [x] **Measured before it was designed.** A real week is 69 events, 18 of them
+      high or medium, 1–6 a day. Both views fit one card comfortably — that was
+      checked against the live file rather than guessed
+
+**A bug this found, and it is the kind this project keeps meeting.** The card
+went out headed *"4 releases"* with three on it. Chrome screenshots a
+**window**, not a page, so the fourth was simply cut off — and it reads as a
+quieter week, not as a fault. The row height had been copied from the
+heartbeat, whose rows are one line where these are two. The heights are pinned
+in `news.css` now and `card/tests/growing.rs` reads that file to check the two
+still agree. It fails if either moves.
+
+- [ ] **It has never fired on a live release.** Drawn against the real feed
+      and checked by eye, both the one-release and four-release cards. Nothing
+      has arrived on his phone from the watcher itself
+- [ ] **The level and the news do not know about each other yet.** The whole
+      point was a level *in front of* a rate decision, and that join needs
+      rung 3. Today they are two separate messages
+- [ ] **This week only.** There is no next-week file — that URL 404s. Friday
+      evening the bot knows nothing about Monday until it rolls over
+
+---
 
 ## The calendar — [x]
 
@@ -338,8 +594,6 @@ without waiting for it to happen. That was the last plain-text message going.
 ```
 crates/nsc-core/          WHAT IT KNOWS. No reqwest, no tokio — the manifest
                           is what stops it, not a rule anybody remembers
-  swing/        one swing high or low, and its TWO times —
-                where it sits, and when it could be KNOWN     6 tests
   candle/       one candle, whether it has finished, and
                 how long a timeframe is                    9 tests
   levels/       his lines, the bands round them, the
@@ -355,17 +609,9 @@ crates/nsc-ta/            READING A CHART. It describes, it never decides
   pattern/      what a RUN of them does — engulfing, harami,
                 tweezers, piercing, dark cloud, and the star
                 with the abandoned baby inside it, and the
-                march — soldiers and crows                  17 tests
-  indicators/   FIBONACCI. Retracements over a move — it
-                stores the MOVE, not the levels, because
-                which move you measure is the whole game.
-                Settings recovered from a4a2170            11 tests
-  swings/       FINDING them. No candle counting — a peak is
-                proved by what price did afterwards. Two
-                routes, and the shallow one matters more      6 tests
-
-crates/nsc-data/          WHERE PRICES COME FROM. Nothing outside it
-                          knows which broker you use
+                march — soldiers and crows.
+                AND HIS OWN: nsc-bull and nsc-bear, a push
+                then a pin whose tail opposes it            30 tests
   source/       the question — the trait, what a timeframe
                 is, what a live price is                    4 tests
   sources/ibkr/ the answer. Connecting, contracts, candles,
@@ -394,9 +640,6 @@ crates/nsc-work-man/      EVERYTHING THAT REACHES
   bin/read.rs   READ A CHART the way the code reads it — real
                 candles, nsc-ta over them, the name the CODE
                 gave each. Driven by the read-the-chart skill
-  bin/swings/   the swing finder on a real chart, and how
-                long each one took to become knowable
-  bin/fib/      the Fibonacci drawn on a real chart
   bin/after/    WHAT PRICE DID NEXT after each pattern, against
                 the base rate and against noise. NOT a backtest
   bin/candles/  WHERE IBKR STARTS ITS DAY. Lines each daily
@@ -576,11 +819,10 @@ prices both come from IBKR, through `nsc-data`.
 - [ ] **The bot itself has not run against IBKR.** Ticks and candles both
       come back, but `.env` line 12 has to be quoted before it can say a word
       on Telegram — see below
-- [ ] **`.env` NEEDS ONE FIX, AND IT IS HIS TO MAKE.** Line 12 must become
-      `IBAPI_TIMEZONE_ALIASES="Gulf Standard Time=Asia/Dubai"` — quotes round
-      the value. Until then no Telegram setting loads and the bot is mute.
-      (The alias is registered in code anyway, in `sources/ibkr/connect.rs`,
-      so the line could equally be deleted)
+- [x] ~~**`.env` NEEDS ONE FIX, AND IT IS HIS TO MAKE.**~~ Done. It is line 15
+      now and correctly quoted:
+      `IBAPI_TIMEZONE_ALIASES="Gulf Standard Time=Asia/Dubai"`. Checked
+      24 August
 
 **60 historical requests in any ten minutes** is the limit that shapes
 everything now — one every ten seconds sustained, which is why `BREATHE` is ten
@@ -691,8 +933,9 @@ live session has run clean.**
 3. ~~**`/restore`**~~ Done 16 August. Stopping a pair is no longer a one-way
    door from his phone.
 
-**`EURUSD` is sitting in `config/pairs/removed/`** with all four levels,
-stopped from his phone on 16 August. Not put back — that is his call.
+~~**`EURUSD` is sitting in `config/pairs/removed/`**~~ — it is back. Checked
+24 August: `EURUSD.toml` is in `config/pairs/` with its four weekly levels, and
+`removed/` is empty.
 
 ---
 
@@ -728,9 +971,9 @@ Then nothing, forever, and nothing said why.
       by reading the sweep back: `/restore` writes `GBPUSD-2.toml`, and working
       that up into a symbol gives nonsense IBKR would rightly refuse — so the
       first version would have retired a pair he was using
-- [ ] **Two bogus pairs are sitting in his config right now** — `AUDIS`
-      (`symbol = "AUDIS"`, no slash at all) and `AUDSSS` (`AUD/SSS`), one level
-      each. They go to `removed/` the next time the bot starts
+- [x] ~~**Two bogus pairs are sitting in his config right now**~~ — `AUDIS`
+      and `AUDSSS` are gone. Checked 24 August: `config/pairs/` holds AUDUSD,
+      EURUSD, GBPUSD, USDCAD and XAUUSD, and `removed/` is empty
 - [ ] **No "did you mean AUDUSD?"** IBKR's contract search can return near
       matches, so the refusal could offer the right spelling as a tap. Not
       built
@@ -761,7 +1004,7 @@ work not started; that folder is things that are wrong.
       Twelve Data. Wrong, it shifts every band and every signal and looks
       perfectly normal doing it
 - [ ] **It has never run through a live session.** Rungs 1 and 2, the
-      twenty-minute look and the heartbeat have only been exercised through
+      and the heartbeat have only been exercised through
       `--bin cards`
 - [ ] **No fallback feed.** Twelve Data went on 20 August. TWS not logged in
       means no bot at all — worth reconsidering once IBKR has been watched for
@@ -815,9 +1058,8 @@ running the same code.
 
 ## Asked for, not started
 
-- [ ] **The news.** What is coming up and what it says — so a level sitting in
-      front of a rate decision is not read the same way as one on a quiet
-      Thursday. Raised 16 August, deliberately left until the rest is settled
+Nothing. **The news was the last one** — raised 16 August, built 25 August.
+See [The news](#the-news--x-25-august).
 
 ---
 
@@ -826,7 +1068,6 @@ running the same code.
 - [ ] **Keep it** — Postgres, one table of candles, written as they arrive
 - [ ] **The past** — download history per timeframe, and a scan that says
       whether it is complete before anything reads it
-- [ ] **Read the chart** — swings, candle types, structure
 - [ ] **The strategies** — one family first. Direction, place, trigger, stop,
       target, skip
 - [ ] **Prove it** — replay the stored history through the same code the bot

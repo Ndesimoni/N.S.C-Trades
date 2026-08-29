@@ -1,0 +1,127 @@
+/* ── calendar.html ──────────────────────────────────────────────────────────
+   THIS CARD'S OWN STYLING. The palette and typefaces are shared and live in
+   style.css; only what makes this card different is here. */
+
+  /* WORKED OUT, not typed — a row per release and, on the week, a heading per
+     day. HEIGHTS ARE PINNED rather than left to the content, so card/listing.rs
+     can add them up and be right. Change one here, change its twin there. */
+  :root{
+    --card-height:/*__TALL__*/px;
+
+    /* ForexFactory's spelling. Same as news.css, and for the same reason: he
+       reads that calendar every day and must never have to translate. */
+    --high:#E04B45;
+    --medium:#E08A1E;
+    --low:#D8B41A;
+    --other:#98A1A8;
+  }
+
+  .red    { --tone:var(--high) }
+  .orange { --tone:var(--medium) }
+  .yellow { --tone:var(--low) }
+  .grey   { --tone:var(--other) }
+
+  .top{
+    background:var(--panel);
+    height:118px;
+    padding:0 40px;
+    display:flex;align-items:center;justify-content:space-between;gap:16px;
+    border-bottom:3px solid var(--rule);
+  }
+  .eyebrow{
+    margin:0 0 6px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--mute);
+  }
+  .top h1{
+    font-family:var(--display);font-weight:800;font-size:32px;
+    letter-spacing:-.02em;margin:0;line-height:1;
+  }
+  .top__right{ text-align:right;display:flex;flex-direction:column;gap:6px }
+  .top__right b{
+    font-family:var(--display);font-weight:600;font-size:15px;color:var(--ink);
+  }
+  .top__right span{ font-size:12px;color:var(--mute);letter-spacing:.04em }
+
+  .list{ padding:8px 40px 0 }
+
+  /* 35 and a hairline. Its twin is PER_DAY in card/listing.rs. */
+  .day{
+    height:35px;display:flex;align-items:center;
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--mute);border-bottom:1px solid var(--rule);
+  }
+
+  /* 47 and a hairline. Its twin is PER_EVENT in card/listing.rs. */
+  .row{
+    display:flex;align-items:center;gap:14px;
+    height:47px;border-bottom:1px solid var(--grid);
+  }
+  .row:last-child{ border-bottom:0 }
+
+  .chip{
+    width:4px;height:22px;border-radius:2px;
+    background:var(--tone);flex:0 0 auto;
+  }
+
+  .time{
+    font-family:var(--data);font-weight:500;font-size:14px;
+    color:var(--ink);width:52px;flex:0 0 auto;
+    font-variant-numeric:tabular-nums;
+  }
+  /* THE CURRENCY IS A BADGE, NOT A WHISPER.
+     It was muted grey at 13px beside a bold 16px title, which put the quietest
+     thing on the row in the place a trader looks FIRST -- he had to hunt for
+     it on a phone.
+
+     Neutral on purpose. The stripe carries impact; colouring this too would
+     put two competing signals on one row. */
+  .ccy{
+    font-family:var(--data);font-size:13px;font-weight:500;
+    letter-spacing:.08em;color:var(--ink);
+    background:var(--panel);border:1px solid var(--rule);border-radius:5px;
+    padding:4px 0;width:52px;text-align:center;flex:0 0 auto;
+  }
+  /* Gone ones fade with the rest of the row. */
+  .done .ccy{ color:var(--mute);opacity:.7 }
+  .what{
+    font-family:var(--display);font-weight:600;font-size:16px;
+    letter-spacing:-.01em;color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1 1 auto;
+  }
+
+  /* ALREADY PRINTED. Quiet, not gone — he still needs to see it happened. */
+  .done .time, .done .what{ color:var(--mute) }
+  .done .chip{ opacity:.35 }
+
+  /* THE RIGHT-HAND MARK. Every row carries one, and it is the column he
+     reads down: what has gone, and how long the rest have. */
+  .mark{
+    font-size:11px;letter-spacing:.1em;
+    flex:0 0 auto;margin-left:auto;padding-left:16px;
+    font-family:var(--data);font-variant-numeric:tabular-nums;
+  }
+  .mark--gone{
+    text-transform:uppercase;letter-spacing:.14em;
+    color:var(--mute);opacity:.75;
+  }
+  /* The one still to come is the one he acts on, so it is the darker of the
+     two. Not coloured — the stripe already carries impact, and a second
+     colour on the same row would compete with it. */
+  .mark--soon{ color:var(--ink);font-weight:500 }
+
+  .empty{
+    color:var(--mute);font-style:italic;font-size:15px;
+    font-family:var(--display);
+  }
+
+  /* 45 and a hairline. */
+  .foot{
+    position:absolute;bottom:0;left:0;right:0;
+    height:46px;padding:0 40px;border-top:1px solid var(--rule);
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;color:var(--mute);letter-spacing:.03em;
+    background:var(--panel-2);
+  }
+  .foot span:last-child{ letter-spacing:.1em;text-transform:uppercase }
+
+  body{ position:relative }

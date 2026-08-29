@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>setup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /*__STYLE__*/
+
+  /*__OWN__*/
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <p class="eyebrow" id="where"></p>
+    <h1 id="shape"></h1>
+  </div>
+  <div class="top__right">
+    <b id="pair"></b>
+    <span id="stamp"></span>
+  </div>
+</header>
+
+<section class="body">
+  <div class="chart"><svg id="draw" viewBox="0 0 280 200" role="img" aria-label="The two candles, drawn on the band."></svg></div>
+  <div class="said">
+    <p class="sentence" id="sentence"></p>
+    <p class="zone" id="zone"></p>
+  </div>
+</section>
+
+<footer class="foot">
+  <span>A reading, not a trade — no stop, no target, no entry</span>
+  <span id="broke"></span>
+</footer>
+
+<script>
+// Rust replaces this line. Every number is already worked out and rounded.
+const s = /*__SETUP__*/;
+
+function draw(){
+  document.getElementById("shape").textContent = s.shape;
+  document.getElementById("where").textContent = `${s.placing} your ${s.band.name} zone`;
+  document.getElementById("pair").textContent = `${s.symbol} · ${s.timeframe}`;
+  document.getElementById("stamp").textContent = s.stamp;
+  document.getElementById("sentence").textContent = s.sentence;
+
+  const fmt = n => n.toLocaleString("en-US",
+    {minimumFractionDigits:s.digits, maximumFractionDigits:s.digits});
+
+  document.getElementById("zone").innerHTML =
+    `<i class="dot ${s.band.colour}"></i>` +
+    `<b>${fmt(s.band.price)}</b> · band ${fmt(s.band.bottom)} to ${fmt(s.band.top)}`;
+
+  document.getElementById("broke").textContent =
+    s.broke ? "closed outside the band" : "closed inside the band";
+
+  // ── the two candles, drawn on the band ──
+  //
+  // THE BAND AND THE CANDLES SHARE ONE SCALE. Drawn separately they would
+  // agree in the numbers and disagree in the picture, and a picture with a
+  // price on it gets believed exactly like a number.
+  const lows  = s.candles.map(c => c.low).concat([s.band.bottom]);
+  const highs = s.candles.map(c => c.high).concat([s.band.top]);
+
+  const low = Math.min(...lows);
+  const high = Math.max(...highs);
+  const span = (high - low) || 1;
+
+  // **The viewBox and the CSS box are the same shape**, so nothing is scaled.
+  // They disagreed once and the chart floated in a field of white with the
+  // candles smaller than they should have been.
+  const W = 280, H = 200, pad = 16;
+  const y = v => pad + (high - v) / span * (H - pad * 2);
+
+  const svg = document.getElementById("draw");
+  const parts = [];
+
+  // The band first, so the candles sit on top of it.
+  parts.push(
+    `<rect x="0" y="${y(s.band.top)}" width="${W}" ` +
+    `height="${Math.max(y(s.band.bottom) - y(s.band.top), 1)}" ` +
+    `class="band ${s.band.colour}"/>`,
+    `<line x1="0" x2="${W}" y1="${y(s.band.price)}" y2="${y(s.band.price)}" ` +
+    `class="line ${s.band.colour}"/>`
+  );
+
+  const wide = 40;
+  const gap = W / (s.candles.length + 1);
+
+  s.candles.forEach((c, at) => {
+    const x = gap * (at + 1);
+    const top = Math.min(y(c.open), y(c.close));
+    const tall = Math.max(Math.abs(y(c.open) - y(c.close)), 1.5);
+
+    parts.push(
+      `<line x1="${x}" x2="${x}" y1="${y(c.high)}" y2="${y(c.low)}" class="wick"/>`,
+      `<rect x="${x - wide / 2}" y="${top}" width="${wide}" height="${tall}" ` +
+      `rx="1.5" class="candle ${c.up ? "up" : "down"}"/>`
+    );
+  });
+
+  svg.innerHTML = parts.join("");
+}
+
+draw();
+</script>
+</body>
+</html>

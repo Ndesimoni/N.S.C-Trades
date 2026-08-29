@@ -47,8 +47,7 @@ IT ASKS WHEN A CANDLE IS DUE, NOT ON A TIMER
 
   Now it reads the stamp the feed already handed back. Told a candle is
   stamped 12:00 on the 4-hour, the feed has said where its own boundary is:
-  the twenty-minute look falls at 13:20 and the close at 16:00. It waits for
-  those.
+  the close falls at 16:00. It waits for that.
 
   THIS IS NOT THE SAME AS WORKING OUT A BOUNDARY. It is reading one the feed
   stated, and the returned stamp is still what decides whether a candle has
@@ -88,35 +87,34 @@ NOTHING SAID IS NOTHING REMEMBERED
   again. A close is the thing he is waiting for.
 
 
-THE TWENTY-MINUTE LOOK
+THE TWENTY-MINUTE LOOK IS GONE -- 27 August 2026
 
-  A candle at one of his zones gets spoken about TWICE:
+  There used to be a THIRD message. A candle at one of his zones was spoken
+  about twice: about a third of the way in, marked "so far", and again when it
+  finished.
 
-      about a third of the way in    what it has done SO FAR
-      when it finishes               what it did
+  HIS CALL, AND THE REASON WAS THE COUNT. Two messages per zone visit and
+  never three -- the alert when price arrives, and the close when the candle
+  finishes OUTSIDE the band. The one in between was a heads-up about a
+  heads-up, and a message he stops opening is one he misses when it matters.
 
-  The first is the only place in this project that reads a candle before it
-  has finished. It is allowed for the same reason the price alert is — it is a
-  heads-up and nothing more — and the card says so on its own face. IT MUST
-  NEVER REACH A STRATEGY.
+  ITS GOING IS WORTH MORE THAN THE CARD WAS.
 
-  NOT ON THE OPEN. Spot forex runs Sunday to Friday without a break, so a
-  candle's open IS the last one's close. That message would repeat what
-  arrived a minute earlier.
+  It was the only place in this whole project that read a candle before it had
+  finished. The rule that matters most here is that a candle still forming is
+  invisible to the analysis -- and that rule was true everywhere EXCEPT one
+  card, which is exactly the shape a quiet bug takes.
 
-  ONE REQUEST SERVES BOTH. The reply already carries the candle that just
-  finished and the one still running, so the look costs nothing on top.
+  It is true everywhere now, with no exception to remember.
 
-  The two are remembered apart. Keyed together, the look would silence the
-  close that follows it — the one that actually matters.
+  WHAT WENT WITH IT: Kind::SoFar, the `forming` flag through report.rs, say.rs
+  and card/zone.rs, the hollow-chip styling in close.css, the `sofar` option on
+  --bin cards, and `look_in_minutes` in config/when.toml. A setting nothing
+  reads is a setting that lies.
 
-  `look_in_minutes` in config/when.toml is set for the 1-hour and scaled for
-  the rest: twenty minutes into an hour is eighty into a 4-hour.
-
-  IT LANDS ON THE MINUTE, NOT IN A TEN-MINUTE WINDOW. It used to be checked on
-  a timer, so the look arrived somewhere between twenty and thirty minutes in.
-  closes/due.rs now reads the stamp the feed already handed back and wakes at
-  that candle's own look and close. Twenty minutes in means twenty.
+  AND ONE WAKE-UP. closes/due.rs used to wake at two moments per candle -- the
+  look and the close. It waits for the close now and nothing sooner, so a
+  4-hour candle is three and a half hours of silence, and that is correct.
 
 
 IT NEVER WORKS OUT WHEN A CANDLE CLOSES
@@ -132,3 +130,29 @@ IT NEVER WORKS OUT WHEN A CANDLE CLOSES
   A 4-HOUR CANDLE DOES NOT EXIST UNTIL ITS LAST HOUR HAS CLOSED. Three hourly
   closes can pass with the 4-hour still saying nothing; the fourth is when it
   speaks. Bar::finished_by is the single place that decides.
+
+
+RUNG 3 RIDES ON THE SAME LOOK -- setups.rs
+
+  A shape he trades, at a level he drew. It uses the candles rung 2 already
+  fetched, so it costs no extra request.
+
+  ONLY EVER ON A FINISHED CANDLE. A
+  shape halfway through a candle is not a shape, and one that un-forms before
+  the close would have been a message about something that never happened.
+
+  IT CARRIES ITS OWN KEY -- Kind::Setup, not Kind::Closed. The same finished
+  candle can be worth both messages, and folding them into one key would
+  silence whichever arrived second.
+
+  THE HISTORY IS CUT AT THE CANDLE BEING JUDGED. `look` reads backwards from
+  the end, so anything after it in the list would be price the market had not
+  printed when that candle closed.
+
+  THE FETCH ASKS FOR TWENTY, NOT THREE. A normal candle is an average over
+  fourteen, and a shape is judged against how big a normal candle was AT THAT
+  MOMENT. Twenty costs nothing: IBKR paces on the number of requests, not on
+  how many bars each asks for.
+
+  UNREADABLE SETTINGS TURN RUNG 3 OFF and leave everything else running. The
+  alerts and the closes are the job; this was added on top of them.

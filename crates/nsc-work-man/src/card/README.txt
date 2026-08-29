@@ -26,6 +26,27 @@ THE FILES
 
   live.rs     The armed card — a level he just sent is being watched.
 
+  setup.rs    THE SETUP CARD -- rung 3. Two candles on the band, and the one
+              sentence nsc-strategy wrote. Fixed height: it does not grow.
+
+  expect.rs   THE BANK CARD -- where the desks expect his pairs to go. A row
+              per pair, and either all four quarters or one with how far it
+              moves. THE FIRM COUNT IS A COLUMN, not a footnote: one desk and
+              thirty look identical in a table of prices otherwise.
+
+  listing.rs  THE CALENDAR CARD — everything today, or everything left this
+              week. A different shape from soon.rs on purpose: this is a list,
+              so every row carries its own time and the forecast is left off.
+              Eighteen rows of numbers is a spreadsheet, and he reads it on a
+              phone. Grows a heading per day on the week's list and none at
+              all on today's.
+
+  soon.rs     THE NEWS CARD. What is about to print on the economic calendar.
+              Grows a row per release, so it works out its own height the way
+              alive.rs does — and its numbers are pinned in news.css rather
+              than left to the content, because they drifted once and the card
+              went out headed "4 releases" with three on it.
+
   wrong.rs    The trouble card — the bot itself, not the market.
 
   zone.rs     THE ZONE CARDS, and the facts they are told. What a zone card

@@ -2,17 +2,24 @@
 
 use nsc_data::source::Interval;
 
-/// Which of the two things was said about a candle.
+/// Which of the things was said about a candle.
 ///
-/// A candle gets spoken about **twice** — once part-way through, once when it
-/// finishes — and they must be remembered apart, or the look silences the
-/// close that follows it.
+/// **There used to be a `SoFar` here too**, for the mid-candle look. That card
+/// went on 27 August 2026 and the variant went with it — a value nothing ever
+/// constructs is a key nothing ever matches, and it would have sat in this
+/// enum looking like a state the bot could still be in.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(super) enum Kind {
-    /// Part-way through, while it was still running.
-    SoFar,
-    /// Finished.
+    /// Finished, and it closed outside the band.
     Closed,
+
+    /// **Rung 3 — a shape he trades, at one of his zones.**
+    ///
+    /// Kept apart from `Closed` deliberately. The same finished candle can be
+    /// worth both messages — what it did at the band, and the shape it
+    /// completed — and folding them into one key would silence whichever
+    /// arrived second.
+    Setup,
 }
 
 /// What one report was about: a pair's zone, on one interval, in one way.

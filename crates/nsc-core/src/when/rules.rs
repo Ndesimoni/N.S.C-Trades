@@ -33,10 +33,6 @@ pub struct Rules {
     #[serde(default = "four")]
     pub settle_hours: i64,
 
-    /// How far into a forming candle before it may say what it is doing.
-    #[serde(default = "twenty")]
-    pub look_in_minutes: i64,
-
     /// When the heartbeat goes out, **in UTC**.
     ///
     /// Not on the New York clock like [`Rules::day_ends`]. That one is a market
@@ -65,10 +61,6 @@ fn seven() -> NaiveTime {
 
 fn four() -> i64 {
     4
-}
-
-fn twenty() -> i64 {
-    20
 }
 
 /// What went wrong reading the calendar.

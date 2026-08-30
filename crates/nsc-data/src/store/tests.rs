@@ -201,3 +201,53 @@ fn stored_and_spoken_are_different_words() {
 
     assert_eq!(Interval::from_stored("1-hour"), None, "the spoken one is not a key");
 }
+
+/// **The bot reads UTC, whatever the machine's clock says.**
+///
+/// **This does not pin a line of ours, and that is worth saying.** `sqlx`
+/// sends `TimeZone=UTC` on every connection it opens, so this holds because of
+/// the driver rather than because of anything here. It was checked: with our
+/// own `SET TIME ZONE` removed and the database default reset, it still
+/// passed.
+///
+/// It stays because it pins the BEHAVIOUR. If `sqlx` ever changes, or someone
+/// adds a connection option that overrides it, the bot would start reading the
+/// record in local time and nothing else would notice.
+///
+/// Found on 30 August 2026 the other way round: the first candle showed as
+/// `2010-02-12 08:00:00+04` in `psql`, because the Mac is on Asia/Dubai and
+/// Postgres.app inherits it. It opened at 04:00 UTC and the file said so —
+/// the data was right and the screen was not. Nothing had shifted, because
+/// `TIMESTAMPTZ` holds an absolute instant. But the first person to read that
+/// screen would have believed a 4-hour candle opened four hours late and gone
+/// hunting for a bug in the feed. Migration 0002 is for them.
+#[tokio::test]
+#[ignore = "needs Postgres — see the README"]
+async fn every_connection_is_utc() {
+    const PAIR: &str = "TST/CLOCK";
+    let db = store(PAIR).await;
+
+    let (zone,): (String,) = sqlx::query_as("SHOW TIME ZONE")
+        .fetch_one(&db)
+        .await
+        .unwrap();
+
+    assert_eq!(zone, "UTC", "the bot must never read the record in local time");
+
+    // And a candle comes back on the instant it was written, not shifted.
+    write(&db, PAIR, Interval::H4, &[bar("2010-02-12 04:00:00", "1", "2", "0.5", "1.5")])
+        .await
+        .unwrap();
+
+    let back = read(
+        &db,
+        PAIR,
+        Interval::H4,
+        Utc.with_ymd_and_hms(2010, 2, 12, 0, 0, 0).unwrap(),
+        Utc.with_ymd_and_hms(2010, 2, 13, 0, 0, 0).unwrap(),
+    )
+    .await
+    .unwrap();
+
+    assert_eq!(back[0].datetime, "2010-02-12 04:00:00");
+}

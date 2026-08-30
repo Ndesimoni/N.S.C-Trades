@@ -39,6 +39,18 @@ const HOLD: u32 = 5;
 /// schema older than the code — which fails later, somewhere else, with a
 /// message about a column.
 ///
+/// **The bot always reads UTC, and `sqlx` is what guarantees it** — it sends
+/// `TimeZone=UTC` with every connection it opens (`establish.rs`). Nothing
+/// here has to ask for that, and an `after_connect` doing it again was written
+/// and then removed: a line that looks load-bearing and is not is worse than
+/// no line, because the next person trusts it.
+///
+/// **`psql` and pgAdmin are the ones at risk**, and migration 0002 is for
+/// them. On 30 August the first candle in the record read
+/// `2010-02-12 08:00:00+04` in `psql` — the Mac is on Asia/Dubai and
+/// Postgres.app inherits the machine's clock. It opened at 04:00 UTC and the
+/// file said so. Nothing had shifted; the screen was simply lying.
+///
 /// `url` is a Postgres connection string. **It never gets logged**: it has the
 /// password in it, and this project has already been bitten once by a secret
 /// travelling in an error message.

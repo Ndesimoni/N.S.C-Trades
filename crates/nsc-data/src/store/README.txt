@@ -93,8 +93,23 @@ NEVER A FLOAT
   touch it" with NO while his eye says yes.
 
 
-EVERYTHING UTC
+EVERYTHING UTC -- AND THE RISK IS THE SCREEN, NOT THE DATA
 
-  TIMESTAMPTZ, and TZ=UTC on the container itself. A server on local time
-  shifts the daily candle, which shifts every band, which changes every
-  signal -- and it looks like a strategy problem rather than a clock one.
+  TIMESTAMPTZ holds an ABSOLUTE INSTANT, so the stored candle is right
+  whatever clock the server is set to. sqlx sends TimeZone=UTC on every
+  connection it opens, so the bot always reads it right too.
+
+  WHAT IS AT RISK IS ANYTHING A PERSON LOOKS AT. On 30 August 2026 the first
+  candle in the record read `2010-02-12 08:00:00+04` in psql -- the Mac is on
+  Asia/Dubai and Postgres.app inherits the machine's clock. It opened at 04:00
+  UTC and the CSV said so.
+
+  Nothing had shifted. But the first person to read that screen would have
+  believed a 4-hour candle opened four hours late, and gone looking for a bug
+  in the feed. Migration 0002 sets the timezone on the database itself, which
+  is what psql and pgAdmin read.
+
+  An after_connect doing the same thing in code was written and then REMOVED:
+  the test for it passed with the code taken out, which means it pinned
+  nothing, and a line that looks load-bearing and is not is worse than no
+  line at all.

@@ -24,29 +24,3 @@
 # ───────────────────────────────────────────────────────────────────────────
 reach_of_band = "0.5"
 
-
-# ── How bold a shape must be to be worth saying with no level under it ──────
-#
-# IN NORMAL CANDLES, on whichever candle carries the move.
-#
-# His words, 29 August 2026: "we see a really bold move, but it's not in our
-# zone... I think we should also get an alert for that. Just for the ones that
-# really show up good."
-#
-# WHY TWO AND NOT SOMETHING ELSE. config/patterns.toml already refuses any
-# shape under one normal candle -- that is what ORDINARY means. Bold has to be
-# plainly more than ordinary, and the honest step up is double. A candle twice
-# the size of its neighbours is one he spots without measuring, which is his
-# own test: "anyone can see it for real."
-#
-# Measured the same day across five pairs and both timeframes, away from his
-# zones: 3.8 messages a day at 2.0, 7.5 at 1.5, and 13.8 at 1.0.
-#
-# THE COUNT IS THE CONSEQUENCE, NEVER THE REASON. It is written here because
-# 13.8 a day would end silence-by-default, not because 3.8 is a nicer number.
-#
-# THIS IS NOT A SETUP AND THE CARD SAYS SO. There is no level under it, and
-# nsc-bull and nsc-bear measured without levels came back at 38% -- worse than
-# a coin flip. It is a remark about a candle.
-# ───────────────────────────────────────────────────────────────────────────
-bold_reach = "2.0"

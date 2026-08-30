@@ -18,7 +18,6 @@
      looking any different from the rest. */
   .top.red   { border-bottom-color:#C6362F }
   .top.amber { border-bottom-color:#E6A400 }
-  .top.plain { border-bottom-color:var(--rule) }
 
   .badge{
     display:inline-block;margin-bottom:8px;
@@ -28,8 +27,7 @@
   }
   .badge.red   { background:#C6362F;color:#fff }
   .badge.amber { background:#E6A400;color:#2A1D00 }
-  .badge.plain { background:var(--panel-2);color:var(--mute);
-                 border:1px solid var(--rule) }
+
   .eyebrow{
     margin:0 0 6px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;
     color:var(--mute);

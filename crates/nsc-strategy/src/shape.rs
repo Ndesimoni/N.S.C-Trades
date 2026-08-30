@@ -115,10 +115,9 @@ impl Traded {
     ///   candles marching is not a move, however neatly each closes beyond the
     ///   last.
     ///
-    /// **This is what "bold" is measured against** when a shape prints nowhere
-    /// near a zone. `nsc-ta` has already refused anything under one normal
-    /// candle; this is what decides whether it is worth saying so with no
-    /// level under it.
+    /// **On the card, as how plainly the thing happened.** `nsc-ta` has
+    /// already refused anything under one normal candle, so this is never a
+    /// gate — it is a fact about the signal.
     pub fn reach(self, bars: &[&Bar], normal: Decimal) -> Option<Decimal> {
         if normal <= Decimal::ZERO {
             return None;

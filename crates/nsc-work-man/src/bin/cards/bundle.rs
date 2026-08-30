@@ -57,8 +57,8 @@ pub async fn bundle(client: &reqwest::Client) -> Result<()> {
         d("0.55"),
     )];
 
-    let (end, signal) = newest_at_a_zone(&all, &bands, &patterns, &rules)
-        .context("no signal at that zone in the saved candles")?;
+    let (end, signal) = newest(&all, &bands, &patterns, &rules)
+        .context("no signal in the saved candles")?;
 
     let history: Vec<&Bar> = all[end - WINDOW..end].iter().collect();
     let last = |many: usize| -> Vec<&Bar> {
@@ -116,12 +116,8 @@ pub async fn bundle(client: &reqwest::Client) -> Result<()> {
     Ok(())
 }
 
-/// The most recent candle in the file that is a signal **at that zone**.
-///
-/// **At a zone, not merely a signal.** Taking the newest of any kind hands
-/// back a `Bold` shape in open water, which is a different tier and not the
-/// one worth looking at when checking how a setup is drawn.
-fn newest_at_a_zone(
+/// The most recent candle in the file that is a signal at that zone.
+fn newest(
     all: &[Bar],
     bands: &[Band],
     patterns: &pattern::Rules,
@@ -133,9 +129,7 @@ fn newest_at_a_zone(
         let history: Vec<&Bar> = all[end - WINDOW..end].iter().collect();
         let normal = normal_candle(&history, 14)?;
 
-        if let Some(signal) = look(&history, bands, normal, patterns, rules)
-            && signal.standing.band().is_some()
-        {
+        if let Some(signal) = look(&history, bands, normal, patterns, rules) {
             found = Some((end, signal));
         }
     }

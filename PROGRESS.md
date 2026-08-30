@@ -58,18 +58,22 @@ nsc-work-man    everything that reaches
 > **The harami had no tests at all** before this. It has five now, on a real
 > gold harami from 21 April 2022.
 >
-> **THE THREE TIERS LANDED 30 AUGUST**, and a signal now sends **two
-> pictures**.
+> **TWO TIERS, 30 AUGUST.**
 >
 > ```text
 >     Inside   in the zone           RED     the only one that asks him to act
 >     Close    within half a band    amber   it almost touched and did not
->     Bold     no zone near it       plain   2x a normal candle, or silence
 > ```
 >
-> **A level beats size, always.** A shape at a zone is a setup whatever its
-> reach; one away from every zone is only ever a remark, and the card says so
-> in words before it says it in colour.
+> **NO LEVEL, NO SIGNAL** — however big the shape is. A third tier for a bold
+> shape away from every zone lasted one day before he removed it: *"remove the
+> signals that do not form in our zone and keep only the signals that form in
+> our zone and close to our zone."*
+>
+> The project's own measurement agrees with him. `nsc-bull` and `nsc-bear`
+> followed with **no level under them** reached +1 normal candle before −1 in
+> **29 of 75 — 38%**, where a coin flip is 50%. Four messages a day of that is
+> four a day of nothing.
 >
 > **THREE PICTURES, and each answers a different question** — his ask on
 > 30 August.

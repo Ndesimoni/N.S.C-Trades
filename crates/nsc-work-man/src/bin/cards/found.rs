@@ -64,8 +64,8 @@ pub async fn setup(client: &reqwest::Client, tier: Option<&str>) -> Result<()> {
     // give a fourteen-candle average. It is the real one from that week.
     let normal = normal_candle(&history, 14).unwrap_or_else(|| d("104.27462"));
 
-    // **One run, three tiers**, so all three looks can be checked without
-    // waiting for the market to print each of them.
+    // **One run, both tiers**, so each look can be checked without waiting for
+    // the market to print it.
     let (bands, normal) = match tier {
         // Within half a band of it: the pin's low of 4450.71 sits 10.71 above
         // a band topping at 4440, and half of a 40-point band is 20.
@@ -78,10 +78,6 @@ pub async fn setup(client: &reqwest::Client, tier: Option<&str>) -> Result<()> {
             }],
             normal,
         ),
-
-        // No zones at all, and a quieter week to measure against: the push
-        // reaches 3.99 normal candles instead of 1.91.
-        Some("bold") => (Vec::new(), d("50")),
 
         // The pin's low is 4450.71, so a weekly band around 4470 holds it.
         _ => (

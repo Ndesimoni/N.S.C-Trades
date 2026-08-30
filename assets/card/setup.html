@@ -49,8 +49,8 @@ function draw(){
 
   // ── THE TIER DECIDES THE WHOLE LOOK ──
   //
-  // Three tiers, settled 29 August 2026: in the zone, extremely close to it,
-  // or bold with no zone near it at all. Red is kept for the first.
+  // Two tiers: in the zone, or extremely close to it. Red is kept for the
+  // first — the only one that asks him to act.
   const fmt = n => n.toLocaleString("en-US",
     {minimumFractionDigits:s.digits, maximumFractionDigits:s.digits});
 
@@ -59,35 +59,30 @@ function draw(){
   tier.classList.add(s.colour);
   document.querySelector(".top").classList.add(s.colour);
 
-  document.getElementById("where").textContent = s.band
-    ? `${s.band.name} · ${fmt(s.band.price)}`
-    : `${s.reach.toFixed(1)}× a normal candle`;
+  document.getElementById("where").textContent =
+    `${s.band.name} · ${fmt(s.band.price)} · ${s.reach.toFixed(1)}× a normal candle`;
   document.getElementById("stamp").textContent = s.stamp;
   document.getElementById("sentence").textContent = s.sentence;
 
-  // **No zone means no zone line, and the footer must not imply one either.**
-  // A band drawn at nought would look exactly like a level.
-  document.getElementById("zone").innerHTML = s.band
-    ? `<i class="dot ${s.band.colour}"></i>` +
-      `<b>${fmt(s.band.price)}</b> · band ${fmt(s.band.bottom)} to ${fmt(s.band.top)}`
-    : `<b>${s.reach.toFixed(1)}×</b> a normal candle`;
+  document.getElementById("zone").innerHTML =
+    `<i class="dot ${s.band.colour}"></i>` +
+    `<b>${fmt(s.band.price)}</b> · band ${fmt(s.band.bottom)} to ${fmt(s.band.top)}`;
 
   // **Only a shape INSIDE the band can have closed inside or outside it.**
   // On the near-miss card that line said "closed inside the band" about a
   // candle 75 points above it — true of nothing, and believable.
   document.getElementById("broke").textContent =
-    !s.band            ? "no level under it"
-    : !s.solid         ? "did not reach the band"
-    : s.broke          ? "closed outside the band"
-    :                    "closed inside the band";
+    !s.solid   ? "did not reach the band"
+    : s.broke  ? "closed outside the band"
+    :            "closed inside the band";
 
   // ── the two candles, drawn on the band ──
   //
   // THE BAND AND THE CANDLES SHARE ONE SCALE. Drawn separately they would
   // agree in the numbers and disagree in the picture, and a picture with a
   // price on it gets believed exactly like a number.
-  const lows  = s.candles.map(c => c.low).concat(s.band ? [s.band.bottom] : []);
-  const highs = s.candles.map(c => c.high).concat(s.band ? [s.band.top] : []);
+  const lows  = s.candles.map(c => c.low).concat([s.band.bottom]);
+  const highs = s.candles.map(c => c.high).concat([s.band.top]);
 
   const low = Math.min(...lows);
   const high = Math.max(...highs);
@@ -102,17 +97,14 @@ function draw(){
   const svg = document.getElementById("draw");
   const parts = [];
 
-  // The band first, so the candles sit on top of it. None to draw when the
-  // shape printed nowhere near one.
-  if (s.band) {
-    parts.push(
-      `<rect x="0" y="${y(s.band.top)}" width="${W}" ` +
-      `height="${Math.max(y(s.band.bottom) - y(s.band.top), 1)}" ` +
-      `class="band ${s.band.colour}"/>`,
-      `<line x1="0" x2="${W}" y1="${y(s.band.price)}" y2="${y(s.band.price)}" ` +
-      `class="line ${s.band.colour}"/>`
-    );
-  }
+  // The band first, so the candles sit on top of it.
+  parts.push(
+    `<rect x="0" y="${y(s.band.top)}" width="${W}" ` +
+    `height="${Math.max(y(s.band.bottom) - y(s.band.top), 1)}" ` +
+    `class="band ${s.band.colour}"/>`,
+    `<line x1="0" x2="${W}" y1="${y(s.band.price)}" y2="${y(s.band.price)}" ` +
+    `class="line ${s.band.colour}"/>`
+  );
 
   // Marching is three candles, so the width comes from how many there are.
   const wide = s.candles.length > 2 ? 30 : 40;

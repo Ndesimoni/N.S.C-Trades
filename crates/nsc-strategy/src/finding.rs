@@ -15,14 +15,12 @@ use super::standing::Standing;
 pub struct Signal {
     pub shape: Traded,
 
-    /// **The three tiers** — in the zone, close to it, or bold and away from
-    /// every one of them. See `standing.rs`.
+    /// **The two tiers** — in the zone, or within half a band of it. See
+    /// `standing.rs`.
     pub standing: Standing,
 
-    /// How big the shape is, in normal candles.
-    ///
-    /// **On the card either way.** At a zone it says how plainly the thing
-    /// happened; away from one it is the whole reason the message was sent.
+    /// How big the shape is, in normal candles. **On the card**, because it
+    /// says how plainly the thing happened.
     pub reach: Decimal,
 }
 
@@ -37,18 +35,12 @@ pub struct Signal {
 /// `normal` is how big a normal candle was **at that moment**, not today.
 /// `bands` are his levels on that pair, already sized.
 ///
-/// ## The three answers, in the order they are tried
+/// ## No level, no signal
 ///
-/// ```text
-///     at one of his bands           Inside, or Close
-///     no band near it, but big      Bold
-///     no band, and ordinary         nothing
-/// ```
-///
-/// **A level beats size, always.** A shape at a zone is a setup whatever its
-/// reach; a shape away from every zone is only ever a remark. Testing size
-/// first would let a big candle in open water outrank a modest one sitting
-/// exactly where he was watching.
+/// **A shape away from every one of his zones says nothing at all**, however
+/// big it is. He settled that on 30 August after a day of the other way:
+/// `nsc-bull` and `nsc-bear` measured with no level under them came back at
+/// 38%, and four messages a day of that is four a day of nothing.
 pub fn look(
     bars: &[&Bar],
     bands: &[Band],
@@ -83,10 +75,8 @@ pub fn look(
             placing,
         },
 
-        // Nowhere near a zone. Worth saying only if it is plainly bigger than
-        // an ordinary candle — and `nsc-ta` has already refused anything under
-        // one, so this asks for *bolder than ordinary*, not merely real.
-        None if reach >= rules.bold_reach => Standing::Bold,
+        // Nowhere near a zone. **The level is what makes a shape worth
+        // anything**, so there is nothing to say.
         None => return None,
     };
 

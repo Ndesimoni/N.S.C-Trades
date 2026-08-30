@@ -12,12 +12,17 @@ use super::place::Placing;
 /// ```text
 ///     Inside   in the zone            SOLID -- act
 ///     Close    within half a band     it almost touched and did not
-///     Bold     no zone near it        big enough to say so anyway
 /// ```
 ///
-/// **Three variants, not a number.** A confidence score would let the three
-/// blur into each other, and they are not the same kind of thing: two of them
-/// are about a level he drew and one of them is about nothing but the candle.
+/// **Two variants, not a number.** A confidence score would let them blur into
+/// each other, and they are two different statements rather than two strengths
+/// of one: the first has happened and the second has not, quite.
+///
+/// **THERE IS NO TIER FOR A SHAPE AWAY FROM EVERY ZONE.** A third one existed
+/// for a day — 2x a normal candle with no level under it, about four messages
+/// a day — and he took it out on 30 August. A shape with no level under it is
+/// not a setup, his own `nsc-bull` and `nsc-bear` measured without levels came
+/// back at 38%, and four a day of those is four a day of nothing.
 #[derive(Debug, Clone, Copy)]
 pub enum Standing {
     /// **In the zone.** The strongest thing this bot says.
@@ -39,34 +44,22 @@ pub enum Standing {
     /// 4-hour and about 13 on cable's weekly.
     Close { band: Band, placing: Placing },
 
-    /// **No zone near it at all, and the shape is bold enough to say so.**
-    ///
-    /// His words on 29 August: *"we see a really bold move, but it's not in
-    /// our zone... I think we should also get an alert for that."*
-    ///
-    /// **This one is not a setup and the card must never let it read as one.**
-    /// There is no level under it, and his own measurement of `nsc-bull` and
-    /// `nsc-bear` without levels came back at 38% — worse than a coin flip.
-    Bold,
 }
 
 impl Standing {
-    /// The band it printed at, when there is one.
-    ///
-    /// **`Bold` has none, and that is the whole point of it.**
-    pub fn band(self) -> Option<Band> {
+    /// The band it printed at. **There is always one** — a shape away from
+    /// every zone is not a signal at all.
+    pub fn band(self) -> Band {
         match self {
-            Standing::Inside { band, .. } | Standing::Close { band, .. } => Some(band),
-            Standing::Bold => None,
+            Standing::Inside { band, .. } | Standing::Close { band, .. } => band,
         }
     }
 
     /// Where it sits against that band.
-    pub fn placing(self) -> Option<Placing> {
+    pub fn placing(self) -> Placing {
         match self {
-            Standing::Inside { .. } => Some(Placing::Inside),
-            Standing::Close { placing, .. } => Some(placing),
-            Standing::Bold => None,
+            Standing::Inside { .. } => Placing::Inside,
+            Standing::Close { placing, .. } => placing,
         }
     }
 
@@ -77,9 +70,8 @@ impl Standing {
 
     /// **Is this one he should act on?**
     ///
-    /// Only the first. The other two are worth knowing and are not the same
-    /// statement — `Close` has not happened yet and `Bold` has no level under
-    /// it at all.
+    /// Only the first. `Close` is worth knowing and is not the same statement:
+    /// it has not happened yet.
     pub fn solid(self) -> bool {
         matches!(self, Standing::Inside { .. })
     }
@@ -89,20 +81,18 @@ impl Standing {
         match self {
             Standing::Inside { .. } => "in the zone",
             Standing::Close { .. } => "extremely close",
-            Standing::Bold => "no zone near it",
         }
     }
 
     /// Which colour the card leads with.
     ///
-    /// **Red is his, chosen on 29 August**, and it is kept for the one tier
-    /// that asks for action. The other two must not wear it or the strongest
-    /// thing the bot says stops looking different from the rest.
+    /// **Red is his, chosen on 29 August**, and it is kept for the tier that
+    /// asks for action. The near miss must not wear it, or the strongest thing
+    /// the bot says stops looking any different from the rest.
     pub fn colour(self) -> &'static str {
         match self {
             Standing::Inside { .. } => "red",
             Standing::Close { .. } => "amber",
-            Standing::Bold => "plain",
         }
     }
 }

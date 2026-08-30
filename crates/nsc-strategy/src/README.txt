@@ -16,16 +16,20 @@ WHAT THIS CRATE IS FOR
   the candle its run started on -- not from the last one, which would report
   the setup a whole shape away from the level that caused it.
 
-  AND THREE TIERS, the same day:
+  AND TWO TIERS, the same day:
 
     Inside   in the zone          RED. The only one that asks him to act.
     Close    within half a band   amber. It almost touched and did not.
-    Bold     no zone near it      plain. 2x a normal candle or it is silence.
 
-  A LEVEL BEATS SIZE, ALWAYS. A shape at a zone is a setup whatever its reach;
-  a shape away from every zone is only ever a remark. Testing size first would
-  put a big candle in open water above a modest one sitting exactly where he
-  was watching.
+  NO LEVEL, NO SIGNAL -- however big the shape is. A third tier for a bold
+  shape away from every zone existed for one day and he removed it on
+  30 August: "remove the signals that do not form in our zone and keep only the
+  signals that form in our zone and close to our zone."
+
+  He is right and the project's own measurement says so. nsc-bull and nsc-bear
+  followed with NO level under them reached +1 normal candle before -1 in 29 of
+  75 -- 38%, where a coin flip is 50%. Four messages a day of that is four a
+  day of nothing.
 
   The specification is docs/worksheets/strategies.md. When it and this code
   disagree, IT WINS -- the worksheet is the spec and the code is the guess.

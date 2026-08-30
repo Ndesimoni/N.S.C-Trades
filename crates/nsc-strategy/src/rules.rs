@@ -20,20 +20,6 @@ pub struct Rules {
     #[serde(with = "rust_decimal::serde::str")]
     pub reach_of_band: Decimal,
 
-    /// **How big a shape must be to be worth saying with no level under it**,
-    /// in normal candles.
-    ///
-    /// `nsc-ta` already refuses anything under one normal candle — that is
-    /// what *ordinary* means. **Bold has to be plainly more than ordinary, and
-    /// the honest step up is double.** A candle twice the size of its
-    /// neighbours is one he spots without measuring, which is his own test:
-    /// *"anyone can see it for real."*
-    ///
-    /// Measured 29 August 2026 across five pairs and both timeframes: at 2.0
-    /// this is about 3.8 messages a day, at 1.5 it is 7.5 and at 1.0 it is
-    /// 13.8. **The count is the consequence, never the reason.**
-    #[serde(with = "rust_decimal::serde::str")]
-    pub bold_reach: Decimal,
 }
 
 /// What can go wrong reading them.
@@ -51,12 +37,6 @@ pub enum StrategyError {
     #[error("{path} sets reach_of_band to {reach}, which can almost never match")]
     NoReach { path: String, reach: Decimal },
 
-    /// **A bold threshold at or under one normal candle is not a threshold.**
-    /// `nsc-ta` already floors every shape at one, so anything at or below it
-    /// lets every shape through with no level under it — which is 14 messages
-    /// a day and the end of silence-by-default.
-    #[error("{path} sets bold_reach to {bold}, which is not bolder than ordinary")]
-    NotBold { path: String, bold: Decimal },
 }
 
 /// Read them from a file. **Gives up rather than guessing.**
@@ -78,12 +58,6 @@ pub fn load(path: &Path) -> Result<Rules, StrategyError> {
         });
     }
 
-    if rules.bold_reach <= Decimal::ONE {
-        return Err(StrategyError::NotBold {
-            path: path.display().to_string(),
-            bold: rules.bold_reach,
-        });
-    }
 
     Ok(rules)
 }

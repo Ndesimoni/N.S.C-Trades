@@ -93,13 +93,7 @@ impl Closes {
             interval,
             kind: Kind::Setup,
 
-            // **A bold shape has no zone to key on**, and the candle's own
-            // time already stops it being said twice. Keying it on the empty
-            // string would make every bold shape on every pair one entry.
-            band: signal
-                .standing
-                .band()
-                .map_or_else(|| "bold".to_string(), |band| band.price.to_string()),
+            band: signal.standing.band().price.to_string(),
         };
 
         if self.already_said(&key, &finished.datetime) {

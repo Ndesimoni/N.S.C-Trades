@@ -2,6 +2,25 @@ store — the record
 ==================
 
 
+WHO WRITES TO IT
+
+  --bin keep         the saved CSVs, by hand, once
+  watch/closes/      EVERY FINISHED CANDLE, as the bot runs -- wired 30 August
+
+  Before that wire, the bot read a candle, judged it and threw it away, so the
+  history stopped on the day it was last downloaded by hand. Charts were never
+  affected -- those come from IBKR -- but the record went stale and a
+  backtester would have read years with a hole at the end.
+
+  THE WHOLE REPLY IS WRITTEN, not just the newest candle. It costs one
+  statement either way, and it means a bot that was off for a day fills that
+  day in on its next look rather than leaving a hole nothing would go back for.
+
+  NOTHING READS IT WHILE THE BOT IS UP. That is why a database it cannot open
+  is a warning and not a stop: losing a row costs a gap in the history, where
+  refusing to start costs every alert he was watching for.
+
+
 WHAT THIS FOLDER IS FOR
 
   What the bot DECIDED, and what the market did about it.

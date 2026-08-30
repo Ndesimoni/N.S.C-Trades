@@ -4,10 +4,12 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use chrono::{DateTime, Utc};
+use nsc_core::candle::Bar;
 use nsc_core::levels::Thickness;
 use nsc_core::when::Rules;
 use nsc_data::source::Interval;
 use nsc_data::sources::ibkr::IbkrConnection;
+use nsc_data::store::{self, Store};
 use tokio::time::{Duration, Instant, sleep_until};
 
 use super::due::{when_next, worth_asking_again};
@@ -46,12 +48,23 @@ pub struct Closes {
     /// swallowed, because rules that quietly never fire look exactly like a
     /// quiet week.
     rung_three: Option<(nsc_strategy::Rules, nsc_ta::pattern::Rules)>,
+
+    /// Where finished candles are kept, when there is somewhere to keep them.
+    ///
+    /// **`None` runs the whole bot with no database.** Losing a row is worth
+    /// far less than losing an alert, and the record is a record — nothing
+    /// reads it while the bot is running.
+    record: Option<Store>,
 }
 
 impl Closes {
-    pub fn new(rung_three: Option<(nsc_strategy::Rules, nsc_ta::pattern::Rules)>) -> Self {
+    pub fn new(
+        rung_three: Option<(nsc_strategy::Rules, nsc_ta::pattern::Rules)>,
+        record: Option<Store>,
+    ) -> Self {
         Closes {
             rung_three,
+            record,
             told: HashMap::new(),
             due: HashMap::new(),
             // Not immediately. The bands were just sized, and the rate limit
@@ -89,6 +102,41 @@ impl Closes {
     }
 
     /// Asks about every pair price is currently at a zone of.
+    /// Puts the finished candles in the record.
+    ///
+    /// **Only finished ones.** A candle still forming is not a candle yet, and
+    /// storing it would put a half-drawn bar in the one place that is supposed
+    /// to be the truth — where a backtest would later read it as settled.
+    ///
+    /// **Nothing here can stop an alert.** A database that will not answer is
+    /// a lost row; a blocked price loop is a missed setup. It says so once and
+    /// carries on.
+    async fn keep(
+        &self,
+        symbol: &str,
+        interval: Interval,
+        bars: &[Bar],
+        now: DateTime<Utc>,
+        minutes: i64,
+    ) {
+        let Some(record) = &self.record else {
+            return;
+        };
+
+        let done = finished_only(bars, now, minutes);
+
+        if done.is_empty() {
+            return;
+        }
+
+        if let Err(trouble) = store::write(record, symbol, interval, &done).await {
+            eprintln!(
+                "Could not keep the {} candles for {symbol}: {trouble}",
+                interval.spoken()
+            );
+        }
+    }
+
     pub async fn look(
         &mut self,
         client: &reqwest::Client,
@@ -142,6 +190,23 @@ impl Closes {
                 };
 
                 let now = Utc::now();
+
+                // **Every finished candle goes into the record, here.**
+                //
+                // The bot used to read a candle, judge it and throw it away,
+                // so the history stopped on the day it was last downloaded by
+                // hand. Charts were never affected — those come from IBKR —
+                // but the record went stale and the backtester would have read
+                // years with a hole at the end.
+                //
+                // **The whole reply is written, not just the newest one.** It
+                // costs one statement either way, and it means a bot that was
+                // off for a day fills that day in on its next look. The key is
+                // `(symbol, interval, opened_at)` and the write is
+                // `ON CONFLICT DO UPDATE`, so re-writing the same 399 candles
+                // repairs rather than duplicates.
+                self.keep(&seen.pair.symbol, interval, &bars, now, minutes)
+                    .await;
 
                 let ask_again = worth_asking_again(&bars, minutes, now);
 
@@ -216,4 +281,20 @@ impl Closes {
     pub(super) fn already_said(&self, key: &Said, stamp: &str) -> bool {
         self.told.get(key).is_some_and(|told| told == stamp)
     }
+}
+
+/// The candles that have **finished**, and only those.
+///
+/// **A candle still forming is not a candle yet.** Storing one would put a
+/// half-drawn bar in the one place that is meant to be the truth, where a
+/// backtest reads it months later as settled — and a backtest that reads a
+/// price the market had not printed does not look broken, it looks *better*.
+///
+/// The reply from the feed carries both: the candle that has just closed and
+/// the one still running. This is the line between them.
+pub(super) fn finished_only(bars: &[Bar], now: DateTime<Utc>, minutes: i64) -> Vec<Bar> {
+    bars.iter()
+        .filter(|bar| bar.finished_by(now, minutes).unwrap_or(false))
+        .cloned()
+        .collect()
 }

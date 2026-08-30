@@ -143,7 +143,40 @@ pub async fn run() -> Result<()> {
         }
     };
 
-    let mut kit = Kit::new(rung_three);
+    // ── The record, if there is one to reach ──
+    //
+    // **A database that will not open must not stop the bot.** It is written
+    // and never read while the bot is up, so the cost of losing it is a gap in
+    // the history — where the cost of refusing to start is every alert he was
+    // watching for.
+    //
+    // It is said out loud rather than swallowed, because a record that quietly
+    // stopped filling looks exactly like a quiet week when it is read back
+    // months later.
+    let record = match std::env::var("DATABASE_URL") {
+        Err(_) => {
+            println!("No DATABASE_URL — finished candles will not be kept.");
+            None
+        }
+
+        Ok(url) => match nsc_data::store::open(&url).await {
+            Ok(store) => {
+                println!("Keeping finished candles in the record.");
+                Some(store)
+            }
+
+            Err(trouble) => {
+                eprintln!(
+                    "\n⚠️  Could not open the record, so finished candles will not be kept.\n\
+                         {trouble}\n\
+                         Everything else runs. `docker compose up -d` and restart.\n"
+                );
+                None
+            }
+        },
+    };
+
+    let mut kit = Kit::new(rung_three, record);
     let mut trouble = trouble::Trouble::new();
 
     say_what_the_calendar_allows(&calendar);

@@ -27,9 +27,16 @@ pub(crate) struct Kit {
 impl Kit {
     /// `rung_three` is `None` when `config/strategy.toml` would not read.
     /// Everything else runs; only the shape-at-a-level messages stop.
-    pub fn new(rung_three: Option<(nsc_strategy::Rules, nsc_ta::pattern::Rules)>) -> Self {
+    ///
+    /// `record` is `None` when there is no database to reach. **Everything
+    /// else runs then too** — the record is written and never read while the
+    /// bot is up, so losing a row costs far less than losing an alert.
+    pub fn new(
+        rung_three: Option<(nsc_strategy::Rules, nsc_ta::pattern::Rules)>,
+        record: Option<nsc_data::store::Store>,
+    ) -> Self {
         Kit {
-            closes: closes::Closes::new(rung_three),
+            closes: closes::Closes::new(rung_three, record),
             awake: resumed::Awake::new(),
             pulse: pulse::Pulse::new(),
             files: reload::Files::look(),

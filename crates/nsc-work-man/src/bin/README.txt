@@ -30,6 +30,12 @@ THE FILES
                   cargo run -p nsc-work-man --bin levels -- GBPUSD
 
   cards/      Draws ANY card and sends it, without waiting for the market to
+
+              -- bundle DRAWS ALL THREE SIGNAL PICTURES FROM ONE SIGNAL, off
+              saved candles, no TWS. It exists because the pieces were drawn
+              by hand three times in one afternoon and the third time sent two
+              different pairs in one bundle -- AUD/USD on the charts, gold on
+              the card. The live path cannot do that; the preview could.
               do anything.
 
                   --bin cards -- XAUUSD                approaching

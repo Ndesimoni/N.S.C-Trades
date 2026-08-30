@@ -10,6 +10,7 @@
 //!     cargo run -p nsc-work-man --bin cards -- news today         the day's list
 //!     cargo run -p nsc-work-man --bin cards -- news week          the week's list
 //!     cargo run -p nsc-work-man --bin cards -- setup              a rung 3 signal
+//!     cargo run -p nsc-work-man --bin cards -- bundle       all three, one signal
 //!     cargo run -p nsc-work-man --bin cards -- heartbeat          the quiet day
 //!     cargo run -p nsc-work-man --bin cards -- armed             a level went live
 //!     cargo run -p nsc-work-man --bin cards -- trouble down       the line is off
@@ -25,6 +26,7 @@
 //! labels crowd.
 
 mod beat;
+mod bundle;
 mod found;
 mod soon;
 mod zone;
@@ -61,6 +63,10 @@ async fn main() -> Result<()> {
     // The bank consensus needs no candles either — a plain web endpoint with
     // no key on it. Answered before TWS is asked for anything.
     // Rung 3, drawn on the two gold candles off his own screenshot. No TWS.
+    if wanted == "bundle" {
+        return bundle::bundle(&client).await;
+    }
+
     if wanted == "setup" {
         return found::setup(&client, std::env::args().nth(2).as_deref()).await;
     }

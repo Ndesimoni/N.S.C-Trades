@@ -44,6 +44,61 @@ fn bar(at: &str, open: &str, high: &str, low: &str, close: &str) -> Bar {
 /// The schema the tests write to. **Never `public`, where the record lives.**
 const TEST_SCHEMA: &str = "testing";
 
+/// Makes the test schema and migrates it — **exactly once per test run**.
+///
+/// **This is a first-run race, and it only shows on a fresh machine.** Five
+/// tests each creating the schema and running the migrations at the same
+/// moment fought over the migration lock and timed out; once the schema
+/// existed they were fast enough to never collide. So it was green on the
+/// second run and red on a machine that had never run them — the worst way
+/// round for a test to fail.
+///
+/// `Once` cannot hold an async setup, and `block_on` inside a runtime panics,
+/// so the work goes to a plain thread with a runtime of its own and everybody
+/// waits for it.
+static PREPARED: std::sync::Once = std::sync::Once::new();
+
+fn prepare(url: &str) {
+    PREPARED.call_once(|| {
+        let url = url.to_string();
+
+        std::thread::spawn(move || {
+            let runtime = tokio::runtime::Builder::new_current_thread()
+                .enable_all()
+                .build()
+                .expect("a runtime for the setup");
+
+            runtime.block_on(async {
+                let first = sqlx::PgPool::connect(&url)
+                    .await
+                    .expect("is the database running?");
+
+                sqlx::query(&format!("CREATE SCHEMA IF NOT EXISTS {TEST_SCHEMA}"))
+                    .execute(&first)
+                    .await
+                    .expect("could not make the test schema");
+
+                first.close().await;
+
+                // Migrate it here, so no test has to.
+                open(&in_schema(&url)).await.expect("could not migrate the test schema");
+            });
+        })
+        .join()
+        .expect("the setup thread");
+    });
+}
+
+/// The same url, pointed at the tests' schema.
+///
+/// **`options=-c search_path=...` puts every statement there**, migrations
+/// included — so the tables the tests use are the tests' own.
+fn in_schema(url: &str) -> String {
+    let sep = if url.contains('?') { '&' } else { '?' };
+
+    format!("{url}{sep}options=-c%20search_path%3D{TEST_SCHEMA}")
+}
+
 /// Opens the record in a schema of the tests' own, and clears one test's rows.
 ///
 /// **A SEPARATE SCHEMA, AND THAT IS NOT FUSSINESS.** The first version wrote
@@ -56,36 +111,20 @@ const TEST_SCHEMA: &str = "testing";
 /// nothing else here needs. The bot connects with the least it can do the job
 /// with, and the tests must not be the reason that stops being true.
 ///
-/// **A POOL PER TEST, NOT ONE SHARED.** A shared `static` pool was tried and
-/// it timed out at random: `#[tokio::test]` gives every test its own runtime,
-/// and a pool belongs to the runtime that made it. Borrowed across runtimes it
+/// **A POOL PER TEST, NOT ONE SHARED.** A shared `static` pool was tried and it
+/// timed out at random: `#[tokio::test]` gives every test its own runtime, and
+/// a pool belongs to the runtime that made it. Borrowed across runtimes it
 /// waits forever for a connection nobody is driving.
 ///
 /// **EVERY TEST ALSO GETS ITS OWN SYMBOL.** They shared one at first and each
 /// cleared it on the way in, so in parallel they wiped each other — green
-/// alone and red together, which is the worst way round for a test to fail.
+/// alone and red together.
 async fn store(symbol: &str) -> Store {
     let url = std::env::var("DATABASE_URL").expect("DATABASE_URL — see .env.example");
 
-    // The schema has to exist before anything can be pointed at it. Racing
-    // here is fine: `IF NOT EXISTS` is the whole point, and `sqlx` takes its
-    // own lock while migrating.
-    let first = sqlx::PgPool::connect(&url)
-        .await
-        .expect("is the database running?");
+    prepare(&url);
 
-    sqlx::query(&format!("CREATE SCHEMA IF NOT EXISTS {TEST_SCHEMA}"))
-        .execute(&first)
-        .await
-        .expect("could not make the test schema");
-
-    first.close().await;
-
-    // **`options=-c search_path=...` puts every statement in that schema**,
-    // migrations included — so the tables the tests use are the tests' own.
-    let sep = if url.contains('?') { '&' } else { '?' };
-
-    let db = open(&format!("{url}{sep}options=-c%20search_path%3D{TEST_SCHEMA}"))
+    let db = open(&in_schema(&url))
         .await
         .expect("could not open the test schema");
 

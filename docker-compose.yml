@@ -18,8 +18,23 @@ services:
 
     environment:
       POSTGRES_USER: nsc
-      POSTGRES_PASSWORD: nsc
       POSTGRES_DB: nsc_trades
+
+      # ── ONE PASSWORD, AND .env IS WHERE IT LIVES ──
+      #
+      # It was written here as a literal and DATABASE_URL carried a different
+      # one, so the container and the url disagreed and `sqlx migrate run`
+      # answered "password authentication failed for user nsc" -- which reads
+      # like a broken database rather than two files that had drifted.
+      #
+      # `docker compose` reads .env from beside this file, so the same line
+      # feeds both. The fallback is only for a first run with no .env yet.
+      #
+      # CHANGING IT LATER DOES NOT RE-APPLY. Postgres sets the password when
+      # it first makes the data directory and never again, so an edit here
+      # needs either `docker compose down -v` (which throws the candles away)
+      # or `ALTER ROLE nsc PASSWORD '...'` against the running container.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nsc}
 
       # ── UTC, AND IT IS NOT DECORATION ──
       #

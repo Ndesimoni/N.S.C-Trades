@@ -62,6 +62,12 @@ WHY THE DATABASE TESTS ARE #[ignore]
     docker compose up -d
     cargo test -p nsc-data -- --ignored
 
+  THE SETUP RUNS ONCE, ON ITS OWN THREAD. Five tests each creating the schema
+  and migrating it at the same moment fought over the migration lock and timed
+  out -- but only on a machine that had never run them, because once the
+  schema existed they were fast enough never to collide. Green on the second
+  run and red on a fresh machine is the worst way round for a test to fail.
+
   AND THEY MUST NOT QUIETLY PASS WHEN THERE IS NO DATABASE. A test that skips
   itself and reports green pins nothing at all. #[ignore] says "not run" out
   loud; skipping inside the body would say "passed".

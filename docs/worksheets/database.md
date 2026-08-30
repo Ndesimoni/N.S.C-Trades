@@ -9,8 +9,14 @@ cargo run -p nsc-work-man --bin keep      # the saved CSVs into the record
 cargo test -p nsc-data -- --ignored       # the queries, against a real one
 ```
 
-**It runs on Postgres.app** as of 30 August — port 5432, and `docker-compose.yml`
-is still there for a server. The url in `.env` is the only thing that decides.
+**It runs in Docker** — `docker compose up -d`, port 5434. It went to a native
+install for an afternoon on 30 August and came back the same day, and the
+reason is worth keeping: **the container sets `TZ` and `PGTZ` to UTC in the
+compose file, and a native install inherits the machine's clock.** That is
+exactly the trap this page warns about, and it caught us — the first candle
+read `2010-02-12 08:00:00+04` on a Mac set to Dubai.
+
+The url in `.env` is the only thing that decides which one runs.
 
 **The bot does not connect as a superuser.** `nsc` owns `nsc_trades` and
 nothing else: it cannot read another database's tables, create anything in one,

@@ -7,4 +7,5 @@
 
 pub mod news;
 pub mod source;
+pub mod store;
 pub mod sources;

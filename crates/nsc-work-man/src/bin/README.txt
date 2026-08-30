@@ -18,6 +18,11 @@ WHAT THIS FOLDER IS FOR
 THE FILES
 
   history/    PULL YEARS OF CANDLES ONCE and keep them on disk, so a detector
+
+  keep/       THE SAVED CSVs INTO POSTGRES. Reads data/history and writes the
+              candles to the record. No TWS. Running it twice repairs rather
+              than duplicates, so a load that dies halfway is fixed by running
+              it again.
               can be worked on without asking IBKR the same question fifty
               times. Writes data/history/<pair>-<timeframe>.csv.
 

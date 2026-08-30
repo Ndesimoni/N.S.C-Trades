@@ -41,3 +41,7 @@ reqwest = { workspace = true }
 # Reading what comes back. The calendar is plain JSON with no key on it.
 serde      = { workspace = true }
 serde_json = { workspace = true }
+
+# The record. SQL lives in store/ and NOWHERE ELSE -- queries hand back
+# nsc-core types, never raw rows, so a table change stays in one folder.
+sqlx = { workspace = true }

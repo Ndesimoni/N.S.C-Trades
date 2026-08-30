@@ -1,0 +1,57 @@
+# ── Postgres, for the record the bot keeps ──────────────────────────────────
+#
+# WHAT PRICE IS DOING RIGHT NOW BELONGS IN MEMORY. What the bot decided, and
+# what the market did about it, belongs here and can never be recreated.
+#
+#     docker compose up -d        start it
+#     docker compose down         stop it, keep the data
+#     docker compose down -v      stop it and THROW THE DATA AWAY
+#
+# Design: docs/worksheets/database.md
+# ───────────────────────────────────────────────────────────────────────────
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: nsc-db
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: nsc
+      POSTGRES_PASSWORD: nsc
+      POSTGRES_DB: nsc_trades
+
+      # ── UTC, AND IT IS NOT DECORATION ──
+      #
+      # A server on local time shifts the daily candle, which shifts every
+      # band, which changes every signal -- and it looks like a strategy
+      # problem rather than a clock one. Everything in this project is UTC;
+      # the container has to agree.
+      TZ: UTC
+      PGTZ: UTC
+
+    ports:
+      # ── 5434, AND THE NUMBER HAS ALREADY EARNED ITSELF TWICE ──
+      #
+      # Not 5432, because a Postgres installed on the Mac itself would take it
+      # and the failure is the confusing kind: connecting happily to the WRONG
+      # database.
+      #
+      # Not 5433 either -- his task_flow project is already on it. Found on
+      # 30 August by trying, which is the only way this is ever found.
+      - "5434:5432"
+
+    volumes:
+      - nsc-db:/var/lib/postgresql/data
+
+    # **Nothing should run migrations against a server still starting up.**
+    # Without this, `docker compose up -d` returns before Postgres is ready to
+    # answer, and the first command after it fails for no visible reason.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nsc -d nsc_trades"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+volumes:
+  nsc-db:

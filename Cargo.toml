@@ -27,6 +27,21 @@ nsc-strategy = { path = "crates/nsc-strategy" }
 
 
 
+# ── The record ──
+#
+# RUNTIME QUERIES, NOT THE query! MACRO. The macro checks SQL against a live
+# database at COMPILE time, which makes `cargo check` need Postgres running.
+# That is a fine trade on a team with one schema; here it would mean the whole
+# workspace stops building whenever the container is down.
+#
+# The cost is that a typo in SQL is found on the first call rather than by the
+# compiler -- so every query gets a test that runs it.
+sqlx = { version = "0.8", default-features = false, features = [
+    "runtime-tokio", "tls-rustls", "postgres", "macros", "migrate",
+    "chrono", "rust_decimal",
+] }
+
+
 # ── Talking to the outside world ──
 tokio   = { version = "1", features = ["macros", "rt-multi-thread", "time", "sync"] }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "multipart"] }

@@ -1,7 +1,18 @@
 # The database
 
-Designed 27 August 2026. **Nothing is built.** This is the shape, the reasons,
-and the two decisions that need him.
+Designed 27 August 2026. **`candles` is built as of 30 August**; the other
+nine are still shape and reasons. The two decisions at the bottom still need
+him.
+
+```sh
+docker compose up -d                      # Postgres, port 5434
+cargo run -p nsc-work-man --bin keep      # the saved CSVs into the record
+cargo test -p nsc-data -- --ignored       # the queries, against a real one
+```
+
+**270,000 candles are in it**, and running the load twice repairs rather than
+duplicates — checked, not assumed: 270,000 rows and 270,000 distinct keys
+after two runs.
 
 ---
 

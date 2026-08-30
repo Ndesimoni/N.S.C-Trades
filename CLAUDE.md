@@ -262,14 +262,23 @@ cargo clippy --workspace -- -D warnings
 cargo fmt --all
 ```
 
-Phase 0 will add these. They do not work yet:
+The record — **these work**, as of 30 August 2026:
 
 ```sh
-sqlx migrate run                       # create the database tables
-cargo run -p nsc-data --bin backfill   # download history
-cargo run -p nsc-backtest              # test rules against history
-cargo run -p nsc-live                  # the bot
+docker compose up -d                   # Postgres, on 5434
+cargo run -p nsc-work-man --bin keep   # saved candles into the record
+cargo test -p nsc-data -- --ignored    # the queries, against a real database
 ```
+
+**These still do not exist:**
+
+```sh
+cargo run -p nsc-backtest              # test rules against history
+```
+
+The bot itself is `cargo run -p nsc-work-man` — his name for the crate, not
+`nsc-live`. Downloading history is `--bin history` on that same crate, not a
+`backfill` binary on `nsc-data`.
 
 ---
 

@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Five crates · 337 tests · clippy clean · it watches his levels, says what
+**Five crates · 338 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -1033,9 +1033,10 @@ work not started; that folder is things that are wrong.
 - [ ] **No fallback feed.** Twelve Data went on 20 August. TWS not logged in
       means no bot at all — worth reconsidering once IBKR has been watched for
       a week
-- [ ] **Nothing is stored.** No database. A restart forgets every zone it was
-      already sitting in, and there is no record to answer "why did nothing
-      fire last week?"
+- [ ] **Only the candles are stored.** Postgres is up and holds 270,000 of
+      them, but a restart still forgets every zone it was sitting in, and
+      nothing yet answers "why did nothing fire last week?" — that needs
+      `runs` and `rejections`
 - [ ] **Rejected setups are not saved** — that is a `CLAUDE.md` rule and it
       needs rung 3 to exist first
 

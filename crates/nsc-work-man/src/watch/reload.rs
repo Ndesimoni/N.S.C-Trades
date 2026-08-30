@@ -181,8 +181,13 @@ pub async fn say_it_is_armed(
     let pairs = watching.len();
     let zones: usize = watching.values().map(|seen| seen.watch.count()).sum();
 
-    let out = PathBuf::from(PREVIEW).join("armed.png");
-    let picture = card::armed(pairs, zones, &out)?;
+    // **Chrome runs off the price loop.** Drawing is a blocking wait of two to
+    // ten seconds; left here it holds a Tokio worker for all of it, which
+    // stops everything on the one-core box this is meant to be hosted on.
+    let picture = tokio::task::spawn_blocking(move || {
+        card::armed(pairs, zones, &PathBuf::from(PREVIEW).join("armed.png"))
+    })
+    .await??;
 
     telegram::send_to(
         client,

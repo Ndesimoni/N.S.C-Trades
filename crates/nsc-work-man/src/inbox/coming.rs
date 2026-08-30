@@ -72,7 +72,17 @@ pub async fn show(client: &reqwest::Client, token: &str, span: Span) -> Result<(
     // Drawing and sending are both covered, because a photo Telegram refuses
     // leaves him just as unanswered as one Chrome never drew. `/status`
     // learned this the same way.
-    let sent = match card::calendar(&wanted, span, now, &out) {
+    // **Off the inbox loop**, same as `/status`. Two to ten seconds of Chrome
+    // is two to ten seconds of not answering him.
+    let owned: Vec<Event> = wanted.iter().map(|&event| event.clone()).collect();
+
+    let drawn = tokio::task::spawn_blocking(move || {
+        let borrowed: Vec<&Event> = owned.iter().collect();
+        card::calendar(&borrowed, span, now, &out)
+    })
+    .await?;
+
+    let sent = match drawn {
         Ok(picture) => telegram::send_to(client, &OWNER.to_string(), &[&picture], &words)
             .await
             .map_err(anyhow::Error::from),

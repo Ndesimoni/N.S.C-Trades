@@ -121,11 +121,11 @@ pub async fn status(
         return say(client, token, &resting(&now), None).await;
     }
 
-    let alive: Vec<Alive<'_>> = now
+    let alive: Vec<Alive> = now
         .pairs
         .iter()
         .map(|one| Alive {
-            pair: &one.pair,
+            pair: one.pair.clone(),
             bands: one.bands.clone(),
             price: one.price,
         })
@@ -145,7 +145,13 @@ pub async fn status(
     // The words carry the answer; the picture only carries it better. Both the
     // drawing and the sending are covered, because a photo Telegram refuses
     // leaves him just as unanswered as one Chrome never drew.
-    let sent = match card::heartbeat(&alive, &quiet, &stamp, &out) {
+    // **Chrome runs off the inbox loop too.** It is a blocking wait of two to
+    // ten seconds, and holding a worker there stops the bot answering anything
+    // else he sends while it draws.
+    let drawn = tokio::task::spawn_blocking(move || card::heartbeat(&alive, &quiet, &stamp, &out))
+        .await?;
+
+    let sent = match drawn {
         Ok(picture) => telegram::send_to(client, &OWNER.to_string(), &[&picture], &words)
             .await
             .map_err(anyhow::Error::from),

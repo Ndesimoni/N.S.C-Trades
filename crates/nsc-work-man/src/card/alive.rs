@@ -24,8 +24,12 @@ const CHROME: u32 = 107 + 8 + 49;
 const PER_PAIR: u32 = 53;
 
 /// One pair, as the heartbeat sees it.
-pub struct Alive<'a> {
-    pub pair: &'a Pair,
+pub struct Alive {
+    /// **Owned, not borrowed.** The heartbeat is drawn on Chrome, which means
+    /// off the price loop on `spawn_blocking` — and that pool needs values it
+    /// can take with it. A `Pair` is a handful of fields; the clone is nothing
+    /// beside running a browser.
+    pub pair: Pair,
     pub bands: Vec<Band>,
 
     /// Where price was when we last heard. `None` before the first price
@@ -35,7 +39,7 @@ pub struct Alive<'a> {
 
 /// Draws the heartbeat.
 pub fn heartbeat(
-    watching: &[Alive<'_>],
+    watching: &[Alive],
     quiet_for: &str,
     stamp: &str,
     out: &Path,
@@ -55,7 +59,7 @@ pub fn heartbeat(
     )
 }
 
-fn facts(watching: &[Alive<'_>], quiet_for: &str, stamp: &str) -> Value {
+fn facts(watching: &[Alive], quiet_for: &str, stamp: &str) -> Value {
     let pairs: Vec<Value> = watching
         .iter()
         .map(|seen| {
@@ -76,7 +80,7 @@ fn facts(watching: &[Alive<'_>], quiet_for: &str, stamp: &str) -> Value {
 /// **The thing actually worth knowing on a quiet morning.** "Still running" is
 /// the point of the message, but the zone price is nearest is the one likely
 /// to speak today.
-fn nearest(seen: &Alive<'_>) -> Value {
+fn nearest(seen: &Alive) -> Value {
     let Some(price) = seen.price else {
         return Value::Null;
     };

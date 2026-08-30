@@ -44,10 +44,10 @@ pub async fn heartbeat(client: &reqwest::Client, ibkr: &IbkrConnection) -> Resul
         loaded.push((pair, bands, price));
     }
 
-    let alive: Vec<card::Alive<'_>> = loaded
+    let alive: Vec<card::Alive> = loaded
         .iter()
         .map(|(pair, bands, price)| card::Alive {
-            pair,
+            pair: pair.clone(),
             bands: bands.clone(),
             price: *price,
         })

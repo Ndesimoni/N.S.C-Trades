@@ -41,7 +41,11 @@ const PIXELS_PER_POINT: u32 = 2;
 /// here. On his Mac there are eight of them and prices keep arriving on the
 /// others; on a one-core box the whole bot stops until the card is drawn.
 ///
-/// The fix is `spawn_blocking` at the six places that draw a card, which needs
+/// **Fixed 30 August 2026:** all ten places that draw a card go through
+/// `tokio::task::spawn_blocking`, so no worker thread ever waits on Chrome.
+/// What follows is the reasoning, kept because it is why the wrapping exists.
+///
+/// The fix is `spawn_blocking` at the places that draw a card, which needs
 /// their inputs owned rather than borrowed. It is the top item in
 /// `PROGRESS.md`. Do not add a seventh caller without reading that first.
 pub fn shoot(page: &Path, height: u32, out: &Path) -> Result<(), CardError> {

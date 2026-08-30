@@ -93,17 +93,27 @@ pub async fn picture_of(
         _ => 0,
     };
 
-    let drawn: Vec<&Bar> = shown.iter().collect();
+    // **Off the inbox loop.** He asked for a chart and Chrome takes two to ten
+    // seconds; holding a worker there is the bot not answering anything else
+    // he sends in the meantime.
+    let (symbol, digits) = (pair.symbol.clone(), pair.digits);
+    let written = card::as_written(interval(chart)).to_string();
+    let for_drawing = bands.clone();
+    let where_to = out.to_path_buf();
 
-    let picture = card::render(
-        "chart.html",
-        &drawn,
-        &bands,
-        &pair.symbol,
-        card::as_written(interval(chart)),
-        pair.digits,
-        out,
-    )?;
+    let picture = tokio::task::spawn_blocking(move || {
+        let drawn: Vec<&Bar> = shown.iter().collect();
+        card::render(
+            "chart.html",
+            &drawn,
+            &for_drawing,
+            &symbol,
+            &written,
+            digits,
+            &where_to,
+        )
+    })
+    .await??;
 
     Ok(Drawn {
         picture,

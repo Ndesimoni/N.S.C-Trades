@@ -62,10 +62,10 @@ impl Pulse {
         let mut seen: Vec<&Watching> = watching.values().collect();
         seen.sort_by(|a, b| a.pair.symbol.cmp(&b.pair.symbol));
 
-        let alive: Vec<card::Alive<'_>> = seen
+        let alive: Vec<card::Alive> = seen
             .iter()
             .map(|seen| card::Alive {
-                pair: &seen.pair,
+                pair: seen.pair.clone(),
                 bands: seen.watch.bands(),
                 price: seen.watch.last_price(),
             })
@@ -75,9 +75,18 @@ impl Pulse {
         let quiet = format!("{hours} hour{}", if hours == 1 { "" } else { "s" });
         let stamp = now.format("%-d %b · %H:%M UTC").to_string();
 
-        let out = PathBuf::from(PREVIEW).join("heartbeat.png");
-        let picture = card::heartbeat(&alive, &quiet, &stamp, &out)
-            .context("could not draw the heartbeat")?;
+        // **Off the price loop.** Chrome blocks for two to ten seconds, and
+        // the heartbeat fires while prices are arriving like everything else.
+        let picture = tokio::task::spawn_blocking(move || {
+            card::heartbeat(
+                &alive,
+                &quiet,
+                &stamp,
+                &PathBuf::from(PREVIEW).join("heartbeat.png"),
+            )
+        })
+        .await?
+        .context("could not draw the heartbeat")?;
 
         let pairs = watching.len();
         let zones: usize = watching.values().map(|seen| seen.watch.count()).sum();

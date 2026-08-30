@@ -30,10 +30,22 @@ pub async fn alert(
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
     let out = card_for(pair, "alert");
 
-    let picture = card::alert(pair, band, near, news, price, reach, &stamp, &out)
-        .with_context(|| format!("could not draw the alert for {}", pair.symbol))?;
-
     let caption = levels::caption(pair, band, near, news, price);
+
+    // **Chrome off the price loop — and this is the one that matters most.**
+    // Rung 1 fires while prices are still arriving, and a blocking wait of two
+    // to ten seconds here holds a Tokio worker for all of it. On the one-core
+    // box this is meant to be hosted on, that is the whole bot stopped.
+    //
+    // The pool needs owned values, so the two references are cloned first.
+    // They are small structs; the clone is nothing beside running a browser.
+    let (drawing, zone) = (pair.clone(), *band);
+
+    let picture = tokio::task::spawn_blocking(move || {
+        card::alert(&drawing, &zone, near, news, price, reach, &stamp, &out)
+    })
+    .await?
+    .with_context(|| format!("could not draw the alert for {}", pair.symbol))?;
 
     send(client, &picture, &caption)
         .await
@@ -57,10 +69,17 @@ pub async fn closed(
 ) -> Result<()> {
     let out = card_for(pair, &format!("close-{interval}"));
 
-    let picture = card::closed(pair, band, bar, did, was, interval, &out)
-        .with_context(|| format!("could not draw the close for {}", pair.symbol))?;
-
     let caption = levels::closed_caption(pair, band, bar, did, was, interval);
+
+    // **Off the price loop**, same reason as the alert above.
+    let (drawing, zone, candle) = (pair.clone(), *band, bar.clone());
+    let written = interval.to_string();
+
+    let picture = tokio::task::spawn_blocking(move || {
+        card::closed(&drawing, &zone, &candle, did, was, &written, &out)
+    })
+    .await?
+    .with_context(|| format!("could not draw the close for {}", pair.symbol))?;
 
     send(client, &picture, &caption)
         .await

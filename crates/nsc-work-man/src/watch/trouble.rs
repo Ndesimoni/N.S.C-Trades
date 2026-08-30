@@ -184,7 +184,11 @@ async fn say(
     let caption = card::caption(wrong);
     println!("{}", caption.replace("<b>", "").replace("</b>", ""));
 
-    let picture = draw(wrong, minutes, what)?;
+    // **Off the loop like every other card.** Trouble fires when something is
+    // already wrong; holding a worker for ten seconds of Chrome on top of it
+    // is the last thing the bot needs at that moment.
+    let detail = what.to_string();
+    let picture = tokio::task::spawn_blocking(move || draw(wrong, minutes, &detail)).await??;
     telegram::send_to(client, &OWNER.to_string(), &[&picture], caption).await?;
 
     pulse.spoke(Utc::now());

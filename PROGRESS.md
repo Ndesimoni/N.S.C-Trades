@@ -1016,13 +1016,6 @@ Then nothing, forever, and nothing said why.
 **Bugs live in [`docs/bugs/`](docs/bugs/)**, marked 🔴 🟠 🟡. This list is
 work not started; that folder is things that are wrong.
 
-- [ ] **Draw cards off the price loop — TOP PRIORITY.** A blocking wait on
-      Chrome sits inside async code, so a card holds a worker thread for 2–10
-      seconds. Harmless on eight cores, fatal on one. `spawn_blocking`, six
-      call sites, inputs cloned first. Full note under *Next, in this order*
-- [ ] **Rung 3 — the strategy.** Needs `nsc-strategy`, and needs two answers
-      from him: what makes him *skip* a rejection, and where the stop goes.
-      Everything else can be built without him
 - [ ] **NOTHING HAS RUN AGAINST A LIVE IBKR FEED.** The switch landed
       20 August: it compiles, 203 tests pass, and not one tick has come down
       the line. Run `--bin listen` first — it answers in one line whether the

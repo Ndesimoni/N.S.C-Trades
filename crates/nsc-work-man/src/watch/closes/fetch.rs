@@ -34,10 +34,16 @@ pub(super) const REPORT_ON: [Interval; 2] = [Interval::H1, Interval::H4];
 /// shape is judged against how big a normal candle was AT THAT MOMENT, so the
 /// candles it is averaged from have to come back in the same request.
 ///
-/// Twenty costs nothing: the same request, reaching further back. IBKR paces
-/// on the NUMBER of requests in ten minutes, not on how many bars each asks
-/// for — so this is free and asking twice would not have been.
-const FEW: usize = 20;
+/// It costs nothing to ask for more: the same request, reaching further back.
+/// IBKR paces on the NUMBER of requests in ten minutes, not on how many bars
+/// each asks for — so this is free and asking twice would not have been.
+///
+/// **It was twenty until 30 August, and the pictures were drawing whatever
+/// twenty gave them.** The signal cards ask for four hundred candles and were
+/// silently getting twenty, which looks like a chart rather than an error.
+/// **This number is now driven by the widest picture, not by the close test**
+/// — the close test only ever needed the newest candle and fourteen behind it.
+const FEW: usize = 400;
 
 /// The last few candles, newest first.
 ///

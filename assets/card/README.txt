@@ -95,10 +95,15 @@ THE FILES
                 ITS HEIGHT IS WORKED OUT, not typed — see below.
 
 \1
-                TWO PICTURES SINCE 29 AUGUST. The wide chart goes first -- a
-                hundred candles with his levels on and a RED RING round the
-                candles the shape is made of -- and this card goes under it.
-                The chart says WHERE, the card says WHAT.
+                THREE PICTURES SINCE 30 AUGUST, sent as one bundle:
+
+                  the run       400 candles, no ring   where price CAME FROM
+                  the close-up  100 candles, red ring  where it PRINTED
+                  this card     the shape itself       WHAT it was
+
+                Widest first, then in. Both charts are chart.html -- the same
+                template /chart uses -- so his levels are drawn in his own
+                colours and one picture cannot disagree with the other.
 
                 AND IT WEARS ITS TIER. Red for a shape in the zone, amber for
                 one within half a band, plain for one with no zone near it.

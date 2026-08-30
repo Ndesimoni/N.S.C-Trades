@@ -71,10 +71,23 @@ nsc-work-man    everything that reaches
 > reach; one away from every zone is only ever a remark, and the card says so
 > in words before it says it in colour.
 >
-> **The wide chart goes first** — a hundred candles, his levels on it, and a
-> **red ring** round the shape. The setup card goes under it. The chart says
-> where, the card says what. Both are drawn in one hop off the price loop, so
-> two pictures still hold one thread rather than two.
+> **THREE PICTURES, and each answers a different question** — his ask on
+> 30 August.
+>
+> ```text
+>     the run       400 candles, no ring    where price CAME FROM
+>     the close-up  100 candles, red ring   where the shape PRINTED
+>     the card      the shape itself        WHAT it was
+> ```
+>
+> Widest first, then in. All three drawn in **one** hop off the price loop, so
+> a bundle of three still holds one thread of the pool rather than three.
+>
+> **And it turned up a bug in the day-old code.** The close watcher fetched
+> **twenty** candles, so the hundred-candle picture was quietly drawing twenty
+> — which looks like a chart, not like an error. It asks for four hundred now.
+> IBKR paces on the number of requests, never on how many bars each asks for,
+> so a wider ask is free.
 
 > **RUNG 3 IS WIRED TO TELEGRAM — 25 AUGUST.** A shape he trades at one of
 > his zones now draws a card and sends it: the two candles on the band, and

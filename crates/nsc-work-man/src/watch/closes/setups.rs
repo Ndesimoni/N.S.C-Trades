@@ -25,7 +25,17 @@ use crate::{card, telegram};
 /// How many candles a "normal" one is averaged over. Fourteen is the usual.
 const NORMAL_OVER: usize = 14;
 
-/// How many candles the wide picture shows.
+/// How many candles **the run** shows — the widest of the three pictures.
+///
+/// **His ask, 30 August 2026:** *"so that I see the direction the price has
+/// been coming from... if it's coming from down to up, or if it's doing a
+/// curve, or if it's going from up to down."*
+///
+/// Four hundred is about two and a half weeks on the 1-hour and nine on the
+/// 4-hour. **The whole swing, not the last few days.**
+const RUN: usize = 400;
+
+/// How many candles **the close-up** shows, the one carrying the red ring.
 ///
 /// **His number, 29 August 2026:** *"a hundred candles, so I can see what
 /// played out, how it played out."*
@@ -142,16 +152,26 @@ async fn send(
         .map(|&bar| bar.clone())
         .collect();
 
-    // **A hundred candles of context, his own number on 29 August.** The card
-    // says WHAT printed; this says WHERE, and the red ring points at it. One
-    // without the other is half the message.
-    let context: Vec<Bar> = history
-        .iter()
-        .rev()
-        .take(CONTEXT)
-        .rev()
-        .map(|&bar| bar.clone())
-        .collect();
+    // **Three pictures, and each answers a different question.**
+    //
+    //     the run       400 candles, no ring    where price CAME FROM
+    //     the close-up  100 candles, red ring   where the shape PRINTED
+    //     the card      the shape itself        WHAT it was
+    //
+    // Sent together as one message. Any one of them alone leaves an obvious
+    // question unanswered.
+    let take_last = |many: usize| -> Vec<Bar> {
+        history
+            .iter()
+            .rev()
+            .take(many)
+            .rev()
+            .map(|&bar| bar.clone())
+            .collect()
+    };
+
+    let run = take_last(RUN);
+    let context = take_last(CONTEXT);
 
     let signal = signal.clone();
     let pair = seen.pair.clone();
@@ -159,15 +179,30 @@ async fn send(
     let timeframe = written.to_string();
     let ring = signal.shape.candles();
 
+    let run_out = PathBuf::from(PREVIEW).join("signal-run.png");
     let wide_out = PathBuf::from(PREVIEW).join("signal-chart.png");
     let card_out = PathBuf::from(PREVIEW).join("setup.png");
 
     // **Both drawn in ONE hop off the price loop.** Chrome is a blocking wait
     // of two to ten seconds each; two separate `spawn_blocking` calls would
     // hold two of the pool's threads instead of one.
-    let (wide, close_up): (PathBuf, PathBuf) = tokio::task::spawn_blocking(move || {
+    let three: [PathBuf; 3] = tokio::task::spawn_blocking(move || {
+        let whole: Vec<&Bar> = run.iter().collect();
         let far: Vec<&Bar> = context.iter().collect();
         let near: Vec<&Bar> = shown.iter().collect();
+
+        // **No ring on the run.** It is there to show the shape of the move,
+        // and a ring at the far right of four hundred candles would be a dot
+        // pointing at nothing readable.
+        let run = card::render(
+            "chart.html",
+            &whole,
+            &bands,
+            &pair.symbol,
+            &timeframe,
+            pair.digits,
+            &run_out,
+        )?;
 
         let wide = card::render_ringed(
             "chart.html",
@@ -182,15 +217,15 @@ async fn send(
 
         let close_up = card::setup(&signal, &pair, &near, &timeframe, &stamp, &card_out)?;
 
-        Ok::<_, card::CardError>((wide, close_up))
+        Ok::<_, card::CardError>([run, wide, close_up])
     })
     .await??;
 
     let owner = OWNER.to_string();
 
-    // **The chart first, the card under it** — his order, 29 August. You look
-    // at where it happened, then read what it was.
-    let pictures = [wide.as_path(), close_up.as_path()];
+    // **Widest first, then in.** The run, the close-up, then the shape — you
+    // step toward it rather than away from it.
+    let pictures = [three[0].as_path(), three[1].as_path(), three[2].as_path()];
 
     keep_trying(3, || telegram::send_to(client, &owner, &pictures, &words)).await?;
 

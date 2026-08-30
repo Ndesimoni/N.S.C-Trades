@@ -5,10 +5,16 @@ nine are still shape and reasons. The two decisions at the bottom still need
 him.
 
 ```sh
-docker compose up -d                      # Postgres, port 5434
 cargo run -p nsc-work-man --bin keep      # the saved CSVs into the record
 cargo test -p nsc-data -- --ignored       # the queries, against a real one
 ```
+
+**It runs on Postgres.app** as of 30 August — port 5432, and `docker-compose.yml`
+is still there for a server. The url in `.env` is the only thing that decides.
+
+**The bot does not connect as a superuser.** `nsc` owns `nsc_trades` and
+nothing else: it cannot read another database's tables, create anything in one,
+or drop a database. Checked by trying, not assumed.
 
 **270,000 candles are in it**, and running the load twice repairs rather than
 duplicates — checked, not assumed: 270,000 rows and 270,000 distinct keys

@@ -66,11 +66,20 @@ WHY THE DATABASE TESTS ARE #[ignore]
   itself and reports green pins nothing at all. #[ignore] says "not run" out
   loud; skipping inside the body would say "passed".
 
-  THEY WRITE TO A DATABASE OF THEIR OWN -- nsc_trades_test, made on demand on
-  the same server. The first version wrote to the real one and only cleared on
-  the way IN, so TST/ROUNDTRIP and friends piled up in the record beside his
-  candles. THE RECORD IS MEANT TO BE THE TRUTH; a fake pair in it gets counted
-  by something eventually.
+  THEY WRITE TO A SCHEMA OF THEIR OWN -- `testing`, beside `public`. The first
+  version wrote to the record itself and only cleared on the way IN, so
+  TST/ROUNDTRIP and friends piled up beside his candles. THE RECORD IS MEANT
+  TO BE THE TRUTH; a fake pair in it gets counted by something eventually.
+
+  A SCHEMA RATHER THAN A SECOND DATABASE, because the bot's own role owns this
+  database and can make one -- where CREATE DATABASE needs a privilege nothing
+  else here needs. The bot connects with the least it can do the job with, and
+  the tests must not be the reason that stops being true.
+
+  A POOL PER TEST, NOT ONE SHARED. A shared static pool was tried and it timed
+  out at random: #[tokio::test] gives every test its own runtime, and a pool
+  belongs to the runtime that made it. Borrowed across runtimes it waits
+  forever for a connection nobody is driving.
 
   EVERY TEST ALSO USES ITS OWN SYMBOL. They shared one at first and each
   cleared it on the way in, so in parallel they wiped each other -- green

@@ -41,26 +41,53 @@ fn bar(at: &str, open: &str, high: &str, low: &str, close: &str) -> Bar {
     }
 }
 
-/// The database the tests use. **Never the one the bot writes to.**
-const TEST_DB: &str = "nsc_trades_test";
+/// The schema the tests write to. **Never `public`, where the record lives.**
+const TEST_SCHEMA: &str = "testing";
 
-/// Opens a database of the tests' own, and clears one test's rows.
+/// Opens the record in a schema of the tests' own, and clears one test's rows.
 ///
-/// **A SEPARATE DATABASE, AND THAT IS NOT FUSSINESS.** The first version wrote
-/// to the real one and only cleared on the way IN, so `TST/ROUNDTRIP` and
-/// friends piled up in the record beside his candles. The record is meant to
-/// be the truth; a fake pair in it gets counted by something eventually.
+/// **A SEPARATE SCHEMA, AND THAT IS NOT FUSSINESS.** The first version wrote
+/// to `public` and only cleared on the way IN, so `TST/ROUNDTRIP` and friends
+/// piled up in the record beside his candles. The record is meant to be the
+/// truth; a fake pair in it gets counted by something eventually.
 ///
-/// It is made on demand, so nobody has to remember a setup step.
+/// **A schema rather than a second database**, because the bot's own role owns
+/// this database and can make one — where `CREATE DATABASE` needs a privilege
+/// nothing else here needs. The bot connects with the least it can do the job
+/// with, and the tests must not be the reason that stops being true.
 ///
-/// **EVERY TEST STILL GETS ITS OWN SYMBOL.** They shared one at first and each
+/// **A POOL PER TEST, NOT ONE SHARED.** A shared `static` pool was tried and
+/// it timed out at random: `#[tokio::test]` gives every test its own runtime,
+/// and a pool belongs to the runtime that made it. Borrowed across runtimes it
+/// waits forever for a connection nobody is driving.
+///
+/// **EVERY TEST ALSO GETS ITS OWN SYMBOL.** They shared one at first and each
 /// cleared it on the way in, so in parallel they wiped each other — green
 /// alone and red together, which is the worst way round for a test to fail.
 async fn store(symbol: &str) -> Store {
-    let real = std::env::var("DATABASE_URL").expect("DATABASE_URL — see .env.example");
-    let db = open(&test_url(&real))
+    let url = std::env::var("DATABASE_URL").expect("DATABASE_URL — see .env.example");
+
+    // The schema has to exist before anything can be pointed at it. Racing
+    // here is fine: `IF NOT EXISTS` is the whole point, and `sqlx` takes its
+    // own lock while migrating.
+    let first = sqlx::PgPool::connect(&url)
         .await
-        .expect("is `docker compose up -d` running?");
+        .expect("is the database running?");
+
+    sqlx::query(&format!("CREATE SCHEMA IF NOT EXISTS {TEST_SCHEMA}"))
+        .execute(&first)
+        .await
+        .expect("could not make the test schema");
+
+    first.close().await;
+
+    // **`options=-c search_path=...` puts every statement in that schema**,
+    // migrations included — so the tables the tests use are the tests' own.
+    let sep = if url.contains('?') { '&' } else { '?' };
+
+    let db = open(&format!("{url}{sep}options=-c%20search_path%3D{TEST_SCHEMA}"))
+        .await
+        .expect("could not open the test schema");
 
     sqlx::query("DELETE FROM candles WHERE symbol = $1")
         .bind(symbol)
@@ -69,29 +96,6 @@ async fn store(symbol: &str) -> Store {
         .expect("could not clear the test rows");
 
     db
-}
-
-/// The same server, a different database — made if it is not there yet.
-fn test_url(real: &str) -> String {
-    let (before, _) = real.rsplit_once('/').expect("a database name in DATABASE_URL");
-    let wanted = format!("{before}/{TEST_DB}");
-
-    // **`CREATE DATABASE` cannot run inside a transaction and cannot run from
-    // the database being created**, so it goes through `postgres`, the one
-    // every server has. Already-exists is the ordinary case, not an error.
-    let admin = format!("{before}/postgres");
-
-    tokio::task::block_in_place(|| {
-        tokio::runtime::Handle::current().block_on(async {
-            if let Ok(pool) = sqlx::PgPool::connect(&admin).await {
-                let _ = sqlx::query(&format!("CREATE DATABASE {TEST_DB}"))
-                    .execute(&pool)
-                    .await;
-            }
-        });
-    });
-
-    wanted
 }
 
 #[tokio::test(flavor = "multi_thread")]

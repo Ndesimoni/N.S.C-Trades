@@ -313,8 +313,25 @@ printed exists nowhere else the moment he forgets it.
 **A signal can have several**, because he is allowed to change his mind and
 the change is itself information.
 
-The natural way to fill it is two buttons under every signal card. That is not
-built and it is the cheapest thing on this page.
+**HE SAID YES TO THE BUTTONS — 30 August 2026.** Two under every signal card,
+*took it* and *skipped it*, so the table fills itself as he trades rather than
+in a sitting nobody ever schedules.
+
+What that needs, and none of it is hard:
+
+- **`signals` first.** A label points at a signal, so the row has to exist
+  before a button can name it. That is the next table, not this one.
+- **The button carries the `signal_id`**, in the callback data Telegram sends
+  back. Nothing else identifies which card he tapped — two setups on one pair
+  in an hour would otherwise be indistinguishable.
+- **Tapping is idempotent.** Telegram will resend a callback if it does not
+  hear back, and a double tap must not become two rows saying the same thing.
+- **`would have skipped` has no button**, and that is deliberate. It is what he
+  says later, in words, when the outcome came in — a third button would invite
+  him to answer before the market had.
+
+**It is still the cheapest thing on this page**, and it is the only way
+`signal_labels` ever gets a row.
 
 ---
 
@@ -473,16 +490,15 @@ now. Only its history comes here.
 
 ---
 
-## Two decisions that need him
+## One decision left
 
 - [ ] **How long do rejections live?** They will outnumber signals by a wide
       margin. A year, then pruned? Kept forever and partitioned? It is cheap
       to decide now and awkward to change once there are millions.
 
-- [ ] **Does he want the two buttons under a signal card** — *took it* /
-      *skipped it*? It is the cheapest thing on this page and it fills the one
-      table nothing else can. Without it `signal_labels` stays empty and
-      Phase 4 has half a dataset.
+- [x] ~~**Does he want the two buttons under a signal card?**~~ **Yes —
+      30 August 2026.** *Took it* and *skipped it*. See `signal_labels` above
+      for what it needs; `signals` has to exist first.
 
 ## And one thing to build first
 

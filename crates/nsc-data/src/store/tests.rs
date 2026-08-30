@@ -41,17 +41,26 @@ fn bar(at: &str, open: &str, high: &str, low: &str, close: &str) -> Bar {
     }
 }
 
-/// Opens the record and clears one test's own rows.
+/// The database the tests use. **Never the one the bot writes to.**
+const TEST_DB: &str = "nsc_trades_test";
+
+/// Opens a database of the tests' own, and clears one test's rows.
 ///
-/// **EVERY TEST GETS ITS OWN SYMBOL, and that is not tidiness.** They all
-/// shared one at first and each cleared it on the way in, so running in
-/// parallel they wiped each other — green alone and red together, which is
-/// the worst way round for a test to fail.
+/// **A SEPARATE DATABASE, AND THAT IS NOT FUSSINESS.** The first version wrote
+/// to the real one and only cleared on the way IN, so `TST/ROUNDTRIP` and
+/// friends piled up in the record beside his candles. The record is meant to
+/// be the truth; a fake pair in it gets counted by something eventually.
 ///
-/// The names are never real pairs, so nothing here can touch his candles.
+/// It is made on demand, so nobody has to remember a setup step.
+///
+/// **EVERY TEST STILL GETS ITS OWN SYMBOL.** They shared one at first and each
+/// cleared it on the way in, so in parallel they wiped each other — green
+/// alone and red together, which is the worst way round for a test to fail.
 async fn store(symbol: &str) -> Store {
-    let url = std::env::var("DATABASE_URL").expect("DATABASE_URL — see .env.example");
-    let db = open(&url).await.expect("is `docker compose up -d` running?");
+    let real = std::env::var("DATABASE_URL").expect("DATABASE_URL — see .env.example");
+    let db = open(&test_url(&real))
+        .await
+        .expect("is `docker compose up -d` running?");
 
     sqlx::query("DELETE FROM candles WHERE symbol = $1")
         .bind(symbol)
@@ -62,7 +71,30 @@ async fn store(symbol: &str) -> Store {
     db
 }
 
-#[tokio::test]
+/// The same server, a different database — made if it is not there yet.
+fn test_url(real: &str) -> String {
+    let (before, _) = real.rsplit_once('/').expect("a database name in DATABASE_URL");
+    let wanted = format!("{before}/{TEST_DB}");
+
+    // **`CREATE DATABASE` cannot run inside a transaction and cannot run from
+    // the database being created**, so it goes through `postgres`, the one
+    // every server has. Already-exists is the ordinary case, not an error.
+    let admin = format!("{before}/postgres");
+
+    tokio::task::block_in_place(|| {
+        tokio::runtime::Handle::current().block_on(async {
+            if let Ok(pool) = sqlx::PgPool::connect(&admin).await {
+                let _ = sqlx::query(&format!("CREATE DATABASE {TEST_DB}"))
+                    .execute(&pool)
+                    .await;
+            }
+        });
+    });
+
+    wanted
+}
+
+#[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs Postgres — docker compose up -d"]
 async fn candles_go_in_and_come_back_the_same() {
     const PAIR: &str = "TST/ROUNDTRIP";
@@ -96,7 +128,7 @@ async fn candles_go_in_and_come_back_the_same() {
 
 /// **Running a backfill twice repairs it rather than duplicating it**, and a
 /// backfill that dies halfway is the normal case rather than the exception.
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs Postgres — docker compose up -d"]
 async fn writing_twice_repairs_rather_than_duplicates() {
     const PAIR: &str = "TST/REPAIR";
@@ -126,7 +158,7 @@ async fn writing_twice_repairs_rather_than_duplicates() {
 
 /// **A timeframe is one key, not two.** The 1-hour and the 4-hour share a
 /// symbol and must never share a row.
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs Postgres — docker compose up -d"]
 async fn timeframes_do_not_collide() {
     const PAIR: &str = "TST/TIMEFRAMES";
@@ -142,7 +174,7 @@ async fn timeframes_do_not_collide() {
 
 /// Nothing held is `None`, **not a zero time**. A backfill asks this to decide
 /// where to start, and an epoch would send it to 1970.
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs Postgres — docker compose up -d"]
 async fn nothing_held_is_nothing_not_a_date() {
     const PAIR: &str = "TST/EMPTY";

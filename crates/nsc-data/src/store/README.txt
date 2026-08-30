@@ -66,9 +66,15 @@ WHY THE DATABASE TESTS ARE #[ignore]
   itself and reports green pins nothing at all. #[ignore] says "not run" out
   loud; skipping inside the body would say "passed".
 
-  EVERY TEST USES ITS OWN SYMBOL. They shared one at first and each cleared it
-  on the way in, so in parallel they wiped each other -- green alone and red
-  together, which is the worst way round for a test to fail.
+  THEY WRITE TO A DATABASE OF THEIR OWN -- nsc_trades_test, made on demand on
+  the same server. The first version wrote to the real one and only cleared on
+  the way IN, so TST/ROUNDTRIP and friends piled up in the record beside his
+  candles. THE RECORD IS MEANT TO BE THE TRUTH; a fake pair in it gets counted
+  by something eventually.
+
+  EVERY TEST ALSO USES ITS OWN SYMBOL. They shared one at first and each
+  cleared it on the way in, so in parallel they wiped each other -- green
+  alone and red together, which is the worst way round for a test to fail.
 
 
 NEVER A FLOAT

@@ -33,7 +33,7 @@ fn bar(stamp: &str, open: &str, high: &str, low: &str, close: &str) -> Bar {
     }
 }
 
-pub async fn setup(client: &reqwest::Client) -> Result<()> {
+pub async fn setup(client: &reqwest::Client, tier: Option<&str>) -> Result<()> {
     let rules = nsc_strategy::load(Path::new(STRATEGY))
         .with_context(|| format!("could not read {STRATEGY}"))?;
     let patterns =
@@ -64,15 +64,38 @@ pub async fn setup(client: &reqwest::Client) -> Result<()> {
     // give a fourteen-candle average. It is the real one from that week.
     let normal = normal_candle(&history, 14).unwrap_or_else(|| d("104.27462"));
 
-    // The pin's low is 4450.71, so a weekly band around 4470 holds it.
-    let band = Band {
-        timeframe: Timeframe::Weekly,
-        price: d("4470"),
-        top: d("4508"),
-        bottom: d("4432"),
+    // **One run, three tiers**, so all three looks can be checked without
+    // waiting for the market to print each of them.
+    let (bands, normal) = match tier {
+        // Within half a band of it: the pin's low of 4450.71 sits 10.71 above
+        // a band topping at 4440, and half of a 40-point band is 20.
+        Some("close") => (
+            vec![Band {
+                timeframe: Timeframe::Daily,
+                price: d("4420"),
+                top: d("4440"),
+                bottom: d("4400"),
+            }],
+            normal,
+        ),
+
+        // No zones at all, and a quieter week to measure against: the push
+        // reaches 3.99 normal candles instead of 1.91.
+        Some("bold") => (Vec::new(), d("50")),
+
+        // The pin's low is 4450.71, so a weekly band around 4470 holds it.
+        _ => (
+            vec![Band {
+                timeframe: Timeframe::Weekly,
+                price: d("4470"),
+                top: d("4508"),
+                bottom: d("4432"),
+            }],
+            normal,
+        ),
     };
 
-    let signal = look(&history, &[band], normal, &patterns, &rules)
+    let signal = look(&history, &bands, normal, &patterns, &rules)
         .context("his own gold should be a signal at that zone")?;
 
     let pair = Pair {

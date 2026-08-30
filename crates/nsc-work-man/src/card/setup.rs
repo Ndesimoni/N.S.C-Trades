@@ -69,17 +69,32 @@ fn facts(signal: &Signal, pair: &Pair, bars: &[&Bar], timeframe: &str, stamp: &s
         "digits":    digits,
         "stamp":     stamp,
 
-        "placing":   signal.placing.words(),
-        "broke":     signal.broke_out,
         "up":        signal.shape.is_up(),
 
-        "band": {
-            "name":   signal.band.timeframe.name(),
-            "colour": signal.band.timeframe.colour(),
-            "price":  as_number(signal.band.price, digits),
-            "top":    as_number(signal.band.top, digits),
-            "bottom": as_number(signal.band.bottom, digits),
-        },
+        // **The tier, and it decides the whole look of the card.** Red and
+        // "act" for the one in the zone; amber for the near miss; plain for a
+        // shape with no level under it at all.
+        "tier":      signal.standing.label(),
+        "colour":    signal.standing.colour(),
+        "solid":     signal.standing.solid(),
+        "placing":   signal.standing.placing().map(|p| p.words()),
+        "broke":     signal.standing.broke_out(),
+
+        // How big the shape is, in normal candles. On the card either way —
+        // at a zone it says how plainly it happened, away from one it is the
+        // entire reason the message was sent.
+        "reach":     as_number(signal.reach, 1),
+
+        // **Null when there is no zone, and the template must handle that.**
+        // A `Bold` card with an empty band drawn on it would look exactly like
+        // a setup at a level of nought.
+        "band":      signal.standing.band().map(|band| json!({
+            "name":   band.timeframe.name(),
+            "colour": band.timeframe.colour(),
+            "price":  as_number(band.price, digits),
+            "top":    as_number(band.top, digits),
+            "bottom": as_number(band.bottom, digits),
+        })),
 
         "candles": candles,
     })

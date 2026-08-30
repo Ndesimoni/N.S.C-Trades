@@ -2,7 +2,7 @@
 
 use super::support::{band, d, his_gold, rules};
 use crate::shape::{Traded, traded};
-use crate::{look, place::Placing, reasons};
+use crate::{Standing, look, place::Placing, reasons};
 use nsc_core::candle::Bar;
 use nsc_core::levels::{Band, Timeframe};
 use nsc_ta::pattern::{self, Pattern};
@@ -160,12 +160,17 @@ fn his_gold_at_a_zone_is_a_signal() {
         .expect("his own pattern, sitting in a zone");
 
     assert_eq!(found.shape, Traded::Push { up: true });
-    assert_eq!(found.placing, Placing::Inside);
+    assert_eq!(found.standing.placing(), Some(Placing::Inside));
+    assert!(found.standing.solid(), "in the zone is the tier that asks to act");
 }
 
-/// **The same run with the zone moved away is not a signal.** This is the
-/// whole rung in one test: the shape is identical and the level is what
-/// decides.
+/// **The same run with the zone moved away is not a setup.** This is the whole
+/// rung in one test: the shape is identical and the level is what decides.
+///
+/// **It is not silent because it is small.** His gold push reaches 1.91 normal
+/// candles, under the 2.0 that would make it bold — so this run tests the
+/// no-level path and nothing else. If `bold_reach` is ever lowered under 1.91
+/// this test goes red, and it should: the behaviour would have changed.
 #[test]
 fn the_same_shape_with_no_zone_under_it_says_nothing() {
     let (bars, normal) = his_gold();
@@ -180,7 +185,7 @@ fn the_same_shape_with_no_zone_under_it_says_nothing() {
 
     assert!(
         look(&borrowed, &[elsewhere], normal, &patterns(), &rules()).is_none(),
-        "a shape a thousand points from any level is not a setup"
+        "a shape a thousand points from any level, and not bold, is not a setup"
     );
 }
 
@@ -190,6 +195,51 @@ fn no_zones_at_all_is_no_signal() {
     let borrowed: Vec<&_> = bars.iter().collect();
 
     assert!(look(&borrowed, &[], normal, &patterns(), &rules()).is_none());
+}
+
+/// **A bold shape away from every zone still speaks — 29 August 2026.**
+///
+/// His words: *"we see a really bold move, but it's not in our zone... I think
+/// we should also get an alert for that."*
+///
+/// The same gold run, judged on a quieter day where a normal candle is 50
+/// points instead of 104: the push now reaches 3.99 of one. Nothing about the
+/// candles changed — only what counts as ordinary around them.
+#[test]
+fn a_bold_shape_with_no_zone_is_its_own_tier() {
+    let (bars, _) = his_gold();
+    let borrowed: Vec<&_> = bars.iter().collect();
+
+    let found = look(&borrowed, &[], d("50"), &patterns(), &rules())
+        .expect("3.99 normal candles is bolder than ordinary");
+
+    assert!(matches!(found.standing, Standing::Bold));
+    assert!(
+        found.standing.band().is_none(),
+        "bold has no band, by definition"
+    );
+    assert!(
+        !found.standing.solid(),
+        "no level under it — it must never read as one to act on"
+    );
+}
+
+/// **A level beats size, always.**
+///
+/// The same bold run with a zone under it is `Inside`, not `Bold`. A shape at
+/// a zone is a setup whatever its reach; a shape away from every zone is only
+/// ever a remark, and letting size outrank a level would put a big candle in
+/// open water above a modest one sitting exactly where he was watching.
+#[test]
+fn a_zone_outranks_being_bold() {
+    let (bars, _) = his_gold();
+    let borrowed: Vec<&_> = bars.iter().collect();
+
+    let found = look(&borrowed, &[band()], d("50"), &patterns(), &rules())
+        .expect("bold AND at a zone");
+
+    assert!(matches!(found.standing, Standing::Inside { .. }));
+    assert!(found.reach > d("2.0"), "it is bold as well, and still Inside");
 }
 
 /// A close outside the band is **reported, never required**. He was asked
@@ -202,7 +252,7 @@ fn breaking_out_is_reported_not_required() {
 
     // The pin closes at 4515.78, inside a band of 4450 to 4550.
     let held = look(&borrowed, &[band()], normal, &patterns(), &rules()).expect("a signal");
-    assert!(!held.broke_out);
+    assert!(!held.standing.broke_out());
 
     // The same run against a band it closed above.
     let below = Band {
@@ -216,7 +266,7 @@ fn breaking_out_is_reported_not_required() {
         .expect("the tail still reaches the band");
 
     assert!(
-        broke.broke_out,
+        broke.standing.broke_out(),
         "4515.78 closed above a band topping at 4480"
     );
 }

@@ -94,7 +94,16 @@ THE FILES
 
                 ITS HEIGHT IS WORKED OUT, not typed — see below.
 
-  setup.html    RUNG 3 -- A SHAPE HE TRADES, AT A LEVEL HE DREW. The two
+\1
+                TWO PICTURES SINCE 29 AUGUST. The wide chart goes first -- a
+                hundred candles with his levels on and a RED RING round the
+                candles the shape is made of -- and this card goes under it.
+                The chart says WHERE, the card says WHAT.
+
+                AND IT WEARS ITS TIER. Red for a shape in the zone, amber for
+                one within half a band, plain for one with no zone near it.
+                Red is reserved: if the weaker two ever wear it, the strongest
+                thing the bot says stops looking any different.
                 candles drawn on the band, and the one sentence that explains
                 them.
 

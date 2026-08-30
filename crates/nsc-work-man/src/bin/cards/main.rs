@@ -62,7 +62,7 @@ async fn main() -> Result<()> {
     // no key on it. Answered before TWS is asked for anything.
     // Rung 3, drawn on the two gold candles off his own screenshot. No TWS.
     if wanted == "setup" {
-        return found::setup(&client).await;
+        return found::setup(&client, std::env::args().nth(2).as_deref()).await;
     }
 
     if wanted == "news" {

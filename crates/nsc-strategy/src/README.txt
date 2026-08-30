@@ -11,6 +11,22 @@ WHAT THIS CRATE IS FOR
   rule with four kinds of shape, because the PLACE test turned out to be
   identical for all of them.
 
+  FOUR SHAPES SINCE 29 AUGUST: his push-then-pin, the engulfing, the harami
+  and marching. Harami is measured from its BIG first candle and marching from
+  the candle its run started on -- not from the last one, which would report
+  the setup a whole shape away from the level that caused it.
+
+  AND THREE TIERS, the same day:
+
+    Inside   in the zone          RED. The only one that asks him to act.
+    Close    within half a band   amber. It almost touched and did not.
+    Bold     no zone near it      plain. 2x a normal candle or it is silence.
+
+  A LEVEL BEATS SIZE, ALWAYS. A shape at a zone is a setup whatever its reach;
+  a shape away from every zone is only ever a remark. Testing size first would
+  put a big candle in open water above a modest one sitting exactly where he
+  was watching.
+
   The specification is docs/worksheets/strategies.md. When it and this code
   disagree, IT WINS -- the worksheet is the spec and the code is the guess.
 
@@ -18,7 +34,10 @@ WHAT THIS CRATE IS FOR
 THE FILES
 
   lib.rs       The front door.
-  shape.rs     Which shapes count, and where each is measured from.
+  shape.rs     Which shapes count, where each is measured from, and how big
+               each one is.
+  standing.rs  THE THREE TIERS -- in the zone, extremely close, or bold and
+               away from every one of them.
   place.rs     THE TEST -- is it at the level.
   rules.rs     The settings, out of config/strategy.toml.
   finding.rs   The one way in.

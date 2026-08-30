@@ -29,6 +29,7 @@ pub(super) fn bar(open: &str, high: &str, low: &str, close: &str) -> Bar {
 pub(super) fn rules() -> Rules {
     Rules {
         reach_of_band: d("0.5"),
+        bold_reach: d("2.0"),
     }
 }
 

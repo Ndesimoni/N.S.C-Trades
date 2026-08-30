@@ -25,6 +25,12 @@ use crate::{card, telegram};
 /// How many candles a "normal" one is averaged over. Fourteen is the usual.
 const NORMAL_OVER: usize = 14;
 
+/// How many candles the wide picture shows.
+///
+/// **His number, 29 August 2026:** *"a hundred candles, so I can see what
+/// played out, how it played out."*
+const CONTEXT: usize = 100;
+
 impl Closes {
     /// Looks for a signal on the candle that just finished, and sends it.
     ///
@@ -76,7 +82,14 @@ impl Closes {
             symbol: seen.pair.symbol.clone(),
             interval,
             kind: Kind::Setup,
-            band: signal.band.price.to_string(),
+
+            // **A bold shape has no zone to key on**, and the candle's own
+            // time already stops it being said twice. Keying it on the empty
+            // string would make every bold shape on every pair one entry.
+            band: signal
+                .standing
+                .band()
+                .map_or_else(|| "bold".to_string(), |band| band.price.to_string()),
         };
 
         if self.already_said(&key, &finished.datetime) {
@@ -90,7 +103,7 @@ impl Closes {
             reasons::sentence(&signal, &seen.pair.symbol, written, seen.pair.digits)
         );
 
-        match send(client, &signal, seen, &history, written).await {
+        match send(client, &signal, seen, live, &history, written).await {
             Ok(()) => {
                 pulse.spoke(Utc::now());
                 self.told.insert(key, finished.datetime.clone());
@@ -111,34 +124,73 @@ async fn send(
     client: &reqwest::Client,
     signal: &Signal,
     seen: &Watching,
+    live: &[Band],
     history: &[&Bar],
     written: &str,
 ) -> anyhow::Result<()> {
     let words = reasons::sentence(signal, &seen.pair.symbol, written, seen.pair.digits);
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
 
-    // The two candles the shape is made of, oldest first.
+    // **The candles the shape is made of, oldest first — and it asks the shape
+    // how many.** Marching is three; taking two would draw two thirds of a
+    // pattern and label it whole.
     let shown: Vec<Bar> = history
         .iter()
         .rev()
-        .take(2)
+        .take(signal.shape.candles())
+        .rev()
+        .map(|&bar| bar.clone())
+        .collect();
+
+    // **A hundred candles of context, his own number on 29 August.** The card
+    // says WHAT printed; this says WHERE, and the red ring points at it. One
+    // without the other is half the message.
+    let context: Vec<Bar> = history
+        .iter()
+        .rev()
+        .take(CONTEXT)
         .rev()
         .map(|&bar| bar.clone())
         .collect();
 
     let signal = signal.clone();
     let pair = seen.pair.clone();
+    let bands = live.to_vec();
     let timeframe = written.to_string();
-    let out = PathBuf::from(PREVIEW).join("setup.png");
+    let ring = signal.shape.candles();
 
-    let picture: PathBuf = tokio::task::spawn_blocking(move || {
-        let borrowed: Vec<&Bar> = shown.iter().collect();
-        card::setup(&signal, &pair, &borrowed, &timeframe, &stamp, &out)
+    let wide_out = PathBuf::from(PREVIEW).join("signal-chart.png");
+    let card_out = PathBuf::from(PREVIEW).join("setup.png");
+
+    // **Both drawn in ONE hop off the price loop.** Chrome is a blocking wait
+    // of two to ten seconds each; two separate `spawn_blocking` calls would
+    // hold two of the pool's threads instead of one.
+    let (wide, close_up): (PathBuf, PathBuf) = tokio::task::spawn_blocking(move || {
+        let far: Vec<&Bar> = context.iter().collect();
+        let near: Vec<&Bar> = shown.iter().collect();
+
+        let wide = card::render_ringed(
+            "chart.html",
+            &far,
+            &bands,
+            &pair.symbol,
+            &timeframe,
+            pair.digits,
+            Some(ring),
+            &wide_out,
+        )?;
+
+        let close_up = card::setup(&signal, &pair, &near, &timeframe, &stamp, &card_out)?;
+
+        Ok::<_, card::CardError>((wide, close_up))
     })
     .await??;
 
     let owner = OWNER.to_string();
-    let pictures = [picture.as_path()];
+
+    // **The chart first, the card under it** — his order, 29 August. You look
+    // at where it happened, then read what it was.
+    let pictures = [wide.as_path(), close_up.as_path()];
 
     keep_trying(3, || telegram::send_to(client, &owner, &pictures, &words)).await?;
 

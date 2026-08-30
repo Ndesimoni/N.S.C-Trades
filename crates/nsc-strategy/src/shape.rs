@@ -102,6 +102,40 @@ impl Traded {
         })
     }
 
+    /// **How big the shape is, in normal candles.**
+    ///
+    /// Measured on whichever candle carries the move, which is the same
+    /// question `touching` answers and the same answer:
+    ///
+    /// - **Push** — the push candle, the one before the pin.
+    /// - **Engulfing** — the engulfing candle itself.
+    /// - **Harami** — the big first candle. The small one is the point of the
+    ///   pattern and must never be measured.
+    /// - **Marching** — the whole run, first open to last close. Three tiny
+    ///   candles marching is not a move, however neatly each closes beyond the
+    ///   last.
+    ///
+    /// **This is what "bold" is measured against** when a shape prints nowhere
+    /// near a zone. `nsc-ta` has already refused anything under one normal
+    /// candle; this is what decides whether it is worth saying so with no
+    /// level under it.
+    pub fn reach(self, bars: &[&Bar], normal: Decimal) -> Option<Decimal> {
+        if normal <= Decimal::ZERO {
+            return None;
+        }
+
+        let last = bars.len().checked_sub(1)?;
+        let first = bars.len().checked_sub(self.candles())?;
+
+        let span = match self {
+            Traded::Engulfing { .. } => bars[last].high - bars[last].low,
+            Traded::Push { .. } | Traded::Harami { .. } => bars[first].high - bars[first].low,
+            Traded::Marching { .. } => (bars[last].close - bars[first].open).abs(),
+        };
+
+        Some(span / normal)
+    }
+
     /// What the card calls it.
     pub fn name(self) -> &'static str {
         match self {

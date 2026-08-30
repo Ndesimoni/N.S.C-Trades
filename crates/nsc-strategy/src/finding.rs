@@ -8,22 +8,22 @@ use rust_decimal::Decimal;
 use super::Rules;
 use super::place::{self, Placing};
 use super::shape::{Traded, traded};
+use super::standing::Standing;
 
-/// A shape he trades, at a level he drew.
+/// A shape he trades, and where it printed.
 #[derive(Debug, Clone)]
 pub struct Signal {
     pub shape: Traded,
 
-    /// The band it printed at, and where against it.
-    pub band: Band,
-    pub placing: Placing,
+    /// **The three tiers** — in the zone, close to it, or bold and away from
+    /// every one of them. See `standing.rs`.
+    pub standing: Standing,
 
-    /// **Did the shape's own candle close outside the band?**
+    /// How big the shape is, in normal candles.
     ///
-    /// Reported, never required. He was asked whether the break was the
-    /// trigger and answered that the shape at the zone is a signal either way
-    /// — so this is a fact about the signal rather than a gate on it.
-    pub broke_out: bool,
+    /// **On the card either way.** At a zone it says how plainly the thing
+    /// happened; away from one it is the whole reason the message was sent.
+    pub reach: Decimal,
 }
 
 /// Looks for a signal on the candle that just closed.
@@ -36,6 +36,19 @@ pub struct Signal {
 ///
 /// `normal` is how big a normal candle was **at that moment**, not today.
 /// `bands` are his levels on that pair, already sized.
+///
+/// ## The three answers, in the order they are tried
+///
+/// ```text
+///     at one of his bands           Inside, or Close
+///     no band near it, but big      Bold
+///     no band, and ordinary         nothing
+/// ```
+///
+/// **A level beats size, always.** A shape at a zone is a setup whatever its
+/// reach; a shape away from every zone is only ever a remark. Testing size
+/// first would let a big candle in open water outrank a modest one sitting
+/// exactly where he was watching.
 pub fn look(
     bars: &[&Bar],
     bands: &[Band],
@@ -48,19 +61,38 @@ pub fn look(
     let shape = traded(found)?;
 
     let last = bars.last()?;
+    let reach = shape.reach(bars, normal)?;
 
     // **The shape says which candle reached the level, not this function.** A
     // harami reaches on its big first candle and a march on the one it started
     // from, so the whole slice goes over rather than the last bar.
-    let (band, placing) = place::nearest(shape.touching(bars)?, bands, rules)?;
+    let touching = shape.touching(bars)?;
+
+    let standing = match place::nearest(touching, bands, rules) {
+        Some((band, Placing::Inside)) => Standing::Inside {
+            band: *band,
+
+            // **The candle's CLOSE, not its wick.** A tail through the band is
+            // the level being tested; a close outside it is the level being
+            // left.
+            broke_out: last.close > band.top || last.close < band.bottom,
+        },
+
+        Some((band, placing)) => Standing::Close {
+            band: *band,
+            placing,
+        },
+
+        // Nowhere near a zone. Worth saying only if it is plainly bigger than
+        // an ordinary candle — and `nsc-ta` has already refused anything under
+        // one, so this asks for *bolder than ordinary*, not merely real.
+        None if reach >= rules.bold_reach => Standing::Bold,
+        None => return None,
+    };
 
     Some(Signal {
         shape,
-        band: *band,
-        placing,
-
-        // **The candle's CLOSE, not its wick.** A tail through the band is the
-        // level being tested; a close outside it is the level being left.
-        broke_out: last.close > band.top || last.close < band.bottom,
+        standing,
+        reach,
     })
 }

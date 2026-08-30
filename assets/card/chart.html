@@ -45,6 +45,11 @@ const candle = /*__CANDLE__*/;
 const bars   = /*__BARS__*/;
 const levels = /*__LEVELS__*/;
 
+// How many of the LAST candles to ring, or null. The shape a signal is made of
+// always finishes on the newest candle, so a count is enough and there is no
+// index to get wrong across the boundary.
+const ring   = /*__RING__*/;
+
 const fmt = n => n.toLocaleString("en-US",{minimumFractionDigits:candle.digits,maximumFractionDigits:candle.digits});
 const svgNS = "http://www.w3.org/2000/svg";
 const make = (name, attrs) => {
@@ -176,6 +181,35 @@ function chart(){
       fill:tint
     }));
   });
+
+  // ── THE RING ──
+  //
+  // Red, and his own choice on 29 August 2026. It cannot be mistaken for one
+  // of his levels: those are black weekly, blue daily and yellow 4-hour, and
+  // none of them is ever red.
+  //
+  // Drawn AFTER the candles so it sits on top of them, and drawn as an outline
+  // so it never hides the thing it is pointing at.
+  if (ring && ring > 0 && ring <= bars.length) {
+    const shape = bars.slice(-ring);
+
+    const from = LEFT + step * (bars.length - ring);
+    const to   = LEFT + step * bars.length;
+    const cx   = (from + to) / 2;
+
+    const hiY = y(Math.max(...shape.map(b => b.high)));
+    const loY = y(Math.min(...shape.map(b => b.low)));
+    const cy  = (hiY + loY) / 2;
+
+    // Room around it, so the ring frames the shape rather than clipping it.
+    const rx = Math.max((to - from) / 2 + 14, 22);
+    const ry = Math.max((loY - hiY) / 2 + 16, 22);
+
+    svg.appendChild(make("ellipse", {
+      cx, cy, rx, ry,
+      fill:"none", stroke:"#C6362F", "stroke-width":2.5, opacity:0.95
+    }));
+  }
 
   // Where the last close sits, carried across and named on the axis. Same brass
   // as the close in the readout card, so the two pictures tie together even

@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Five crates · 335 tests · clippy clean · it watches his levels, says what
+**Five crates · 337 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -58,9 +58,23 @@ nsc-work-man    everything that reaches
 > **The harami had no tests at all** before this. It has five now, on a real
 > gold harami from 21 April 2022.
 >
-> **Still to do on it:** the three tiers he asked for — in the zone, within half
-> a band, and bold-but-away — are designed and not built. See
-> [Still open](#still-open).
+> **THE THREE TIERS LANDED 30 AUGUST**, and a signal now sends **two
+> pictures**.
+>
+> ```text
+>     Inside   in the zone           RED     the only one that asks him to act
+>     Close    within half a band    amber   it almost touched and did not
+>     Bold     no zone near it       plain   2x a normal candle, or silence
+> ```
+>
+> **A level beats size, always.** A shape at a zone is a setup whatever its
+> reach; one away from every zone is only ever a remark, and the card says so
+> in words before it says it in colour.
+>
+> **The wide chart goes first** — a hundred candles, his levels on it, and a
+> **red ring** round the shape. The setup card goes under it. The chart says
+> where, the card says what. Both are drawn in one hop off the price loop, so
+> two pictures still hold one thread rather than two.
 
 > **RUNG 3 IS WIRED TO TELEGRAM — 25 AUGUST.** A shape he trades at one of
 > his zones now draws a card and sends it: the two candles on the band, and

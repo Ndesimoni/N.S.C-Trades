@@ -45,6 +45,27 @@ pub fn render(
     digits: u32,
     out: &Path,
 ) -> Result<PathBuf, CardError> {
+    render_ringed(template, bars, bands, symbol, interval, digits, None, out)
+}
+
+/// The same chart, with the last `ring` candles circled in red.
+///
+/// **The shape a signal is made of always finishes on the newest candle**, so a
+/// count is all this needs and there is no index to get wrong.
+///
+/// `None` draws no ring, which is what `/chart` wants — that picture answers
+/// "where is price", not "look here".
+#[allow(clippy::too_many_arguments)]
+pub fn render_ringed(
+    template: &str,
+    bars: &[&Bar],
+    bands: &[Band],
+    symbol: &str,
+    interval: &str,
+    digits: u32,
+    ring: Option<usize>,
+    out: &Path,
+) -> Result<PathBuf, CardError> {
     let Some(latest) = bars.last() else {
         return Err(CardError::NothingToDraw);
     };
@@ -58,6 +79,10 @@ pub fn render(
             ),
             ("/*__BARS__*/", facts::all(bars, digits).to_string()),
             ("/*__LEVELS__*/", facts::levels(bands, digits).to_string()),
+            (
+                "/*__RING__*/",
+                ring.map_or_else(|| "null".to_string(), |many| many.to_string()),
+            ),
         ],
         out,
     )

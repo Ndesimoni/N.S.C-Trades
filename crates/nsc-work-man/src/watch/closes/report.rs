@@ -2,7 +2,7 @@
 
 use chrono::Utc;
 use nsc_core::candle::Bar;
-use nsc_core::levels::{Band, Thickness, action, what_it_did};
+use nsc_core::levels::{Band, Thickness, action, came_from, what_it_did};
 use nsc_data::source::Interval;
 
 use super::look::Closes;
@@ -83,10 +83,18 @@ impl Closes {
             // another notification that the price closed below this level...
             // We should only get notification if price closes above."*
             //
-            // **It remembers either way**, so the next candle is judged
-            // against this one — and so a later approach at the same level
-            // stays quiet, which is the half `arrive` reads.
-            if !seen.watch.closed(band, interval.stored(), did) {
+            // **Only a BREAK, and the CANDLE says which.** Price rising into
+            // a level and closing above it broke through; the same close
+            // after price fell in from above is a rejection, and he does not
+            // want one. The rejection still reaches him as a setup.
+            //
+            // **The side comes off this candle's open, never off the ticker.**
+            // Those are two different clocks — see `nsc-core::levels::came_from`
+            // for the hour this was the other way round.
+            if !seen
+                .watch
+                .closed(band, interval.stored(), did, came_from(band, bar))
+            {
                 continue;
             }
 

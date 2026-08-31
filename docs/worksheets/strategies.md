@@ -28,21 +28,24 @@ one rule with a list.
 
 ## Which shapes count
 
-`nsc-ta::pattern` names twelve. He trades four:
+`nsc-ta::pattern` names eight. He trades four, each of which comes both ways up:
 
 | shape | |
 |---|---|
-| `Push { up: true }` | his own — a push, then a pin whose tail opposes it |
-| `Push { up: false }` | the same, the other way up |
-| `Engulfing { up: true }` | a body that swallows the one before it |
-| `Engulfing { up: false }` | the same, the other way up |
+| `Push` | his own — a push, then a pin whose tail opposes it |
+| `Engulfing` | a body that swallows the one before it |
+| `Harami` | a big candle, then a small one hiding inside its body |
+| `Marching` | three candles the same way, each closing beyond the last |
 
-The rest — harami, tweezers, piercing, the star, the march — exist because they
-are on every candlestick page, not because they are on his chart.
+**Harami and marching were added on 29 August 2026, at his word.** This section
+still said push and engulfing only until 31 August, which is two days of a
+specification describing a bot that was not running.
 
-**Left out rather than quietly included.** A detector that fires on twelve
-shapes when he trades four is four times the messages and a quarter of the
-meaning.
+The rest — tweezers, piercing, dark cloud and the star — exist because they are
+on every candlestick page, not because they are on his chart.
+
+**Left out rather than quietly included.** A detector that fires on eight
+shapes when he trades four is twice the messages and half the meaning.
 
 ---
 
@@ -59,6 +62,15 @@ ended up nearby.
 
 **An engulfing has no tail to speak of**, so it is measured from where the
 second candle closed — which is what "engulfing at the level" means to the eye.
+
+**A harami is measured from its BIG FIRST candle**, never the small one. Price
+travelled into the zone on the big candle; the small one is only the proof it
+stopped there.
+
+**A march is measured from where the run STARTED.** Three candles launch from
+somewhere, and if a zone is there that is the zone it broke out of. Measuring
+from the end would put the setup three candles away from the level that caused
+it.
 
 ---
 
@@ -140,7 +152,7 @@ makes results look *better* rather than broken.
       which does not exist.
 - [ ] **Rejected setups are not saved.** That is a `CLAUDE.md` rule and this
       rung is what it was waiting on.
-- [ ] **The engulfing has no size test.** 39% of them move less than a normal
-      candle, measured 29 August across 270,000 candles. `[push]` found the
-      same hole and plugged it with `min_push_reach`; `[engulfing]` never got
-      the patch, and this rung is live on it today.
+- [x] **The engulfing has a size test.** Done 29 August 2026: `min_reach =
+      "1.0"` in `config/patterns.toml`, and `min_first_reach` for the harami's
+      big candle. 39% of engulfings and 38% of haramis moved less than a normal
+      candle before those went in, measured across 270,000 candles.

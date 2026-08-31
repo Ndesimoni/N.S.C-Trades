@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Five crates · 356 tests · clippy clean · it watches his levels, says what
+**Five crates · 358 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -103,6 +103,18 @@ nsc-work-man    everything that reaches
 >     later candles come back          silence
 >     a candle closes ABOVE            closed above   <- this he wants
 > ```
+>
+> **The close is judged by the CANDLE'S OWN OPEN**, never by where the tick
+> stream happens to be. Those are two different clocks: a 4-hour candle closes
+> above at 12:00, the poll runs seconds later, and by then the ticker has put
+> price above — so the break read as a rejection and went silent. **The harder
+> the break, the more certainly it was dropped.** Found on the 31 August
+> read-back, before it ever ran live. The open cannot race, and it is the only
+> version a backtest can run.
+>
+> **Closes are reported on every level he drew, not the ones price is standing
+> on.** Same race, one layer up: a break is price LEAVING a zone, and a band
+> price has left was not in the list `look` reported from.
 >
 > **Only a BREAK sends a close card.** Price rising into a level and closing
 > above it broke through; the same close after price fell in from above is a

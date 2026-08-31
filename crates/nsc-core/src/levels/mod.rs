@@ -32,5 +32,5 @@ pub use error::LevelError;
 pub use naming::{digits_for, unit_for, with_slash};
 pub use read::{ClosesOn, Pair, Thickness, load_pair, load_thickness};
 pub use remove::{RETIRED, TookOff, restore, retire, retired, take_off, undo};
-pub use watch::{Nearness, Side, Watch, nearness};
+pub use watch::{Nearness, Side, Watch, came_from, nearness};
 pub use write::{Saved, known, save};

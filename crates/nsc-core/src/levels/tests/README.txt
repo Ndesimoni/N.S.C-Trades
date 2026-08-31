@@ -29,7 +29,14 @@ THE FILES
   watching.rs  Firing once per touch, not once per price — and the two
                different distances for arriving and leaving.
 
-  support.rs   The scratch folder and the price helper they share.
+  breaking.rs  What a CLOSE at a level is worth. A candle that broke through
+               the way price was travelling is news; one thrown back where it
+               came from is not. Split out of watching.rs on 31 August 2026,
+               when that file reached 311 lines of code against a 170 limit.
+
+  support.rs   The scratch folder, the price helper, the two bands the tests
+               are written against — his gold weekly and his AUD/USD daily —
+               and a candle built from just an open and a close.
 
   README.txt   This file.
 

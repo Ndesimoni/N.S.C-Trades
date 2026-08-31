@@ -147,7 +147,22 @@ impl Closes {
         pulse: &mut pulse::Pulse,
     ) -> Result<()> {
         for seen in watching.values_mut() {
-            let live = seen.watch.resting_at();
+            // **Every level on the pair, not the ones price is at RIGHT NOW.**
+            //
+            // It was `resting_at` until 31 August 2026, and that quietly threw
+            // away the best news the bot had. A break is price LEAVING a zone,
+            // so by the time the poll runs the ticker has often carried it
+            // clear — and a band price has left is not in `resting_at`. The
+            // harder the break, the more certainly its card was dropped.
+            //
+            // Nothing extra gets sent: `what_it_did` calls a band the candle
+            // never reached a `Missed` and `say` skips it, and rung 3 measures
+            // the shape against the nearest band and ignores the rest.
+            //
+            // It costs one fetch per pair per candle, for pairs where price is
+            // nowhere near anything. Five pairs, three timeframes, and `due`
+            // still holds each one until its candle is actually due.
+            let live = seen.watch.bands();
             if live.is_empty() {
                 continue;
             }

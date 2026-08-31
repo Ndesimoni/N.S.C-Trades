@@ -51,6 +51,7 @@
 use rust_decimal::Decimal;
 
 use super::{AtZone, Band};
+use crate::candle::Bar;
 
 /// How far outside price must get before that band can fire again.
 ///
@@ -71,10 +72,8 @@ pub struct Watch {
     /// still speaks.
     seen: Vec<Level>,
 
-    /// How close counts as arriving — **a price, not a share**. A pip on this
-    /// pair, worked out by [`Pair::reach`](super::Pair::reach).
     /// How close counts as arriving, **as a share of each band's own
-    /// thickness**.
+    /// thickness**, from [`Pair::reach_share`](super::Pair::reach_share).
     ///
     /// **A share, so every band gets a reach its own size.** It was one price
     /// for the whole pair until 31 August 2026 — four pips, which is 22% of an
@@ -113,7 +112,6 @@ impl Watch {
                     band,
                     deepest: Nearness::Away,
                     spoken: false,
-                    came_from: None,
                     closes: Vec::new(),
                 })
                 .collect(),
@@ -123,16 +121,13 @@ impl Watch {
         }
     }
 
-    /// Feeds one price, and gives back every band price has **just arrived
-    /// at**, with how near it got.
-    ///
-    /// Empty almost always. That is the point.
-    /// Feeds in a price, and says which levels have something to announce.
+    /// Feeds in a price, and gives back every band that has **just arrived at
+    /// something worth saying**. Empty almost always, and that is the point.
     ///
     /// **A level speaks once and then keeps quiet.** Approaching is news only
-    /// while the level has never said anything — see [`Told`]. After that only
-    /// a candle closing somewhere new is worth a card, and that comes through
-    /// [`Watch::closed`] rather than here.
+    /// while the level has never said anything at all. After
+    /// that only a candle closing somewhere new is worth a card, and that
+    /// comes through [`Watch::closed`] rather than here.
     pub fn arrive(&mut self, price: Decimal) -> Vec<(Band, Nearness)> {
         let first = !self.started;
         self.started = true;
@@ -144,18 +139,6 @@ impl Watch {
             // **Each band's own reach**, from its own thickness.
             let reach = level.band.thickness() * self.share;
             let near = nearness(&level.band, price, reach);
-
-            // **Remember which side price is on while it is away.** That is
-            // what later says whether a close broke through or was thrown
-            // back, and it has to be recorded before price arrives — once it
-            // is in the zone there is no side to read.
-            if near == Nearness::Away {
-                level.came_from = Some(if price > level.band.top {
-                    Side::Above
-                } else {
-                    Side::Below
-                });
-            }
 
             if first {
                 // Only note where price is. Arriving is a change, and there is
@@ -212,8 +195,10 @@ impl Watch {
     /// **Any close ends the approach card**, break or not, because "price is
     /// near this line" stops being news the moment the line has a story.
     ///
-    /// `on` is the timeframe's stored spelling — `4h`, `1d`.
-    pub fn closed(&mut self, band: &Band, on: &str, did: AtZone) -> bool {
+    /// `on` is the timeframe's stored spelling — `4h`, `1d`. `from` is which
+    /// side the candle came from, out of [`came_from`] — **the candle's own
+    /// open, never where the ticker happens to be now.**
+    pub fn closed(&mut self, band: &Band, on: &str, did: AtZone, from: Option<Side>) -> bool {
         let Some(level) = self
             .seen
             .iter_mut()
@@ -225,21 +210,7 @@ impl Watch {
         // Whatever happens next, price being near this line is no longer news.
         level.spoken = true;
 
-        // **Judged against where price came from, THEN moved on.** Written the
-        // other way round first, and it silenced everything: a close above set
-        // the side to Above, and `worth_a_card` then read its own answer back
-        // and called it a rejection.
-        let worth_it = worth_a_card(level.came_from, did);
-
-        // Where price sits now, so the next visit is judged from here rather
-        // than from wherever it was days ago.
-        match did {
-            AtZone::ClosedAbove => level.came_from = Some(Side::Above),
-            AtZone::ClosedBelow => level.came_from = Some(Side::Below),
-            _ => {}
-        }
-
-        if !worth_it {
+        if !worth_a_card(from, did) {
             return false;
         }
 
@@ -343,18 +314,6 @@ struct Level {
     /// that level again."*
     spoken: bool,
 
-    /// **Which side price was last on before it reached the zone.**
-    ///
-    /// This is what turns a close into a break or a rejection. Price rising
-    /// into a level and closing above it has broken through; the same close
-    /// after price fell in from above is a rejection, and he does not want a
-    /// card for that — see [`is_a_break`].
-    ///
-    /// `None` before price has ever been seen away from this band. The first
-    /// close then speaks anyway, because it is the first news about the level
-    /// and silence would be worse than a guess.
-    came_from: Option<Side>,
-
     /// The last close **reported** per timeframe, by its stored spelling.
     ///
     /// **What was reported, not what happened.** A rejection is silent, so it
@@ -378,6 +337,39 @@ pub enum Side {
     Below,
 }
 
+/// **Which side this candle came from**, or `None` if it opened in the zone.
+///
+/// Read off the candle's OPEN, and that choice is the fix of 31 August 2026.
+///
+/// ## Why not remember it from the prices
+///
+/// It was remembered from the tick stream for about an hour, and the tick
+/// stream and the candle poll are not the same clock. A 4-hour candle closes
+/// above the band at 12:00; the poll picks it up seconds later; and in those
+/// seconds the ticker has already put price above. The break then read as a
+/// rejection and went silent — **and the harder the break, the more certain
+/// that was**, which is exactly backwards.
+///
+/// The open cannot race. It is a fact about a candle that has finished.
+///
+/// **It is also the only version the backtester can run**, and that is what
+/// really decides it. There is no tick stream in a backtest, so a remembered
+/// side would have made the backtest and the live bot answer differently —
+/// the one mismatch `CLAUDE.md` says never to build, because it makes results
+/// look better rather than broken.
+///
+/// A candle that opened inside the zone came from nowhere: it started there.
+/// That is `None`, and `None` speaks.
+pub fn came_from(band: &Band, bar: &Bar) -> Option<Side> {
+    if bar.open > band.top {
+        Some(Side::Above)
+    } else if bar.open < band.bottom {
+        Some(Side::Below)
+    } else {
+        None
+    }
+}
+
 /// Is this close worth a card at all?
 ///
 /// **A break, or a candle that settled inside. Never a rejection.**
@@ -390,13 +382,12 @@ pub enum Side {
 ///     closed inside                   still there     -> card
 /// ```
 ///
-/// **`came_from` is worked out BEFORE price arrives**, while it is still away
-/// from the band. Once price is in the zone there is no side to read.
+/// `came_from` is the candle's own open — see [`came_from`].
 ///
-/// **Not knowing counts as worth saying.** Before price has ever been seen
-/// away from a band — a bot started with price already sitting in one — there
-/// is no direction to judge against, and silence about the first thing a level
-/// ever does is worse than a card he did not need.
+/// **Not knowing counts as worth saying.** A candle that opened inside the
+/// zone has no side to be judged against, and silence about a level price is
+/// standing in is worse than a card he did not need. Saying it twice is
+/// stopped by the per-timeframe memory instead, not by this.
 fn worth_a_card(came_from: Option<Side>, did: AtZone) -> bool {
     match did {
         AtZone::Missed => false,

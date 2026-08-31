@@ -161,7 +161,10 @@ fn his_gold_at_a_zone_is_a_signal() {
 
     assert_eq!(found.shape, Traded::Push { up: true });
     assert_eq!(found.standing.placing(), Placing::Inside);
-    assert!(found.standing.solid(), "in the zone is the tier that asks to act");
+    assert!(
+        found.standing.solid(),
+        "in the zone is the tier that asks to act"
+    );
 }
 
 /// **The same run with the zone moved away is not a setup.** This is the whole
@@ -223,8 +226,8 @@ fn the_same_run_at_a_zone_is_a_signal() {
     let (bars, _) = his_gold();
     let borrowed: Vec<&_> = bars.iter().collect();
 
-    let found = look(&borrowed, &[band()], d("50"), &patterns(), &rules())
-        .expect("bold AND at a zone");
+    let found =
+        look(&borrowed, &[band()], d("50"), &patterns(), &rules()).expect("bold AND at a zone");
 
     assert!(matches!(found.standing, Standing::Inside { .. }));
     assert!(found.reach > d("2.0"));

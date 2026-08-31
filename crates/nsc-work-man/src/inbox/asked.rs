@@ -148,8 +148,8 @@ pub async fn status(
     // **Chrome runs off the inbox loop too.** It is a blocking wait of two to
     // ten seconds, and holding a worker there stops the bot answering anything
     // else he sends while it draws.
-    let drawn = tokio::task::spawn_blocking(move || card::heartbeat(&alive, &quiet, &stamp, &out))
-        .await?;
+    let drawn =
+        tokio::task::spawn_blocking(move || card::heartbeat(&alive, &quiet, &stamp, &out)).await?;
 
     let sent = match drawn {
         Ok(picture) => telegram::send_to(client, &OWNER.to_string(), &[&picture], &words)

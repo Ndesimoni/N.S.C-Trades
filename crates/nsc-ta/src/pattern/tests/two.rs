@@ -146,7 +146,6 @@ fn one_candle_is_never_a_pattern() {
     assert_eq!(read(&bars[..1], normal_2024()), None);
 }
 
-
 // ── the harami, which had no tests at all until 29 August 2026 ─────────────
 
 /// Gold, 21 April 2022: a real one.

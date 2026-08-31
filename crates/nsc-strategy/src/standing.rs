@@ -43,7 +43,6 @@ pub enum Standing {
     /// rather than a distance, so it travels: about 4 pips on the Aussie
     /// 4-hour and about 13 on cable's weekly.
     Close { band: Band, placing: Placing },
-
 }
 
 impl Standing {
@@ -65,7 +64,13 @@ impl Standing {
 
     /// Did the candle close outside the band? Never true without one.
     pub fn broke_out(self) -> bool {
-        matches!(self, Standing::Inside { broke_out: true, .. })
+        matches!(
+            self,
+            Standing::Inside {
+                broke_out: true,
+                ..
+            }
+        )
     }
 
     /// **Is this one he should act on?**

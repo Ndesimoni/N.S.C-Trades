@@ -180,4 +180,3 @@ fn same_day() -> Vec<Event> {
         one("Retail Sales", at(0, 14)),
     ]
 }
-

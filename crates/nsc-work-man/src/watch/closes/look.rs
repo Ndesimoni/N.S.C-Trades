@@ -210,9 +210,16 @@ impl Closes {
 
                 let ask_again = worth_asking_again(&bars, minutes, now);
 
+                // **Newest first, so the first one that has finished is the
+                // one that just did.** Anything after the newest is proved
+                // finished by the candle that opened after it — see
+                // `has_finished`, and the quarter of 4-hour candles that do
+                // not last four hours.
                 let finished = bars
                     .iter()
-                    .find(|bar| bar.finished_by(now, minutes).unwrap_or(false));
+                    .enumerate()
+                    .find(|(at, bar)| has_finished(bar, *at, now, minutes))
+                    .map(|(_, bar)| bar);
 
                 let mut all_sent = true;
 
@@ -294,7 +301,44 @@ impl Closes {
 /// the one still running. This is the line between them.
 pub(super) fn finished_only(bars: &[Bar], now: DateTime<Utc>, minutes: i64) -> Vec<Bar> {
     bars.iter()
-        .filter(|bar| bar.finished_by(now, minutes).unwrap_or(false))
-        .cloned()
+        .enumerate()
+        .filter(|(at, bar)| has_finished(bar, *at, now, minutes))
+        .map(|(_, bar)| bar.clone())
         .collect()
+}
+
+/// Has this candle finished?
+///
+/// `bars` come back **newest first**, and `at` is where this one sits in that
+/// list.
+///
+/// ## A LATER CANDLE IS THE PROOF, NOT A STOPWATCH
+///
+/// Anything after the newest has a candle that opened after it, and the feed
+/// does not open a candle until the one before it is done. **That is the
+/// broker's own answer, and it needs no arithmetic.**
+///
+/// **Asking a stopwatch instead was wrong for a quarter of them.** IBKR ends
+/// its forex day at 17:15 New York and prints short candles around the
+/// boundary — measured on 30,000 AUD/USD 4-hour candles: 21,446 ran the full
+/// 240 minutes and **7,675 did not**, some as short as 75.
+///
+/// `opened_at + 240 <= now` calls a 75-minute candle unfinished for another
+/// 165 minutes after it has closed. Nothing errors. The close card simply
+/// arrives late — up to two and three-quarter hours late, twice a day, on
+/// every pair.
+///
+/// **It was late, never early**, which is the safe direction and is why it
+/// went unseen: an early read would be price the market had not printed.
+///
+/// **Only the newest has nothing after it**, and there the clock is all there
+/// is. It stays conservative there for the same reason — better a candle
+/// reported late than one reported before it closed.
+fn has_finished(bar: &Bar, at: usize, now: DateTime<Utc>, minutes: i64) -> bool {
+    // A stamp that will not read is not a candle. Never guessed at.
+    if bar.opened_at().is_err() {
+        return false;
+    }
+
+    at > 0 || bar.finished_by(now, minutes).unwrap_or(false)
 }

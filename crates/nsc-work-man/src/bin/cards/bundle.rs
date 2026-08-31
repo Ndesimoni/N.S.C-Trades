@@ -28,7 +28,7 @@ use nsc_core::candle::{Bar, normal_candle};
 use nsc_core::levels::{Band, Pair, Timeframe};
 use nsc_strategy::{look, reasons};
 use nsc_ta::pattern;
-use nsc_work_man::places::{OWNER, PREVIEW, PATTERNS, STRATEGY};
+use nsc_work_man::places::{OWNER, PATTERNS, PREVIEW, STRATEGY};
 use nsc_work_man::{card, telegram};
 use rust_decimal::Decimal;
 use std::str::FromStr;
@@ -57,13 +57,12 @@ pub async fn bundle(client: &reqwest::Client) -> Result<()> {
         d("0.55"),
     )];
 
-    let (end, signal) = newest(&all, &bands, &patterns, &rules)
-        .context("no signal in the saved candles")?;
+    let (end, signal) =
+        newest(&all, &bands, &patterns, &rules).context("no signal in the saved candles")?;
 
     let history: Vec<&Bar> = all[end - WINDOW..end].iter().collect();
-    let last = |many: usize| -> Vec<&Bar> {
-        history[history.len().saturating_sub(many)..].to_vec()
-    };
+    let last =
+        |many: usize| -> Vec<&Bar> { history[history.len().saturating_sub(many)..].to_vec() };
 
     let pair = Pair {
         symbol: "AUD/USD".into(),

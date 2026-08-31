@@ -108,11 +108,7 @@ pub async fn read(
 }
 
 /// How many candles are held for one pair and timeframe.
-pub async fn count(
-    store: &Store,
-    symbol: &str,
-    interval: Interval,
-) -> Result<i64, StoreError> {
+pub async fn count(store: &Store, symbol: &str, interval: Interval) -> Result<i64, StoreError> {
     let (many,): (i64,) =
         sqlx::query_as("SELECT count(*) FROM candles WHERE symbol = $1 AND interval = $2")
             .bind(symbol)
@@ -152,9 +148,7 @@ async fn edge(
     interval: Interval,
     which: &str,
 ) -> Result<Option<DateTime<Utc>>, StoreError> {
-    let sql = format!(
-        "SELECT {which}(opened_at) FROM candles WHERE symbol = $1 AND interval = $2"
-    );
+    let sql = format!("SELECT {which}(opened_at) FROM candles WHERE symbol = $1 AND interval = $2");
 
     let (at,): (Option<DateTime<Utc>>,) = sqlx::query_as(&sql)
         .bind(symbol)

@@ -19,7 +19,6 @@ pub struct Rules {
     /// on and stop working on every other.
     #[serde(with = "rust_decimal::serde::str")]
     pub reach_of_band: Decimal,
-
 }
 
 /// What can go wrong reading them.
@@ -36,7 +35,6 @@ pub enum StrategyError {
     /// produces silence — which is indistinguishable from a quiet week.
     #[error("{path} sets reach_of_band to {reach}, which can almost never match")]
     NoReach { path: String, reach: Decimal },
-
 }
 
 /// Read them from a file. **Gives up rather than guessing.**
@@ -57,7 +55,6 @@ pub fn load(path: &Path) -> Result<Rules, StrategyError> {
             reach: rules.reach_of_band,
         });
     }
-
 
     Ok(rules)
 }

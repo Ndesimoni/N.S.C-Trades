@@ -59,7 +59,8 @@ fn named(stem: &str) -> Option<(String, Interval)> {
 async fn main() -> Result<()> {
     nsc_work_man::secrets::load();
 
-    let url = std::env::var("DATABASE_URL").context("DATABASE_URL is not set — see .env.example")?;
+    let url =
+        std::env::var("DATABASE_URL").context("DATABASE_URL is not set — see .env.example")?;
 
     let db = store::open(&url)
         .await

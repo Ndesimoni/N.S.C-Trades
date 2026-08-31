@@ -81,7 +81,9 @@ fn prepare(url: &str) {
                 first.close().await;
 
                 // Migrate it here, so no test has to.
-                open(&in_schema(&url)).await.expect("could not migrate the test schema");
+                open(&in_schema(&url))
+                    .await
+                    .expect("could not migrate the test schema");
             });
         })
         .join()
@@ -196,7 +198,11 @@ async fn writing_twice_repairs_rather_than_duplicates() {
     .await
     .unwrap();
 
-    assert_eq!(back[0].high, d("2.6"), "the second write must correct the first");
+    assert_eq!(
+        back[0].high,
+        d("2.6"),
+        "the second write must correct the first"
+    );
 }
 
 /// **A timeframe is one key, not two.** The 1-hour and the 4-hour share a
@@ -238,7 +244,11 @@ fn stored_and_spoken_are_different_words() {
         assert_eq!(Interval::from_stored(interval.stored()), Some(interval));
     }
 
-    assert_eq!(Interval::from_stored("1-hour"), None, "the spoken one is not a key");
+    assert_eq!(
+        Interval::from_stored("1-hour"),
+        None,
+        "the spoken one is not a key"
+    );
 }
 
 /// **The bot reads UTC, whatever the machine's clock says.**
@@ -271,12 +281,20 @@ async fn every_connection_is_utc() {
         .await
         .unwrap();
 
-    assert_eq!(zone, "UTC", "the bot must never read the record in local time");
+    assert_eq!(
+        zone, "UTC",
+        "the bot must never read the record in local time"
+    );
 
     // And a candle comes back on the instant it was written, not shifted.
-    write(&db, PAIR, Interval::H4, &[bar("2010-02-12 04:00:00", "1", "2", "0.5", "1.5")])
-        .await
-        .unwrap();
+    write(
+        &db,
+        PAIR,
+        Interval::H4,
+        &[bar("2010-02-12 04:00:00", "1", "2", "0.5", "1.5")],
+    )
+    .await
+    .unwrap();
 
     let back = read(
         &db,

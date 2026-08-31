@@ -15,7 +15,12 @@ use crate::watch::breathe::breathe;
 /// minutes at a zone is a card every five minutes, which is unbearable to
 /// trade on and exactly what you want when you are checking the thing fires
 /// at all. Put it back to two when you have seen what you needed to see.
-pub(super) const REPORT_ON: [Interval; 2] = [Interval::H1, Interval::H4];
+/// **The daily joined on 31 August 2026**, at his word: a daily candle should
+/// give a setup, an approach and a close just as the 4-hour does.
+///
+/// It costs almost nothing. A daily candle closes once a day, so `due` asks
+/// about it twice a day where the 1-hour is asked twice an hour.
+pub(super) const REPORT_ON: [Interval; 3] = [Interval::H1, Interval::H4, Interval::Day];
 
 // pub(super) const REPORT_ON: [Interval; 5] = [
 //     Interval::Min5,

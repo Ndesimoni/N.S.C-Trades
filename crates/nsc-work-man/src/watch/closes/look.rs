@@ -141,12 +141,12 @@ impl Closes {
         &mut self,
         client: &reqwest::Client,
         ibkr: &IbkrConnection,
-        watching: &HashMap<String, Watching>,
+        watching: &mut HashMap<String, Watching>,
         thickness: Thickness,
         _calendar: &Rules,
         pulse: &mut pulse::Pulse,
     ) -> Result<()> {
-        for seen in watching.values() {
+        for seen in watching.values_mut() {
             let live = seen.watch.resting_at();
             if live.is_empty() {
                 continue;

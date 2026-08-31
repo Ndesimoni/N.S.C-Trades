@@ -285,6 +285,15 @@ fn settings(close_cards: ClosesOn) -> Thickness {
     }
 }
 
+/// **The daily speaks, and it is the biggest close card the bot sends.**
+///
+/// Added 31 August 2026 at his word: a daily candle should give a setup, an
+/// approach and a close, just as the 4-hour does.
+#[test]
+fn the_daily_sends_close_cards() {
+    assert!(settings(ClosesOn::default()).says_closes_on("1d"));
+}
+
 /// **The 1-hour says nothing about a close, and that is his answer.**
 ///
 /// 31 August 2026: *"we don't want those notifications from the one hour. The
@@ -309,7 +318,7 @@ fn the_one_hour_does_not_send_close_cards() {
 fn a_timeframe_nothing_watches_says_no() {
     let settings = settings(ClosesOn::default());
 
-    for never in ["1d", "1w", "5m", "nonsense", ""] {
+    for never in ["1w", "5m", "15m", "nonsense", ""] {
         assert!(!settings.says_closes_on(never), "{never} is not watched");
     }
 }
@@ -317,7 +326,10 @@ fn a_timeframe_nothing_watches_says_no() {
 /// He can turn the 1-hour back on without touching code.
 #[test]
 fn he_can_have_the_one_hour_back_if_he_wants_it() {
-    let settings = settings(ClosesOn { h1: true, h4: true });
+    let settings = settings(ClosesOn {
+        h1: true,
+        ..Default::default()
+    });
 
     assert!(settings.says_closes_on("1h"));
 }
@@ -336,6 +348,7 @@ h4 = 0.55
 
     assert!(!settings.says_closes_on("1h"));
     assert!(settings.says_closes_on("4h"));
+    assert!(settings.says_closes_on("1d"));
 }
 
 /// And typing it in is the only way he will ever change it, so the trip
@@ -350,10 +363,12 @@ h4 = 0.55
 [close_cards]
 h1 = true
 h4 = false
+d1 = false
 "#;
 
     let settings: Thickness = toml::from_str(text).expect("a valid settings file");
 
     assert!(settings.says_closes_on("1h"));
     assert!(!settings.says_closes_on("4h"));
+    assert!(!settings.says_closes_on("1d"));
 }

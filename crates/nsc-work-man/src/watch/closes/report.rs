@@ -31,7 +31,7 @@ impl Closes {
     pub(super) async fn say(
         &mut self,
         client: &reqwest::Client,
-        seen: &Watching,
+        seen: &mut Watching,
         live: &[Band],
         bar: &Bar,
         thickness: Thickness,
@@ -73,6 +73,20 @@ impl Closes {
             // The rejection survives: a wick into the zone that closed back
             // out finishes above or below the band, so it still sends.
             if thickness.only_breaks && !did.left_the_band() {
+                continue;
+            }
+
+            // ── THE LEVEL ONLY SPEAKS WHEN IT HAS SOMETHING NEW TO SAY ──
+            //
+            // His rule, 31 August 2026: a close that ends where the last one
+            // ended is not news. *"If it closes below, we should not get
+            // another notification that the price closed below this level...
+            // We should only get notification if price closes above."*
+            //
+            // **It remembers either way**, so the next candle is judged
+            // against this one — and so a later approach at the same level
+            // stays quiet, which is the half `arrive` reads.
+            if !seen.watch.closed(band, interval.stored(), did) {
                 continue;
             }
 

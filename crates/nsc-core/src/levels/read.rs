@@ -85,6 +85,11 @@ pub struct ClosesOn {
 
     #[serde(default = "yes")]
     pub h4: bool,
+
+    /// **The daily, added 31 August 2026 at his word.** A daily candle closing
+    /// at a level is the biggest close card the bot sends.
+    #[serde(default = "yes")]
+    pub d1: bool,
 }
 
 impl Default for ClosesOn {
@@ -92,6 +97,7 @@ impl Default for ClosesOn {
         ClosesOn {
             h1: false,
             h4: true,
+            d1: true,
         }
     }
 }
@@ -213,6 +219,7 @@ impl Thickness {
         match stored {
             "1h" => self.close_cards.h1,
             "4h" => self.close_cards.h4,
+            "1d" => self.close_cards.d1,
             _ => false,
         }
     }

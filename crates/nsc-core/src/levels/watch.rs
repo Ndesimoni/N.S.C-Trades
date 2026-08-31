@@ -50,7 +50,7 @@
 
 use rust_decimal::Decimal;
 
-use super::Band;
+use super::{AtZone, Band};
 
 /// How far outside price must get before that band can fire again.
 ///
@@ -69,7 +69,7 @@ pub struct Watch {
     /// Not "where price is" — where it has BEEN, since it last left properly.
     /// That is what makes wobbling at the edge silent while walking further in
     /// still speaks.
-    seen: Vec<(Band, Nearness)>,
+    seen: Vec<Level>,
 
     /// How close counts as arriving — **a price, not a share**. A pip on this
     /// pair, worked out by [`Pair::reach`](super::Pair::reach).
@@ -109,7 +109,12 @@ impl Watch {
         Watch {
             seen: bands
                 .into_iter()
-                .map(|band| (band, Nearness::Away))
+                .map(|band| Level {
+                    band,
+                    deepest: Nearness::Away,
+                    spoken: false,
+                    closes: Vec::new(),
+                })
                 .collect(),
             share,
             last: None,
@@ -121,6 +126,12 @@ impl Watch {
     /// at**, with how near it got.
     ///
     /// Empty almost always. That is the point.
+    /// Feeds in a price, and says which levels have something to announce.
+    ///
+    /// **A level speaks once and then keeps quiet.** Approaching is news only
+    /// while the level has never said anything — see [`Told`]. After that only
+    /// a candle closing somewhere new is worth a card, and that comes through
+    /// [`Watch::closed`] rather than here.
     pub fn arrive(&mut self, price: Decimal) -> Vec<(Band, Nearness)> {
         let first = !self.started;
         self.started = true;
@@ -128,34 +139,111 @@ impl Watch {
 
         let mut arrived = Vec::new();
 
-        for (band, deepest) in &mut self.seen {
+        for level in &mut self.seen {
             // **Each band's own reach**, from its own thickness.
-            let reach = band.thickness() * self.share;
-            let near = nearness(band, price, reach);
+            let reach = level.band.thickness() * self.share;
+            let near = nearness(&level.band, price, reach);
 
             if first {
                 // Only note where price is. Arriving is a change, and there is
                 // nothing yet to have changed from.
-                *deepest = near;
+                level.deepest = near;
                 continue;
             }
 
-            // Properly gone. The visit is over and the next one starts fresh.
-            if *deepest != Nearness::Away && clear_of(band, price, reach) {
-                *deepest = Nearness::Away;
+            // Properly gone. The wording starts fresh for the next visit —
+            // **but what the level has SAID is not forgotten.** Price leaving
+            // and coming back is exactly the case he asked to go quiet.
+            if level.deepest != Nearness::Away && clear_of(&level.band, price, reach) {
+                level.deepest = Nearness::Away;
                 continue;
             }
 
-            if depth(near) > depth(*deepest) {
-                *deepest = near;
-                arrived.push((*band, near));
+            if depth(near) <= depth(level.deepest) {
+                continue;
+            }
+
+            level.deepest = near;
+
+            // **The one gate, and it is the whole change of 31 August 2026.**
+            // A level that has already spoken says nothing about price merely
+            // being near it again.
+            if !level.spoken {
+                level.spoken = true;
+                arrived.push((level.band, near));
             }
         }
 
         arrived
     }
 
-    /// How many bands are being watched.
+    /// A candle closed at this level. **Is it worth a card?**
+    ///
+    /// Yes only when it ended somewhere different from the last close *this
+    /// timeframe* reported at *this level* — his rule of 31 August 2026:
+    ///
+    /// > *"If it closes below, we should not get another notification that the
+    /// > price closed below this level... We should only get notification if
+    /// > price closes above that level."*
+    ///
+    /// **Says yes the first time whatever the ending**, because a level that
+    /// has only ever said "approaching" has not told him how it resolved.
+    ///
+    /// **Any close ends the approach card**, on every timeframe, because
+    /// "price is near this line" stops being news the moment the line has a
+    /// story.
+    ///
+    /// `on` is the timeframe's stored spelling — `4h`, `1d`. Remembers either
+    /// way, so the next candle is judged against this one. A band it does not
+    /// watch answers **no** rather than guessing.
+    pub fn closed(&mut self, band: &Band, on: &str, did: AtZone) -> bool {
+        let Some(level) = self
+            .seen
+            .iter_mut()
+            .find(|one| one.band.price == band.price)
+        else {
+            return false;
+        };
+
+        // Whatever happens next, price being near this line is no longer news.
+        level.spoken = true;
+
+        match level.closes.iter_mut().find(|(when, _)| when == on) {
+            Some((_, last)) if *last == did => false,
+
+            Some((_, last)) => {
+                *last = did;
+                true
+            }
+
+            None => {
+                level.closes.push((on.to_string(), did));
+                true
+            }
+        }
+    }
+
+    /// The last close this timeframe reported at this level. For tests, and
+    /// for reading the state back.
+    pub fn last_close(&self, band: &Band, on: &str) -> Option<AtZone> {
+        self.seen
+            .iter()
+            .find(|one| one.band.price == band.price)?
+            .closes
+            .iter()
+            .find(|(when, _)| when == on)
+            .map(|(_, did)| *did)
+    }
+
+    /// Has this level said anything yet? **While it has not, approaching is
+    /// news; once it has, it never is again.**
+    pub fn has_spoken(&self, band: &Band) -> bool {
+        self.seen
+            .iter()
+            .find(|one| one.band.price == band.price)
+            .is_some_and(|one| one.spoken)
+    }
+
     pub fn count(&self) -> usize {
         self.seen.len()
     }
@@ -164,7 +252,7 @@ impl Watch {
     /// heartbeat, which reports what is being looked after rather than what
     /// happened.
     pub fn bands(&self) -> Vec<Band> {
-        self.seen.iter().map(|(band, _)| *band).collect()
+        self.seen.iter().map(|level| level.band).collect()
     }
 
     /// The last price it was given.
@@ -179,10 +267,54 @@ impl Watch {
     pub fn resting_at(&self) -> Vec<Band> {
         self.seen
             .iter()
-            .filter(|(_, deepest)| *deepest != Nearness::Away)
-            .map(|(band, _)| *band)
+            .filter(|level| level.deepest != Nearness::Away)
+            .map(|level| level.band)
             .collect()
     }
+}
+
+/// One of his levels, and everything remembered about it.
+#[derive(Debug, Clone)]
+struct Level {
+    band: Band,
+
+    /// The deepest price has got this visit. **For the wording, not the
+    /// decision** — a card has to say whether price is approaching the zone or
+    /// standing in it.
+    deepest: Nearness,
+
+    /// **Has this level ever said anything at all?**
+    ///
+    /// Settled with him on 31 August 2026, after a day of the other way:
+    ///
+    /// ```text
+    ///     price comes up to the level      approaching   <- one card
+    ///     wobbles off and back             silence
+    ///     the candle closes below          closed below  <- one card
+    ///     a later candle comes back        silence
+    ///     another one comes back           silence
+    ///     a candle closes ABOVE            closed above  <- this he wants
+    /// ```
+    ///
+    /// **Approaching is said once and never again.** Once anything has been
+    /// said about a level, "price is near it" stops being news — the level has
+    /// a story now, and only a different ending changes it.
+    ///
+    /// His words: *"if the price goes below that level and then it's coming
+    /// back again on that level we don't get anything until price closes above
+    /// that level again."*
+    spoken: bool,
+
+    /// The last close reported **per timeframe**, by its stored spelling.
+    ///
+    /// **Per timeframe, and that is deliberate.** A 4-hour candle closing below
+    /// a weekly level and a daily candle doing the same are two different
+    /// pieces of news about one line, and the daily is the bigger one. Sharing
+    /// one memory would let whichever arrived first silence the other.
+    ///
+    /// What they DO share is `spoken` above — a close on any timeframe ends
+    /// the approach card for good, which is what he asked for.
+    closes: Vec<(String, AtZone)>,
 }
 
 /// How far in each state counts as being.

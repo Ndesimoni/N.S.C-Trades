@@ -2,7 +2,7 @@
 
 use rust_decimal::Decimal;
 
-use super::super::{Band, Nearness, Timeframe, Watch, nearness};
+use super::super::{AtZone, Band, Nearness, Timeframe, Watch, nearness};
 use super::support::d;
 
 /// A twentieth of whatever band it is asked about.
@@ -134,17 +134,21 @@ fn sitting_inside_fires_nothing_more() {
 // for a candle, which on the hourly is up to an hour. Entering is the thing he
 // actually wanted to know.
 #[test]
-fn coming_near_and_then_going_in_are_two_different_messages() {
+fn coming_near_and_then_going_in_is_one_message() {
     let mut watch = watching();
     watch.arrive(d("4300"));
 
     let near = watch.arrive(d("4132.60"));
     assert_eq!(near.len(), 1);
-    assert_eq!(near[0].1, Nearness::Approaching, "first, that it is close");
+    assert_eq!(near[0].1, Nearness::Approaching, "it says price is close");
 
-    let inside = watch.arrive(d("4132.50"));
-    assert_eq!(inside.len(), 1);
-    assert_eq!(inside[0].1, Nearness::Inside, "then, that it is in");
+    // **It used to send a second card here** — "and now it is in". He asked
+    // for one on 31 August: *"price comes up to the level, approaching — the
+    // one card."*
+    assert!(
+        watch.arrive(d("4132.50")).is_empty(),
+        "going in is not a second card"
+    );
 }
 
 // And never more than those two. Drifting back out to the edge and in again is
@@ -165,14 +169,20 @@ fn going_in_and_out_of_the_edge_is_still_one_visit() {
 }
 
 #[test]
-fn leaving_and_coming_back_fires_again() {
+fn leaving_and_coming_back_says_nothing() {
     let mut watch = watching();
 
     watch.arrive(d("4300"));
-    watch.arrive(d("4100"));
+    assert_eq!(watch.arrive(d("4100")).len(), 1, "the first visit speaks");
+
     watch.arrive(d("4300"));
 
-    assert_eq!(watch.arrive(d("4100")).len(), 1, "a second visit");
+    // **This used to fire again, and that was the complaint.** A level speaks
+    // once; after that only a candle CLOSING somewhere new is news.
+    assert!(
+        watch.arrive(d("4100")).is_empty(),
+        "coming back is not news — 31 August"
+    );
 }
 
 // Price hovering at the edge crosses it again and again, and describes one
@@ -201,25 +211,24 @@ fn hovering_at_the_edge_does_not_fire_over_and_over() {
 // Leaving is a REAL distance. A pip back out must not reset the band, or the
 // next pip back in is a second alert for one visit.
 #[test]
-fn leaving_takes_more_than_it_took_to_arrive() {
+fn once_it_has_spoken_it_stays_quiet() {
     let mut watch = watching();
 
     watch.arrive(d("4300"));
-    watch.arrive(d("4132.60"));
+    assert_eq!(watch.arrive(d("4132.60")).len(), 1, "the one card");
 
-    // Well outside a touch, still nowhere near clear of the band.
-    assert!(watch.arrive(d("4143")).is_empty(), "not gone yet");
+    // Hovering at the edge.
+    assert!(watch.arrive(d("4143")).is_empty(), "not news");
+    assert!(watch.arrive(d("4132.60")).is_empty(), "nor is coming back");
+
+    // **Properly gone, and it still says nothing.** Leaving used to re-arm the
+    // card; on 31 August he asked for silence until a candle CLOSES somewhere
+    // new. `clear_of` still resets the WORDING for the next visit — see
+    // `Level::deepest` — but not what the level has said.
+    watch.arrive(d("4145"));
     assert!(
         watch.arrive(d("4132.60")).is_empty(),
-        "so coming back is not new"
-    );
-
-    // Past a tenth of the band beyond a touch — 4144.15 — it is properly gone.
-    watch.arrive(d("4145"));
-    assert_eq!(
-        watch.arrive(d("4132.60")).len(),
-        1,
-        "now it is a fresh touch"
+        "a real trip away is still not a new card"
     );
 }
 
@@ -296,21 +305,81 @@ fn a_wobble_inside_the_approach_does_not_fire_again() {
     );
 }
 
-/// **It still resets when price is genuinely gone**, or the alert would fire
-/// once and never again.
+/// **A close is the only thing that follows an approach.**
+///
+/// His sequence, 31 August 2026: approaching, then the candle closes below,
+/// then silence however often price comes back — until a candle closes ABOVE.
 #[test]
-fn leaving_the_approach_properly_still_re_arms_it() {
+fn a_close_speaks_and_then_only_a_different_close_does() {
     let mut watch = Watch::over(vec![aussie()], aussie_share());
+    let band = aussie();
 
     watch.arrive(d("0.71800"));
-    watch.arrive(d("0.71390"));
+    assert_eq!(watch.arrive(d("0.71390")).len(), 1, "approaching");
 
-    // Past approaching AND a tenth of the band beyond it — 0.713238.
+    // The candle closes below. New news, so it speaks.
+    assert!(
+        watch.closed(&band, "4h", AtZone::ClosedBelow),
+        "closed below"
+    );
+
+    // Later candles come back to the level. Silence — his exact complaint.
     watch.arrive(d("0.71300"));
+    assert!(
+        watch.arrive(d("0.71390")).is_empty(),
+        "coming back is silent"
+    );
+    assert!(watch.arrive(d("0.71390")).is_empty(), "and again");
 
-    assert_eq!(
-        watch.arrive(d("0.71390")).len(),
-        1,
-        "a real visit away makes the next arrival new again"
+    // Another close below is the same ending, so it says nothing either.
+    assert!(
+        !watch.closed(&band, "4h", AtZone::ClosedBelow),
+        "the same ending twice is not news"
+    );
+
+    // A close ABOVE is a different ending. This he wants.
+    assert!(
+        watch.closed(&band, "4h", AtZone::ClosedAbove),
+        "closed above"
+    );
+}
+
+/// **Each timeframe keeps its own story about a level.**
+///
+/// A 4-hour candle closing below a weekly level and a daily candle doing the
+/// same are two different pieces of news about one line, and the daily is the
+/// bigger one. One shared memory would let whichever arrived first silence the
+/// other.
+#[test]
+fn the_daily_and_the_four_hour_do_not_silence_each_other() {
+    let mut watch = Watch::over(vec![aussie()], aussie_share());
+    let band = aussie();
+
+    assert!(watch.closed(&band, "4h", AtZone::ClosedBelow));
+    assert!(
+        watch.closed(&band, "1d", AtZone::ClosedBelow),
+        "the daily has not said this yet"
+    );
+
+    // But each still keeps quiet about repeating itself.
+    assert!(!watch.closed(&band, "4h", AtZone::ClosedBelow));
+    assert!(!watch.closed(&band, "1d", AtZone::ClosedBelow));
+}
+
+/// **Any close on any timeframe ends the approach card for good.**
+///
+/// Price being near a line stops being news the moment the line has a story.
+#[test]
+fn a_close_on_any_timeframe_silences_the_approach() {
+    let mut watch = Watch::over(vec![aussie()], aussie_share());
+    let band = aussie();
+
+    // A daily close, before price has ever been reported as approaching.
+    watch.closed(&band, "1d", AtZone::ClosedAbove);
+
+    watch.arrive(d("0.71800"));
+    assert!(
+        watch.arrive(d("0.71390")).is_empty(),
+        "the level already has a story"
     );
 }

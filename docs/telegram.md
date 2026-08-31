@@ -256,14 +256,35 @@ instead:
 
 | | When |
 |---|---|
-| 👀 **approaching** | price comes near one of your zones |
-| 🔔 **in the zone** | and again when it goes in |
-| 🕯 **closed** | a **4-hour** candle finishes **outside the band** — a rejection, or a break |
-| 🎯 **setup** | a shape you trade prints at one of your zones — 1-hour or 4-hour |
+| 👀 **approaching** | price reaches one of your zones — **once per level, ever** |
+| 🕯 **closed** | a **4-hour or daily** candle finishes somewhere new at that level |
+| 🎯 **setup** | a shape you trade prints at one of your zones — 1-hour, 4-hour or daily |
 | 📅 **coming up** | 30 minutes before a high or medium impact release |
 | 📐 **got it** | a level you just sent is now being watched |
 | 🫀 **still running** | 07:00 UTC, and only on a day nothing else was sent |
 | ⚠️ ✅ 🛑 | the price line went down, came back, or the bot stopped |
+
+## A level speaks when it has something new to say
+
+Settled 31 August 2026. A level used to narrate every visit; now it tells a
+story and only speaks when the story moves on.
+
+```text
+    price comes up to the level      👀 approaching     <- the one card
+    it wobbles off and back             silence
+    the candle closes below          🕯 closed below    <- one card
+    a later candle comes back           silence
+    another one comes back              silence
+    a candle closes ABOVE            🕯 closed above    <- this is news
+```
+
+**"Approaching" is said once and never again.** Once a candle has closed at a
+level, price being near it is not news — the level has a story, and only a
+different ending changes it.
+
+**Each timeframe keeps its own story.** A 4-hour candle closing below your
+weekly level and a daily candle doing the same are two different pieces of
+news about one line, and the daily is the bigger one.
 
 **The 1-hour sends setups and nothing else.** Your call, 31 August 2026. It is
 still watched, still fetched and still judged — a candlestick pattern at a zone

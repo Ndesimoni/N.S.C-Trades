@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Five crates · 350 tests · clippy clean · it watches his levels, says what
+**Five crates · 353 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -92,6 +92,30 @@ nsc-work-man    everything that reaches
 > — which looks like a chart, not like an error. It asks for four hundred now.
 > IBKR paces on the number of requests, never on how many bars each asks for,
 > so a wider ask is free.
+
+> **A LEVEL NOW SPEAKS ONCE AND THEN KEEPS QUIET — 31 AUGUST.** His rule,
+> after a day of watching it do the opposite:
+>
+> ```text
+>     price comes up to the level      approaching    <- the one card
+>     wobbles off and back             silence
+>     the candle closes below          closed below   <- one card
+>     later candles come back          silence
+>     a candle closes ABOVE            closed above   <- this he wants
+> ```
+>
+> **Approaching is said once, ever.** Once anything has been said about a
+> level, price being near it stops being news.
+>
+> **Each timeframe keeps its own story**, so a 4-hour close and a daily close
+> at the same line are both heard — the daily being the bigger one.
+>
+> **The daily joined the watched timeframes** the same day: it gives a setup,
+> an approach and a close, like the 4-hour.
+>
+> **And `only_breaks` went to `false`.** A candle settling inside a zone is a
+> card again — the reason it was off ("the same news twice") went away the
+> moment the level learned to keep quiet.
 
 > **THE 1-HOUR SENDS SETUPS AND NOTHING ELSE — 31 AUGUST.** His call: *"we
 > don't want those notifications from the one hour. The only notification we

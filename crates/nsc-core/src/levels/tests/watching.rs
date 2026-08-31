@@ -344,26 +344,92 @@ fn a_close_speaks_and_then_only_a_different_close_does() {
     );
 }
 
-/// **Each timeframe keeps its own story about a level.**
+/// **Each timeframe keeps its own record of what it has said.**
 ///
-/// A 4-hour candle closing below a weekly level and a daily candle doing the
-/// same are two different pieces of news about one line, and the daily is the
-/// bigger one. One shared memory would let whichever arrived first silence the
-/// other.
+/// A 4-hour breaking a weekly level and a daily breaking it the other way are
+/// two pieces of news about one line, and both are worth hearing.
 #[test]
-fn the_daily_and_the_four_hour_do_not_silence_each_other() {
+fn the_daily_and_the_four_hour_each_speak() {
     let mut watch = Watch::over(vec![aussie()], aussie_share());
     let band = aussie();
 
-    assert!(watch.closed(&band, "4h", AtZone::ClosedBelow));
+    // Price is below, and rises into the level.
+    watch.arrive(d("0.71000"));
+    watch.arrive(d("0.71390"));
+
+    // A 4-hour candle breaks up through it.
+    assert!(watch.closed(&band, "4h", AtZone::ClosedAbove), "a break up");
+
+    // A daily candle later breaks back down. Different direction, so news —
+    // and on its own timeframe.
     assert!(
         watch.closed(&band, "1d", AtZone::ClosedBelow),
-        "the daily has not said this yet"
+        "a break down"
+    );
+}
+
+/// **There is only one price, so the side it came from is shared.**
+///
+/// After a 4-hour candle closes above, price *is* above. A daily candle
+/// closing above as well has broken nothing — it is where price already was.
+///
+/// That is a fact about the market rather than bookkeeping, and it is why
+/// `came_from` sits on the level while what each timeframe SAID sits per
+/// timeframe.
+#[test]
+fn a_second_close_the_same_way_is_not_a_break() {
+    let mut watch = Watch::over(vec![aussie()], aussie_share());
+    let band = aussie();
+
+    watch.arrive(d("0.71000"));
+    assert!(watch.closed(&band, "4h", AtZone::ClosedAbove), "a break up");
+
+    assert!(
+        !watch.closed(&band, "1d", AtZone::ClosedAbove),
+        "price was already above — nothing was broken"
+    );
+}
+
+/// **A rejection is silent, and that is his call.**
+///
+/// 31 August 2026, asked directly whether he wanted a card when price is
+/// thrown back where it came from: *"I do not want a notification on it."*
+///
+/// It is not lost — a shape printing there still reaches him as a setup.
+#[test]
+fn being_thrown_back_says_nothing() {
+    let mut watch = Watch::over(vec![aussie()], aussie_share());
+    let band = aussie();
+
+    // Price is below and rises into the level.
+    watch.arrive(d("0.71000"));
+    watch.arrive(d("0.71390"));
+
+    // The candle is refused and closes back below. Silence.
+    assert!(
+        !watch.closed(&band, "4h", AtZone::ClosedBelow),
+        "rejected back where it came from is not a card"
     );
 
-    // But each still keeps quiet about repeating itself.
-    assert!(!watch.closed(&band, "4h", AtZone::ClosedBelow));
-    assert!(!watch.closed(&band, "1d", AtZone::ClosedBelow));
+    // And the break that follows still speaks.
+    assert!(
+        watch.closed(&band, "4h", AtZone::ClosedAbove),
+        "the break does"
+    );
+}
+
+/// **A candle settling inside the zone always speaks**, whichever way price
+/// came. His call: *"within the zone stays same."*
+#[test]
+fn settling_inside_the_zone_still_speaks() {
+    let mut watch = Watch::over(vec![aussie()], aussie_share());
+    let band = aussie();
+
+    watch.arrive(d("0.71000"));
+    assert!(watch.closed(&band, "4h", AtZone::ClosedInside));
+
+    // But not twice in a row.
+    assert!(!watch.closed(&band, "4h", AtZone::ClosedInside));
 }
 
 /// **Any close on any timeframe ends the approach card for good.**

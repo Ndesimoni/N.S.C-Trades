@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Five crates · 353 tests · clippy clean · it watches his levels, says what
+**Five crates · 356 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -103,6 +103,13 @@ nsc-work-man    everything that reaches
 >     later candles come back          silence
 >     a candle closes ABOVE            closed above   <- this he wants
 > ```
+>
+> **Only a BREAK sends a close card.** Price rising into a level and closing
+> above it broke through; the same close after price fell in from above is a
+> rejection, and he does not want one: *"I do not want a notification on it."*
+> The rejection still reaches him as a **setup** if a shape printed —
+> *"if we did not break it but a candlestick pattern was formed close to the
+> zone we need the alert for pattern form."*
 >
 > **Approaching is said once, ever.** Once anything has been said about a
 > level, price being near it stops being news.

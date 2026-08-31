@@ -257,7 +257,8 @@ instead:
 | | When |
 |---|---|
 | 👀 **approaching** | price reaches one of your zones — **once per level, ever** |
-| 🕯 **closed** | a **4-hour or daily** candle finishes somewhere new at that level |
+| 🕯 **broke** | a 4-hour or daily candle **breaks through** the level, the way price was travelling |
+| 🕯 **closed inside** | a candle settles in the zone |
 | 🎯 **setup** | a shape you trade prints at one of your zones — 1-hour, 4-hour or daily |
 | 📅 **coming up** | 30 minutes before a high or medium impact release |
 | 📐 **got it** | a level you just sent is now being watched |
@@ -277,6 +278,11 @@ story and only speaks when the story moves on.
     another one comes back              silence
     a candle closes ABOVE            🕯 closed above    <- this is news
 ```
+
+**A rejection says nothing.** Price rising into a level and being thrown back
+below it is not a card — you asked for that on 31 August. It is not lost: if a
+shape you trade printed there, it reaches you as a **setup**, which is the
+message that was actually about it.
 
 **"Approaching" is said once and never again.** Once a candle has closed at a
 level, price being near it is not news — the level has a story, and only a

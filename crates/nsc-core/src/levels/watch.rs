@@ -113,6 +113,7 @@ impl Watch {
                     band,
                     deepest: Nearness::Away,
                     spoken: false,
+                    came_from: None,
                     closes: Vec::new(),
                 })
                 .collect(),
@@ -143,6 +144,18 @@ impl Watch {
             // **Each band's own reach**, from its own thickness.
             let reach = level.band.thickness() * self.share;
             let near = nearness(&level.band, price, reach);
+
+            // **Remember which side price is on while it is away.** That is
+            // what later says whether a close broke through or was thrown
+            // back, and it has to be recorded before price arrives — once it
+            // is in the zone there is no side to read.
+            if near == Nearness::Away {
+                level.came_from = Some(if price > level.band.top {
+                    Side::Above
+                } else {
+                    Side::Below
+                });
+            }
 
             if first {
                 // Only note where price is. Arriving is a change, and there is
@@ -179,23 +192,27 @@ impl Watch {
 
     /// A candle closed at this level. **Is it worth a card?**
     ///
-    /// Yes only when it ended somewhere different from the last close *this
-    /// timeframe* reported at *this level* — his rule of 31 August 2026:
+    /// Yes when it **broke through in the direction price was travelling**, or
+    /// settled inside — and only when that is a different ending from the last
+    /// one this timeframe reported.
     ///
-    /// > *"If it closes below, we should not get another notification that the
-    /// > price closed below this level... We should only get notification if
-    /// > price closes above that level."*
+    /// ## A rejection is silent, and that is his call
     ///
-    /// **Says yes the first time whatever the ending**, because a level that
-    /// has only ever said "approaching" has not told him how it resolved.
+    /// 31 August 2026: *"if price is coming from below the line we want the
+    /// notification if it closes above, and if from above we want it if it
+    /// closes below."* Asked whether he wanted the other way round — price
+    /// thrown back where it came from — he said: *"I do not want a
+    /// notification on it."*
     ///
-    /// **Any close ends the approach card**, on every timeframe, because
-    /// "price is near this line" stops being news the moment the line has a
-    /// story.
+    /// **The rejection is not lost.** It reaches him as a SETUP if a shape he
+    /// trades printed there, which is rung 3 and runs on its own: *"if we did
+    /// not break it but a candlestick pattern was formed close to the zone we
+    /// need the alert for pattern form."*
     ///
-    /// `on` is the timeframe's stored spelling — `4h`, `1d`. Remembers either
-    /// way, so the next candle is judged against this one. A band it does not
-    /// watch answers **no** rather than guessing.
+    /// **Any close ends the approach card**, break or not, because "price is
+    /// near this line" stops being news the moment the line has a story.
+    ///
+    /// `on` is the timeframe's stored spelling — `4h`, `1d`.
     pub fn closed(&mut self, band: &Band, on: &str, did: AtZone) -> bool {
         let Some(level) = self
             .seen
@@ -208,6 +225,27 @@ impl Watch {
         // Whatever happens next, price being near this line is no longer news.
         level.spoken = true;
 
+        // **Judged against where price came from, THEN moved on.** Written the
+        // other way round first, and it silenced everything: a close above set
+        // the side to Above, and `worth_a_card` then read its own answer back
+        // and called it a rejection.
+        let worth_it = worth_a_card(level.came_from, did);
+
+        // Where price sits now, so the next visit is judged from here rather
+        // than from wherever it was days ago.
+        match did {
+            AtZone::ClosedAbove => level.came_from = Some(Side::Above),
+            AtZone::ClosedBelow => level.came_from = Some(Side::Below),
+            _ => {}
+        }
+
+        if !worth_it {
+            return false;
+        }
+
+        // **Only what was SAID is remembered.** A silent rejection must not
+        // become "the last close", or it would go on to silence a real break
+        // that ended the same way.
         match level.closes.iter_mut().find(|(when, _)| when == on) {
             Some((_, last)) if *last == did => false,
 
@@ -305,7 +343,23 @@ struct Level {
     /// that level again."*
     spoken: bool,
 
-    /// The last close reported **per timeframe**, by its stored spelling.
+    /// **Which side price was last on before it reached the zone.**
+    ///
+    /// This is what turns a close into a break or a rejection. Price rising
+    /// into a level and closing above it has broken through; the same close
+    /// after price fell in from above is a rejection, and he does not want a
+    /// card for that — see [`is_a_break`].
+    ///
+    /// `None` before price has ever been seen away from this band. The first
+    /// close then speaks anyway, because it is the first news about the level
+    /// and silence would be worse than a guess.
+    came_from: Option<Side>,
+
+    /// The last close **reported** per timeframe, by its stored spelling.
+    ///
+    /// **What was reported, not what happened.** A rejection is silent, so it
+    /// does not become "the last close" — otherwise a silent one would go on
+    /// to silence a real break that ended the same way.
     ///
     /// **Per timeframe, and that is deliberate.** A 4-hour candle closing below
     /// a weekly level and a daily candle doing the same are two different
@@ -315,6 +369,42 @@ struct Level {
     /// What they DO share is `spoken` above — a close on any timeframe ends
     /// the approach card for good, which is what he asked for.
     closes: Vec<(String, AtZone)>,
+}
+
+/// Which side of a band price is on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Side {
+    Above,
+    Below,
+}
+
+/// Is this close worth a card at all?
+///
+/// **A break, or a candle that settled inside. Never a rejection.**
+///
+/// ```text
+///     came from below, closed above   broke through   -> card
+///     came from above, closed below   broke through   -> card
+///     came from below, closed below   thrown back     -> silence
+///     came from above, closed above   thrown back     -> silence
+///     closed inside                   still there     -> card
+/// ```
+///
+/// **`came_from` is worked out BEFORE price arrives**, while it is still away
+/// from the band. Once price is in the zone there is no side to read.
+///
+/// **Not knowing counts as worth saying.** Before price has ever been seen
+/// away from a band — a bot started with price already sitting in one — there
+/// is no direction to judge against, and silence about the first thing a level
+/// ever does is worse than a card he did not need.
+fn worth_a_card(came_from: Option<Side>, did: AtZone) -> bool {
+    match did {
+        AtZone::Missed => false,
+        AtZone::ClosedInside => true,
+
+        AtZone::ClosedAbove => came_from != Some(Side::Above),
+        AtZone::ClosedBelow => came_from != Some(Side::Below),
+    }
 }
 
 /// How far in each state counts as being.

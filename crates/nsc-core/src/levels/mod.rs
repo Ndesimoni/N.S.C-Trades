@@ -30,7 +30,7 @@ pub use band::{Band, TIMEFRAMES_ORDER, Timeframe};
 pub use close::{Action, AtZone, action, gapped_in, how_deep, what_it_did};
 pub use error::LevelError;
 pub use naming::{digits_for, unit_for, with_slash};
-pub use read::{Pair, Thickness, load_pair, load_thickness};
+pub use read::{ClosesOn, Pair, Thickness, load_pair, load_thickness};
 pub use remove::{RETIRED, TookOff, restore, retire, retired, take_off, undo};
 pub use watch::{Nearness, Watch, nearness};
 pub use write::{Saved, known, save};

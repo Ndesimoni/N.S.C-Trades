@@ -258,11 +258,22 @@ instead:
 |---|---|
 | 👀 **approaching** | price comes near one of your zones |
 | 🔔 **in the zone** | and again when it goes in |
-| 🕯 **closed** | that candle finishes **outside the band** — a rejection, or a break |
+| 🕯 **closed** | a **4-hour** candle finishes **outside the band** — a rejection, or a break |
+| 🎯 **setup** | a shape you trade prints at one of your zones — 1-hour or 4-hour |
 | 📅 **coming up** | 30 minutes before a high or medium impact release |
 | 📐 **got it** | a level you just sent is now being watched |
 | 🫀 **still running** | 07:00 UTC, and only on a day nothing else was sent |
 | ⚠️ ✅ 🛑 | the price line went down, came back, or the bot stopped |
+
+**The 1-hour sends setups and nothing else.** Your call, 31 August 2026. It is
+still watched, still fetched and still judged — a candlestick pattern at a zone
+is the whole reason it is there. What stopped is the card narrating every
+1-hour candle that closed near a level. Turn it back on with `[close_cards]` in
+`config/levels.toml`.
+
+**The approaching alert was never a 1-hour thing.** It fires off the price line
+rather than off a candle, and belongs to a *band* — weekly, daily or 4-hour,
+depending on which level you drew.
 
 **A candle that settled inside the zone says nothing.** You already got the
 alert when price arrived; a card saying it is still there is the same news

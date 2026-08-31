@@ -29,6 +29,7 @@ fn thickness(approach_share: &str) -> Thickness {
         approach_share: d(approach_share),
         kiss_depth: d("0.25"),
         only_breaks: true,
+        close_cards: Default::default(),
     }
 }
 

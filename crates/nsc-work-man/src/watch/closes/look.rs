@@ -224,9 +224,21 @@ impl Closes {
                 let mut all_sent = true;
 
                 if let Some(bar) = finished {
-                    all_sent &= self
-                        .say(client, seen, &live, bar, thickness, interval, pulse)
-                        .await;
+                    // ── RUNG 2: only on the timeframes he asked for ──
+                    //
+                    // His call, 31 August 2026: *"we don't want those
+                    // notifications from the one hour. The only notification we
+                    // want from the one hour should be a setup."*
+                    //
+                    // **The 1-hour is still watched, and still fetched.** It
+                    // has to be, because rung 3 runs on it — a candlestick
+                    // pattern at a zone is the whole reason the 1-hour is here.
+                    // What stops is only the card about what the candle did.
+                    if thickness.says_closes_on(interval.stored()) {
+                        all_sent &= self
+                            .say(client, seen, &live, bar, thickness, interval, pulse)
+                            .await;
+                    }
 
                     // **Rung 3, and only ever on a finished candle.** A shape
                     // halfway through a candle is not a shape, and one that

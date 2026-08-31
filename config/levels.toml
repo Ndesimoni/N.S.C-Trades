@@ -100,3 +100,28 @@ kiss_depth = 0.25
 # ended. That is the old behaviour.
 # ───────────────────────────────────────────────────────────────────────────
 only_breaks = true
+
+
+# ── Which timeframes send a CLOSE card ──────────────────────────────────────
+#
+# The close card is the one that says what a finished candle did at a zone --
+# kissed it, was rejected by it, settled inside it, cut through it.
+#
+# HIS CALL, 31 AUGUST 2026: "we don't want those notifications from the one
+# hour. The only notification we want from the one hour should be a setup."
+#
+# A SETUP IS NOT AFFECTED BY THIS. A candlestick pattern at a zone still sends
+# on every watched timeframe, and that is the whole reason the 1-hour is
+# watched at all. The 1-hour is still fetched, still read, and still judged --
+# it just stops narrating every candle that closes near a level.
+#
+# The approach alert is not affected either, because it is not a candle thing:
+# it fires off the price line and belongs to a BAND, which is weekly, daily or
+# 4-hour depending on which level he drew.
+#
+# Only the timeframes in closes/fetch.rs can be listed here. Anything else is
+# a setting for something that never happens.
+# ───────────────────────────────────────────────────────────────────────────
+[close_cards]
+h1 = false
+h4 = true

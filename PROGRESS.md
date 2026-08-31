@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Five crates · 341 tests · clippy clean · it watches his levels, says what
+**Five crates · 350 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -92,6 +92,22 @@ nsc-work-man    everything that reaches
 > — which looks like a chart, not like an error. It asks for four hundred now.
 > IBKR paces on the number of requests, never on how many bars each asks for,
 > so a wider ask is free.
+
+> **THE 1-HOUR SENDS SETUPS AND NOTHING ELSE — 31 AUGUST.** His call: *"we
+> don't want those notifications from the one hour. The only notification we
+> want from the one hour should be a setup."*
+>
+> The close card — what a finished candle did at a zone — now only comes from
+> the 4-hour. `[close_cards]` in `config/levels.toml`, so he can have it back
+> without touching code.
+>
+> **The 1-hour is still watched, fetched and judged.** A candlestick pattern at
+> a zone is the whole reason it is there. What stopped is only the narration of
+> every candle that closed near a level.
+>
+> **The approach alert was never a 1-hour thing** and is unchanged. It fires off
+> the price line, not off a candle, and belongs to a BAND — weekly, daily or
+> 4-hour depending on which level he drew.
 
 > **RUNG 3 IS WIRED TO TELEGRAM — 25 AUGUST.** A shape he trades at one of
 > his zones now draws a card and sends it: the two candles on the band, and
@@ -202,8 +218,8 @@ one that mattered.
 |---|---|---|
 | **1** | price comes near a zone | an **alert card** — *approaching* |
 | **1** | and again when it goes **in** | the same card — *in the zone* |
-| **2** | a candle that **touched** a zone finishes | a **close card** — the candle drawn on the band, named by what it did |
-| **3** | a shape he trades prints at one of his zones | a **setup card** — the two candles on the band, and one sentence. Never says buy |
+| **2** | a **4-hour** candle that touched a zone finishes | a **close card** — the candle drawn on the band, named by what it did |
+| **3** | a shape he trades prints at one of his zones | a **setup card** — the candles on the band, and one sentence. Never says buy |
 | **·** | 30 min before a high or medium impact release | a **news card** — what prints, whose currency, forecast and previous, red for high |
 | **?** | he sends `/news` and taps *Today* or *This week* | a **calendar card** — every release with its time, grouped by day, each marked *passed* or counting down |
 | **·** | 07:00 UTC, only if nothing else was sent | a **heartbeat card** — every pair, its levels as dots in his colours, the nearest zone on each |

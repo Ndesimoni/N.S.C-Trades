@@ -268,3 +268,92 @@ fn a_candle_that_settled_in_the_zone_is_the_one_dropped() {
     );
     assert!(!did.left_the_band(), "but it is not a break, so no card");
 }
+
+// ── Which timeframes say anything about a close ───────────────────────────
+
+use super::super::{ClosesOn, Thickness};
+
+fn settings(close_cards: ClosesOn) -> Thickness {
+    Thickness {
+        weekly: d("0.35"),
+        daily: d("0.46"),
+        h4: d("0.55"),
+        approach_share: d("0.05"),
+        kiss_depth: d("0.25"),
+        only_breaks: true,
+        close_cards,
+    }
+}
+
+/// **The 1-hour says nothing about a close, and that is his answer.**
+///
+/// 31 August 2026: *"we don't want those notifications from the one hour. The
+/// only notification we want from the one hour should be a setup."*
+///
+/// The 1-hour is still watched, still fetched and still judged — a candlestick
+/// pattern at a zone is the whole reason it is here. What stops is only the
+/// card narrating every candle that closed near a level.
+#[test]
+fn the_one_hour_does_not_send_close_cards() {
+    let settings = settings(ClosesOn::default());
+
+    assert!(!settings.says_closes_on("1h"), "his call, 31 August");
+    assert!(settings.says_closes_on("4h"), "the 4-hour is unchanged");
+}
+
+/// **A timeframe nothing watches answers no**, rather than guessing.
+///
+/// `closes/fetch.rs` says which are watched. A setting for one that is not
+/// would be a setting for something that never happens.
+#[test]
+fn a_timeframe_nothing_watches_says_no() {
+    let settings = settings(ClosesOn::default());
+
+    for never in ["1d", "1w", "5m", "nonsense", ""] {
+        assert!(!settings.says_closes_on(never), "{never} is not watched");
+    }
+}
+
+/// He can turn the 1-hour back on without touching code.
+#[test]
+fn he_can_have_the_one_hour_back_if_he_wants_it() {
+    let settings = settings(ClosesOn { h1: true, h4: true });
+
+    assert!(settings.says_closes_on("1h"));
+}
+
+/// **A settings file written before this existed gets his answer**, not the
+/// old behaviour — because the old behaviour is the thing he asked to stop.
+#[test]
+fn a_file_without_the_setting_still_silences_the_one_hour() {
+    let text = r#"
+weekly = 0.35
+daily = 0.46
+h4 = 0.55
+"#;
+
+    let settings: Thickness = toml::from_str(text).expect("a valid settings file");
+
+    assert!(!settings.says_closes_on("1h"));
+    assert!(settings.says_closes_on("4h"));
+}
+
+/// And typing it in is the only way he will ever change it, so the trip
+/// through TOML is the part worth pinning.
+#[test]
+fn the_setting_can_be_typed_into_the_file() {
+    let text = r#"
+weekly = 0.35
+daily = 0.46
+h4 = 0.55
+
+[close_cards]
+h1 = true
+h4 = false
+"#;
+
+    let settings: Thickness = toml::from_str(text).expect("a valid settings file");
+
+    assert!(settings.says_closes_on("1h"));
+    assert!(!settings.says_closes_on("4h"));
+}

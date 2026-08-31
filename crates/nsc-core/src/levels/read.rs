@@ -56,6 +56,44 @@ pub struct Thickness {
     /// wants to hear, and preferences belong in `config/`.
     #[serde(default = "yes")]
     pub only_breaks: bool,
+
+    /// **Which timeframes send a close card at all.**
+    ///
+    /// His call, 31 August 2026: *"we don't want those notifications from the
+    /// one hour. The only notification we want from the one hour should be a
+    /// setup."*
+    ///
+    /// **Setups are not affected.** A candlestick pattern at a zone still
+    /// sends on every watched timeframe, which is the whole reason the 1-hour
+    /// is watched at all.
+    #[serde(default)]
+    pub close_cards: ClosesOn,
+}
+
+/// Which timeframes are worth a close card.
+///
+/// **A struct rather than a list**, because `Thickness` is `Copy` and gets
+/// passed by value everywhere. Two fields, because two timeframes are watched
+/// — `closes/fetch.rs` says which, and a third here would be a setting for
+/// something that never happens.
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub struct ClosesOn {
+    /// **Off, and that is his answer rather than a default nobody chose.** The
+    /// 1-hour sends setups and nothing else.
+    #[serde(default)]
+    pub h1: bool,
+
+    #[serde(default = "yes")]
+    pub h4: bool,
+}
+
+impl Default for ClosesOn {
+    fn default() -> Self {
+        ClosesOn {
+            h1: false,
+            h4: true,
+        }
+    }
 }
 
 /// The default for `only_breaks` — his setting as of 26 August 2026.
@@ -161,6 +199,22 @@ impl Pair {
                 ))
             })
             .collect()
+    }
+}
+
+impl Thickness {
+    /// Does this timeframe send a close card?
+    ///
+    /// **Setups are never asked this.** A shape at a zone sends whatever the
+    /// timeframe, and that is the one thing the 1-hour is watched for.
+    ///
+    /// Anything not watched for closes answers `false` rather than guessing.
+    pub fn says_closes_on(&self, stored: &str) -> bool {
+        match stored {
+            "1h" => self.close_cards.h1,
+            "4h" => self.close_cards.h4,
+            _ => false,
+        }
     }
 }
 

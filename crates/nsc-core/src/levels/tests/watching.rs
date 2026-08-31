@@ -13,7 +13,12 @@ fn reach() -> Decimal {
 /// The gold band he drew at 4094 — 4055.43 to 4132.57, about 77 thick.
 ///
 /// So a touch is anything up to 4132.67, and the band goes quiet again only
-/// past 4140.28 — a tenth of its own thickness clear.
+/// past 4140.38 — a tenth of its own thickness clear of where *approaching*
+/// ends.
+///
+/// **On gold the two are nowhere near each other** — a touch reaches ten cents
+/// and the way home is nearly eight dollars. That is exactly why the overlap
+/// below went unseen here for so long.
 fn gold() -> Band {
     Band::around(Timeframe::Weekly, d("4094"), d("220.42"), d("0.35"))
 }
@@ -191,7 +196,8 @@ fn leaving_takes_more_than_it_took_to_arrive() {
         "so coming back is not new"
     );
 
-    // Past a tenth of the band's thickness — 4140.28 — it is properly gone.
+    // Past a tenth of the band's thickness beyond a touch — 4140.38 — it is
+    // properly gone.
     watch.arrive(d("4141"));
     assert_eq!(
         watch.arrive(d("4132.60")).len(),
@@ -220,4 +226,78 @@ fn a_price_near_nothing_fires_nothing() {
 
     watch.arrive(d("4300"));
     assert!(watch.arrive(d("4280")).is_empty());
+}
+
+// ── The overlap he found live, 31 August 2026 ──
+
+/// His AUD/USD daily level at 0.71500, on a 49.3-pip daily candle.
+///
+/// The band comes out **22.7 pips** thick — 0.713865 to 0.716135.
+fn aussie() -> Band {
+    Band::around(Timeframe::Daily, d("0.71500"), d("0.004935"), d("0.46"))
+}
+
+/// Four pips, which is what `config/levels.toml` gives every forex pair.
+///
+/// **This is the only distance in the project written in pips**, and it is
+/// what makes the overlap possible: everything else is a share of something,
+/// so it scales with the band and this does not.
+fn aussie_reach() -> Decimal {
+    d("0.0004")
+}
+
+/// **One approach is one alert, however much price wobbles inside it.**
+///
+/// He found this live: *"price approaches a level, price goes back, you keep
+/// sending me a message every time... I got so many cards."*
+///
+/// On this band the way home used to be measured from the band itself — 2.3
+/// pips out, at 0.713638 — while *approaching* reaches 4.0 pips, down to
+/// 0.713465. **Every price in that 1.7-pip sliver was both "approaching" and
+/// "properly gone" at once**, so a wobble smaller than two pips re-armed the
+/// alert and fired it again.
+///
+/// Sampling four prices an hour through August 2026 put it at 45 alerts on
+/// this one level in one month. Real ticks arrive about once a second.
+#[test]
+fn a_wobble_inside_the_approach_does_not_fire_again() {
+    let mut watch = Watch::over(vec![aussie()], aussie_reach());
+
+    watch.arrive(d("0.71800"));
+
+    assert_eq!(
+        watch.arrive(d("0.71390")).len(),
+        1,
+        "arriving at the band is one alert"
+    );
+
+    // 0.71360 — still approaching, and under where the OLD reset line sat.
+    assert!(
+        watch.arrive(d("0.71360")).is_empty(),
+        "drifting within the approach is not a new arrival"
+    );
+
+    assert!(
+        watch.arrive(d("0.71390")).is_empty(),
+        "and coming back from it is not either — this is the bug he saw"
+    );
+}
+
+/// **It still resets when price is genuinely gone**, or the alert would fire
+/// once and never again.
+#[test]
+fn leaving_the_approach_properly_still_re_arms_it() {
+    let mut watch = Watch::over(vec![aussie()], aussie_reach());
+
+    watch.arrive(d("0.71800"));
+    watch.arrive(d("0.71390"));
+
+    // Past approaching AND a tenth of the band beyond it — 0.713238.
+    watch.arrive(d("0.71300"));
+
+    assert_eq!(
+        watch.arrive(d("0.71390")).len(),
+        1,
+        "a real visit away makes the next arrival new again"
+    );
 }

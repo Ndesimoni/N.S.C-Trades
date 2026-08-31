@@ -38,8 +38,13 @@
 //!
 //! **Leaving has to be a real distance**, or price sitting on the edge fires
 //! over and over: a pip out, a pip back, all afternoon. So a band goes quiet
-//! only once price is properly gone — [`CLEAR_BY`] of its own thickness, which
-//! is about 8 points on gold and 6 pips on the pound.
+//! only once price is properly gone — [`CLEAR_BY`] of its own thickness beyond
+//! where *approaching* ends.
+//!
+//! **Beyond approaching, and that word is the fix.** Measured from the band
+//! instead, the reset line landed INSIDE the approaching zone on his own
+//! levels, so a two-pip wobble re-armed the alert and fired it again. He got
+//! the cards to prove it — see [`clear_of`].
 //!
 //! Easy to trigger, hard to reset.
 
@@ -128,7 +133,7 @@ impl Watch {
             }
 
             // Properly gone. The visit is over and the next one starts fresh.
-            if *deepest != Nearness::Away && clear_of(band, price) {
+            if *deepest != Nearness::Away && clear_of(band, price, self.reach) {
                 *deepest = Nearness::Away;
                 continue;
             }
@@ -202,10 +207,31 @@ pub fn nearness(band: &Band, price: Decimal, reach: Decimal) -> Nearness {
 /// Is price properly away from this band, rather than hovering at its edge?
 ///
 /// **Deliberately not the same sum as arriving.** Arriving is a touch, so a pip
-/// is right. Leaving has to be a real distance or one visit becomes an
-/// afternoon of alerts, so it is measured against the band itself.
-fn clear_of(band: &Band, price: Decimal) -> bool {
+/// is right. Leaving has to be a real distance, or one visit becomes an
+/// afternoon of alerts.
+///
+/// ## IT IS MEASURED PAST APPROACHING, NOT PAST THE BAND
+///
+/// **Measuring from the band was wrong, and he found it live on 31 August
+/// 2026:** *"price approaches a level, price goes back, you keep sending me a
+/// message every time... I got so many cards."*
+///
+/// `reach` is how far out still counts as approaching. Measure the way home
+/// from the band instead and the two overlap — on his AUD/USD daily level the
+/// band is 22.7 pips, so a band-relative reset is 2.3 pips out, while
+/// approaching reaches 4.0. **Every price in that 1.7-pip sliver was both
+/// "approaching" and "properly gone" at once**, so a wobble smaller than two
+/// pips re-armed the alert and fired it again. Forever.
+///
+/// Sampling four prices an hour through August put it at **45 alerts on one
+/// level in one month**. Real ticks arrive about once a second.
+///
+/// Now the way home starts where approaching ends, so the two can never
+/// overlap however thin the band or wide the reach.
+///
+/// **Easy to trigger, hard to reset** — and now actually hard.
+fn clear_of(band: &Band, price: Decimal, reach: Decimal) -> bool {
     let gone = band.thickness() * CLEAR_BY;
 
-    price > band.top + gone || price < band.bottom - gone
+    price > band.top + reach + gone || price < band.bottom - reach - gone
 }

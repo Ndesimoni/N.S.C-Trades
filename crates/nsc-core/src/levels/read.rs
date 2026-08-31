@@ -15,13 +15,25 @@ pub struct Thickness {
     pub daily: Decimal,
     pub h4: Decimal,
 
-    /// How close to a band counts as arriving at it, **in pips**.
+    /// How close to a band counts as arriving at it, **as a share of that
+    /// band's own thickness**.
     ///
     /// Small on purpose. The band's own edge is already hours of movement away
     /// from the line he drew, so this is slack for rounding rather than time to
     /// react — see the note in `config/levels.toml`.
-    #[serde(default = "one_pip")]
-    pub approach_pips: Decimal,
+    ///
+    /// **It was written in pips until 31 August 2026, and that was the last
+    /// distance in this project that was.** Four pips is 22% of an AUD/USD
+    /// daily band and 0.03% of a gold weekly one — the same setting meaning
+    /// two entirely different things, which is what "never a pip number" is
+    /// about. It gave him a pile of repeated cards on the Aussie and no
+    /// approach warning at all on gold.
+    /// **Deliberately no alias for the old `approach_pips`.** Four pips read
+    /// as a share would be four times the band, and it would parse happily —
+    /// the loudest possible bug arriving in total silence. An old file falls
+    /// back to the default instead.
+    #[serde(default = "a_twentieth")]
+    pub approach_share: Decimal,
 
     /// How far into a band stops being a graze and becomes a real push, as a
     /// share of the band's own thickness.
@@ -56,9 +68,9 @@ fn a_quarter() -> Decimal {
     Decimal::new(25, 2)
 }
 
-/// What `approach_pips` is when a file predates it.
-fn one_pip() -> Decimal {
-    Decimal::ONE
+/// What `approach_share` is when a file predates it.
+fn a_twentieth() -> Decimal {
+    Decimal::new(5, 2)
 }
 
 impl Thickness {
@@ -88,7 +100,7 @@ pub struct Pair {
     /// can be given more room than the euro without touching every other pair
     /// — four pips is two minutes of gold and nearly an hour of euro.
     #[serde(default)]
-    pub approach_pips: Option<Decimal>,
+    pub approach_share: Option<Decimal>,
 
     #[serde(default, rename = "level")]
     pub levels: Vec<Line>,
@@ -120,12 +132,10 @@ impl Pair {
 
     /// How near price has to get before it counts as having arrived at a band.
     ///
-    /// This pair's own `approach_pips` wins if it has one, otherwise the
+    /// This pair's own `approach_share` wins if it has one, otherwise the
     /// shared setting.
-    pub fn reach(&self, thickness: Thickness) -> Decimal {
-        let pips = self.approach_pips.unwrap_or(thickness.approach_pips);
-
-        self.pip() * pips
+    pub fn reach_share(&self, thickness: Thickness) -> Decimal {
+        self.approach_share.unwrap_or(thickness.approach_share)
     }
 
     /// Every line, turned into a band.

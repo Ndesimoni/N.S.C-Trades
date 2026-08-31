@@ -112,7 +112,7 @@ impl Awake {
                 continue;
             };
 
-            let reach = seen.pair.reach(thickness);
+            let share = seen.pair.reach_share(thickness);
             let mut all_said = true;
 
             for band in seen.watch.resting_at() {
@@ -127,10 +127,10 @@ impl Awake {
                     client,
                     &seen.pair,
                     &band,
-                    nearness(&band, at, reach),
+                    nearness(&band, at, band.thickness() * share),
                     News::Already,
                     at,
-                    reach,
+                    band.thickness() * share,
                 )
                 .await
                 {

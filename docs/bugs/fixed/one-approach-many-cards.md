@@ -65,9 +65,35 @@ visit is over once price has left the region that counts as being at the level
 
 Two tests pin it, and both were checked to fail with the fix removed.
 
-## Still worth doing
+## And then the cause, the same day
 
-**`approach_pips` is the only distance in this project written in pips.**
-Everything else is a share of something, which is why everything else scales.
-This fix makes the overlap impossible regardless — but the underlying oddity is
-still there, and it is what made the overlap possible in the first place.
+He said: *"change it to share too."*
+
+`approach_pips` was the last distance in this project written in pips, and it
+is `approach_share = 0.05` now — a twentieth of **each band's own thickness**,
+worked out per band rather than once per pair.
+
+What that does to his levels:
+
+```text
+    pair       timeframe      band      was      now
+    AUD/USD    daily         17.9p     4.0p     0.9p
+    GBP/USD    weekly        91.5p     4.0p     4.6p
+    XAU/USD    weekly       153.6p     4.0p     7.7p
+```
+
+**Both ends move toward sense.** The Aussie daily fires later, closer to the
+band, which is fewer cards. Gold fires earlier, because at four pips its
+approach zone was 0.03% of the band — price went from Away straight to Inside
+and there was no approach warning at all.
+
+**A twentieth, and it is slack rather than warning.** The band's own edge is
+already about three hours of gold movement from the line he drew, so the band
+is the notice and this is only so the edge is not a knife-edge. It is also
+deliberately smaller than the tenth a band must be cleared by, so the way home
+always starts outside the way in — the overlap cannot come back by choosing a
+number.
+
+**There is deliberately no serde alias for the old name.** `approach_pips = 40`
+read as a share would be forty times the band, and it would parse happily. A
+test pins that an old file is ignored rather than believed.

@@ -12,7 +12,7 @@ fn pair() -> Pair {
         symbol: "USD/CAD".into(),
         digits: 5,
         nightly_break_minutes: 0,
-        approach_pips: None,
+        approach_share: None,
         levels: Vec::new(),
     }
 }

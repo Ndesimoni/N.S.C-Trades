@@ -21,7 +21,8 @@ pub async fn draw_alert(
     thickness: Thickness,
     asked: Option<String>,
 ) -> Result<()> {
-    let reach = pair.reach(thickness);
+    let share = pair.reach_share(thickness);
+    let reach = band.thickness() * share;
 
     // No price given: sit just outside the band, where the labels crowd.
     let price = match asked {

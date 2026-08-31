@@ -35,32 +35,36 @@ daily = 0.46
 # visible.
 h4 = 0.55
 
-# ── How close counts as arriving ────────────────────────────────────────────
+# ── How close counts as arriving at a band ─────────────────────────────────
 #
-# IN PIPS. Four of them, so the alert can say "price is COMING UP ON this zone"
-# rather than only "price has touched it".
+# A SHARE OF THAT BAND'S OWN THICKNESS. It was written in pips until
+# 31 August 2026 and it was the last distance in this project that was.
 #
-# A pip is worked out from each pair's `digits` — gold 0.10, the euro 0.0001 —
-# so this one number is meaningful everywhere without a setting per pair.
+# WHY IT HAD TO CHANGE. Four pips meant completely different things:
 #
-# THE BAND IS STILL THE REAL EARLY WARNING, and that is why this stays small.
-# Its outer edge is already a long way from the line he drew, measured against
-# how fast each pair actually moves:
+#     AUD/USD daily band   17.9 pips   4 pips is 22% of it
+#     GBP/USD weekly band  91.5 pips   4 pips is  4% of it
+#     gold weekly band     ~$153       4 pips is $0.04 -- 0.03% of it
 #
-#     gold      half a weekly band  =  about 3 hours before price reaches him
-#     pound     half a weekly band  =  about 6 hours
+# So the Aussie fired constantly and gold had no approach warning at all: its
+# approach zone was three hundredths of one per cent of the band, so price went
+# from Away straight to Inside with nothing in between.
 #
-# An earlier version added A QUARTER OF A BAND on top of that and fired nine
-# hours early on the pound, which is not an alert, it is a horoscope. Four pips
-# is the last nudge before the edge, not the notice itself:
+# He watched the Aussie side of it happen on 31 August: "price approaches a
+# level, price goes back, you keep sending me a message every time... I got so
+# many cards."
 #
-#     gold      0.40    =  about 2 minutes of movement
-#     pound     4 pips  =  about 48 minutes
-#     euro      4 pips  =  about 56 minutes
+# WHY A TWENTIETH. THIS IS SLACK, NOT WARNING TIME. The band's own edge is
+# already hours of movement from the line he drew -- about three hours on his
+# gold weekly and six on the pound -- so the warning is the band's job and this
+# is only so the edge is not a knife-edge.
 #
-# ANY PAIR CAN OVERRIDE THIS with its own `approach_pips` under config/pairs/.
-# Gold needs a much bigger number than the euro to feel like the same warning.
-approach_pips = 4.0
+# It is also deliberately SMALLER than the tenth a band must be cleared by, so
+# the way home always starts outside the way in. See levels/watch.rs.
+#
+# ANY PAIR CAN OVERRIDE IT with its own `approach_share` under config/pairs/.
+# ───────────────────────────────────────────────────────────────────────────
+approach_share = 0.05
 
 
 # ── A graze, or a real push ─────────────────────────────────────────────────

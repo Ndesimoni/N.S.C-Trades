@@ -5,26 +5,36 @@ use rust_decimal::Decimal;
 use super::super::{Band, Nearness, Timeframe, Watch, nearness};
 use super::support::d;
 
-/// A pip on gold. It is quoted to two decimals, so a pip is ten cents.
-fn reach() -> Decimal {
-    d("0.10")
+/// A twentieth of whatever band it is asked about.
+///
+/// **A share, not a price, since 31 August 2026.** It was ten cents here — one
+/// gold pip — which is 0.13% of this band and 22% of an AUD/USD daily one. The
+/// same setting meaning two different things is what broke it.
+fn share() -> Decimal {
+    d("0.05")
 }
 
-/// The gold band he drew at 4094 — 4055.43 to 4132.57, about 77 thick.
+/// The gold band he drew at 4094 — 4055.43 to 4132.57, about 77.15 thick.
 ///
-/// So a touch is anything up to 4132.67, and the band goes quiet again only
-/// past 4140.38 — a tenth of its own thickness clear of where *approaching*
-/// ends.
+/// A touch now reaches **4136.43**, a twentieth of the band past the edge, and
+/// the band goes quiet again only past **4144.15** — a tenth of the band clear
+/// of where approaching ends.
 ///
-/// **On gold the two are nowhere near each other** — a touch reaches ten cents
-/// and the way home is nearly eight dollars. That is exactly why the overlap
-/// below went unseen here for so long.
+/// **Both grew when the setting became a share, and gold is why it had to.**
+/// At ten cents its approach zone was 0.13% of the band, so price went from
+/// Away straight to Inside with almost nothing in between — gold had no
+/// approach warning at all.
 fn gold() -> Band {
     Band::around(Timeframe::Weekly, d("4094"), d("220.42"), d("0.35"))
 }
 
+/// This band's own reach, for the tests that call `nearness` directly.
+fn reach() -> Decimal {
+    gold().thickness() * share()
+}
+
 fn watching() -> Watch {
-    Watch::over(vec![gold()], reach())
+    Watch::over(vec![gold()], share())
 }
 
 // ── A touch, not a crossing ──
@@ -50,10 +60,11 @@ fn price_inside_the_band_says_so() {
     assert_eq!(watch.arrive(d("4100"))[0].1, Nearness::Inside);
 }
 
-// The slack is a pip, NOT time to react. The band already gives him that — its
-// top is about three hours of gold movement from the line he drew.
+// The slack is a twentieth of the band, NOT time to react. The band already
+// gives him that — its top is about three hours of gold movement from the line
+// he drew.
 #[test]
-fn the_slack_is_a_pip_and_no_more() {
+fn the_slack_is_a_twentieth_and_no_more() {
     let band = gold();
 
     assert_eq!(
@@ -62,8 +73,15 @@ fn the_slack_is_a_pip_and_no_more() {
     );
     assert_eq!(nearness(&band, d("4132.50"), reach()), Nearness::Inside);
 
-    // A dollar out is not a touch, and neither is anything beyond.
-    assert_eq!(nearness(&band, d("4133.60"), reach()), Nearness::Away);
+    // A twentieth of this band is $3.86, so a dollar out is still a touch —
+    // it was not when this was ten cents, and gold is the pair that needed
+    // the change.
+    assert_eq!(
+        nearness(&band, d("4133.60"), reach()),
+        Nearness::Approaching
+    );
+
+    // Past 4136.43 it is properly away.
     assert_eq!(nearness(&band, d("4140"), reach()), Nearness::Away);
 }
 
@@ -190,15 +208,14 @@ fn leaving_takes_more_than_it_took_to_arrive() {
     watch.arrive(d("4132.60"));
 
     // Well outside a touch, still nowhere near clear of the band.
-    assert!(watch.arrive(d("4139")).is_empty(), "not gone yet");
+    assert!(watch.arrive(d("4143")).is_empty(), "not gone yet");
     assert!(
         watch.arrive(d("4132.60")).is_empty(),
         "so coming back is not new"
     );
 
-    // Past a tenth of the band's thickness beyond a touch — 4140.38 — it is
-    // properly gone.
-    watch.arrive(d("4141"));
+    // Past a tenth of the band beyond a touch — 4144.15 — it is properly gone.
+    watch.arrive(d("4145"));
     assert_eq!(
         watch.arrive(d("4132.60")).len(),
         1,
@@ -211,7 +228,7 @@ fn leaving_takes_more_than_it_took_to_arrive() {
 #[test]
 fn only_the_band_price_arrived_at_fires() {
     let daily = Band::around(Timeframe::Daily, d("2984"), d("70.36"), d("0.46"));
-    let mut watch = Watch::over(vec![gold(), daily], reach());
+    let mut watch = Watch::over(vec![gold(), daily], share());
 
     watch.arrive(d("3500"));
 
@@ -237,13 +254,9 @@ fn aussie() -> Band {
     Band::around(Timeframe::Daily, d("0.71500"), d("0.004935"), d("0.46"))
 }
 
-/// Four pips, which is what `config/levels.toml` gives every forex pair.
-///
-/// **This is the only distance in the project written in pips**, and it is
-/// what makes the overlap possible: everything else is a share of something,
-/// so it scales with the band and this does not.
-fn aussie_reach() -> Decimal {
-    d("0.0004")
+/// The same twentieth every band gets.
+fn aussie_share() -> Decimal {
+    share()
 }
 
 /// **One approach is one alert, however much price wobbles inside it.**
@@ -261,7 +274,7 @@ fn aussie_reach() -> Decimal {
 /// this one level in one month. Real ticks arrive about once a second.
 #[test]
 fn a_wobble_inside_the_approach_does_not_fire_again() {
-    let mut watch = Watch::over(vec![aussie()], aussie_reach());
+    let mut watch = Watch::over(vec![aussie()], aussie_share());
 
     watch.arrive(d("0.71800"));
 
@@ -287,7 +300,7 @@ fn a_wobble_inside_the_approach_does_not_fire_again() {
 /// once and never again.
 #[test]
 fn leaving_the_approach_properly_still_re_arms_it() {
-    let mut watch = Watch::over(vec![aussie()], aussie_reach());
+    let mut watch = Watch::over(vec![aussie()], aussie_share());
 
     watch.arrive(d("0.71800"));
     watch.arrive(d("0.71390"));

@@ -152,7 +152,7 @@ pub async fn again(
         println!("{} — now watching {} level(s)", pair.symbol, found.len());
         armed.push(pair.symbol.clone());
 
-        let watch = Watch::over(found, pair.reach(thickness));
+        let watch = Watch::over(found, pair.reach_share(thickness));
         now.insert(pair.symbol.clone(), Watching { pair, watch });
     }
 

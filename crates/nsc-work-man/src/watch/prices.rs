@@ -32,7 +32,7 @@ pub async fn heard(
         return Ok(());
     };
 
-    let reach = seen.pair.reach(thickness);
+    let share = seen.pair.reach_share(thickness);
 
     for (band, near) in seen.watch.arrive(heard.mid) {
         println!("{} reached {}", heard.symbol, band.price);
@@ -54,7 +54,10 @@ pub async fn heard(
             near,
             News::Fresh,
             heard.mid,
-            reach,
+            // **This band's own reach**, not one figure for the pair. See
+            // config/levels.toml — four pips was 22% of an Aussie daily band
+            // and 0.03% of a gold weekly one.
+            band.thickness() * share,
         )
         .await
         {

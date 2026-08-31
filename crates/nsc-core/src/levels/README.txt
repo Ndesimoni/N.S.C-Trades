@@ -155,11 +155,11 @@ ARRIVING IS A TOUCH. LEAVING IS A REAL DISTANCE.
 
   Two different sums on purpose, and the reason is worth having.
 
-  ARRIVING is `approach_pips` in config/levels.toml — four pips, so the alert
+  ARRIVING is `approach_share` in config/levels.toml — four pips, so the alert
   can say price is COMING UP ON the zone rather than only that it has touched.
   A pip comes from the pair's own `digits`: gold 0.10, the euro 0.0001.
 
-  ANY PAIR CAN OVERRIDE IT with its own `approach_pips`. Four pips is about two
+  ANY PAIR CAN OVERRIDE IT with its own `approach_share`. Four pips is about two
   minutes of gold and about an hour of euro, so gold is the one likely to want
   a bigger number. There is a commented example in config/pairs/XAUUSD.toml.
 

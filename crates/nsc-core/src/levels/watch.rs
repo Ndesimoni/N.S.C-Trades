@@ -73,7 +73,13 @@ pub struct Watch {
 
     /// How close counts as arriving — **a price, not a share**. A pip on this
     /// pair, worked out by [`Pair::reach`](super::Pair::reach).
-    reach: Decimal,
+    /// How close counts as arriving, **as a share of each band's own
+    /// thickness**.
+    ///
+    /// **A share, so every band gets a reach its own size.** It was one price
+    /// for the whole pair until 31 August 2026 — four pips, which is 22% of an
+    /// AUD/USD daily band and 0.03% of a gold weekly one.
+    share: Decimal,
 
     /// The last price seen, so a resumed session can say where things stand
     /// without waiting for the next one.
@@ -99,13 +105,13 @@ pub enum Nearness {
 }
 
 impl Watch {
-    pub fn over(bands: Vec<Band>, reach: Decimal) -> Self {
+    pub fn over(bands: Vec<Band>, share: Decimal) -> Self {
         Watch {
             seen: bands
                 .into_iter()
                 .map(|band| (band, Nearness::Away))
                 .collect(),
-            reach,
+            share,
             last: None,
             started: false,
         }
@@ -123,7 +129,9 @@ impl Watch {
         let mut arrived = Vec::new();
 
         for (band, deepest) in &mut self.seen {
-            let near = nearness(band, price, self.reach);
+            // **Each band's own reach**, from its own thickness.
+            let reach = band.thickness() * self.share;
+            let near = nearness(band, price, reach);
 
             if first {
                 // Only note where price is. Arriving is a change, and there is
@@ -133,7 +141,7 @@ impl Watch {
             }
 
             // Properly gone. The visit is over and the next one starts fresh.
-            if *deepest != Nearness::Away && clear_of(band, price, self.reach) {
+            if *deepest != Nearness::Away && clear_of(band, price, reach) {
                 *deepest = Nearness::Away;
                 continue;
             }

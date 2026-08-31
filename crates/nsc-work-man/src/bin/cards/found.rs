@@ -98,7 +98,7 @@ pub async fn setup(client: &reqwest::Client, tier: Option<&str>) -> Result<()> {
         symbol: "XAU/USD".into(),
         digits: 2,
         nightly_break_minutes: 60,
-        approach_pips: None,
+        approach_share: None,
         levels: Vec::new(),
     };
 

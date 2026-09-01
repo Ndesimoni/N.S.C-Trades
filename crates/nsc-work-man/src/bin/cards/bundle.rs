@@ -20,6 +20,11 @@
 //! So this draws all three from a single `look()`, exactly as the watcher
 //! does. A preview that can disagree with itself teaches the wrong thing about
 //! code that cannot.
+//!
+//! **It carried its own 400 and 100 until 1 September 2026**, which is the
+//! same fault one level up: the watcher was cut to a 45-candle close-up and
+//! this went on drawing a hundred, so the picture used to check the change
+//! showed the change had not happened. It imports the counts now.
 
 use std::path::{Path, PathBuf};
 
@@ -29,6 +34,7 @@ use nsc_core::levels::{Band, Pair, Timeframe};
 use nsc_strategy::{look, reasons};
 use nsc_ta::pattern;
 use nsc_work_man::places::{OWNER, PATTERNS, PREVIEW, STRATEGY};
+use nsc_work_man::watch::{CONTEXT, RUN};
 use nsc_work_man::{card, telegram};
 use rust_decimal::Decimal;
 use std::str::FromStr;
@@ -78,7 +84,7 @@ pub async fn bundle(client: &reqwest::Client) -> Result<()> {
     let pictures = [
         card::render(
             "chart.html",
-            &last(400),
+            &last(RUN),
             &bands,
             &pair.symbol,
             timeframe,
@@ -87,7 +93,7 @@ pub async fn bundle(client: &reqwest::Client) -> Result<()> {
         )?,
         card::render_ringed(
             "chart.html",
-            &last(100),
+            &last(CONTEXT),
             &bands,
             &pair.symbol,
             timeframe,

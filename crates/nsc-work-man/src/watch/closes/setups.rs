@@ -33,13 +33,35 @@ const NORMAL_OVER: usize = 14;
 ///
 /// Four hundred is about two and a half weeks on the 1-hour and nine on the
 /// 4-hour. **The whole swing, not the last few days.**
-const RUN: usize = 400;
+pub const RUN: usize = 400;
 
 /// How many candles **the close-up** shows, the one carrying the red ring.
 ///
-/// **His number, 29 August 2026:** *"a hundred candles, so I can see what
-/// played out, how it played out."*
-const CONTEXT: usize = 100;
+/// **Cut from a hundred on 1 September 2026:** *"even when I zoom into the
+/// picture I still do not see the setup clearly."*
+///
+/// A hundred was his own number a few days earlier, and it was the right
+/// answer to the question he was asking then — *"so I can see what played out,
+/// how it played out."* It was the wrong number for SEEING it.
+///
+/// **The candles are drawn to fit, so the count IS the size.** The plot is 728
+/// units wide and 82% of that is drawn, which is 597 for however many candles
+/// there are:
+///
+/// ```text
+///     100 candles    body  3.6 units   wick 0.6    ~7px and ~1px on the phone
+///      45 candles    body  9.0 units   wick 2.0   ~17px and ~4px
+/// ```
+///
+/// **The wick was the half that broke it.** At a hundred candles it came out
+/// under a pixel, and a pin bar IS its wick — so the one shape that most needs
+/// to be seen was the one being rounded away. Zooming a picture cannot put
+/// back a line that was never drawn.
+///
+/// Forty-five is about 2 days on the 1-hour, 7.5 on the 4-hour and 9 weeks on
+/// the daily. **The run picture still carries the history**; this one only has
+/// to show the shape and what walked into the level.
+pub const CONTEXT: usize = 45;
 
 impl Closes {
     /// Looks for a signal on the candle that just finished, and sends it.
@@ -149,7 +171,7 @@ async fn send(
     // **Three pictures, and each answers a different question.**
     //
     //     the run       400 candles, no ring    where price CAME FROM
-    //     the close-up  100 candles, red ring   where the shape PRINTED
+    //     the close-up   45 candles, red ring   where the shape PRINTED
     //     the card      the shape itself        WHAT it was
     //
     // Sent together as one message. Any one of them alone leaves an obvious

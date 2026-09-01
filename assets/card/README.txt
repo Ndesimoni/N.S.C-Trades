@@ -98,7 +98,7 @@ THE FILES
                 THREE PICTURES SINCE 30 AUGUST, sent as one bundle:
 
                   the run       400 candles, no ring   where price CAME FROM
-                  the close-up  100 candles, red ring  where it PRINTED
+                  the close-up   45 candles, red ring  where it PRINTED
                   this card     the shape itself       WHAT it was
 
                 Widest first, then in. Both charts are chart.html -- the same

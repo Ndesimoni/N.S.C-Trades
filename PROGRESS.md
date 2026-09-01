@@ -80,7 +80,7 @@ nsc-work-man    everything that reaches
 >
 > ```text
 >     the run       400 candles, no ring    where price CAME FROM
->     the close-up  100 candles, red ring   where the shape PRINTED
+>     the close-up   45 candles, red ring   where the shape PRINTED
 >     the card      the shape itself        WHAT it was
 > ```
 >

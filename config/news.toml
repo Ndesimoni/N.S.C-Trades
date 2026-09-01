@@ -48,21 +48,25 @@ impacts = ["High", "Medium"]
 
 # ── How long before, and it is a LIST ───────────────────────────────────────
 #
-# TWO CARDS FOR ONE RELEASE. His ask, 1 September 2026: "five minutes to the
-# news, the card has to pop up again."
+# TWO CARDS FOR ONE RELEASE.
 #
-#   30   the heads-up. Long enough to close something or stand aside.
-#    5   the last call. Short enough that there is no time to forget it.
+#   5   the heads-up. Enough to close something or stand aside.
+#   1   the last call. It is about to print.
 #
-# One is live at a time. The 30 covers from half an hour out down to five
-# minutes out, then the 5 takes over and runs on past the release by
-# stale_minutes below. They never overlap, which is what lets the second card
-# be told apart from the first.
+# THIRTY WAS TOO EARLY, and he said so on 1 September 2026 after a day of it:
+# "thirty minutes is really fast." A warning that far out is read, filed and
+# forgotten, and by the time the number prints it is not in mind any more --
+# so it costs a buzz and buys nothing.
+#
+# One is live at a time. The 5 covers from five minutes out down to one minute
+# out, then the 1 takes over and runs on past the release by stale_minutes
+# below. They never overlap, which is what lets the second card be told apart
+# from the first.
 #
 # Add or remove numbers freely. Order does not matter and a repeat is
 # harmless -- both are tidied before use.
 # ───────────────────────────────────────────────────────────────────────────
-warn_at_minutes = [30, 5]
+warn_at_minutes = [5, 1]
 
 
 # ── Do not warn about something that already happened ───────────────────────
@@ -74,8 +78,8 @@ warn_at_minutes = [30, 5]
 # stale_minutes past. Outside that window it is history and it says nothing.
 #
 # THE LAST MARK IS THE ONE THAT OUTLIVES THE RELEASE, so a restart just after a
-# number prints gets the five-minute card and not the half-hour one. Five
-# minutes to it is news; half an hour ago is history.
+# number prints gets the one-minute card and not the five-minute one. A minute
+# to it is news; five minutes ago is history.
 #
 # Five minutes, because an event that just fired is still worth knowing about
 # and one from this morning is not. Same reason the zone alert separates

@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Five crates · 357 tests · clippy clean · it watches his levels, says what
+**Five crates · 358 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -181,8 +181,8 @@ nsc-work-man    everything that reaches
 > `docs/worksheets/strategies.md`. **Nothing is wired to Telegram yet, and the
 > stop is still unanswered.** See [Rung 3](#rung-3--a-shape-at-a-level--x-25-august).
 
-> **IT WATCHES THE ECONOMIC CALENDAR AS OF 25 AUGUST.** A card thirty minutes
-> before a high or medium impact release — red for high, orange for medium,
+> **IT WATCHES THE ECONOMIC CALENDAR AS OF 25 AUGUST.** A card five minutes
+> before a high or medium impact release, and a second one a minute before — red for high, orange for medium,
 > ForexFactory's own spelling because that is the calendar he reads. It runs
 > beside the price watcher on its own clock and needs no IBKR. **Drawn against
 > the real feed and checked, but it has never fired on a live release.**
@@ -508,7 +508,11 @@ Thursday.** Asked for on 16 August, built on the 25th.
       headlines from a provider. No rate decisions, no payrolls, nothing
       scheduled. There is a Wall Street Horizon calendar and it is corporate
       earnings, for stocks. Checked in `ibapi` 2.12
-- [x] **A card thirty minutes ahead**, `warn_minutes` in `config/news.toml`
+- [x] **A card five minutes ahead and another a minute ahead**,
+      `warn_at_minutes = [5, 1]` in `config/news.toml`. It was one card thirty
+      minutes ahead until 1 September 2026 — *"thirty minutes is really
+      fast"* — and a warning that far out is read, filed and forgotten before
+      the number prints
 - [x] **High and medium, every currency.** His call, and it is the right one:
       filtering by currency would go quietly blind the day he adds a pair —
       the pair watched and its news not, with nothing saying so

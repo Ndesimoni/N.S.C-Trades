@@ -27,9 +27,13 @@ pub struct Rules {
     /// **How many minutes before an event to say something, and it is a
     /// list.**
     ///
-    /// `[30, 5]` is a heads-up half an hour out and a last call five minutes
-    /// out. His ask, 1 September 2026: *"five minutes to the news, the card
-    /// has to pop up again."*
+    /// `[5, 1]` is a heads-up five minutes out and a last call one minute
+    /// out. His ask, 1 September 2026: *"we are going to have five minutes and
+    /// one minute."*
+    ///
+    /// It was `[30, 5]` for a few hours and thirty was too early — *"thirty
+    /// minutes is really fast."* A warning that far ahead gets read, filed and
+    /// forgotten before the number prints.
     ///
     /// One mark is live at a time — see `due.rs`. The card each one draws is
     /// the same card; it simply says a different number of minutes, because it

@@ -12,8 +12,8 @@ pub fn minutes_until(event: &Event, now: DateTime<Utc>) -> i64 {
 /// **Which warning is live for this event right now**, in minutes before it —
 /// or nothing, if none is.
 ///
-/// `warn_at_minutes = [30, 5]` gives a heads-up half an hour out and a last
-/// call five minutes out. His ask, 1 September 2026.
+/// `warn_at_minutes = [5, 1]` gives a heads-up five minutes out and a last
+/// call one minute out. His ask, 1 September 2026.
 ///
 /// ## One mark at a time, and that is what makes two cards work
 ///
@@ -21,10 +21,10 @@ pub fn minutes_until(event: &Event, now: DateTime<Utc>) -> i64 {
 /// over. The last one runs on past the event by `stale_minutes`:
 ///
 /// ```text
-///     30  ├──────────────────────┤              at-30 up to at-5
-///      5                         ├────────┤     at-5 through at+5
-///                                    ↑
-///                                the event
+///     5  ├────────┤                    at-5 up to at-1
+///     1           ├─────────────┤     at-1 through at+5
+///                      ↑
+///                  the event
 /// ```
 ///
 /// **They never overlap**, so "which card is this" always has one answer, and
@@ -36,7 +36,7 @@ pub fn minutes_until(event: &Event, now: DateTime<Utc>) -> i64 {
 /// Come back up at two in the afternoon and the week's file is full of this
 /// morning — without it every one of those is "coming up" and they all arrive
 /// at once. A restart just after a release finds only the last mark live, and
-/// that is the right card: five minutes to it is the news, half an hour ago is
+/// that is the right card: a minute to it is the news, five minutes ago is
 /// history.
 pub fn due_at(event: &Event, now: DateTime<Utc>, rules: &Rules) -> Option<i64> {
     if !rules.wants(event.impact) {

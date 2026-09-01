@@ -4,9 +4,13 @@ watch/news/ — telling him what is about to print
 
 WHAT THIS FOLDER IS FOR
 
-  A card thirty minutes before a rate decision, a CPI number or a payrolls
-  release, so a level sitting in front of one is not read the same way as a
-  level on a quiet Thursday.
+  A card five minutes before a rate decision, a CPI number or a payrolls
+  release, and a second one a minute before it, so a level sitting in front of
+  one is not read the same way as a level on a quiet Thursday.
+
+  IT WAS THIRTY MINUTES UNTIL 1 SEPTEMBER 2026. His call after a day of it:
+  "thirty minutes is really fast." A warning that far ahead is read, filed and
+  forgotten before the number prints -- it costs a buzz and buys nothing.
 
 
 THE FILES

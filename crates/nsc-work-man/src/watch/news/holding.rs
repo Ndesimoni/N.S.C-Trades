@@ -10,9 +10,16 @@ use super::saying;
 
 /// How often to wake and look.
 ///
-/// A minute. The window is thirty minutes wide, so nothing is missed — and
-/// waking costs a glance at a list already in memory. It only reaches the
-/// network every `refresh_hours`.
+/// A minute. Waking costs a glance at a list already in memory — it only
+/// reaches the network every `refresh_hours`.
+///
+/// **THE NARROWEST WINDOW MUST STAY WIDER THAN THIS.** On his settings the
+/// tightest is the last mark: one minute before a release through
+/// `stale_minutes` after it, so six minutes wide. A tick cannot step over it.
+///
+/// It had thirty minutes of slack until 1 September 2026 and now has six,
+/// which is still plenty — but it is the reason not to add a mark narrower
+/// than a minute. A test pins it.
 const LOOK: std::time::Duration = std::time::Duration::from_secs(60);
 
 /// Watches the calendar forever.
@@ -157,8 +164,8 @@ impl Held {
 
 /// What one warning about one event is remembered as.
 ///
-/// **The mark is part of it**, so a heads-up half an hour out does not silence
-/// the last call five minutes out. They are two different messages about the
+/// **The mark is part of it**, so the heads-up five minutes out does not
+/// silence the last call a minute out. They are two different messages about the
 /// same release and he asked for both.
 fn told(event: &Event, mark: i64) -> String {
     format!("{}@{mark}", event.key())

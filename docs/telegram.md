@@ -258,7 +258,7 @@ instead:
 |---|---|
 | 🕯 **broke** | a 4-hour or daily candle **breaks through** the level, the way price was travelling |
 | 🎯 **setup** | a shape you trade prints at one of your zones — 1-hour, 4-hour or daily |
-| 📅 **coming up** | 30 minutes before a high or medium impact release |
+| 📅 **coming up** | 5 minutes before a high or medium impact release, and again 1 minute before |
 | 📐 **got it** | a level you just sent is now being watched |
 | 🫀 **still running** | 07:00 UTC, and only on a day nothing else was sent |
 | ⚠️ ✅ 🛑 | the price line went down, came back, or the bot stopped |

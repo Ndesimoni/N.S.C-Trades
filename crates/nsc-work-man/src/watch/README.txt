@@ -58,7 +58,7 @@ THE FILES
 
   closes/   Rung 2 — what a candle at a zone is doing, and what it did.
 
-  news/       THE ECONOMIC CALENDAR. A card thirty minutes before a rate
+  news/       THE ECONOMIC CALENDAR. A card five minutes before a rate
               decision or a payrolls number. It runs on its own beside the
               price watcher, because it needs no prices and no IBKR -- only
               the clock and the internet.

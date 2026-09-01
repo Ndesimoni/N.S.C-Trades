@@ -36,14 +36,17 @@ NOTHING HERE READS THE CLOCK OR REACHES ANYTHING
 
 TWO WARNINGS FOR ONE RELEASE
 
-  warn_at_minutes is a list -- [30, 5]. A heads-up half an hour out and a
-  last call five minutes out. His ask, 1 September 2026.
+  warn_at_minutes is a list -- [5, 1]. A heads-up five minutes out and a last
+  call one minute out. His ask, 1 September 2026.
 
-  ONE MARK IS LIVE AT A TIME. The 30 owns from half an hour out down to five
-  minutes out; then the 5 takes over and runs on past the release.
+  It was [30, 5] for a few hours and thirty was too early: a warning that far
+  out is read, filed and forgotten before the number prints.
 
-      30  |----------------------|              at-30 up to at-5
-       5                         |--------|     at-5 through at+5
+  ONE MARK IS LIVE AT A TIME. The 5 owns from five minutes out down to one
+  minute out; then the 1 takes over and runs on past the release.
+
+      5  |--------|                   at-5 up to at-1
+      1           |-------------|     at-1 through at+5
 
   They never overlap, and that is the point. Windows that both stayed open
   would make the second card either impossible to tell from the first or
@@ -64,8 +67,8 @@ THE WINDOW HAS TWO EDGES AND THE FAR ONE IS THE IMPORTANT ONE
   stale_minutes after, and is silent on either side of that.
 
   The far edge belongs to the LAST mark, so a restart just after a number
-  prints gets the five-minute card rather than one headed "in 30 minutes"
-  about something that already happened.
+  prints gets the one-minute card rather than one headed "in 5 minutes" about
+  something that already happened.
 
   It is the same lesson the zone alert learned when it separated "is in the
   zone" from "was already in the zone" -- a Monday move must never get a

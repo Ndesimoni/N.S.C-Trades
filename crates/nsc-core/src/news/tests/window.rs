@@ -11,14 +11,14 @@ use crate::news::{Impact, due, minutes_until};
 
 #[test]
 fn says_nothing_while_it_is_still_far_off() {
-    let later = event("Core PCE", nine() + Duration::minutes(31), Impact::High);
+    let later = event("Core PCE", nine() + Duration::minutes(6), Impact::High);
 
     assert!(!due(&later, nine(), &rules()));
 }
 
 #[test]
 fn speaks_once_it_is_inside_the_warning() {
-    let soon = event("Core PCE", nine() + Duration::minutes(30), Impact::High);
+    let soon = event("Core PCE", nine() + Duration::minutes(5), Impact::High);
 
     assert!(due(&soon, nine(), &rules()));
 }

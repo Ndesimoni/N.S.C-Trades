@@ -1,7 +1,8 @@
 //! `/news` — what is on the calendar, today or for the rest of the week.
 //!
 //! **The warnings that arrive on their own are a different thing.** Those are
-//! one release, thirty minutes ahead, and they come whether he asked or not.
+//! one release, five minutes ahead and again a minute ahead, and they come
+//! whether he asked or not.
 //! This is the list, whenever he wants it.
 //!
 //! Both read the same `config/news.toml`, so what counts as worth showing can

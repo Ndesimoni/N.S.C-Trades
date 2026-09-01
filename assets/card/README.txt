@@ -327,3 +327,18 @@ THE PRICE SCALE ON chart.html
   2,984 with price at 4,352, so 45 candles with a 6-point range came out as a
   smear one pixel tall -- a picture of the levels with the price accidentally
   in it. His call, 1 September 2026, and the same on every timeframe.
+
+
+COLOUR ON THE NEWS AND CALENDAR CARDS
+
+  GREEN MEANS STILL TO COME. The countdown on each calendar row, and the
+  "COMING UP" line on the news card. Same green as a candle that closed up --
+  neither card has an up and a down of its own to confuse it with.
+
+  PASSED HAS NO COLOUR OF ITS OWN, and that is on purpose. He asked whether it
+  should be yellow, 1 September 2026. It should not: the stripe on the left is
+  already red/orange/yellow for high/medium/low impact, so a PASSED high-impact
+  release and an UPCOMING low-impact one would both read yellow.
+
+  Draining it is also the truer signal. Colour here means "look at this", and a
+  release that has already printed is the one row he does not need to look at.

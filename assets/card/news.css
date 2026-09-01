@@ -55,9 +55,12 @@
   .worst-orange .top{ border-bottom-color:var(--medium) }
   .worst-yellow .top{ border-bottom-color:var(--low) }
 
+  /* GREEN MEANS STILL TO COME, the same green the calendar uses on its
+     countdowns. This whole card is about something that has not happened yet
+     -- the footer says so in words -- and now the top says it in a colour. */
   .eyebrow{
     margin:0 0 6px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--mute);
+    color:#1F9E7A;font-weight:600;
   }
   .top h1{
     font-family:var(--display);font-weight:800;font-size:34px;

@@ -14,6 +14,9 @@
     --medium:#E08A1E;
     --low:#D8B41A;
     --other:#98A1A8;
+
+    /* Still to come. */
+    --soon:#1F9E7A;
   }
 
   .red    { --tone:var(--high) }
@@ -104,10 +107,24 @@
     text-transform:uppercase;letter-spacing:.14em;
     color:var(--mute);opacity:.75;
   }
+  /* GREEN MEANS STILL TO COME. His call, 1 September 2026.
+
+     It is the same green as a candle that closed up, because this card has no
+     up and down of its own for it to be confused with.
+
+     PASSED DELIBERATELY HAS NO COLOUR OF ITS OWN. He asked whether it should
+     be yellow and the answer is no: the stripe on the left is already
+     red/orange/yellow for high/medium/low impact, so a PASSED high-impact
+     release and an UPCOMING low-impact one would both read yellow -- and that
+     is the one mix-up on this card that could cost him money.
+
+     Draining it is also the truer signal. Colour on this card means "look at
+     this", and a release that has already printed is the one row he does not
+     need to look at. */
   /* The one still to come is the one he acts on, so it is the darker of the
      two. Not coloured — the stripe already carries impact, and a second
      colour on the same row would compete with it. */
-  .mark--soon{ color:var(--ink);font-weight:500 }
+  .mark--soon{ color:var(--soon);font-weight:600 }
 
   .empty{
     color:var(--mute);font-style:italic;font-size:15px;

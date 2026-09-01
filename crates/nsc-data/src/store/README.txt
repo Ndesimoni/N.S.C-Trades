@@ -43,6 +43,12 @@ THE FILES
   error.rs    What can go wrong, and the one question each answers: try
               again, or give up?
   pool.rs     Opening it, and running the migrations on the way in.
+  news.rs      THE ECONOMIC CALENDAR as at the last time we asked. The file
+               is the truth for the span it covers, so each download updates
+               what is still listed and DELETES what has fallen out -- a
+               release that moved arrives as a new row, and an upsert alone
+               would leave the old time behind for the bot to warn about.
+
   candles.rs  The history everything else is measured against.
   tests.rs    Four that need Postgres, and one that does not.
   README.txt  This file.

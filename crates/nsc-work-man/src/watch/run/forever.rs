@@ -91,28 +91,8 @@ pub async fn run() -> Result<()> {
     //
     // It is said out loud rather than swallowed, because news that quietly
     // never arrives looks exactly like a quiet week.
-    match nsc_core::news::load(Path::new(NEWS)) {
-        Ok(rules) => {
-            let ahead: Vec<String> = {
-                let mut marks = rules.warn_at_minutes.clone();
-                marks.sort_unstable();
-                marks.dedup();
-                marks.reverse();
-                marks.iter().map(|mark| mark.to_string()).collect()
-            };
-
-            println!(
-                "Watching the economic calendar — {} events get a card {} minutes ahead.",
-                rules.impacts.join(" and ").to_lowercase(),
-                ahead.join(" and ")
-            );
-            tokio::spawn(crate::watch::watch_the_news(client.clone(), rules));
-        }
-        Err(trouble) => eprintln!(
-            "No news warnings: {trouble}\n\
-             Everything else is running. Fix {NEWS} and restart to turn them on."
-        ),
-    }
+    // **The news watcher is started further down**, once the record is open,
+    // because it keeps the week in there rather than only in memory.
 
     // **The inbox runs beside the watcher**, so one command is the whole bot.
     // It was a second program, which meant two terminals and remembering both
@@ -183,6 +163,40 @@ pub async fn run() -> Result<()> {
             }
         },
     };
+
+    // ── The economic calendar, on its own clock ──
+    //
+    // **Started here and not earlier, because it writes the week to the
+    // record.** It runs beside the price watcher and needs no IBKR.
+    //
+    // It is said out loud rather than swallowed, because news that quietly
+    // never arrives looks exactly like a quiet week.
+    match nsc_core::news::load(Path::new(NEWS)) {
+        Ok(rules) => {
+            let ahead: Vec<String> = {
+                let mut marks = rules.warn_at_minutes.clone();
+                marks.sort_unstable();
+                marks.dedup();
+                marks.reverse();
+                marks.iter().map(|mark| mark.to_string()).collect()
+            };
+
+            println!(
+                "Watching the economic calendar — {} events get a card {} minutes ahead.",
+                rules.impacts.join(" and ").to_lowercase(),
+                ahead.join(" and ")
+            );
+            tokio::spawn(crate::watch::watch_the_news(
+                client.clone(),
+                rules,
+                record.clone(),
+            ));
+        }
+        Err(trouble) => eprintln!(
+            "No news warnings: {trouble}\n\
+             Everything else is running. Fix {NEWS} and restart to turn them on."
+        ),
+    }
 
     let mut kit = Kit::new(rung_three, record);
     let mut trouble = trouble::Trouble::new();

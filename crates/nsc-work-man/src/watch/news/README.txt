@@ -72,3 +72,24 @@ CHROME RUNS OFF THE LOOP
   The six older cards still block a worker and that is the top open bug in
   this project. This one does not, because it was written after the bug was
   understood -- there was no reason to add a seventh.
+
+
+THE WEEK IS KEPT IN THE RECORD
+
+  His call, 1 September 2026. Every download writes the week to Postgres, and
+  the watcher reads it back once at startup.
+
+  The download rate is unchanged -- still every six hours. He asked about
+  making it weekly and the reason not to is that the feed REVISES the week
+  while it is running: forecasts land, tentative times firm up, events are
+  added. A Saturday snapshot would drift, and the failure is the bad kind --
+  a card saying "in 5 minutes" for something that moved.
+
+  Six hours is four downloads a day against a published limit of 576.
+
+  WHAT KEEPING IT BUYS, and the first one is what lasts:
+
+    * A RECORD. Nothing remembered what the calendar said, so no backtest
+      could ask "was there news within ten minutes of this setup?"
+    * A restart has the whole week before the first download lands.
+    * A feed that is unreachable at startup no longer means no news at all.

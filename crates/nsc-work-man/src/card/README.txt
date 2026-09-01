@@ -205,3 +205,17 @@ A FILE APPEARING IS NOT A PICTURE
   than like Chrome refusing to start.
 
   It checks the size now.
+
+
+HOW MANY CANDLES A CHART DRAWS
+
+  200 on the run, 45 on the close-up, EVERY PAIR AND EVERY CHART.
+
+  Decided inside render() and render_ringed(), not by whoever calls them.
+  There are four callers and each used to slice for itself -- so one of them
+  did not. review/picture.rs, the chart he gets when he ASKS for one, drew
+  whatever came back from the feed: it asks IBKR for 150 candles, IBKR reads
+  that as a span of DAYS, and fourteen days of hourly forex arrived as over
+  three hundred. He spotted it on AUD/USD, 1 September 2026.
+
+  A rule every caller has to remember is a rule one of them will forget.

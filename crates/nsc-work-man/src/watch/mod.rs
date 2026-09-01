@@ -36,7 +36,6 @@ mod trouble;
 
 pub use bands::for_pair as size_bands;
 pub use closes::settings as rung_three;
-pub use closes::{CONTEXT, RUN};
 pub use news::run as watch_the_news;
 pub use run::{run, say_it_is_armed};
 pub use standing::{Snapshot, Standing};

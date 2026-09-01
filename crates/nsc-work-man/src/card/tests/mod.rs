@@ -8,4 +8,5 @@
 mod drawing;
 mod growing;
 mod safety;
+mod sizing;
 mod words;

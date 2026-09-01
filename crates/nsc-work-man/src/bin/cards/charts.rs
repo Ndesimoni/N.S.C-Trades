@@ -25,8 +25,9 @@ use nsc_data::source::{Interval, MarketDataSource};
 use nsc_data::sources::ibkr::IbkrConnection;
 use nsc_strategy::{look, reasons};
 use nsc_ta::pattern;
+use nsc_work_man::card::{CONTEXT, RUN};
 use nsc_work_man::places::{OWNER, PAIRS, PATTERNS, PREVIEW, STRATEGY};
-use nsc_work_man::watch::{CONTEXT, RUN, size_bands};
+use nsc_work_man::watch::size_bands;
 use nsc_work_man::{card, telegram};
 
 use nsc_work_man::retry::keep_trying;

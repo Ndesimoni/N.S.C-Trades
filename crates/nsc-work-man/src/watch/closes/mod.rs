@@ -34,9 +34,3 @@ mod tests;
 
 pub use look::Closes;
 pub use setups::settings;
-
-// **The previewer draws with these too.** It used to carry its own 400 and
-// 100, which is the exact fault its own module doc says it exists to prevent
-// — and on 1 September 2026 it duly showed a hundred-candle close-up of a bot
-// that had been cut to forty-five.
-pub use setups::{CONTEXT, RUN};

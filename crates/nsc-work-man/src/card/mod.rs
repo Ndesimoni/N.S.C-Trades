@@ -26,7 +26,7 @@ mod tests;
 
 pub use alive::{Alive, heartbeat};
 pub use error::CardError;
-pub use fill::{render, render_ringed};
+pub use fill::{CONTEXT, RUN, render, render_ringed};
 pub use listing::calendar;
 pub use live::armed;
 pub use setup::setup;

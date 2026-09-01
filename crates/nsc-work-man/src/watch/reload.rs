@@ -80,6 +80,34 @@ pub struct Reloaded {
     pub not_sized: Vec<String>,
 }
 
+/// **Which watched pair a file belongs to**, by name.
+///
+/// `known` lists FILE STEMS — `XAUUSD` — and the watch list is keyed by the
+/// pair's SYMBOL — `XAU/USD`. A file is named by taking the slashes out of the
+/// symbol, so putting them back is the way home.
+///
+/// ## The bug this replaces
+///
+/// The unreadable-file branch looked the stem up in the watch list directly.
+/// Every symbol has a slash in it and no stem does, **so the lookup could
+/// never hit** — and the branch whose whole job is "keep watching what this
+/// pair already had" silently dropped it instead, while printing that it was
+/// leaving it alone.
+///
+/// It only shows when a file cannot be read: he is halfway through editing it,
+/// or a write from his phone was caught mid-way. The pair then stops being
+/// watched with nothing to say so, and it does not come back on its own — the
+/// next reload only happens when a file CHANGES, and nothing has to change
+/// again.
+///
+/// Compared by stripping rather than by rebuilding the symbol, because
+/// stripping is what actually made the file name. Found 1 September 2026.
+fn watched_as(old: &HashMap<String, Watching>, stem: &str) -> Option<String> {
+    old.keys()
+        .find(|symbol| symbol.replace('/', "") == stem)
+        .cloned()
+}
+
 /// Reads the levels again, keeping what has not changed.
 ///
 /// **A pair whose levels are untouched keeps the `Watch` it already had.**
@@ -109,13 +137,20 @@ pub async fn again(
             Ok(pair) => pair,
 
             // One unreadable file must not take the others down with it. He
-            // may be halfway through editing it by hand.
+            // may be halfway through editing it by hand, or a write from his
+            // phone may have been caught in the middle.
             Err(trouble) => {
-                eprintln!("{name} — cannot read it, leaving it alone: {trouble}");
+                match watched_as(&old, &name).and_then(|symbol| old.remove(&symbol)) {
+                    Some(kept) => {
+                        eprintln!("{name} — cannot read it, still watching what it had: {trouble}");
+                        now.insert(kept.pair.symbol.clone(), kept);
+                    }
 
-                if let Some(kept) = old.remove(&name) {
-                    now.insert(kept.pair.symbol.clone(), kept);
+                    None => eprintln!(
+                        "{name} — cannot read it, and it was not being watched: {trouble}"
+                    ),
                 }
+
                 continue;
             }
         };
@@ -200,4 +235,69 @@ pub async fn say_it_is_armed(
     pulse.spoke(chrono::Utc::now());
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use nsc_core::levels::Pair;
+
+    fn watching_gold() -> HashMap<String, Watching> {
+        let pair = Pair {
+            symbol: "XAU/USD".into(),
+            digits: 2,
+            nightly_break_minutes: 60,
+            approach_share: None,
+            levels: Vec::new(),
+        };
+
+        let watch = Watch::over(Vec::new(), rust_decimal::Decimal::new(5, 2));
+
+        HashMap::from([("XAU/USD".to_string(), Watching { pair, watch })])
+    }
+
+    /// **The bug, stated as a test.**
+    ///
+    /// The watch list is keyed `XAU/USD`; the file it came from is
+    /// `XAUUSD.toml`. Looking the stem up directly can never hit, so the
+    /// branch meant to keep a pair whose file went unreadable dropped it
+    /// instead — silently, and for good, because the next reload only happens
+    /// when a file changes and nothing has to change again.
+    #[test]
+    fn a_file_stem_finds_the_pair_it_belongs_to() {
+        let old = watching_gold();
+
+        assert!(
+            !old.contains_key("XAUUSD"),
+            "the stem is not the key — this is what the old code did"
+        );
+
+        assert_eq!(watched_as(&old, "XAUUSD"), Some("XAU/USD".to_string()));
+    }
+
+    #[test]
+    fn a_file_for_a_pair_that_is_not_watched_finds_nothing() {
+        let old = watching_gold();
+
+        assert_eq!(watched_as(&old, "EURUSD"), None);
+        assert_eq!(watched_as(&old, ""), None);
+    }
+
+    /// A stem that already reads like a symbol still works — nothing here
+    /// assumes six letters.
+    #[test]
+    fn it_does_not_guess_where_the_slash_goes() {
+        let mut old = watching_gold();
+        let pair = Pair {
+            symbol: "BRENT/USD".into(),
+            digits: 2,
+            nightly_break_minutes: 60,
+            approach_share: None,
+            levels: Vec::new(),
+        };
+        let watch = Watch::over(Vec::new(), rust_decimal::Decimal::new(5, 2));
+        old.insert("BRENT/USD".to_string(), Watching { pair, watch });
+
+        assert_eq!(watched_as(&old, "BRENTUSD"), Some("BRENT/USD".to_string()));
+    }
 }

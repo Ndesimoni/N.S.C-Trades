@@ -31,9 +31,20 @@ const NORMAL_OVER: usize = 14;
 /// been coming from... if it's coming from down to up, or if it's doing a
 /// curve, or if it's going from up to down."*
 ///
-/// Four hundred is about two and a half weeks on the 1-hour and nine on the
-/// 4-hour. **The whole swing, not the last few days.**
-pub const RUN: usize = 400;
+/// **Cut from four hundred on 1 September 2026**, the same day and for the
+/// same reason as the close-up: *"reduce the candles in the first chart too,
+/// so we can see it clear."*
+///
+/// At four hundred the bodies were on their floor — 1.5 units, about 3px — so
+/// the picture was a texture rather than candles. A hundred and fifty gives
+/// 2.7 units, about 5px, and you can tell one candle from the next.
+///
+/// **It still shows the whole move**, which is its only job: on the AUD/USD
+/// hourly it is 8 days, and that carried the drop, the base, the push up, the
+/// top and the pull back into the level with room to spare.
+///
+/// About 8 days on the 1-hour, 25 on the 4-hour, 7 months on the daily.
+pub const RUN: usize = 150;
 
 /// How many candles **the close-up** shows, the one carrying the red ring.
 ///
@@ -170,7 +181,7 @@ async fn send(
 
     // **Three pictures, and each answers a different question.**
     //
-    //     the run       400 candles, no ring    where price CAME FROM
+    //     the run      150 candles, no ring    where price CAME FROM
     //     the close-up   45 candles, red ring   where the shape PRINTED
     //     the card      the shape itself        WHAT it was
     //

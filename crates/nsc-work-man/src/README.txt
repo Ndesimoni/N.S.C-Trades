@@ -26,6 +26,11 @@ THE FILES
   retry/        Doing a job again when the trouble says it is worth it. Here
                 and not in nsc-core because it SLEEPS — waiting is doing.
 
+  web.rs        THE ONE HTTP CLIENT, and the timeouts on it. It was
+                reqwest::Client::new(), which sets none at all, so a request
+                that hung hung forever — and retry/ cannot save that, because
+                retrying answers an error and a hang is not an error.
+
   places.rs     WHERE THINGS ARE — his inbox, the settings files, and where
                 cards are drawn. One place, because his chat id was written
                 out in three files and config/pairs in five. None of them

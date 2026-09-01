@@ -41,7 +41,7 @@ const WHILE_QUIET: std::time::Duration = std::time::Duration::from_secs(60);
 pub async fn run() -> Result<()> {
     crate::secrets::load();
 
-    let client = reqwest::Client::new();
+    let client = crate::web::client();
     let thickness = load_thickness(Path::new(THICKNESS))?;
     let calendar = when::load(Path::new(CALENDAR))?;
 

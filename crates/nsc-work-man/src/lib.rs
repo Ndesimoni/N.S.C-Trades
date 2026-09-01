@@ -18,3 +18,4 @@ pub mod review;
 pub mod secrets;
 pub mod telegram;
 pub mod watch;
+pub mod web;

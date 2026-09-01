@@ -35,3 +35,10 @@ mod words;
 
 pub use hearing::run;
 pub use talking::plainly;
+
+/// **How many seconds Telegram is asked to hold a poll open** before
+/// answering "nothing new".
+///
+/// Thirty makes the inbox one request every half minute rather than hundreds.
+/// [`web::AT_MOST`](crate::web::AT_MOST) must stay longer than this.
+pub const HELD_OPEN: u64 = 30;

@@ -19,7 +19,7 @@ use nsc_work_man::{review, telegram};
 async fn main() -> Result<()> {
     nsc_work_man::secrets::load();
 
-    let client = reqwest::Client::new();
+    let client = nsc_work_man::web::client();
 
     // TWS or IB Gateway has to be running. Every candle comes from it.
     let ibkr = IbkrConnection::connect().await?;

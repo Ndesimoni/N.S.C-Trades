@@ -50,7 +50,7 @@ pub const NORMAL_OVER: usize = 14;
 async fn main() -> Result<()> {
     nsc_work_man::secrets::load();
 
-    let client = reqwest::Client::new();
+    let client = nsc_work_man::web::client();
     let wanted = std::env::args().nth(1).unwrap_or_else(|| "XAUUSD".into());
 
     // The trouble cards are the only ones that need no candles at all, so they

@@ -53,7 +53,7 @@ pub fn to_terminal(found: &[Found]) {
 /// ten seconds of Chrome each; this is one message he can read in a glance.
 /// The cards are for a single thing that happened, not for a sweep.
 pub async fn to_telegram(found: &[Found]) -> Result<()> {
-    let client = reqwest::Client::new();
+    let client = nsc_work_man::web::client();
     let hits: usize = found.iter().map(|one| one.at_zones.len()).sum();
 
     let mut lines = Vec::new();

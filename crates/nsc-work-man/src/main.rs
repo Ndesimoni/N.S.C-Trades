@@ -34,7 +34,7 @@ async fn main() -> Result<()> {
     // He has to be told, because from his side a bot that stopped looks
     // exactly like a market where nothing happened.
     eprintln!("Stopping: {trouble:#}");
-    nsc_work_man::watch::dying(&reqwest::Client::new(), &format!("{trouble:#}")).await;
+    nsc_work_man::watch::dying(&nsc_work_man::web::client(), &format!("{trouble:#}")).await;
 
     Err(trouble)
 }

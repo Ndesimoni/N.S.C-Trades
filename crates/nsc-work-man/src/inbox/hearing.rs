@@ -38,11 +38,15 @@ async fn listen(
     asked::register(client, &token).await;
 
     loop {
-        // `timeout=30` makes Telegram hold the line open rather than answering
-        // "nothing" instantly. One request every thirty seconds, not hundreds.
+        // Telegram holds the line open rather than answering "nothing"
+        // instantly. One request every thirty seconds, not hundreds.
+        //
+        // **`web::AT_MOST` has to be longer than this**, or every poll is cut
+        // short and reads as Telegram being unreachable.
         let url = format!(
-            "https://api.telegram.org/bot{token}/getUpdates?offset={}&timeout=30",
-            seen_up_to + 1
+            "https://api.telegram.org/bot{token}/getUpdates?offset={}&timeout={}",
+            seen_up_to + 1,
+            crate::inbox::HELD_OPEN
         );
 
         let reply: Value = client

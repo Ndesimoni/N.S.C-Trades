@@ -211,7 +211,14 @@ fn newest(
 
     for end in (oldest..=all.len()).rev() {
         let upto = &all[..end];
-        let normal = normal_candle(upto, NORMAL_OVER)?;
+
+        // **Skip a window that cannot be measured; do not abandon the search.**
+        // It was `?`, which returned out of the whole function — so one
+        // unmeasurable window would have reported the pair as quiet rather
+        // than carrying on to the next.
+        let Some(normal) = normal_candle(upto, NORMAL_OVER) else {
+            continue;
+        };
 
         if let Some(signal) = look(upto, bands, normal, patterns, rules) {
             return Some((end, signal));

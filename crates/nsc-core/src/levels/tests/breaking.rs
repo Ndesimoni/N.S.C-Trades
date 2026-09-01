@@ -187,3 +187,41 @@ fn a_break_is_judged_by_the_candle_not_by_the_ticker() {
         "it opened below and closed above — that is the break"
     );
 }
+
+/// **A candle opening exactly ON the edge opened INSIDE the band.**
+///
+/// `Band::holds` is inclusive — `price >= bottom && price <= top` — so the top
+/// and the bottom belong to the band. [`came_from`] has to agree, or a candle
+/// opening on the line would be judged as having come from outside it.
+///
+/// It does agree, because it asks `open > top` and `open < bottom`. Nothing
+/// pinned that until the 1 September read-back, and a boundary nobody has
+/// written down is the kind that gets "tidied" the wrong way later.
+#[test]
+fn an_open_exactly_on_the_edge_counts_as_inside() {
+    let band = gold();
+
+    assert!(band.holds(band.top), "the top belongs to the band");
+    assert!(band.holds(band.bottom), "so does the bottom");
+
+    assert_eq!(
+        came_from(&band, &bar(band.top, d("4200"))),
+        None,
+        "it opened on the top, which is inside — it came from nowhere"
+    );
+    assert_eq!(
+        came_from(&band, &bar(band.bottom, d("4000"))),
+        None,
+        "and the same on the bottom"
+    );
+
+    // A hair outside, and it has a side again.
+    assert_eq!(
+        came_from(&band, &bar(band.top + d("0.01"), d("4200"))),
+        from_above()
+    );
+    assert_eq!(
+        came_from(&band, &bar(band.bottom - d("0.01"), d("4000"))),
+        from_below()
+    );
+}

@@ -28,19 +28,19 @@
 
 use std::collections::HashMap;
 
-use anyhow::Result;
 use nsc_data::source::Price;
 
 use super::Watching;
 
-pub fn heard(watching: &mut HashMap<String, Watching>, heard: Price) -> Result<()> {
+/// **It cannot fail, and the signature says so.** It returned a `Result` while
+/// it was still drawing and sending a card. Nothing here reaches anything now,
+/// so a caller writing `?` would be handling something that cannot happen.
+pub fn heard(watching: &mut HashMap<String, Watching>, heard: Price) {
     // A pair he stopped watching while the line was open. Its subscription
     // outlives the decision by a moment.
     let Some(seen) = watching.get_mut(&heard.symbol) else {
-        return Ok(());
+        return;
     };
 
     seen.watch.saw(heard.mid);
-
-    Ok(())
 }

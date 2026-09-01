@@ -66,7 +66,7 @@ pub async fn listen(
                         // greeting used to run first, find nothing, send
                         // nothing — and mark the session greeted. The report of
                         // where price already stood never came at all.
-                        prices::heard(watching, price)?;
+                        prices::heard(watching, price);
 
                         kit.awake
                             .greet(client, watching, thickness, calendar, &mut kit.pulse)

@@ -115,10 +115,11 @@ async fn one_pair(
     // candle drawn. With nothing found it ends at today and wears no ring.
     let end = found.as_ref().map_or(all.len(), |(at, _)| *at);
     let signal = found.map(|(_, one)| one);
+    // **Everything up to the shape, handed over whole.** `card::render` keeps
+    // the last RUN of them and `render_ringed` the last CONTEXT, so slicing
+    // here as well would be a second place to get it wrong — which is exactly
+    // how the review chart came to draw three hundred.
     let history = &all[..end];
-
-    let last =
-        |many: usize| -> Vec<&Bar> { history[history.len().saturating_sub(many)..].to_vec() };
 
     let ring = signal.as_ref().map(|one| one.shape.candles());
 
@@ -129,7 +130,7 @@ async fn one_pair(
     let mut pictures = vec![
         card::render(
             "chart.html",
-            &last(RUN),
+            history,
             &bands,
             &pair.symbol,
             "1h",
@@ -138,7 +139,7 @@ async fn one_pair(
         )?,
         card::render_ringed(
             "chart.html",
-            &last(CONTEXT),
+            history,
             &bands,
             &pair.symbol,
             "1h",
@@ -155,7 +156,7 @@ async fn one_pair(
         pictures.push(card::setup(
             found,
             &pair,
-            &last(found.shape.candles()),
+            &history[history.len().saturating_sub(found.shape.candles())..],
             "1h",
             &history[history.len() - 1].datetime,
             &PathBuf::from(PREVIEW).join(format!("setup-{stem}.png")),

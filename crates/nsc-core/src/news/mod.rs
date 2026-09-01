@@ -20,7 +20,7 @@
 //!
 //! ## Why a window and not "is it soon"
 //!
-//! An event earns a message between `warn_minutes` before it and
+//! An event earns a message between the widest `warn_at_minutes` before it and
 //! `stale_minutes` after. The far edge is the one that matters: without it,
 //! a bot restarting at two in the afternoon finds a file full of this
 //! morning's releases and sends every one of them at once.
@@ -36,7 +36,7 @@ mod span;
 mod tests;
 
 pub use away::away_words;
-pub use due::{due, minutes_until, together};
+pub use due::{due, due_at, minutes_until, together};
 pub use event::Event;
 pub use impact::Impact;
 pub use rules::{NewsError, Rules, load};

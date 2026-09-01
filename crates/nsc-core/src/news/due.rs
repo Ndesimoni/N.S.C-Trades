@@ -9,26 +9,75 @@ pub fn minutes_until(event: &Event, now: DateTime<Utc>) -> i64 {
     (event.at - now).num_minutes()
 }
 
-/// Does this event earn a message right now?
+/// **Which warning is live for this event right now**, in minutes before it —
+/// or nothing, if none is.
 ///
-/// **A window with two edges, and the far one is the important one.**
+/// `warn_at_minutes = [30, 5]` gives a heads-up half an hour out and a last
+/// call five minutes out. His ask, 1 September 2026.
 ///
-/// The near edge is obvious: say something `warn_minutes` before. The far edge
-/// is what stops a restart being a disaster. Come back up at two in the
-/// afternoon and the week's file is full of this morning — without the far
-/// edge every one of those is "coming up" and they all arrive at once.
+/// ## One mark at a time, and that is what makes two cards work
 ///
-/// So: from `warn_minutes` before until `stale_minutes` after, and silence on
-/// either side of that.
-pub fn due(event: &Event, now: DateTime<Utc>, rules: &Rules) -> bool {
+/// Each mark owns the stretch from where it opens until the next one takes
+/// over. The last one runs on past the event by `stale_minutes`:
+///
+/// ```text
+///     30  ├──────────────────────┤              at-30 up to at-5
+///      5                         ├────────┤     at-5 through at+5
+///                                    ↑
+///                                the event
+/// ```
+///
+/// **They never overlap**, so "which card is this" always has one answer, and
+/// the caller can remember having sent each one separately. Windows that both
+/// stayed open would make the second card either impossible to tell from the
+/// first or impossible to send at all.
+///
+/// **THE FAR EDGE IS THE IMPORTANT ONE**, and it belongs to the last mark.
+/// Come back up at two in the afternoon and the week's file is full of this
+/// morning — without it every one of those is "coming up" and they all arrive
+/// at once. A restart just after a release finds only the last mark live, and
+/// that is the right card: five minutes to it is the news, half an hour ago is
+/// history.
+pub fn due_at(event: &Event, now: DateTime<Utc>, rules: &Rules) -> Option<i64> {
     if !rules.wants(event.impact) {
-        return false;
+        return None;
     }
 
-    let opens = event.at - Duration::minutes(rules.warn_minutes);
-    let shuts = event.at + Duration::minutes(rules.stale_minutes);
+    // **Tidied here rather than trusted from the file.** A trader writing
+    // `[5, 30]` or `[30, 30, 5]` means the obvious thing, and the windows
+    // below only line up if the marks run widest first with no repeats.
+    let mut marks: Vec<i64> = rules.warn_at_minutes.clone();
+    marks.sort_unstable();
+    marks.dedup();
+    marks.reverse();
 
-    now >= opens && now <= shuts
+    for (which, mark) in marks.iter().enumerate() {
+        let opens = event.at - Duration::minutes(*mark);
+
+        match marks.get(which + 1) {
+            // A narrower mark takes over where this one ends.
+            Some(next) => {
+                if now >= opens && now < event.at - Duration::minutes(*next) {
+                    return Some(*mark);
+                }
+            }
+
+            // The last one, and the only one that outlives the event.
+            None => {
+                if now >= opens && now <= event.at + Duration::minutes(rules.stale_minutes) {
+                    return Some(*mark);
+                }
+            }
+        }
+    }
+
+    None
+}
+
+/// Does this event earn a message right now? For anything that does not care
+/// **which** warning it is.
+pub fn due(event: &Event, now: DateTime<Utc>, rules: &Rules) -> bool {
+    due_at(event, now, rules).is_some()
 }
 
 /// Puts events that print at the same moment onto one card.

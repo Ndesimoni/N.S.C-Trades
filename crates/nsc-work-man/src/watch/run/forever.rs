@@ -93,10 +93,18 @@ pub async fn run() -> Result<()> {
     // never arrives looks exactly like a quiet week.
     match nsc_core::news::load(Path::new(NEWS)) {
         Ok(rules) => {
+            let ahead: Vec<String> = {
+                let mut marks = rules.warn_at_minutes.clone();
+                marks.sort_unstable();
+                marks.dedup();
+                marks.reverse();
+                marks.iter().map(|mark| mark.to_string()).collect()
+            };
+
             println!(
                 "Watching the economic calendar — {} events get a card {} minutes ahead.",
                 rules.impacts.join(" and ").to_lowercase(),
-                rules.warn_minutes
+                ahead.join(" and ")
             );
             tokio::spawn(crate::watch::watch_the_news(client.clone(), rules));
         }

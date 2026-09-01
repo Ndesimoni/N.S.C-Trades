@@ -7,6 +7,9 @@ THE FILES
   mod.rs      The front door.
   support.rs  The moment every test uses, an event, and the shipped settings.
   reading.rs  Reading the feed's word, and matching it to his settings.
+  marks.rs     WHICH warning is live -- the 30-minute heads-up or the
+               5-minute last call. One at a time, never both.
+
   window.rs   THE TWO EDGES. The most important tests here.
   naming.rs   Naming an event once, and grouping a release onto one card.
   README.txt  This file.

@@ -28,7 +28,7 @@ pub(super) fn rules() -> Rules {
         url: "https://example.invalid/calendar.json".into(),
         refresh_hours: 6,
         impacts: vec!["High".into(), "Medium".into()],
-        warn_minutes: 30,
+        warn_at_minutes: vec![30, 5],
         stale_minutes: 5,
     }
 }

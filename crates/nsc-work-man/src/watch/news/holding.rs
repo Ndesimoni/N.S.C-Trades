@@ -3,7 +3,7 @@
 use std::collections::HashSet;
 
 use chrono::{DateTime, Duration, Utc};
-use nsc_core::news::{Event, Rules, due, together};
+use nsc_core::news::{Event, Rules, due_at, together};
 use nsc_data::news::fetch;
 
 use super::saying;
@@ -101,7 +101,16 @@ impl Held {
         // **Forget what was said about a week that is over.** Otherwise this
         // grows for as long as the bot runs. Keeping only keys still in the
         // file prunes itself when the week rolls, with nothing to schedule.
-        let alive: HashSet<String> = parsed.events.iter().map(Event::key).collect();
+        // **Every mark of every event**, because what is remembered is "this
+        // event, at this warning" and not just the event.
+        let mut alive: HashSet<String> = HashSet::new();
+
+        for event in &parsed.events {
+            for mark in &self.rules.warn_at_minutes {
+                alive.insert(told(event, *mark));
+            }
+        }
+
         self.said.retain(|key| alive.contains(key));
 
         self.events = parsed.events;
@@ -110,10 +119,17 @@ impl Held {
 
     /// Sends a card for anything due that he has not been told about.
     async fn maybe_speak(&mut self, client: &reqwest::Client, now: DateTime<Utc>) {
+        // **Which warning is live decides whether he has heard this already.**
+        // Keyed on the event alone, the half-hour card would silence the
+        // five-minute one — the card he most wants, since it is the one that
+        // arrives while he still has time to act on it.
         let ready: Vec<&Event> = self
             .events
             .iter()
-            .filter(|event| due(event, now, &self.rules) && !self.said.contains(&event.key()))
+            .filter(|event| match due_at(event, now, &self.rules) {
+                Some(mark) => !self.said.contains(&told(event, mark)),
+                None => false,
+            })
             .collect();
 
         if ready.is_empty() {
@@ -128,11 +144,22 @@ impl Held {
                 // send would lose the warning for good — the same mistake the
                 // heartbeat made, where marking it early silenced it for a
                 // whole day.
-                Ok(()) => spoken.extend(group.iter().map(|event| event.key())),
+                Ok(()) => spoken.extend(group.iter().filter_map(|event| {
+                    due_at(event, now, &self.rules).map(|mark| told(event, mark))
+                })),
                 Err(trouble) => eprintln!("Could not send the news card: {trouble:#}"),
             }
         }
 
         self.said.extend(spoken);
     }
+}
+
+/// What one warning about one event is remembered as.
+///
+/// **The mark is part of it**, so a heads-up half an hour out does not silence
+/// the last call five minutes out. They are two different messages about the
+/// same release and he asked for both.
+fn told(event: &Event, mark: i64) -> String {
+    format!("{}@{mark}", event.key())
 }

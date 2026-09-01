@@ -46,12 +46,23 @@ refresh_hours = 6
 impacts = ["High", "Medium"]
 
 
-# ── How long before ─────────────────────────────────────────────────────────
+# ── How long before, and it is a LIST ───────────────────────────────────────
 #
-# Thirty minutes. Long enough to close something or stand aside, short enough
-# that it is still in mind when the number prints.
+# TWO CARDS FOR ONE RELEASE. His ask, 1 September 2026: "five minutes to the
+# news, the card has to pop up again."
+#
+#   30   the heads-up. Long enough to close something or stand aside.
+#    5   the last call. Short enough that there is no time to forget it.
+#
+# One is live at a time. The 30 covers from half an hour out down to five
+# minutes out, then the 5 takes over and runs on past the release by
+# stale_minutes below. They never overlap, which is what lets the second card
+# be told apart from the first.
+#
+# Add or remove numbers freely. Order does not matter and a repeat is
+# harmless -- both are tidied before use.
 # ───────────────────────────────────────────────────────────────────────────
-warn_minutes = 30
+warn_at_minutes = [30, 5]
 
 
 # ── Do not warn about something that already happened ───────────────────────
@@ -59,8 +70,12 @@ warn_minutes = 30
 # THE RESTART CASE. The bot comes back at 14:00 and the file is full of events
 # from this morning. Without this it sends the lot, all at once, all useless.
 #
-# So an event only earns a message while it is between warn_minutes away and
+# So an event only earns a message between the widest warn_at_minutes away and
 # stale_minutes past. Outside that window it is history and it says nothing.
+#
+# THE LAST MARK IS THE ONE THAT OUTLIVES THE RELEASE, so a restart just after a
+# number prints gets the five-minute card and not the half-hour one. Five
+# minutes to it is news; half an hour ago is history.
 #
 # Five minutes, because an event that just fired is still worth knowing about
 # and one from this morning is not. Same reason the zone alert separates

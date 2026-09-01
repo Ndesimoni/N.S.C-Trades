@@ -24,8 +24,20 @@ pub struct Rules {
     /// Which ratings earn a message, spelled as the calendar spells them.
     pub impacts: Vec<String>,
 
-    /// How long before an event to say something.
-    pub warn_minutes: i64,
+    /// **How many minutes before an event to say something, and it is a
+    /// list.**
+    ///
+    /// `[30, 5]` is a heads-up half an hour out and a last call five minutes
+    /// out. His ask, 1 September 2026: *"five minutes to the news, the card
+    /// has to pop up again."*
+    ///
+    /// One mark is live at a time — see `due.rs`. The card each one draws is
+    /// the same card; it simply says a different number of minutes, because it
+    /// works that out from the clock rather than from the setting.
+    ///
+    /// Order does not matter, and a repeat is harmless. Both are tidied in
+    /// `due.rs` rather than trusted from the file.
+    pub warn_at_minutes: Vec<i64>,
 
     /// How long after one it is still worth mentioning. See `due.rs` — this is
     /// the edge that makes a restart survivable.

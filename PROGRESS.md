@@ -79,7 +79,7 @@ nsc-work-man    everything that reaches
 > 30 August.
 >
 > ```text
->     the run      150 candles, no ring    where price CAME FROM
+>     the run      200 candles, no ring    where price CAME FROM
 >     the close-up   45 candles, red ring   where the shape PRINTED
 >     the card      the shape itself        WHAT it was
 > ```

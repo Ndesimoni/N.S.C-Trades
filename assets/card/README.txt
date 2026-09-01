@@ -97,7 +97,7 @@ THE FILES
 \1
                 THREE PICTURES SINCE 30 AUGUST, sent as one bundle:
 
-                  the run      150 candles, no ring   where price CAME FROM
+                  the run      200 candles, no ring   where price CAME FROM
                   the close-up   45 candles, red ring  where it PRINTED
                   this card     the shape itself       WHAT it was
 

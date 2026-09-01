@@ -1,9 +1,11 @@
-//! **What a close at a level is worth** — a break, or a rejection.
+//! **What a close at a level is worth** — a break, and nothing else.
 //!
-//! Settled with him on 31 August 2026. A candle that broke through the way
-//! price was travelling is news. One that was thrown back where it came from
-//! is not — it still reaches him as a setup if a shape printed, which is the
-//! message that was actually about it.
+//! Settled with him on 1 September 2026: *"we should only get alerts if the
+//! price came from below the band level and closed above it, and vice versa."*
+//!
+//! A candle thrown back where it came from says nothing here. It still reaches
+//! him as a setup if a shape printed, which is the message that was actually
+//! about it.
 
 use super::super::{AtZone, Watch, came_from};
 use super::support::{aussie, bar, d, from_above, from_below, gold, share};
@@ -12,31 +14,20 @@ fn watching() -> Watch {
     Watch::over(vec![gold()], share())
 }
 
-/// **A close is the only thing that follows an approach.**
+/// **A break speaks, and then only a break the other way does.**
 ///
-/// His sequence, 31 August 2026: approaching, then the candle closes below,
-/// then silence however often price comes back — until a candle closes ABOVE.
+/// His sequence: the candle closes below, then silence however often price
+/// comes back — until a candle closes ABOVE.
 #[test]
-fn a_close_speaks_and_then_only_a_different_close_does() {
+fn a_break_speaks_and_then_only_a_break_back_does() {
     let mut watch = Watch::over(vec![aussie()], share());
     let band = aussie();
-
-    watch.arrive(d("0.71800"));
-    assert_eq!(watch.arrive(d("0.71390")).len(), 1, "approaching");
 
     // The candle fell in from above and closed below. A break, so it speaks.
     assert!(
         watch.closed(&band, "4h", AtZone::ClosedBelow, from_above()),
         "closed below"
     );
-
-    // Later candles come back to the level. Silence — his exact complaint.
-    watch.arrive(d("0.71300"));
-    assert!(
-        watch.arrive(d("0.71390")).is_empty(),
-        "coming back is silent"
-    );
-    assert!(watch.arrive(d("0.71390")).is_empty(), "and again");
 
     // Another candle wicks up into the level and is thrown back. It opened
     // below and closed below, so it broke nothing — silence.
@@ -45,7 +36,7 @@ fn a_close_speaks_and_then_only_a_different_close_does() {
         "thrown back where it came from is not news"
     );
 
-    // A close ABOVE is a different ending. This he wants.
+    // A candle that opens below and closes above. This he wants.
     assert!(
         watch.closed(&band, "4h", AtZone::ClosedAbove, from_below()),
         "closed above"
@@ -61,21 +52,14 @@ fn the_daily_and_the_four_hour_each_speak() {
     let mut watch = Watch::over(vec![aussie()], share());
     let band = aussie();
 
-    // Price is below, and rises into the level.
-    watch.arrive(d("0.71000"));
-    watch.arrive(d("0.71390"));
-
-    // A 4-hour candle breaks up through it.
     assert!(
         watch.closed(&band, "4h", AtZone::ClosedAbove, from_below()),
         "a break up"
     );
 
-    // A daily candle later breaks back down. Different direction, so news —
-    // and on its own timeframe.
     assert!(
         watch.closed(&band, "1d", AtZone::ClosedBelow, from_above()),
-        "a break down"
+        "a break back down, on its own timeframe"
     );
 }
 
@@ -88,7 +72,6 @@ fn a_candle_that_opened_where_it_closed_broke_nothing() {
     let mut watch = Watch::over(vec![aussie()], share());
     let band = aussie();
 
-    watch.arrive(d("0.71000"));
     assert!(
         watch.closed(&band, "4h", AtZone::ClosedAbove, from_below()),
         "a break up"
@@ -109,8 +92,8 @@ fn a_candle_that_opened_where_it_closed_broke_nothing() {
 
 /// **A rejection is silent, and that is his call.**
 ///
-/// 31 August 2026, asked directly whether he wanted a card when price is
-/// thrown back where it came from: *"I do not want a notification on it."*
+/// Asked directly whether he wanted a card when price is thrown back where it
+/// came from: *"I do not want a notification on it."*
 ///
 /// It is not lost — a shape printing there still reaches him as a setup.
 #[test]
@@ -118,11 +101,7 @@ fn being_thrown_back_says_nothing() {
     let mut watch = Watch::over(vec![aussie()], share());
     let band = aussie();
 
-    // Price is below and rises into the level.
-    watch.arrive(d("0.71000"));
-    watch.arrive(d("0.71390"));
-
-    // The candle is refused and closes back below. Silence.
+    // Price came up from below, was refused, and closed back below.
     assert!(
         !watch.closed(&band, "4h", AtZone::ClosedBelow, from_below()),
         "rejected back where it came from is not a card"
@@ -135,36 +114,21 @@ fn being_thrown_back_says_nothing() {
     );
 }
 
-/// **A candle settling inside the zone always speaks**, whichever way price
-/// came. His call: *"within the zone stays same."*
+/// **A candle settling inside the zone is not a break.**
+///
+/// `worth_a_card` still passes it — it is `only_breaks` in
+/// `config/levels.toml` that stops it, and that setting is `true` since
+/// 31 August 2026. **This test pins the switch, not the behaviour**: flip that
+/// line and these are the cards that come back.
 #[test]
-fn settling_inside_the_zone_still_speaks() {
+fn settling_inside_the_zone_is_what_only_breaks_turns_off() {
     let mut watch = Watch::over(vec![aussie()], share());
     let band = aussie();
 
-    watch.arrive(d("0.71000"));
     assert!(watch.closed(&band, "4h", AtZone::ClosedInside, from_below()));
 
-    // But not twice in a row.
+    // And not twice in a row, whatever the setting says.
     assert!(!watch.closed(&band, "4h", AtZone::ClosedInside, from_below()));
-}
-
-/// **Any close on any timeframe ends the approach card for good.**
-///
-/// Price being near a line stops being news the moment the line has a story.
-#[test]
-fn a_close_on_any_timeframe_silences_the_approach() {
-    let mut watch = Watch::over(vec![aussie()], share());
-    let band = aussie();
-
-    // A daily close, before price has ever been reported as approaching.
-    watch.closed(&band, "1d", AtZone::ClosedAbove, from_below());
-
-    watch.arrive(d("0.71800"));
-    assert!(
-        watch.arrive(d("0.71390")).is_empty(),
-        "the level already has a story"
-    );
 }
 
 // ── The two bugs found on the 31 August read-back ──
@@ -181,26 +145,23 @@ fn a_close_on_any_timeframe_silences_the_approach() {
 fn a_band_price_has_broken_clear_of_is_still_worth_reporting() {
     let mut watch = watching();
 
-    watch.arrive(d("4000"));
-    watch.arrive(d("4100"));
+    // The candle closed above and price has run on well clear of the band.
+    watch.saw(d("4150"));
 
-    // The candle closes above and price runs on past the reset line.
-    watch.arrive(d("4150"));
-
-    assert!(
-        watch.bands().iter().any(|one| one.price == gold().price),
-        "the level did not stop existing because price left it"
-    );
     assert!(
         watch.resting_at().is_empty(),
-        "and price really has gone — which is why resting_at was the wrong list"
+        "price really has gone — which is why resting_at was the wrong list"
+    );
+    assert!(
+        watch.bands().iter().any(|one| one.price == gold().price),
+        "but the level did not stop existing because price left it"
     );
 }
 
 /// **The close must be judged by the CANDLE, not by where the ticker is now.**
 ///
 /// Same race, one layer down. Price came up from below, so a close above is a
-/// break. But by the time the poll runs, the ticker has moved the remembered
+/// break. But by the time the poll ran, the ticker had moved the remembered
 /// side to Above — so the break read as a rejection and went quiet.
 ///
 /// The candle's own open answers it and cannot race: it is a fact about a
@@ -210,10 +171,8 @@ fn a_band_price_has_broken_clear_of_is_still_worth_reporting() {
 fn a_break_is_judged_by_the_candle_not_by_the_ticker() {
     let mut watch = watching();
 
-    // Price rises from below, into the zone, then breaks out the top.
-    watch.arrive(d("4000"));
-    watch.arrive(d("4100"));
-    watch.arrive(d("4150"));
+    // The ticker has already carried price above the band.
+    watch.saw(d("4150"));
 
     // The candle that did it opened below the band and closed above it.
     let broke = bar(d("4000"), d("4150"));

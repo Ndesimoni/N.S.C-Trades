@@ -1,9 +1,14 @@
 //! What an alert says.
 //!
+//! **Only one thing sends one now**: the report made when watching resumes,
+//! saying which zones price was ALREADY sitting in. Price arriving at a level
+//! was rung 1 until 1 September 2026, when he asked for it to go — see
+//! `watch/prices.rs`.
+//!
 //! **An alert is not a signal.** No entry, no stop, no target — because there
-//! is no trade. Price has arrived where he would be waiting and nothing has
-//! formed. If these two ever start looking alike, the price watcher has
-//! quietly become a strategy nobody reviewed.
+//! is no trade. Price is where he would be waiting and nothing has formed. If
+//! these two ever start looking alike, the price watcher has quietly become a
+//! strategy nobody reviewed.
 //!
 //! The words live here, in the crate that cannot reach anything, so they can
 //! be read and tested without a network or a browser.
@@ -25,6 +30,11 @@ use crate::candle::timeframe_name;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum News {
     /// It just happened, and we saw it.
+    ///
+    /// **Nothing in the live bot sends this any more.** The card it words was
+    /// rung 1, and rung 1 went on 1 September 2026. It is still reachable from
+    /// `--bin cards`, which is how the card art gets looked at, and it is the
+    /// wording approach alerts would use if they ever came back.
     Fresh,
 
     /// It was already so when watching resumed.

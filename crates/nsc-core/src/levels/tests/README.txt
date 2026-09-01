@@ -26,13 +26,18 @@ THE FILES
 
   stopping.rs  Setting a whole pair aside, and putting it back.
 
-  watching.rs  Firing once per touch, not once per price — and the two
-               different distances for arriving and leaving.
+  nearing.rs   How close counts as being AT a band — a twentieth of that
+               band's own thickness. Only the report sent when watching
+               resumes reads this now.
 
   breaking.rs  What a CLOSE at a level is worth. A candle that broke through
                the way price was travelling is news; one thrown back where it
-               came from is not. Split out of watching.rs on 31 August 2026,
-               when that file reached 311 lines of code against a 170 limit.
+               came from is not, and neither is one that settled inside.
+
+               Split out of watching.rs on 31 August 2026. watching.rs
+               itself went the next day: it tested "one alert per visit to
+               a level", and there are no alerts for arriving at a level
+               any more.
 
   support.rs   The scratch folder, the price helper, the two bands the tests
                are written against — his gold weekly and his AUD/USD daily —
@@ -69,12 +74,17 @@ THE ONE THAT WOULD HAVE BEEN MISSED
 
 THE ONE THAT IS EASIEST TO GET WRONG
 
-  watching.rs::leaving_takes_more_than_it_took_to_arrive.
+  breaking.rs::a_break_is_judged_by_the_candle_not_by_the_ticker.
 
-  ARRIVING and LEAVING are measured differently — a pip to arrive, a tenth of
-  the band to leave — and it would be very natural to tidy that into one
-  number. That test fails the moment anyone does, which was checked by making
-  the change and watching it go red.
+  Which side a candle CAME FROM is read off its own open. It would be very
+  natural to take it from the live price instead -- the watcher has one, and it
+  feels more current. It is not: the ticker and the candle poll are seconds
+  apart, and in those seconds a break has already moved price to the other
+  side, so every break reads as a rejection and goes silent.
+
+  That test fails the moment anyone does it, which was checked by making the
+  change and watching it go red. It is also why a backtest can run this at all
+  -- there is no ticker there.
 
 
 WHY saving.rs WRITES REAL FILES

@@ -35,7 +35,12 @@ daily = 0.46
 # visible.
 h4 = 0.55
 
-# ── How close counts as arriving at a band ─────────────────────────────────
+# ── How close counts as being AT a band ────────────────────────────────────
+#
+# ONE THING READS THIS: the report sent when watching resumes, which says which
+# zones price is already sitting in. Price REACHING a level stopped being a
+# message on 31 August 2026 -- "when price is getting to a level we do not want
+# an alert, so remove the card."
 #
 # A SHARE OF THAT BAND'S OWN THICKNESS. It was written in pips until
 # 31 August 2026 and it was the last distance in this project that was.
@@ -58,9 +63,6 @@ h4 = 0.55
 # already hours of movement from the line he drew -- about three hours on his
 # gold weekly and six on the pound -- so the warning is the band's job and this
 # is only so the edge is not a knife-edge.
-#
-# It is also deliberately SMALLER than the tenth a band must be cleared by, so
-# the way home always starts outside the way in. See levels/watch.rs.
 #
 # ANY PAIR CAN OVERRIDE IT with its own `approach_share` under config/pairs/.
 # ───────────────────────────────────────────────────────────────────────────
@@ -100,21 +102,26 @@ kiss_depth = 0.25
 
 # ── Which closes are worth a card ───────────────────────────────────────────
 #
-# ONLY WHEN THE CANDLE FINISHED OUTSIDE THE BAND. His call, 26 August 2026.
+# ONLY WHEN THE CANDLE FINISHED OUTSIDE THE BAND.
 #
-# A candle that touched the zone and settled INSIDE it is the most common of
-# the three outcomes and the one that says least — price is there, undecided,
-# and the approach alert already told him that. A card as well is the same news
-# twice, and a message he stops opening is a message he misses when it matters.
+# HIS WORDS, 1 SEPTEMBER 2026: "we should only get alerts if the price came from
+# below the band level and closed above it, and vice versa."
 #
-# IT DOES NOT LOSE THE REJECTION, which is the thing that mattered. A wick into
-# the zone that closed back out finishes ABOVE or BELOW the band, so it still
-# sends — "a wick counts" is untouched.
+# A candle that touched the zone and settled INSIDE it is not a break. It is
+# the most common of the three outcomes and the one that says least: price is
+# there, undecided. It used to send anyway, because the approach card had
+# already named the level and this finished the thought. THE APPROACH CARD IS
+# GONE, so there is no thought left to finish.
 #
-# Set it to false to hear about every candle that touched a zone, however it
-# ended. That is the old behaviour.
+# NOTHING IS LOST. A wick into the zone that closed back out finishes ABOVE or
+# BELOW the band, so a real break still sends. And a shape he trades printing
+# in that zone reaches him as a SETUP either way — that is rung 3, and he asked
+# for it to stay exactly as it is.
+#
+# THIS IS THE ONE LINE TO FLIP if the bot goes too quiet. Set it to false and
+# every candle that touched a zone reports what it did there.
 # ───────────────────────────────────────────────────────────────────────────
-only_breaks = false
+only_breaks = true
 
 
 # ── Which timeframes send a CLOSE card ──────────────────────────────────────

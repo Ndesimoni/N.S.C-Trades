@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Five crates · 358 tests · clippy clean · it watches his levels, says what
+**Five crates · 348 tests · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -103,6 +103,21 @@ nsc-work-man    everything that reaches
 >     later candles come back          silence
 >     a candle closes ABOVE            closed above   <- this he wants
 > ```
+>
+> **RUNG 1 IS GONE.** 1 September 2026: *"when price is getting to a level we
+> do not want an alert, so remove the card. We should only get alerts if the
+> price came from below the band level and closed above it, and vice versa. As
+> for the setups, candlestick patterns, it stays the same."*
+>
+> Two messages are left in the whole bot: a candle that **broke** a level, and
+> a **shape** he trades at one. A candle settling inside a zone went quiet with
+> it — `only_breaks = true`.
+>
+> **The machinery went with the card**, rather than being left lying around
+> looking load-bearing: the "deepest price got this visit" per band, the wider
+> distance for leaving than arriving, and the "has this level ever spoken"
+> flag. All three existed so one visit fired one alert. No alert, nothing to
+> count. Ten tests went with them — they pinned a rule that no longer exists.
 >
 > **The close is judged by the CANDLE'S OWN OPEN**, never by where the tick
 > stream happens to be. Those are two different clocks: a 4-hour candle closes
@@ -274,33 +289,35 @@ without waiting for it to happen. That was the last plain-text message going.
 
 ---
 
-## Rung 1 — price at a zone — [x]
+## Rung 1 — price at a zone — **REMOVED 1 September 2026**
 
-- [x] **A level is a band, not a line.** Price does not stop at a number, it
-      turns somewhere near one
-- [x] **It fires on a touch** — `approach_pips = 4.0`, and a pip comes from
-      each pair's `digits`, so one setting means the same everywhere
-- [x] **Any pair can overrule it** with its own `approach_pips`. Four pips is
-      two minutes of gold and an hour of euro
-- [x] **And no wider, because the band is already the early warning.** Its
-      outer edge is ~3 hours of movement from his line on gold, 6 on the pound.
-      A first attempt added a quarter of a band on top and fired *nine hours*
-      early. [`docs/diagrams/how-close.html`](docs/diagrams/how-close.html)
-- [x] **Once per touch, not once per price.** Prices arrive about once a second
-      and barely move; without the rule one visit is twenty alerts
-- [x] **Leaving is measured differently from arriving** — a tenth of the band,
-      about 8 points on gold. Easy to trigger, hard to reset
-- [x] **The first price never fires.** It says where price *is*, not that it
-      arrived — it may have been sitting there for hours
-- [x] **It speaks when price gets DEEPER** — near, then in. Two messages per
-      visit and never more. Entering used to say nothing at all: coming near
-      marked the band as reached, so walking in was not a change, and he heard
-      *"coming up on your zone"* then waited up to an hour for a candle
-- [x] **Wobbling at the edge is still silent**, because it never gets deeper
-      than it already was
-- [x] **Three states, and the card says which**: *approaching*, *in the zone*,
-      and *already in the zone* — the last for what it **found** on waking, so
-      a Monday move never gets a Tuesday clock
+> *"When price is getting to a level we do not want an alert, so remove the
+> card. We should only get alerts if the price came from below the band level
+> and closed above it, and vice versa."*
+
+**It worked. It was not wanted.** The card fired when price reached one of his
+bands, and it went through three rounds of being made quieter — once per touch,
+then once per visit, then once per level ever — before the honest answer turned
+up: **he drew the line, so he knows where it is.** What he cannot see without
+sitting at the screen is a candle finishing on the other side of it.
+
+What went with it, because nothing else used any of it:
+
+- the "deepest price has got this visit" kept per band
+- the leaving distance measured wider than the arriving one, so one visit could
+  not fire twice
+- the "has this level ever spoken" flag
+- the first-price rule, which existed so starting the bot inside a zone did not
+  look like an arrival
+
+All four existed to make one visit produce one alert. No alert, nothing to
+count. In git at `99ed9f1` if it ever comes back.
+
+**What survives:** the band itself, which rung 2 and rung 3 both need; how
+close counts as being at one, still a share of that band's own thickness; and
+the greeting, which says where price already stood when watching resumed. The
+greeting is not an alert about price arriving — it is the state of things after
+a restart, and he is the one restarting.
 
 ## Rung 2 — what the candle did — [x]
 

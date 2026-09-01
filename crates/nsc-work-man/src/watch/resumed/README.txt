@@ -61,7 +61,7 @@ THE OPENING HOURS ARE WATCHED, NOT SPOKEN ABOUT
   close.
 
   It is not asleep. Prices come down the line and are checked against the
-  bands exactly as always, so `arrive` keeps its record of where price is and
+  bands exactly as always, so the watcher keeps its record of where price is and
   which zones it is sitting in. Only the sending is held.
 
   WHY. The first hours of a day are where a move gets faked and taken back. A

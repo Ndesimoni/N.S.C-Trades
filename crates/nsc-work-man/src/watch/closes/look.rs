@@ -280,10 +280,10 @@ impl Closes {
                 // marked "so far" on the card's face. It was the one place in
                 // this project that read a candle still running.
                 //
-                // Taken out on 27 August 2026, his call. Two messages per zone
-                // visit and never three: the alert when price arrives, and the
-                // close when the candle finishes OUTSIDE the band. A third one
-                // in between was a heads-up about a heads-up.
+                // Taken out on 27 August 2026, his call. It was a heads-up
+                // about a heads-up: the alert had already named the level and
+                // the close was minutes away. The alert itself went on
+                // 1 September, so the message it was crowding is gone too.
                 //
                 // **Its going is worth more than the card was.** The rule that
                 // matters most here is that a candle still forming is

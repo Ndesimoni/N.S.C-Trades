@@ -9,13 +9,16 @@ WHAT THIS IS FOR
   Holds the price line open for every pair that has a levels file, and says
   what happens at his zones.
 
-  RUNGS 1 AND 2 OF THE LADDER:
+  TWO MESSAGES, AND NOTHING ELSE:
 
-      price reaches a zone       an alert card, ONCE PER VISIT
-      a candle closes there      a card PER CANDLE that touched it
+      a candle BREAKS a level    came from below and closed above, or
+                                 came from above and closed below
+      a shape he trades          at a level, or within half a band of one
 
-  Silence is the normal state. Prices arrive about once a second and almost
-  all of them are nowhere near anything.
+  Silence is the normal state, and much more of it than there used to be.
+  Price REACHING a zone was rung 1 until 1 September 2026; he asked it go.
+  Prices still come down the line about once a second and none of them says
+  anything now.
 
 
 WHY IT IS NOT A BINARY
@@ -48,8 +51,8 @@ THE FILES
   breathe.rs  Waiting between requests. IBKR allows 60 in ten minutes, and
               going over does not get refused -- it gets SLOWER.
 
-  prices.rs   Every price off the line, against the bands. Says nothing on the
-              overwhelming majority of them, which is the point.
+  prices.rs   Every price off the line. Remembers the latest one and sends
+              nothing, ever. Rung 1 lived here until 1 September 2026.
 
   reload.rs   Noticing he has sent a level, without being restarted.
 
@@ -89,9 +92,6 @@ A CARD THAT WILL NOT SEND IS NOT THE PRICE LINE BREAKING
   NOTHING IS MARKED AS SAID UNTIL IT HAS ACTUALLY GONE. That was wrong in four
   places at once, and each one lost something for good:
 
-    the alert      Watch::arrive marks the band reached before the card goes,
-                   so a failed send meant no alert until price left the zone
-                   and came back
     the close      the candle was remembered as reported and never retried
     the greeting   the session was marked greeted with nothing sent, and it
                    is greeted once
@@ -107,17 +107,20 @@ A CARD THAT WILL NOT SEND IS NOT THE PRICE LINE BREAKING
   long as it stayed broken. It waits a minute between goes.
 
 
-THE TWO RUNGS FIRE ON DIFFERENT RULES, ON PURPOSE
+A CLOSE CARD IS ONCE PER BREAK, NOT ONCE PER CANDLE
 
-  RUNG 1 IS ONCE PER VISIT. Prices come once a second and barely move. Without
-  that rule one visit to a level becomes twenty alerts and he stops reading
-  them.
+  It was once per candle that touched the zone, which on a level price sat in
+  for ten hours was ten cards. Since 31 August a close card goes out only when
+  a candle BREAKS the level -- opened one side of it and closed the other.
 
-  RUNG 2 IS ONCE PER CANDLE. That is his own decision and it is deliberate:
-  while price is at a zone he wants to watch it candle by candle, not be told
-  once and left guessing. Ten hours in a zone is ten cards.
+  Price sitting in a zone, wicking into it, being thrown back out: silent. If a
+  shape he trades printed there, rung 3 sends it, and that card names the shape
+  rather than just saying the candle ended below.
 
-  Silence resumes the moment a candle does not touch the zone.
+  CLOSES ARE REPORTED ON EVERY LEVEL HE DREW, not the ones price is standing
+  on. A break is price LEAVING a zone, so by the time the poll runs it has
+  often gone -- and reading the resting list dropped exactly the cards worth
+  sending.
 
 
 WHEN SOMETHING BREAKS, HE HEARS ABOUT IT

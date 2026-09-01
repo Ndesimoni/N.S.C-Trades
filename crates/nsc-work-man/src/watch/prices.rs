@@ -1,8 +1,25 @@
-//! Every price that comes down the line, against the bands he drew.
+//! Every price that comes down the line.
 //!
-//! **Almost all of them are nowhere near anything.** Prices arrive several
-//! times a second and barely move, so this says nothing on the overwhelming
-//! majority of them — which is the point.
+//! **It sends nothing.** All it does is remember the latest price, so the
+//! report made when watching resumes can say where things stand without
+//! waiting for the socket to send another.
+//!
+//! ## Rung 1 was taken out on 1 September 2026
+//!
+//! There used to be a card here: *price is coming up on your zone*. His call,
+//! 1 September 2026:
+//! *"when price is getting to a level we do not want an alert, so remove the
+//! card. We should only get alerts if the price came from below the band level
+//! and closed above it, and vice versa."*
+//!
+//! It went through three attempts at being quiet enough — once per touch, then
+//! once per visit, then once per level ever — and the honest answer was that
+//! price reaching a line he drew is not news. **He drew the line. He knows
+//! where it is.** What he cannot see without being at the screen is a candle
+//! finishing on the other side of it.
+//!
+//! So the bot has two messages now: a candle that broke a level, and a shape
+//! he trades at one.
 //!
 //! **The price is the middle of the spread**, worked out in
 //! `nsc-data::sources::ibkr::ticks` from the last bid and the last ask. It has
@@ -12,59 +29,18 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
-use chrono::Utc;
-use nsc_core::levels::{News, Thickness};
 use nsc_data::source::Price;
 
-use super::{Watching, pulse, say};
+use super::Watching;
 
-pub async fn heard(
-    client: &reqwest::Client,
-    watching: &mut HashMap<String, Watching>,
-    thickness: Thickness,
-    heard: Price,
-    pulse: &mut pulse::Pulse,
-    settled: bool,
-) -> Result<()> {
+pub fn heard(watching: &mut HashMap<String, Watching>, heard: Price) -> Result<()> {
     // A pair he stopped watching while the line was open. Its subscription
     // outlives the decision by a moment.
     let Some(seen) = watching.get_mut(&heard.symbol) else {
         return Ok(());
     };
 
-    let share = seen.pair.reach_share(thickness);
-
-    for (band, near) in seen.watch.arrive(heard.mid) {
-        println!("{} reached {}", heard.symbol, band.price);
-
-        // **Watched, remembered, not spoken about.** `arrive` has already run,
-        // so where price is stays true through the opening hours — the report
-        // at the end of them says where it actually stands.
-        if !settled {
-            continue;
-        }
-
-        // **A card that will not send is not the price line breaking.**
-        // Letting it out of here dropped a perfectly good line and told him
-        // the feed was down. It has already tried three times by now.
-        match say::alert(
-            client,
-            &seen.pair,
-            &band,
-            near,
-            News::Fresh,
-            heard.mid,
-            // **This band's own reach**, not one figure for the pair. See
-            // config/levels.toml — four pips was 22% of an Aussie daily band
-            // and 0.03% of a gold weekly one.
-            band.thickness() * share,
-        )
-        .await
-        {
-            Ok(()) => pulse.spoke(Utc::now()),
-            Err(trouble) => eprintln!("Could not send that alert: {trouble:#}"),
-        }
-    }
+    seen.watch.saw(heard.mid);
 
     Ok(())
 }

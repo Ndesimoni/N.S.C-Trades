@@ -73,11 +73,12 @@ HOW THEY CONNECT
       -> inbox::run            spawned beside it — levels from his phone
       -> bands::for_pair       size every band, once, at startup
       -> ibkr.prices           one subscription per pair, folded into one
-         -> watch::prices      is price at a zone? -> say::alert
+         -> watch::prices      remembers the latest price, says nothing
          -> watch::closes      what did the candle do? -> say::closed
          -> watch::pulse       said nothing today? -> the heartbeat
 
-  Only the first line costs requests unless price is actually at a zone.
+  Only watch::closes costs requests, and `due` holds each pair and
+  timeframe until its next candle is actually due.
 
 
 WHERE PRICES COME FROM

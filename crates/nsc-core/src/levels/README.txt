@@ -46,9 +46,10 @@ THE FILES
               the way in both "closed above". They are not the same event,
               and the one he acts on is the second.
 
-  watch.rs    Watching bands for price ARRIVING at one. Holds one fact per
-              band — is price at it now — and an alert is the moment that
-              turns from no to yes.
+  watch.rs    Watching bands. Holds one fact per band -- the last close each
+              timeframe reported there -- and says whether a candle closing
+              at one is worth a card. Also `came_from`, which reads a break
+              off the candle's own open.
 
   error.rs    LevelError. Which troubles are worth another go, and which are
               settled — a file that will not parse, or a pair already being
@@ -151,83 +152,71 @@ TWO THINGS ABOUT THE FILES THEMSELVES
   saves one and reads it back.
 
 
-ARRIVING IS A TOUCH. LEAVING IS A REAL DISTANCE.
+PRICE REACHING A LEVEL SAYS NOTHING
 
-  Two different sums on purpose, and the reason is worth having.
+  HIS CALL, 31 AUGUST 2026: "when price is getting to a level we do not want an
+  alert, so remove the card. We should only get alerts if the price came from
+  below the band level and closed above it, and vice versa."
 
-  ARRIVING is `approach_share` in config/levels.toml — four pips, so the alert
-  can say price is COMING UP ON the zone rather than only that it has touched.
-  A pip comes from the pair's own `digits`: gold 0.10, the euro 0.0001.
+  So rung 1 is gone. Two messages are left in the whole bot:
 
-  ANY PAIR CAN OVERRIDE IT with its own `approach_share`. Four pips is about two
-  minutes of gold and about an hour of euro, so gold is the one likely to want
-  a bigger number. There is a commented example in config/pairs/XAUUSD.toml.
+      a candle BREAKS a level    came from below and closed above, or
+                                 came from above and closed below
+      a shape he trades          at a level, or within half a band of one
 
-  IT STAYS SMALL, because THE BAND IS ALREADY THE EARLY WARNING. Its outer edge
-  is a long way from the line he drew, measured against how fast each pair
-  actually moves:
+  Price walking into a zone, sitting in it, wobbling at its edge, leaving and
+  coming back -- all silent.
 
-      gold    half a weekly band  =  about 3 hours before price reaches him
-      pound   half a weekly band  =  about 6 hours
+  WHY IT WENT. It had three goes at being quiet enough: once per touch, then
+  once per visit, then once per level ever. Each cut the noise and none of them
+  fixed the real thing, which is that HE DREW THE LINE AND KNOWS WHERE IT IS.
+  What he cannot see without sitting at the screen is a candle finishing on the
+  other side of it.
 
-  An earlier version added a quarter of a band on top of that and fired NINE
-  HOURS early on the pound. That is not an alert, it is a horoscope. Four pips
-  is the last nudge before the edge, not the notice itself. The working is in
-  docs/diagrams/how-close.html.
-
-  LEAVING is a tenth of the band's own thickness — about 8 points on gold, 6
-  pips on the pound. It has to be a real distance or price sitting on the edge
-  fires over and over: a pip out, a pip back, all afternoon.
-
-  Easy to trigger, hard to reset.
-
-  The alert still says which it is — price IS IN the zone, or is COMING UP ON
-  it. Different things, and he should not have to work it out from the
-  numbers.
+  WHAT WENT WITH IT. A "deepest price has got this visit" per band, a leaving
+  distance measured wider than the arriving one, and a "has this level ever
+  spoken" flag. All three existed so that one visit fired one alert. With no
+  alert there is no visit to count. They are in git at 99ed9f1.
 
 
-IT SPEAKS WHEN PRICE GETS DEEPER
+A BREAK IS READ OFF THE CANDLE, NOT OFF THE TICKER
 
-  Away, then approaching, then inside. Each step down is worth one message.
+  Came from below and closed above -- that is a break, and it is a card.
+  Came from below and closed BELOW is a rejection, and it is silent.
 
-      4,132.97   price arrives near the zone   ->  "approaching"
-      4,132.57   it enters the zone            ->  "in the zone"
-      4,120.00   it goes further in            ->  nothing
-      4,133.00   it drifts back to the edge    ->  nothing
-      4,120.00   and back in again             ->  nothing
+  WHICH SIDE IT CAME FROM IS THE CANDLE'S OWN OPEN. It was remembered from the
+  price stream for about an hour on 31 August, and the price stream and the
+  candle poll are not the same clock: a 4-hour candle closes above at 12:00,
+  the poll runs seconds later, and by then the ticker has already put price
+  above. The break read as a rejection and went silent -- and the harder the
+  break, the more certainly it did.
 
-  ENTERING IS THE THING HE ACTUALLY WANTED TO KNOW, and it used to say nothing
-  at all. The band was marked "at it" the moment price came NEAR, so walking in
-  was not a change — he heard "coming up on your zone" and then had to wait for
-  a candle, which on the hourly is up to an hour.
+  The open cannot race. It is a fact about a candle that has finished. It is
+  also THE ONLY VERSION A BACKTEST CAN RUN, and that is what really decided it.
 
-  What the band remembers is not where price is. It is HOW DEEP PRICE HAS GOT
-  since it last left properly. That is what keeps wobbling at the edge silent
-  while walking further in still speaks: the wobble never gets deeper than it
-  already was.
+  THE REJECTION IS NOT LOST. A rejection at a level is the reversal he trades,
+  and if a shape printed there it reaches him as a SETUP -- which names the
+  shape, where the close card could only say the candle ended below.
+
+  A CANDLE THAT SETTLED INSIDE the band is not a break either. `only_breaks` in
+  config/levels.toml is `true` since 31 August, and that is the one line to
+  flip if the bot ever goes too quiet.
 
 
-FIRE ONCE PER TOUCH, NOT ONCE PER PRICE
+HOW CLOSE COUNTS AS BEING AT A BAND
 
-  Prices come down the websocket about once a second and barely move —
-  4375.35, 4375.36, 4375.35. Without a rule, one visit to a level becomes
-  twenty alerts and he stops reading them.
+  `approach_share` in config/levels.toml -- a twentieth of that band's own
+  thickness. It was written in pips until 31 August 2026 and was the last
+  distance in this project that was. Four pips is 22% of an AUD/USD daily band
+  and 0.03% of a gold weekly one, so the same setting meant two different
+  things.
 
-  So an alert is a CHANGE: price was outside, now it is inside. Sitting there
-  says nothing more.
+  ONLY ONE THING READS IT NOW: the report sent when watching resumes, which
+  says which zones price is already sitting in. Nothing else in the bot cares
+  how near price is to a line.
 
-  Two things that took thinking:
-
-  THE FIRST PRICE NEVER FIRES. It says where price IS. It cannot say price has
-  ARRIVED — it may have been sitting in that band for hours before the bot
-  started, and an alert for that is a lie about when it happened.
-
-  HOVERING ON THE EDGE DOES NOT FIRE REPEATEDLY. 4131.99, 4132.01, 4131.99
-  against a top of 4132.00 crosses three times and describes one moment where
-  nothing happened. Price has to get clear of the band by a tenth of its
-  thickness before that band can fire again.
-
-  Both have tests that fail without the rule.
+  ANY PAIR CAN OVERRIDE IT with its own `approach_share`. There is a commented
+  example in config/pairs/XAUUSD.toml.
 
 
 WHAT IS NOT HERE YET
@@ -235,6 +224,6 @@ WHAT IS NOT HERE YET
   Removing one particular level. Undo takes off what the last message added,
   which covers a typo but not "that 3800 from last week was wrong".
 
-  Anything past rung 1. These bands say when price ARRIVES. Whether the candle
-  that got there closed inside — the thing that says it was a rejection rather
-  than a pass-through — is not built.
+  A backtest. Nothing has measured whether any of this makes money, because
+  nsc-backtest does not exist. `came_from` reading the candle rather than the
+  ticker is what keeps that door open -- a backtest has no ticker.

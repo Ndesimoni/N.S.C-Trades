@@ -57,14 +57,6 @@ pub async fn listen(
 
                 match heard {
                     Heard::Price(price) => {
-                        // **The opening hours are watched but not spoken
-                        // about.** A zone touched at the open and abandoned
-                        // twenty minutes later is noise, and a buzz he learns
-                        // to ignore costs him the one that mattered. Prices are
-                        // still fed in, so when the window ends the greeting
-                        // knows exactly where price stands.
-                        let settled = when::settled(Utc::now(), calendar);
-
                         // **The price is recorded first, and the order
                         // matters.**
                         //
@@ -74,10 +66,7 @@ pub async fn listen(
                         // greeting used to run first, find nothing, send
                         // nothing — and mark the session greeted. The report of
                         // where price already stood never came at all.
-                        prices::heard(
-                            client, watching, thickness, price, &mut kit.pulse, settled,
-                        )
-                        .await?;
+                        prices::heard(watching, price)?;
 
                         kit.awake
                             .greet(client, watching, thickness, calendar, &mut kit.pulse)

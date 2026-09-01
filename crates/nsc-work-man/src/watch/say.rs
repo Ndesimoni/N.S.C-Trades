@@ -17,7 +17,14 @@ use rust_decimal::Decimal;
 
 use crate::places::{OWNER, PREVIEW};
 
-/// Rung 1 — price has reached one of his zones.
+/// **Where price already stood when watching resumed.** Once a session, and
+/// nothing else draws this card any more.
+///
+/// It was rung 1 — *price is coming up on your zone*, sent live off the price
+/// stream. That went on 1 September 2026: *"when price is getting to a level we
+/// do not want an alert, so remove the card."* What is left is the greeting,
+/// which is not an alert about price arriving — it is the answer to "what is
+/// the state of things" after a restart, and he is the one restarting.
 pub async fn alert(
     client: &reqwest::Client,
     pair: &Pair,
@@ -32,10 +39,11 @@ pub async fn alert(
 
     let caption = levels::caption(pair, band, near, news, price);
 
-    // **Chrome off the price loop — and this is the one that matters most.**
-    // Rung 1 fires while prices are still arriving, and a blocking wait of two
-    // to ten seconds here holds a Tokio worker for all of it. On the one-core
-    // box this is meant to be hosted on, that is the whole bot stopped.
+    // **Chrome off the async worker.** A blocking wait of two to ten seconds
+    // here holds a Tokio worker for all of it, and on the one-core box this is
+    // meant to be hosted on that is the whole bot stopped. It mattered most
+    // when this fired off the price stream; it is still right now that it
+    // fires once a session.
     //
     // The pool needs owned values, so the two references are cloned first.
     // They are small structs; the clone is nothing beside running a browser.

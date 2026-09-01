@@ -53,7 +53,8 @@ THE FILES
               needs is nothing like a candle chart — a band, and either a
               price or one candle — so it keeps its own.
 
-              THE ZONE CARDS. Price arriving at one of his zones (rung 1),
+              THE ZONE CARDS. Which zones price was already in when
+              watching resumed,
               and a candle that touched one having finished (rung 2). Their
               own file because what they are told is nothing like a chart: a
               band, and either a price or one candle.

@@ -13,7 +13,11 @@ use rust_decimal::Decimal;
 
 use nsc_work_man::places::{OWNER, PREVIEW};
 
-/// Rung 1 — price at the zone.
+/// The zone card — price at one of his levels.
+///
+/// **Only the greeting sends this now**, once a session, saying where price
+/// already stood. The live version went on 1 September 2026. Both wordings are
+/// still drawable here, which is the point of a previewer.
 pub async fn draw_alert(
     client: &reqwest::Client,
     pair: &Pair,

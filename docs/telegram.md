@@ -256,57 +256,55 @@ instead:
 
 | | When |
 |---|---|
-| 👀 **approaching** | price reaches one of your zones — **once per level, ever** |
 | 🕯 **broke** | a 4-hour or daily candle **breaks through** the level, the way price was travelling |
-| 🕯 **closed inside** | a candle settles in the zone |
 | 🎯 **setup** | a shape you trade prints at one of your zones — 1-hour, 4-hour or daily |
 | 📅 **coming up** | 30 minutes before a high or medium impact release |
 | 📐 **got it** | a level you just sent is now being watched |
 | 🫀 **still running** | 07:00 UTC, and only on a day nothing else was sent |
 | ⚠️ ✅ 🛑 | the price line went down, came back, or the bot stopped |
 
-## A level speaks when it has something new to say
+## Two messages, and nothing else
 
-Settled 31 August 2026. A level used to narrate every visit; now it tells a
-story and only speaks when the story moves on.
+Settled 1 September 2026. Your words: *"when price is getting to a level we do
+not want an alert, so remove the card. We should only get alerts if the price
+came from below the band level and closed above it, and vice versa. As for the
+setups, candlestick patterns, it stays the same."*
 
 ```text
-    price comes up to the level      👀 approaching     <- the one card
-    it wobbles off and back             silence
-    the candle closes below          🕯 closed below    <- one card
-    a later candle comes back           silence
-    another one comes back              silence
-    a candle closes ABOVE            🕯 closed above    <- this is news
+    price comes up to the level         silence
+    it enters the zone                  silence
+    a candle closes INSIDE it           silence
+    it is thrown back out               silence   <- but see setups
+    a candle opens below, closes above  🕯 broke   <- this is the message
 ```
 
-**A rejection says nothing.** Price rising into a level and being thrown back
-below it is not a card — you asked for that on 31 August. It is not lost: if a
-shape you trade printed there, it reaches you as a **setup**, which is the
-message that was actually about it.
+**A break is read off the candle, not off where price is now.** Came from below
+and closed above. Came from above and closed below. Anything else is not a
+break.
 
-**"Approaching" is said once and never again.** Once a candle has closed at a
-level, price being near it is not news — the level has a story, and only a
-different ending changes it.
+**A rejection reaches you as a setup instead**, and that is the better half of
+the deal. A rejection at a level *is* the reversal you trade — and the setup
+card names the shape that made it, where a close card could only say the candle
+ended below.
 
-**Each timeframe keeps its own story.** A 4-hour candle closing below your
-weekly level and a daily candle doing the same are two different pieces of
-news about one line, and the daily is the bigger one.
+**Each timeframe keeps its own story.** A 4-hour candle breaking your weekly
+level and a daily candle breaking it are two different pieces of news about one
+line, and the daily is the bigger one.
 
 **The 1-hour sends setups and nothing else.** Your call, 31 August 2026. It is
 still watched, still fetched and still judged — a candlestick pattern at a zone
-is the whole reason it is there. What stopped is the card narrating every
-1-hour candle that closed near a level. Turn it back on with `[close_cards]` in
-`config/levels.toml`.
+is the whole reason it is there.
 
-**The approaching alert was never a 1-hour thing.** It fires off the price line
-rather than off a candle, and belongs to a *band* — weekly, daily or 4-hour,
-depending on which level you drew.
+**Two lines to flip if it goes too quiet**, both in `config/levels.toml`:
 
-**A candle that settled inside the zone says nothing.** You already got the
-alert when price arrived; a card saying it is still there is the same news
-twice. The rejection still comes — a wick into the zone that closed back out
-finishes *above* or *below* the band. Turn it back on with `only_breaks` in
-`config/levels.toml`.
+| | |
+|---|---|
+| `only_breaks = false` | every candle that touched a zone reports what it did there |
+| `[close_cards] h1 = true` | the 1-hour narrates its closes as well |
+
+There is no setting that brings back the approaching card. It was taken out
+rather than turned off, along with the machinery that made it fire once per
+visit — it is in git at `99ed9f1` if you want it again.
 
 **Nothing arrives on a quiet hour.** That is the whole design — send something
 every hour and by the second week you stop opening them, and then you miss the
@@ -324,11 +322,14 @@ Tokyo CPI prints on a Sunday evening whether or not anything is being watched.
 
 ## Seeing a card without waiting for it
 
-Any message the bot can send, on demand:
+Any message the bot can send, on demand — **and two it no longer sends.** The
+first two draw the approaching card, which went on 1 September 2026; they are
+kept because the card art is still worth looking at and the wording is what
+approach alerts would use if they ever came back.
 
 ```sh
-cargo run -p nsc-work-man --bin cards -- XAUUSD              approaching
-cargo run -p nsc-work-man --bin cards -- XAUUSD 4120         in the zone
+cargo run -p nsc-work-man --bin cards -- XAUUSD              approaching (retired)
+cargo run -p nsc-work-man --bin cards -- XAUUSD 4120         in the zone (retired)
 cargo run -p nsc-work-man --bin cards -- XAUUSD 4120 found   already in
 cargo run -p nsc-work-man --bin cards -- XAUUSD close        a candle's close
 cargo run -p nsc-work-man --bin cards -- news                what is coming up

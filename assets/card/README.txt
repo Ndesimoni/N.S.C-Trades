@@ -314,3 +314,16 @@ AND ONE HONEST LIMIT
 
   If a PRICE differs from his chart, that is a real bug worth chasing.
   If the LOOK differs, that is just us.
+
+
+THE PRICE SCALE ON chart.html
+
+  THE CANDLES DECIDE IT. Nothing else does.
+
+  A level is drawn if it lands on that scale, and simply is not on the chart
+  if it does not. What is in the screen is in the screen.
+
+  It used to stretch the scale to reach every level. Gold has a weekly line at
+  2,984 with price at 4,352, so 45 candles with a 6-point range came out as a
+  smear one pixel tall -- a picture of the levels with the price accidentally
+  in it. His call, 1 September 2026, and the same on every timeframe.

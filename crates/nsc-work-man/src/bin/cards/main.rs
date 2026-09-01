@@ -11,6 +11,7 @@
 //!     cargo run -p nsc-work-man --bin cards -- news week          the week's list
 //!     cargo run -p nsc-work-man --bin cards -- setup              a rung 3 signal
 //!     cargo run -p nsc-work-man --bin cards -- bundle       all three, one signal
+//!     cargo run -p nsc-work-man --bin cards -- charts   both charts, EVERY pair
 //!     cargo run -p nsc-work-man --bin cards -- heartbeat          the quiet day
 //!     cargo run -p nsc-work-man --bin cards -- armed             a level went live
 //!     cargo run -p nsc-work-man --bin cards -- trouble down       the line is off
@@ -27,6 +28,7 @@
 
 mod beat;
 mod bundle;
+mod charts;
 mod found;
 mod soon;
 mod zone;
@@ -84,6 +86,10 @@ async fn main() -> Result<()> {
     // drawn on real candles — a made-up one would look better than the real
     // thing ever does, which is the opposite of what a preview is for.
     let ibkr = IbkrConnection::connect().await?;
+
+    if wanted == "charts" {
+        return charts::every_pair(&client, &ibkr).await;
+    }
 
     if wanted == "heartbeat" {
         return beat::heartbeat(&client, &ibkr).await;

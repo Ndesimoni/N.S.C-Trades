@@ -104,19 +104,49 @@ function chart(){
   const DRAWN = PLOT * (1 - BREATHE);
   const svg = document.getElementById("chart");
 
-  // The scale has to hold the levels as well as the candles. A band drawn off
-  // the top of the chart tells you nothing about whether it is in the right
-  // place.
-  const lo = Math.min(...bars.map(b => b.low),  ...levels.map(l => l.bottom));
-  const hi = Math.max(...bars.map(b => b.high), ...levels.map(l => l.top));
+  // ── THE CANDLES DECIDE THE SCALE. NOTHING ELSE DOES. ──
+  //
+  // **His call, 1 September 2026**, and it overruled two goes at this:
+  //
+  //   *"You are trying to fit every level within the screen on one hour, which
+  //   is not right, because currently I cannot even see what the one-hour
+  //   candles are doing. It is so tiny. We just need to see what the candles
+  //   are doing. We do not need to see all the levels. WHAT IS IN THE SCREEN
+  //   IS IN THE SCREEN."*
+  //
+  // It used to take the lowest of every candle low AND every band bottom.
+  // Gold has a weekly level at 2,984 with price at 4,352, so the scale
+  // stretched 1,370 points to reach a line nobody was looking at — and
+  // forty-five candles with a six-point range came out as a smear one pixel
+  // tall. The picture was of the levels, with the price accidentally in it.
+  //
+  // The first fix let a level widen the scale by up to half the candle range.
+  // Still wrong, and he said so: the candles are the subject, and a level is
+  // only ever something the picture happens to contain.
+  //
+  // So the scale is the candles, and a level is drawn if it lands on it. One
+  // that does not is simply not on this chart — see `off this chart entirely`
+  // below. Nothing worth seeing is lost: this picture is sent because
+  // something happened AT a level, and that level is where price is.
+  //
+  // The same on every timeframe. His words: *"same too with the four-hour,
+  // same too with weekly, and daily."*
+  const lo = Math.min(...bars.map(b => b.low));
+  const hi = Math.max(...bars.map(b => b.high));
   const pad = (hi - lo) * 0.08 || 1;
   const top = hi + pad, bottom = lo - pad;
   const y = v => (1 - (v - bottom) / (top - bottom)) * H;
+
+  // The last close gets its own label on the axis, in brass. A grid label at
+  // the same height sits right on top of it — 0.71500 printed through 0.71485
+  // — so the grid gives way. **The one he needs is the live one.**
+  const lastY0 = y(bars[bars.length - 1].close);
 
   const gap = niceStep(top - bottom, 5);
   for(let p = Math.ceil(bottom / gap) * gap; p < top; p += gap){
     const gy = y(p);
     if(gy < 12 || gy > H - 12) continue;
+    if(Math.abs(gy - lastY0) < 15) continue;
 
     svg.appendChild(make("line", {
       x1:LEFT, y1:gy, x2:LEFT + PLOT, y2:gy, stroke:"var(--grid)", "stroke-width":1

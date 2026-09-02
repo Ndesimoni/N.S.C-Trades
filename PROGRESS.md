@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Five crates · 378 tests · 10 against a real database · clippy clean · it watches his levels, says what
+**Five crates · 378 tests · 15 against a real database · 10 against a real database · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```

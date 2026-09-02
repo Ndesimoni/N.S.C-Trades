@@ -21,4 +21,5 @@
 
 mod calendar;
 mod candles;
+mod deciding;
 mod support;

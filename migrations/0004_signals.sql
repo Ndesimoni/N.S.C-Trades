@@ -41,7 +41,19 @@ CREATE TABLE IF NOT EXISTS signals (
 
     band_timeframe    TEXT           NOT NULL,
     band_price        NUMERIC(18, 8) NOT NULL,
-    placing           TEXT           NOT NULL,
+    -- ── NOT `placing`, AND POSTGRES DECIDED THAT ──
+    --
+    -- PLACING is a fully reserved word -- it belongs to
+    -- OVERLAY(... PLACING ... FROM ...) -- so as a bare column name it is a
+    -- syntax error, and the parser blames the line AFTER it.
+    --
+    -- Quoting it everywhere would work and would be a trap: one query that
+    -- forgets the quotes fails, and it would fail at runtime because these
+    -- queries are checked at runtime by design.
+    --
+    -- `sits` is also what the code calls it -- nsc-strategy::place has
+    -- `where_it_sits`. inside / just above / just below.
+    sits              TEXT           NOT NULL,
     broke_out         BOOLEAN        NOT NULL,
 
     -- How big the shape was, in normal candles. On the card as how plainly

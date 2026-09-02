@@ -191,7 +191,7 @@ What the bot saw and sent. **Add-only, forever.**
 | `shape` | `TEXT` | `nsc-bull`, `bullish engulfing`, `head and shoulders`, … |
 | `shape_kind` | `TEXT` | `candlestick` or `chart` |
 | `band_timeframe` `band_price` | `TEXT` / `NUMERIC` | the zone it printed at |
-| `placing` | `TEXT` | `inside` / `just above` / `just below` |
+| `sits` | `TEXT` | `inside` / `just above` / `just below`. **Not `placing`** — that is a reserved word in Postgres, from `OVERLAY(... PLACING ...)` |
 | `broke_out` | `BOOLEAN` | did the candle close outside the band |
 | `sentence` | `TEXT` | the one line `reasons.rs` wrote, **as it was sent** |
 | `features` | `JSONB` | everything the bot saw at that moment |

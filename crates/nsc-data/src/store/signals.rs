@@ -32,7 +32,11 @@ pub struct Seen {
 
     pub band_timeframe: String,
     pub band_price: Decimal,
-    pub placing: String,
+    /// Where it sits against the band — inside, just above, just below.
+    ///
+    /// **Not `placing`.** That is a reserved word in Postgres, from
+    /// `OVERLAY(... PLACING ...)`, so the column cannot be called it.
+    pub sits: String,
     pub broke_out: bool,
     pub reach: Decimal,
 
@@ -75,7 +79,7 @@ pub async fn sent(store: &Store, signal: &Seen) -> Result<bool, StoreError> {
         "INSERT INTO signals \
          (at, spans_from, candle_opened_at, symbol, interval, \
           shape, shape_kind, direction, \
-          band_timeframe, band_price, placing, broke_out, reach, \
+          band_timeframe, band_price, sits, broke_out, reach, \
           sentence, features, features_version, rules_version, sent_at) \
          VALUES ($1,$2,$3,$4,$5,$6,'candlestick',$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) \
          ON CONFLICT ON CONSTRAINT one_signal_per_candle_per_zone DO NOTHING",
@@ -89,7 +93,7 @@ pub async fn sent(store: &Store, signal: &Seen) -> Result<bool, StoreError> {
     .bind(&signal.direction)
     .bind(&signal.band_timeframe)
     .bind(signal.band_price)
-    .bind(&signal.placing)
+    .bind(&signal.sits)
     .bind(signal.broke_out)
     .bind(signal.reach)
     .bind(&signal.sentence)

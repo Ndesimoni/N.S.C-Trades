@@ -91,7 +91,7 @@ pub(in crate::watch::closes) async fn keep_signal(
 
         band_timeframe: band.timeframe.name().to_string(),
         band_price: band.price,
-        placing: signal.standing.placing().words().to_string(),
+        sits: signal.standing.placing().words().to_string(),
         broke_out: signal.standing.broke_out(),
         reach: signal.reach,
 

@@ -36,6 +36,17 @@ THE FILES
                 a row that will not write is a gap in the history, not a
                 reason to stop watching his levels.
 
+  asking.rs     The two buttons under a setup -- took it, skipped it.
+
+                THEY ARE THEIR OWN MESSAGE, and they have to be: a setup goes
+                out as three pictures in one sendMediaGroup, and Telegram does
+                not allow buttons on a media group. So the pictures land and a
+                one-line message follows carrying the buttons.
+
+                That line NAMES the setup. Two setups on one pair in an hour
+                would otherwise be two identical questions, and the label
+                would land on whichever he happened to tap.
+
   README.txt    This file.
 
 

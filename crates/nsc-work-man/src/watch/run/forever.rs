@@ -103,7 +103,6 @@ pub async fn run() -> Result<()> {
     // LIVE picture — which bands are sized, where price was last — so the
     // watcher publishes a copy of that and the inbox reads the latest.
     let (tell, standing) = standing::channel(snapshot(&watching, &calendar));
-    tokio::spawn(crate::inbox::run(client.clone(), standing));
 
     // This outlives the socket. Rebuilt on every reconnect, a dropped line
     // would re-announce every zone price is already at and forget which
@@ -197,6 +196,13 @@ pub async fn run() -> Result<()> {
              Everything else is running. Fix {NEWS} and restart to turn them on."
         ),
     }
+
+    // ── The inbox, on its own clock ──
+    //
+    // **Started here and not earlier, because it now WRITES.** Tapping "took
+    // it" under a setup puts a row in `signal_labels`, so the inbox needs the
+    // record open before it starts listening.
+    tokio::spawn(crate::inbox::run(client.clone(), standing, record.clone()));
 
     let mut kit = Kit::new(rung_three, record);
     let mut trouble = trouble::Trouble::new();

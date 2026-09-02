@@ -8,6 +8,7 @@ use nsc_data::store::{self, Seen, Store, Turned};
 use nsc_strategy::{Refused, Signal};
 use rust_decimal::Decimal;
 
+use super::asking;
 use super::features::{FEATURES_VERSION, of_the_candle, with_the_band};
 
 /// **One decision, and everything the record needs to describe it.**
@@ -54,6 +55,7 @@ pub(in crate::watch::closes) struct Missed<'a> {
 /// **Nothing here can end the run.** A row that will not write is a gap in the
 /// history; it is not a reason to stop watching his levels.
 pub(in crate::watch::closes) async fn keep_signal(
+    client: &reqwest::Client,
     record: Option<&Store>,
     rules_version: &str,
     made: Made<'_>,
@@ -102,12 +104,36 @@ pub(in crate::watch::closes) async fn keep_signal(
         sent_at: made.sent_at,
     };
 
-    match store::sent(record, &row).await {
+    let id = match store::sent(record, &row).await {
         // Already written. The look runs again on every poll until the next
-        // candle closes, so this is the ordinary case and not a failure.
-        Ok(false) => {}
-        Ok(true) => println!("  recorded: {}", row.sentence),
-        Err(trouble) => eprintln!("Could not record that signal: {trouble}"),
+        // candle closes, so this is the ordinary case and not a failure — and
+        // it is also what stops him being asked the same question twice.
+        Ok(None) => return,
+
+        Ok(Some(id)) => {
+            println!("  recorded as signal {id}");
+            id
+        }
+
+        Err(trouble) => {
+            eprintln!("Could not record that signal: {trouble}");
+            return;
+        }
+    };
+
+    // ── AND NOW ASK HIM WHAT HE THOUGHT ──
+    //
+    // **Only when the setup actually reached him.** A card Telegram refused is
+    // still recorded, because the bot saw it — but asking "did you take it?"
+    // about a setup he never received is a question with no question mark.
+    if made.sent_at.is_none() {
+        return;
+    }
+
+    // **A button that will not send costs the label, not the signal.** He has
+    // the setup on his phone either way.
+    if let Err(trouble) = asking::ask(client, id, made.sentence).await {
+        eprintln!("Could not send the buttons: {trouble}");
     }
 }
 

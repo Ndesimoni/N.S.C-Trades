@@ -22,6 +22,7 @@
 //! the end.
 
 mod asked;
+mod because;
 mod checking;
 mod coming;
 mod conversation;
@@ -31,6 +32,7 @@ mod one;
 mod pairs;
 mod picture;
 mod talking;
+mod tapped;
 mod words;
 
 pub use hearing::run;

@@ -144,6 +144,7 @@ impl Closes {
         let spans_from = history[history.len().saturating_sub(signal.shape.candles())];
 
         recording::keep_signal(
+            client,
             self.record.as_ref(),
             &self.rules_version,
             recording::Made {

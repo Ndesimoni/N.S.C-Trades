@@ -15,7 +15,7 @@ use rust_decimal::Decimal;
 use serde_json::json;
 
 use super::super::{Seen, Turned, refused, sent};
-use super::support::calendar_store;
+use super::support::deciding_store;
 
 fn moment(text: &str) -> DateTime<Utc> {
     text.parse().expect("a real moment")
@@ -25,7 +25,7 @@ fn d(text: &str) -> Decimal {
     text.parse().expect("a number")
 }
 
-fn a_signal(symbol: &str, at: &str) -> Seen {
+pub(super) fn a_signal(symbol: &str, at: &str) -> Seen {
     Seen {
         at: moment(at),
         spans_from: moment(at),
@@ -50,10 +50,13 @@ fn a_signal(symbol: &str, at: &str) -> Seen {
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs Postgres — docker compose up -d"]
 async fn a_signal_goes_in() {
-    let db = calendar_store().await;
+    let db = deciding_store("TST/SIGNAL").await;
 
     let row = a_signal("TST/SIGNAL", "2026-09-02T10:00:00Z");
-    assert!(sent(&db, &row).await.expect("should write"), "written");
+    let id = sent(&db, &row).await.expect("should write");
+
+    assert!(id.is_some(), "written, and it gives back the id");
+    assert!(id.unwrap_or_default() > 0, "the buttons carry this");
 }
 
 /// **The same signal twice is one row.** The look runs again on every poll
@@ -62,13 +65,16 @@ async fn a_signal_goes_in() {
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs Postgres — docker compose up -d"]
 async fn the_same_signal_twice_is_one_row() {
-    let db = calendar_store().await;
+    let db = deciding_store("TST/TWICE").await;
 
     let row = a_signal("TST/TWICE", "2026-09-02T11:00:00Z");
 
-    assert!(sent(&db, &row).await.expect("should write"), "the first");
     assert!(
-        !sent(&db, &row).await.expect("should not fail"),
+        sent(&db, &row).await.expect("should write").is_some(),
+        "the first"
+    );
+    assert!(
+        sent(&db, &row).await.expect("should not fail").is_none(),
         "the second says it was already there rather than failing"
     );
 }
@@ -79,18 +85,18 @@ async fn the_same_signal_twice_is_one_row() {
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs Postgres — docker compose up -d"]
 async fn a_signal_that_did_not_send_is_still_kept() {
-    let db = calendar_store().await;
+    let db = deciding_store("TST/UNSENT").await;
 
     let mut row = a_signal("TST/UNSENT", "2026-09-02T12:00:00Z");
     row.sent_at = None;
 
-    assert!(sent(&db, &row).await.expect("should write"));
+    assert!(sent(&db, &row).await.expect("should write").is_some());
 }
 
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs Postgres — docker compose up -d"]
 async fn a_refusal_goes_in_and_repeats_are_one_row() {
-    let db = calendar_store().await;
+    let db = deciding_store("TST/REFUSED").await;
 
     let row = Turned {
         at: moment("2026-09-02T13:00:00Z"),
@@ -119,15 +125,15 @@ async fn a_refusal_goes_in_and_repeats_are_one_row() {
 #[tokio::test(flavor = "multi_thread")]
 #[ignore = "needs Postgres — docker compose up -d"]
 async fn every_layer_the_code_uses_is_one_the_table_allows() {
-    let db = calendar_store().await;
+    let db = deciding_store("TST/LAYER").await;
 
-    for (which, layer) in ["shape", "place", "measure"].iter().enumerate() {
+    for layer in ["shape", "place", "measure"] {
         let row = Turned {
             at: moment("2026-09-02T14:00:00Z"),
             candle_opened_at: moment("2026-09-02T14:00:00Z"),
-            symbol: format!("TST/LAYER{which}"),
+            symbol: "TST/LAYER".into(),
             interval: "1d".into(),
-            layer: (*layer).into(),
+            layer: layer.into(),
             why: "checking the constraint agrees with the code".into(),
             features: json!({}),
             features_version: 1,

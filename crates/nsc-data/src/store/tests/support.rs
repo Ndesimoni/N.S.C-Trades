@@ -132,3 +132,32 @@ pub(super) async fn calendar_store() -> Store {
         .await
         .expect("could not open the test schema")
 }
+
+/// The test schema, with **this symbol's decisions cleared**.
+///
+/// The candle tests learned this the hard way and the calendar tests dodge it
+/// by each working in its own week. These could not: `sent` is idempotent by
+/// design, so the second run of a test finds its own row from the first run
+/// and is told "already there" — green once, red forever after.
+///
+/// **Labels go with the signal**, by `ON DELETE CASCADE`, so clearing signals
+/// is enough.
+pub(super) async fn deciding_store(symbol: &str) -> Store {
+    let url = std::env::var("DATABASE_URL").expect("DATABASE_URL — see .env.example");
+
+    prepare(&url);
+
+    let db = open(&in_schema(&url))
+        .await
+        .expect("could not open the test schema");
+
+    for table in ["signals", "rejections"] {
+        sqlx::query(&format!("DELETE FROM {table} WHERE symbol = $1"))
+            .bind(symbol)
+            .execute(&db)
+            .await
+            .expect("could not clear the test rows");
+    }
+
+    db
+}

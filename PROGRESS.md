@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Five crates · 378 tests · 15 against a real database · 10 against a real database · clippy clean · it watches his levels, says what
+**Five crates · 381 tests · 20 against a real database · 10 against a real database · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -330,8 +330,10 @@ a restart, and he is the one restarting.
 - [x] **`rejections`** — what was refused and BY WHICH LAYER. The rows that
       answer *"why did nothing fire this week?"* — a quiet week and a broken
       bot look identical without them
-- [ ] `signal_labels` — took it / skipped it, in his words. **Next**, and the
-      only table here that cannot be recreated
+- [x] **`signal_labels`** — took it / skipped it, from two buttons under every
+      setup, plus `/why` for his own words. **The only table here that cannot
+      be recreated**: candles can be downloaded again and outcomes recomputed,
+      but what he thought on the afternoon it printed exists nowhere else
 - [ ] `signal_outcomes` · `levels` · `backfills` · `runs` · `rule_sets`
 
 > **A candle with no shape on it is not written down.** That is nearly every

@@ -25,6 +25,7 @@
 
 mod candles;
 mod error;
+mod labels;
 mod news;
 mod pool;
 mod signals;
@@ -34,6 +35,7 @@ mod tests;
 
 pub use candles::{count, newest, oldest, read, write};
 pub use error::StoreError;
+pub use labels::{Verdict, because, newest_signal, sentence_of, thought};
 pub use news::{between as news_between, count as news_count, write as news_write};
 pub use pool::{Store, open};
 pub use signals::{Seen, Turned, refused, sent, tallies};

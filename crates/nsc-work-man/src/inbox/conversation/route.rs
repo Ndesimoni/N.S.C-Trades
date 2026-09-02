@@ -6,6 +6,7 @@ use anyhow::Result;
 use nsc_core::levels::{known, undo, with_slash};
 use serde_json::json;
 
+use super::super::because;
 use super::super::talking::say;
 use super::super::words::{CLOSE, NEW_PAIR, TIMEFRAMES, TODAY, UNDO, WEEK};
 use super::super::{asked, coming, one, pairs, picture};
@@ -21,6 +22,7 @@ pub async fn handle(
     text: &str,
     adding: &mut Adding,
     standing: &tokio::sync::watch::Receiver<crate::watch::Snapshot>,
+    record: Option<&nsc_data::store::Store>,
 ) -> Result<()> {
     let folder = Path::new(PAIRS);
 
@@ -43,6 +45,13 @@ pub async fn handle(
     // **Before the pair flows.** These are two fixed words that belong to
     // nothing else, and answering them early means a half-finished /level
     // cannot swallow one.
+    // **His reason, in his own words.** Checked before the pair flows, like
+    // the others — a half-finished /level must not swallow it.
+    if text.starts_with(because::WHY) {
+        *adding = Adding::default();
+        return because::note(client, token, text, record).await;
+    }
+
     if text == "/news" {
         *adding = Adding::default();
         return coming::ask(client, token).await;

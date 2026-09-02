@@ -258,6 +258,7 @@ instead:
 |---|---|
 | 🕯 **broke** | a 4-hour or daily candle **breaks through** the level, the way price was travelling |
 | 🎯 **setup** | a shape you trade prints at one of your zones — 1-hour, 4-hour or daily |
+| ✅❌ **did you take it?** | straight after a setup, two buttons: *took it* and *skipped it* |
 | 📅 **coming up** | 5 minutes before a high or medium impact release, and again 1 minute before |
 | 📐 **got it** | a level you just sent is now being watched |
 | 🫀 **still running** | 07:00 UTC, and only on a day nothing else was sent |
@@ -343,3 +344,36 @@ cargo run -p nsc-work-man --bin cards -- trouble down|back|stopped
 
 Useful because some of these would otherwise take a week to see — a quiet-day
 heartbeat, or the line going down and coming back.
+
+---
+
+## The two buttons under a setup
+
+They arrive as their own short message right under the three pictures, because
+**Telegram does not allow buttons on a group of photos.** The line names the
+setup, so a tap can never land on the wrong one.
+
+```
+    ✅ took it        ❌ skipped it
+```
+
+Tap either. Tapping again changes nothing; tapping the other one changes your
+mind, and the record keeps when you settled rather than when you first
+wavered.
+
+**Then say why, in your own words:**
+
+```
+    /why the wick ran into news, I stood aside
+```
+
+It attaches to the setup that arrived most recently — the one you almost
+always mean. It needs a verdict first, so tap before you explain.
+
+**There is no third button.** *"Would have skipped"* is what you say later,
+once the outcome came in — a button for it would invite you to answer before
+the market had.
+
+**Why it matters more than it looks.** Candles can be downloaded again and
+outcomes recomputed from them forever. What you thought of a setup on the
+afternoon it printed exists nowhere else the moment you forget it.

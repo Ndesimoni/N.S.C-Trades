@@ -96,6 +96,52 @@ pub async fn send_to(
     Ok(())
 }
 
+/// **Words with buttons under them.**
+///
+/// The same message as [`send_words`], plus an inline keyboard.
+///
+/// It exists because **Telegram does not allow buttons on a media group**, and
+/// a setup goes out as three pictures in one. So the pictures land and this
+/// follows them, carrying the two buttons and a line saying which setup they
+/// belong to.
+pub async fn ask_words(
+    client: &reqwest::Client,
+    chat: &str,
+    text: &str,
+    keyboard: serde_json::Value,
+) -> Result<(), SendError> {
+    let token =
+        std::env::var("TELEGRAM_BOT_TOKEN").map_err(|_| SendError::NotSet("TELEGRAM_BOT_TOKEN"))?;
+
+    let reply: serde_json::Value = client
+        .post(format!("https://api.telegram.org/bot{token}/sendMessage"))
+        .json(&serde_json::json!({
+            "chat_id": chat,
+            "text": text,
+            "parse_mode": "HTML",
+            "reply_markup": keyboard,
+        }))
+        .send()
+        .await
+        .map_err(|trouble| SendError::Unreachable(quietly(trouble)))?
+        .json()
+        .await
+        .map_err(|trouble| SendError::Unreachable(quietly(trouble)))?;
+
+    // **Refused is not sent.** Answering Ok here would have everything
+    // upstream believe he had been asked when he had not.
+    if reply["ok"] != true {
+        return Err(SendError::Refused(
+            reply["description"]
+                .as_str()
+                .unwrap_or("no reason given")
+                .to_string(),
+        ));
+    }
+
+    Ok(())
+}
+
 /// Words on their own, with no picture.
 ///
 /// **Alerts stopped using this** — they go as a card now, because Telegram

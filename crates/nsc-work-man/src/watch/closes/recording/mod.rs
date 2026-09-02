@@ -4,6 +4,7 @@
 //!   version.rs   a hash of the settings that produced it
 //!   features.rs  everything the bot saw, as it saw it
 //!   writing.rs   turning a decision into a row
+//!   asking.rs    the two buttons under a setup
 //! ```
 //!
 //! ## Why the refusals matter as much as the signals
@@ -22,6 +23,7 @@
 //! watching his levels, and it must not stop doing that because Postgres is
 //! down.
 
+mod asking;
 mod features;
 mod version;
 mod writing;

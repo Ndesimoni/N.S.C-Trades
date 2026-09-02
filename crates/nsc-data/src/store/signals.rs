@@ -69,20 +69,25 @@ pub struct Turned {
     pub rules_version: String,
 }
 
-/// Writes a signal. **Says whether it was new.**
+/// Writes a signal. **Gives back its id**, which the buttons need.
 ///
-/// `false` means this exact signal was already recorded — one shape, one
+/// `None` means this exact signal was already recorded — one shape, one
 /// candle, one zone, one row. That is the ordinary case on the second poll of
 /// the same candle and is not a failure.
-pub async fn sent(store: &Store, signal: &Seen) -> Result<bool, StoreError> {
-    let done = sqlx::query(
+///
+/// **The id is what a button carries.** Two setups on one pair within an hour
+/// would otherwise be indistinguishable when he taps, and the label would land
+/// on whichever the code guessed.
+pub async fn sent(store: &Store, signal: &Seen) -> Result<Option<i64>, StoreError> {
+    let id: Option<i64> = sqlx::query_scalar(
         "INSERT INTO signals \
          (at, spans_from, candle_opened_at, symbol, interval, \
           shape, shape_kind, direction, \
           band_timeframe, band_price, sits, broke_out, reach, \
           sentence, features, features_version, rules_version, sent_at) \
          VALUES ($1,$2,$3,$4,$5,$6,'candlestick',$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) \
-         ON CONFLICT ON CONSTRAINT one_signal_per_candle_per_zone DO NOTHING",
+         ON CONFLICT ON CONSTRAINT one_signal_per_candle_per_zone DO NOTHING \
+         RETURNING id",
     )
     .bind(signal.at)
     .bind(signal.spans_from)
@@ -101,11 +106,11 @@ pub async fn sent(store: &Store, signal: &Seen) -> Result<bool, StoreError> {
     .bind(signal.features_version)
     .bind(&signal.rules_version)
     .bind(signal.sent_at)
-    .execute(store)
+    .fetch_optional(store)
     .await
     .map_err(StoreError::from)?;
 
-    Ok(done.rows_affected() > 0)
+    Ok(id)
 }
 
 /// Writes a refusal. **Says whether it was new**, for the same reason.

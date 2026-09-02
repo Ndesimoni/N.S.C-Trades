@@ -7,6 +7,7 @@ use tokio::sync::watch;
 use super::asked;
 use super::conversation::{Adding, handle};
 use super::talking::{plainly, say};
+use super::tapped;
 use crate::places::OWNER;
 
 /// How long to wait before listening again after a failure.
@@ -17,9 +18,13 @@ const AGAIN: std::time::Duration = std::time::Duration::from_secs(15);
 /// **It is spawned beside the watcher, so it must not be able to stop.** If it
 /// ends, levels he sends go nowhere and nothing says so — which is the exact
 /// failure that made it worth folding in.
-pub async fn run(client: reqwest::Client, standing: watch::Receiver<crate::watch::Snapshot>) {
+pub async fn run(
+    client: reqwest::Client,
+    standing: watch::Receiver<crate::watch::Snapshot>,
+    record: Option<nsc_data::store::Store>,
+) {
     loop {
-        if let Err(trouble) = listen(&client, &standing).await {
+        if let Err(trouble) = listen(&client, &standing, record.as_ref()).await {
             eprintln!("The inbox stopped listening: {trouble:#}");
         }
 
@@ -30,6 +35,7 @@ pub async fn run(client: reqwest::Client, standing: watch::Receiver<crate::watch
 async fn listen(
     client: &reqwest::Client,
     standing: &watch::Receiver<crate::watch::Snapshot>,
+    record: Option<&nsc_data::store::Store>,
 ) -> Result<()> {
     let token = std::env::var("TELEGRAM_BOT_TOKEN").context("TELEGRAM_BOT_TOKEN is not set")?;
     let mut adding = Adding::default();
@@ -60,6 +66,27 @@ async fn listen(
 
         for update in updates(&reply)? {
             seen_up_to = update["update_id"].as_i64().unwrap_or(seen_up_to);
+
+            // ── A BUTTON PRESS IS NOT A MESSAGE ──
+            //
+            // Telegram sends a `callback_query`, and only `message` was ever
+            // read — so every tap on a setup's buttons was polled, counted,
+            // and thrown away, while the button span on his phone waiting for
+            // an answer that was never coming.
+            if let Some(query) = update["callback_query"].as_object() {
+                let query = serde_json::Value::Object(query.clone());
+
+                if query["from"]["id"].as_i64() != Some(OWNER) {
+                    continue;
+                }
+
+                if let Err(trouble) = tapped::pressed(client, &token, &query, record).await {
+                    eprintln!("That button did not save: {trouble:#}");
+                }
+
+                continue;
+            }
+
             let message = &update["message"];
 
             // Anything not from him is ignored without a word. A bot that
@@ -74,7 +101,9 @@ async fn listen(
 
             println!("You said: {text}");
 
-            if let Err(trouble) = handle(client, &token, text.trim(), &mut adding, standing).await {
+            if let Err(trouble) =
+                handle(client, &token, text.trim(), &mut adding, standing, record).await
+            {
                 println!("  -> {trouble:#}");
                 say(
                     client,

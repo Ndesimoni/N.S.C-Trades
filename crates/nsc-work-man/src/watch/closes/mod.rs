@@ -21,10 +21,14 @@
 //!   report.rs   saying what a candle did, one zone at a time
 //!   fetch.rs    asking the feed, and never letting that end the run
 //!   setups.rs   RUNG 3 — a shape he trades, at a level he drew
+//!   drawing.rs  the three pictures a setup is sent as
+//!   recording/  writing down what rung 3 decided, signal or refusal
 
+mod drawing;
 mod due;
 mod fetch;
 mod look;
+mod recording;
 mod report;
 mod said;
 mod setups;

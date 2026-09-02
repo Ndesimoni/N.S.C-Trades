@@ -43,6 +43,7 @@
 pub mod finding;
 pub mod place;
 pub mod reasons;
+pub mod refused;
 pub mod rules;
 pub mod shape;
 pub mod standing;
@@ -52,6 +53,7 @@ mod tests;
 
 pub use finding::{Signal, look};
 pub use place::{Placing, where_it_sits};
+pub use refused::Refused;
 pub use rules::{Rules, StrategyError, load};
 pub use shape::{Traded, traded};
 pub use standing::Standing;

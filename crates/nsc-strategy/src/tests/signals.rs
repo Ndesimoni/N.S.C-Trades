@@ -185,7 +185,7 @@ fn the_same_shape_with_no_zone_under_it_says_nothing() {
     };
 
     assert!(
-        look(&borrowed, &[elsewhere], normal, &patterns(), &rules()).is_none(),
+        look(&borrowed, &[elsewhere], normal, &patterns(), &rules()).is_err(),
         "a shape a thousand points from any level is not a setup"
     );
 }
@@ -195,7 +195,7 @@ fn no_zones_at_all_is_no_signal() {
     let (bars, normal) = his_gold();
     let borrowed: Vec<&_> = bars.iter().collect();
 
-    assert!(look(&borrowed, &[], normal, &patterns(), &rules()).is_none());
+    assert!(look(&borrowed, &[], normal, &patterns(), &rules()).is_err());
 }
 
 /// **A shape away from every zone says nothing, however big it is.**
@@ -214,7 +214,7 @@ fn no_zone_means_no_signal_however_big_the_shape() {
     let borrowed: Vec<&_> = bars.iter().collect();
 
     assert!(
-        look(&borrowed, &[], d("50"), &patterns(), &rules()).is_none(),
+        look(&borrowed, &[], d("50"), &patterns(), &rules()).is_err(),
         "3.99 normal candles with no level under it is still not a setup"
     );
 }

@@ -153,7 +153,7 @@ async fn one(
         }
 
         // The same call the bot makes. Not a second reading of the rules.
-        if let Some(signal) = nsc_strategy::look(&history, bands, normal, named, rules) {
+        if let Ok(signal) = nsc_strategy::look(&history, bands, normal, named, rules) {
             at_zones.push(signal);
         }
     }

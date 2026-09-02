@@ -7,6 +7,7 @@ use rust_decimal::Decimal;
 
 use super::Rules;
 use super::place::{self, Placing};
+use super::refused::Refused;
 use super::shape::{Traded, traded};
 use super::standing::Standing;
 
@@ -35,6 +36,14 @@ pub struct Signal {
 /// `normal` is how big a normal candle was **at that moment**, not today.
 /// `bands` are his levels on that pair, already sized.
 ///
+/// ## It says WHY it said no
+///
+/// The answer is `Result`, not `Option`, since 2 September 2026. Nothing is
+/// the honest answer for the market and a useless one for the record —
+/// `CLAUDE.md` has asked for the refusals to be saved since the beginning, and
+/// they cannot be saved if the only thing handed back is the absence of a
+/// signal. See [`Refused`].
+///
 /// ## No level, no signal
 ///
 /// **A shape away from every one of his zones says nothing at all**, however
@@ -47,18 +56,26 @@ pub fn look(
     normal: Decimal,
     patterns: &pattern::Rules,
     rules: &Rules,
-) -> Option<Signal> {
+) -> Result<Signal, Refused> {
     // A shape first, because it is the cheap test and most candles have none.
-    let found = pattern::ending_at(bars, normal, patterns)?;
-    let shape = traded(found)?;
+    let Some(found) = pattern::ending_at(bars, normal, patterns) else {
+        return Err(Refused::NoShape);
+    };
 
-    let last = bars.last()?;
-    let reach = shape.reach(bars, normal)?;
+    let Some(shape) = traded(found) else {
+        return Err(Refused::NotHis { pattern: found });
+    };
+
+    let (Some(last), Some(reach)) = (bars.last(), shape.reach(bars, normal)) else {
+        return Err(Refused::Unmeasurable { shape });
+    };
 
     // **The shape says which candle reached the level, not this function.** A
     // harami reaches on its big first candle and a march on the one it started
     // from, so the whole slice goes over rather than the last bar.
-    let touching = shape.touching(bars)?;
+    let Some(touching) = shape.touching(bars) else {
+        return Err(Refused::Unmeasurable { shape });
+    };
 
     let standing = match place::nearest(touching, bands, rules) {
         Some((band, Placing::Inside)) => Standing::Inside {
@@ -76,11 +93,12 @@ pub fn look(
         },
 
         // Nowhere near a zone. **The level is what makes a shape worth
-        // anything**, so there is nothing to say.
-        None => return None,
+        // anything**, so there is nothing to say — but it is worth writing
+        // down, and that is what `Refused` is for.
+        None => return Err(Refused::NoLevel { shape, touching }),
     };
 
-    Some(Signal {
+    Ok(Signal {
         shape,
         standing,
         reach,

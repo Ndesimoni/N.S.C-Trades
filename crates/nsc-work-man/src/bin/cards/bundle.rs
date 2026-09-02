@@ -134,7 +134,7 @@ fn newest(
         let history: Vec<&Bar> = all[end - WINDOW..end].iter().collect();
         let normal = normal_candle(&history, 14)?;
 
-        if let Some(signal) = look(&history, bands, normal, patterns, rules) {
+        if let Ok(signal) = look(&history, bands, normal, patterns, rules) {
             found = Some((end, signal));
         }
     }

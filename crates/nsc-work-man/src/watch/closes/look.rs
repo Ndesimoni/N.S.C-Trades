@@ -10,6 +10,8 @@ use nsc_core::when::Rules;
 use nsc_data::source::Interval;
 use nsc_data::sources::ibkr::IbkrConnection;
 use nsc_data::store::{self, Store};
+
+use super::recording;
 use tokio::time::{Duration, Instant, sleep_until};
 
 use super::due::{when_next, worth_asking_again};
@@ -54,7 +56,17 @@ pub struct Closes {
     /// **`None` runs the whole bot with no database.** Losing a row is worth
     /// far less than losing an alert, and the record is a record — nothing
     /// reads it while the bot is running.
-    record: Option<Store>,
+    pub(super) record: Option<Store>,
+
+    /// **A hash of the settings that produce these decisions.**
+    ///
+    /// Worked out once, here, because the bot refuses to reload settings while
+    /// it runs — so it cannot change, and reading four files on every candle
+    /// would be four reads a minute for an answer that is already known.
+    ///
+    /// Every row written carries it. Without it "these came back at 38%" is
+    /// unanswerable: 38% under WHICH thresholds?
+    pub(super) rules_version: String,
 }
 
 impl Closes {
@@ -65,6 +77,7 @@ impl Closes {
         Closes {
             rung_three,
             record,
+            rules_version: recording::rules_version(),
             told: HashMap::new(),
             due: HashMap::new(),
             // Not immediately. The bands were just sized, and the rate limit

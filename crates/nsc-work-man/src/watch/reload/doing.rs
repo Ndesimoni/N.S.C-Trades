@@ -1,71 +1,15 @@
-//! Noticing that he has sent a new level, without being restarted.
-//!
-//! **The levels used to be read once, at startup.** He would send one from his
-//! phone, the inbox would save it correctly, the file would be right — and the
-//! watcher would never look again. Nothing said so. The level simply did
-//! nothing until the next restart, which might be days.
+//! **Reading the levels again**, keeping what has not changed.
 
 use std::collections::HashMap;
-use std::path::Path;
-use std::time::SystemTime;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use nsc_core::levels::{Thickness, Watch, known, load_pair};
 use nsc_data::sources::ibkr::IbkrConnection;
 
-use std::path::PathBuf;
-
-use super::{Watching, bands, pulse};
+use super::super::{Watching, bands, pulse};
 use crate::places::{OWNER, PAIRS, PREVIEW};
 use crate::{card, telegram};
-
-/// Remembers how the levels folder looked, so a change can be spotted.
-///
-/// **By the clock on the files, not by reading them.** Parsing every pair file
-/// every ten minutes to find out that nothing happened is work done for
-/// nothing, and nothing is the normal answer.
-pub struct Files {
-    newest: Option<SystemTime>,
-    count: usize,
-}
-
-impl Files {
-    pub fn look() -> Self {
-        let (newest, count) = state();
-
-        Files { newest, count }
-    }
-
-    /// Has anything been added, changed or removed since the last look?
-    pub fn changed(&mut self) -> bool {
-        let (newest, count) = state();
-
-        // The count matters as well as the clock. A file deleted leaves every
-        // remaining timestamp exactly as it was.
-        let moved = newest != self.newest || count != self.count;
-
-        self.newest = newest;
-        self.count = count;
-
-        moved
-    }
-}
-
-/// The newest change in the folder, and how many files are in it.
-fn state() -> (Option<SystemTime>, usize) {
-    let names = known(Path::new(PAIRS));
-
-    let newest = names
-        .iter()
-        .filter_map(|name| {
-            std::fs::metadata(Path::new(PAIRS).join(format!("{name}.toml")))
-                .and_then(|about| about.modified())
-                .ok()
-        })
-        .max();
-
-    (newest, names.len())
-}
 
 /// What reading the levels again produced.
 pub struct Reloaded {
@@ -102,7 +46,7 @@ pub struct Reloaded {
 ///
 /// Compared by stripping rather than by rebuilding the symbol, because
 /// stripping is what actually made the file name. Found 1 September 2026.
-fn watched_as(old: &HashMap<String, Watching>, stem: &str) -> Option<String> {
+pub(super) fn watched_as(old: &HashMap<String, Watching>, stem: &str) -> Option<String> {
     old.keys()
         .find(|symbol| symbol.replace('/', "") == stem)
         .cloned()
@@ -235,69 +179,4 @@ pub async fn say_it_is_armed(
     pulse.spoke(chrono::Utc::now());
 
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use nsc_core::levels::Pair;
-
-    fn watching_gold() -> HashMap<String, Watching> {
-        let pair = Pair {
-            symbol: "XAU/USD".into(),
-            digits: 2,
-            nightly_break_minutes: 60,
-            approach_share: None,
-            levels: Vec::new(),
-        };
-
-        let watch = Watch::over(Vec::new(), rust_decimal::Decimal::new(5, 2));
-
-        HashMap::from([("XAU/USD".to_string(), Watching { pair, watch })])
-    }
-
-    /// **The bug, stated as a test.**
-    ///
-    /// The watch list is keyed `XAU/USD`; the file it came from is
-    /// `XAUUSD.toml`. Looking the stem up directly can never hit, so the
-    /// branch meant to keep a pair whose file went unreadable dropped it
-    /// instead — silently, and for good, because the next reload only happens
-    /// when a file changes and nothing has to change again.
-    #[test]
-    fn a_file_stem_finds_the_pair_it_belongs_to() {
-        let old = watching_gold();
-
-        assert!(
-            !old.contains_key("XAUUSD"),
-            "the stem is not the key — this is what the old code did"
-        );
-
-        assert_eq!(watched_as(&old, "XAUUSD"), Some("XAU/USD".to_string()));
-    }
-
-    #[test]
-    fn a_file_for_a_pair_that_is_not_watched_finds_nothing() {
-        let old = watching_gold();
-
-        assert_eq!(watched_as(&old, "EURUSD"), None);
-        assert_eq!(watched_as(&old, ""), None);
-    }
-
-    /// A stem that already reads like a symbol still works — nothing here
-    /// assumes six letters.
-    #[test]
-    fn it_does_not_guess_where_the_slash_goes() {
-        let mut old = watching_gold();
-        let pair = Pair {
-            symbol: "BRENT/USD".into(),
-            digits: 2,
-            nightly_break_minutes: 60,
-            approach_share: None,
-            levels: Vec::new(),
-        };
-        let watch = Watch::over(Vec::new(), rust_decimal::Decimal::new(5, 2));
-        old.insert("BRENT/USD".to_string(), Watching { pair, watch });
-
-        assert_eq!(watched_as(&old, "BRENTUSD"), Some("BRENT/USD".to_string()));
-    }
 }

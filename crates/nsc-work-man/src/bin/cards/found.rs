@@ -91,8 +91,13 @@ pub async fn setup(client: &reqwest::Client, tier: Option<&str>) -> Result<()> {
         ),
     };
 
-    let signal = look(&history, &bands, normal, &patterns, &rules)
-        .context("his own gold should be a signal at that zone")?;
+    let signal = look(&history, &bands, normal, &patterns, &rules).map_err(|why| {
+        anyhow::anyhow!(
+            "his own gold should be a signal at that zone — refused at the {} layer: {}",
+            why.layer(),
+            why.why()
+        )
+    })?;
 
     let pair = Pair {
         symbol: "XAU/USD".into(),

@@ -222,7 +222,7 @@ fn newest(
             continue;
         };
 
-        if let Some(signal) = look(upto, bands, normal, patterns, rules) {
+        if let Ok(signal) = look(upto, bands, normal, patterns, rules) {
             return Some((end, signal));
         }
     }

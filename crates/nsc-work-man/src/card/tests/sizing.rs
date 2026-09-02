@@ -15,7 +15,7 @@ use nsc_core::candle::Bar;
 use rust_decimal::Decimal;
 
 use super::super::fill::newest;
-use super::super::{CONTEXT, RUN};
+use super::super::sizes::{CONTEXT, RUN};
 
 /// A run of candles that all look the same. Only how many there are matters.
 fn many(count: usize) -> Vec<Bar> {

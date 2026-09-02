@@ -1,0 +1,126 @@
+//! **Drawing a setup and sending it** — the three pictures.
+//!
+//! Split out of `setups.rs` on 2 September 2026, when recording the decision
+//! pushed that file past the limits. It is a clean seam: deciding whether
+//! there is a setup and drawing one are two jobs, and only one of them needs
+//! Chrome.
+
+use std::path::PathBuf;
+
+use chrono::Utc;
+use nsc_core::candle::Bar;
+use nsc_core::levels::Band;
+use nsc_strategy::{Signal, reasons};
+
+use crate::card::{CONTEXT, RUN};
+use crate::places::{OWNER, PREVIEW};
+use crate::retry::keep_trying;
+use crate::watch::Watching;
+use crate::{card, telegram};
+
+/// Draws the card and sends it.
+///
+/// **Chrome runs off the price loop.** Drawing is a blocking wait of two to
+/// ten seconds; left in the async task it holds a Tokio worker for all of it,
+/// which stops everything on the one-core box this is meant to be hosted on.
+pub(super) async fn send(
+    client: &reqwest::Client,
+    signal: &Signal,
+    seen: &Watching,
+    live: &[Band],
+    history: &[&Bar],
+    written: &str,
+) -> anyhow::Result<()> {
+    let words = reasons::sentence(signal, &seen.pair.symbol, written, seen.pair.digits);
+    let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
+
+    // **The candles the shape is made of, oldest first — and it asks the shape
+    // how many.** Marching is three; taking two would draw two thirds of a
+    // pattern and label it whole.
+    let shown: Vec<Bar> = history
+        .iter()
+        .rev()
+        .take(signal.shape.candles())
+        .rev()
+        .map(|&bar| bar.clone())
+        .collect();
+
+    // **Three pictures, and each answers a different question.**
+    //
+    //     the run      200 candles, no ring    where price CAME FROM
+    //     the close-up   45 candles, red ring   where the shape PRINTED
+    //     the card      the shape itself        WHAT it was
+    //
+    // Sent together as one message. Any one of them alone leaves an obvious
+    // question unanswered.
+    let take_last = |many: usize| -> Vec<Bar> {
+        history
+            .iter()
+            .rev()
+            .take(many)
+            .rev()
+            .map(|&bar| bar.clone())
+            .collect()
+    };
+
+    let run = take_last(RUN);
+    let context = take_last(CONTEXT);
+
+    let signal = signal.clone();
+    let pair = seen.pair.clone();
+    let bands = live.to_vec();
+    let timeframe = written.to_string();
+    let ring = signal.shape.candles();
+
+    let run_out = PathBuf::from(PREVIEW).join("signal-run.png");
+    let wide_out = PathBuf::from(PREVIEW).join("signal-chart.png");
+    let card_out = PathBuf::from(PREVIEW).join("setup.png");
+
+    // **Both drawn in ONE hop off the price loop.** Chrome is a blocking wait
+    // of two to ten seconds each; two separate `spawn_blocking` calls would
+    // hold two of the pool's threads instead of one.
+    let three: [PathBuf; 3] = tokio::task::spawn_blocking(move || {
+        let whole: Vec<&Bar> = run.iter().collect();
+        let far: Vec<&Bar> = context.iter().collect();
+        let near: Vec<&Bar> = shown.iter().collect();
+
+        // **No ring on the run.** It is there to show the shape of the move,
+        // and a ring at the far right of four hundred candles would be a dot
+        // pointing at nothing readable.
+        let run = card::render(
+            "chart.html",
+            &whole,
+            &bands,
+            &pair.symbol,
+            &timeframe,
+            pair.digits,
+            &run_out,
+        )?;
+
+        let wide = card::render_ringed(
+            "chart.html",
+            &far,
+            &bands,
+            &pair.symbol,
+            &timeframe,
+            pair.digits,
+            Some(ring),
+            &wide_out,
+        )?;
+
+        let close_up = card::setup(&signal, &pair, &near, &timeframe, &stamp, &card_out)?;
+
+        Ok::<_, card::CardError>([run, wide, close_up])
+    })
+    .await??;
+
+    let owner = OWNER.to_string();
+
+    // **Widest first, then in.** The run, the close-up, then the shape — you
+    // step toward it rather than away from it.
+    let pictures = [three[0].as_path(), three[1].as_path(), three[2].as_path()];
+
+    keep_trying(3, || telegram::send_to(client, &owner, &pictures, &words)).await?;
+
+    Ok(())
+}

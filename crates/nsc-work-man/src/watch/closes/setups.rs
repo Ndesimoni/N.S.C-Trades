@@ -6,22 +6,20 @@
 //! un-forms before the close would have been a message about something that
 //! never happened.
 
-use std::path::{Path, PathBuf};
-
 use chrono::Utc;
 use nsc_core::candle::{Bar, normal_candle};
 use nsc_core::levels::Band;
 use nsc_data::source::Interval;
-use nsc_strategy::{Signal, look, reasons};
+use nsc_strategy::{look, reasons};
 use nsc_ta::pattern;
+use std::path::Path;
 
+use super::drawing::send;
 use super::look::Closes;
+use super::recording;
 use super::said::{Kind, Said};
-use crate::card::{CONTEXT, RUN};
-use crate::places::{OWNER, PREVIEW};
-use crate::retry::keep_trying;
+use crate::card;
 use crate::watch::{Watching, pulse};
-use crate::{card, telegram};
 
 /// How many candles a "normal" one is averaged over. Fourteen is the usual.
 const NORMAL_OVER: usize = 14;
@@ -67,8 +65,35 @@ impl Closes {
             return;
         };
 
-        let Some(signal) = look(&history, live, normal, patterns, rules) else {
-            return;
+        // ── THE DECISION, AND IT IS WRITTEN DOWN EITHER WAY ──
+        //
+        // `CLAUDE.md`: *"Rejected setups get saved, not thrown away. Save
+        // which layer rejected them."* A quiet week and a broken bot look
+        // identical from outside, and so do "nothing printed" and "forty
+        // printed and none was near a level" — which are completely different
+        // problems.
+        //
+        // A candle with no shape at all is NOT written. That is nearly every
+        // candle, and `Refused::worth_keeping` is where the line sits.
+        let signal = match look(&history, live, normal, patterns, rules) {
+            Ok(signal) => signal,
+
+            Err(why) => {
+                recording::keep_refusal(
+                    self.record.as_ref(),
+                    &self.rules_version,
+                    recording::Missed {
+                        pair: &seen.pair,
+                        interval,
+                        bar: finished,
+                        why: &why,
+                        normal,
+                    },
+                )
+                .await;
+
+                return;
+            }
         };
 
         // Once per candle per zone, like everything else here. A shape does
@@ -92,123 +117,48 @@ impl Closes {
             reasons::sentence(&signal, &seen.pair.symbol, written, seen.pair.digits)
         );
 
-        match send(client, &signal, seen, live, &history, written).await {
+        let sentence = reasons::sentence(&signal, &seen.pair.symbol, written, seen.pair.digits);
+
+        let sent_at = match send(client, &signal, seen, live, &history, written).await {
             Ok(()) => {
                 pulse.spoke(Utc::now());
                 self.told.insert(key, finished.datetime.clone());
+                Some(Utc::now())
             }
 
             // Deliberately not remembered, so the next look tries again.
-            Err(trouble) => eprintln!("Could not send that setup: {trouble:#}"),
-        }
+            Err(trouble) => {
+                eprintln!("Could not send that setup: {trouble:#}");
+                None
+            }
+        };
+
+        // **Recorded whether or not Telegram took it.** The bot saw this, and
+        // a signal missing from the record because a message failed would make
+        // the history disagree with what the rules actually did. `sent_at`
+        // being null is how the two are told apart.
+        //
+        // **The shape's FIRST candle**, since a march spans three and the
+        // record wants to know where the shape starts, not only where it
+        // finished.
+        let spans_from = history[history.len().saturating_sub(signal.shape.candles())];
+
+        recording::keep_signal(
+            self.record.as_ref(),
+            &self.rules_version,
+            recording::Made {
+                pair: &seen.pair,
+                interval,
+                bar: finished,
+                spans_from,
+                signal: &signal,
+                normal,
+                sentence: &sentence,
+                sent_at,
+            },
+        )
+        .await;
     }
-}
-
-/// Draws the card and sends it.
-///
-/// **Chrome runs off the price loop.** Drawing is a blocking wait of two to
-/// ten seconds; left in the async task it holds a Tokio worker for all of it,
-/// which stops everything on the one-core box this is meant to be hosted on.
-async fn send(
-    client: &reqwest::Client,
-    signal: &Signal,
-    seen: &Watching,
-    live: &[Band],
-    history: &[&Bar],
-    written: &str,
-) -> anyhow::Result<()> {
-    let words = reasons::sentence(signal, &seen.pair.symbol, written, seen.pair.digits);
-    let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
-
-    // **The candles the shape is made of, oldest first — and it asks the shape
-    // how many.** Marching is three; taking two would draw two thirds of a
-    // pattern and label it whole.
-    let shown: Vec<Bar> = history
-        .iter()
-        .rev()
-        .take(signal.shape.candles())
-        .rev()
-        .map(|&bar| bar.clone())
-        .collect();
-
-    // **Three pictures, and each answers a different question.**
-    //
-    //     the run      200 candles, no ring    where price CAME FROM
-    //     the close-up   45 candles, red ring   where the shape PRINTED
-    //     the card      the shape itself        WHAT it was
-    //
-    // Sent together as one message. Any one of them alone leaves an obvious
-    // question unanswered.
-    let take_last = |many: usize| -> Vec<Bar> {
-        history
-            .iter()
-            .rev()
-            .take(many)
-            .rev()
-            .map(|&bar| bar.clone())
-            .collect()
-    };
-
-    let run = take_last(RUN);
-    let context = take_last(CONTEXT);
-
-    let signal = signal.clone();
-    let pair = seen.pair.clone();
-    let bands = live.to_vec();
-    let timeframe = written.to_string();
-    let ring = signal.shape.candles();
-
-    let run_out = PathBuf::from(PREVIEW).join("signal-run.png");
-    let wide_out = PathBuf::from(PREVIEW).join("signal-chart.png");
-    let card_out = PathBuf::from(PREVIEW).join("setup.png");
-
-    // **Both drawn in ONE hop off the price loop.** Chrome is a blocking wait
-    // of two to ten seconds each; two separate `spawn_blocking` calls would
-    // hold two of the pool's threads instead of one.
-    let three: [PathBuf; 3] = tokio::task::spawn_blocking(move || {
-        let whole: Vec<&Bar> = run.iter().collect();
-        let far: Vec<&Bar> = context.iter().collect();
-        let near: Vec<&Bar> = shown.iter().collect();
-
-        // **No ring on the run.** It is there to show the shape of the move,
-        // and a ring at the far right of four hundred candles would be a dot
-        // pointing at nothing readable.
-        let run = card::render(
-            "chart.html",
-            &whole,
-            &bands,
-            &pair.symbol,
-            &timeframe,
-            pair.digits,
-            &run_out,
-        )?;
-
-        let wide = card::render_ringed(
-            "chart.html",
-            &far,
-            &bands,
-            &pair.symbol,
-            &timeframe,
-            pair.digits,
-            Some(ring),
-            &wide_out,
-        )?;
-
-        let close_up = card::setup(&signal, &pair, &near, &timeframe, &stamp, &card_out)?;
-
-        Ok::<_, card::CardError>([run, wide, close_up])
-    })
-    .await??;
-
-    let owner = OWNER.to_string();
-
-    // **Widest first, then in.** The run, the close-up, then the shape — you
-    // step toward it rather than away from it.
-    let pictures = [three[0].as_path(), three[1].as_path(), three[2].as_path()];
-
-    keep_trying(3, || telegram::send_to(client, &owner, &pictures, &words)).await?;
-
-    Ok(())
 }
 
 /// Reads the two settings rung 3 needs, once at startup.

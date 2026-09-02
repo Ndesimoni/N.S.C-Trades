@@ -54,7 +54,7 @@ THE FILES
   prices.rs   Every price off the line. Remembers the latest one and sends
               nothing, ever. Rung 1 lived here until 1 September 2026.
 
-  reload.rs   Noticing he has sent a level, without being restarted.
+  reload/     Noticing he has sent a level, without being restarted.
 
   closes/   Rung 2 — what a candle at a zone is doing, and what it did.
 

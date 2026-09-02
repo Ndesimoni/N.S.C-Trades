@@ -27,6 +27,7 @@ mod candles;
 mod error;
 mod news;
 mod pool;
+mod signals;
 
 #[cfg(test)]
 mod tests;
@@ -35,3 +36,4 @@ pub use candles::{count, newest, oldest, read, write};
 pub use error::StoreError;
 pub use news::{between as news_between, count as news_count, write as news_write};
 pub use pool::{Store, open};
+pub use signals::{Seen, Turned, refused, sent, tallies};

@@ -44,6 +44,10 @@ THE FILES
                away from every one of them.
   place.rs     THE TEST -- is it at the level.
   rules.rs     The settings, out of config/strategy.toml.
+  refused.rs   WHY a candle was not a signal, and which layer said so.
+               `look` answers Result rather than Option: nothing is the
+               honest answer for the market and a useless one for the record.
+
   finding.rs   The one way in.
   reasons.rs   The one sentence that explains it.
   tests/       Eighteen tests, on the two gold candles off his screenshot.

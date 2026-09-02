@@ -12,7 +12,7 @@ gets made against it.
 [ ]  not started
 ```
 
-**Five crates · 364 tests · 10 against a real database · clippy clean · it watches his levels, says what
+**Five crates · 378 tests · 10 against a real database · clippy clean · it watches his levels, says what
 happens at them, and tells him when it cannot.**
 
 ```
@@ -318,6 +318,27 @@ close counts as being at one, still a share of that band's own thickness; and
 the greeting, which says where price already stood when watching resumed. The
 greeting is not an alert about price arriving — it is the state of things after
 a restart, and he is the one restarting.
+
+## The record — [~]
+
+- [x] **`candles`** — 272,000 rows, five pairs, 1-hour / 4-hour / daily
+- [x] **`news_events`** — the week's calendar, rewritten every six hours
+- [x] **`signals`** — what fired, with the sentence AS SENT and the features
+      AS SEEN. Never regenerated: recalculated later against updated
+      chart-reading code it would train a model on inputs the live bot never
+      produced, and nothing detects that
+- [x] **`rejections`** — what was refused and BY WHICH LAYER. The rows that
+      answer *"why did nothing fire this week?"* — a quiet week and a broken
+      bot look identical without them
+- [ ] `signal_labels` — took it / skipped it, in his words. **Next**, and the
+      only table here that cannot be recreated
+- [ ] `signal_outcomes` · `levels` · `backfills` · `runs` · `rule_sets`
+
+> **A candle with no shape on it is not written down.** That is nearly every
+> candle; it would make `rejections` larger than `candles` while saying less,
+> and it can be worked out from the candle any time. What cannot be worked out
+> afterwards is a shape the rules refused — that depends on the settings live
+> at the time, and settings change.
 
 ## Rung 2 — what the candle did — [x]
 

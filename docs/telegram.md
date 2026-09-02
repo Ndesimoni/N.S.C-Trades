@@ -361,14 +361,22 @@ Tap either. Tapping again changes nothing; tapping the other one changes your
 mind, and the record keeps when you settled rather than when you first
 wavered.
 
-**Then say why, in your own words:**
+**A why is only for the ones you turn down:**
 
 ```
-    /why the wick ran into news, I stood aside
+    ❌ skipped it  →  /why the wick ran into news, I stood aside
+    ✅ took it     →  nothing to explain
 ```
 
-It attaches to the setup that arrived most recently — the one you almost
-always mean. It needs a verdict first, so tap before you explain.
+Taking a setup means the rules were right, and the sentence on the card already
+says why. Skipping means they produced something you did not want — and that
+reason is the one thing no measurement can supply.
+
+It attaches to the setup that arrived most recently, which is almost always the
+one you mean. Tap first, then explain.
+
+Change your mind from *skipped* to *took* and the reason goes with it — a
+reason for skipping something you then took is a reason for nothing.
 
 **There is no third button.** *"Would have skipped"* is what you say later,
 once the outcome came in — a button for it would invite you to answer before

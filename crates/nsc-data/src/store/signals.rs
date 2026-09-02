@@ -152,3 +152,30 @@ pub async fn tallies(store: &Store) -> Result<(i64, i64), StoreError> {
 
     Ok((signals, turned))
 }
+
+/// The id of a signal already recorded, by what makes it unique.
+///
+/// **For asking about one a second time.** `sent` refuses a repeat, which is
+/// right for the bot — one shape, one candle, one zone, one card. It is wrong
+/// for a previewer, whose whole job is showing him a setup again, and which
+/// still needs the id to put in the buttons.
+pub async fn already(
+    store: &Store,
+    symbol: &str,
+    interval: &str,
+    band_price: Decimal,
+    candle_opened_at: DateTime<Utc>,
+) -> Result<Option<i64>, StoreError> {
+    sqlx::query_scalar(
+        "SELECT id FROM signals \
+         WHERE symbol = $1 AND interval = $2 \
+           AND band_price = $3 AND candle_opened_at = $4",
+    )
+    .bind(symbol)
+    .bind(interval)
+    .bind(band_price)
+    .bind(candle_opened_at)
+    .fetch_optional(store)
+    .await
+    .map_err(StoreError::from)
+}

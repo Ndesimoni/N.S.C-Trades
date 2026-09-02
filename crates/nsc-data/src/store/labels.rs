@@ -59,9 +59,10 @@ impl Verdict {
 /// `at` moves with it — so the record says when he settled rather than when he
 /// first wavered.
 ///
-/// **A note already written is kept** when only the verdict changes. He may
-/// tap, explain in words, then change the tap; losing the explanation there
-/// would be losing the only part that cannot be recovered.
+/// **A note already written is kept** when only the verdict changes — unless
+/// he changes it to *took it*, which the database will not allow a note on.
+/// Going that way round clears it, because a reason for skipping something he
+/// then took is a reason for nothing.
 pub async fn thought(
     store: &Store,
     signal_id: i64,
@@ -73,7 +74,9 @@ pub async fn thought(
          VALUES ($1, $2, $3) \
          ON CONFLICT ON CONSTRAINT one_verdict_per_signal DO UPDATE SET \
            verdict = EXCLUDED.verdict, \
-           at      = EXCLUDED.at \
+           at      = EXCLUDED.at, \
+           note    = CASE WHEN EXCLUDED.verdict = 'took it' \
+                          THEN NULL ELSE signal_labels.note END \
          WHERE signal_labels.verdict IS DISTINCT FROM EXCLUDED.verdict",
     )
     .bind(signal_id)
@@ -86,20 +89,54 @@ pub async fn thought(
     Ok(done.rows_affected() > 0)
 }
 
+/// What came of trying to attach his words.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Noted {
+    /// Written.
+    Down,
+
+    /// He has not judged that setup yet, so there is nothing to attach to.
+    /// **Inventing a verdict to hang the note on** would put a decision in the
+    /// record that he never made.
+    NoVerdict,
+
+    /// **He took it, and a reason is only for the ones he turned down.**
+    ///
+    /// His call, 3 September 2026. Taking a setup means the rules were right
+    /// and the sentence on the card already says why; skipping is the part no
+    /// measurement can supply.
+    HeTookIt,
+}
+
 /// Adds his words to the verdict on a signal.
 ///
-/// **It needs a verdict to attach to.** Says `false` when there is none — he
-/// explained a setup he never judged, and inventing a verdict to hang the note
-/// on would put a decision in the record that he did not make.
-pub async fn because(store: &Store, signal_id: i64, note: &str) -> Result<bool, StoreError> {
-    let done = sqlx::query("UPDATE signal_labels SET note = $2 WHERE signal_id = $1")
+/// **Only on a setup he turned down.** The database refuses the other case
+/// outright — see `0006_why_is_for_skips.sql` — and this checks first so he
+/// gets a sentence back rather than a constraint violation.
+pub async fn because(store: &Store, signal_id: i64, note: &str) -> Result<Noted, StoreError> {
+    let verdict: Option<String> =
+        sqlx::query_scalar("SELECT verdict FROM signal_labels WHERE signal_id = $1")
+            .bind(signal_id)
+            .fetch_optional(store)
+            .await
+            .map_err(StoreError::from)?;
+
+    let Some(verdict) = verdict else {
+        return Ok(Noted::NoVerdict);
+    };
+
+    if verdict == Verdict::Took.words() {
+        return Ok(Noted::HeTookIt);
+    }
+
+    sqlx::query("UPDATE signal_labels SET note = $2 WHERE signal_id = $1")
         .bind(signal_id)
         .bind(note)
         .execute(store)
         .await
         .map_err(StoreError::from)?;
 
-    Ok(done.rows_affected() > 0)
+    Ok(Noted::Down)
 }
 
 /// The most recent signal he has been sent, whether or not he has judged it.

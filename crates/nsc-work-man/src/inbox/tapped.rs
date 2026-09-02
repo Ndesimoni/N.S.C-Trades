@@ -64,9 +64,15 @@ async fn record_it(data: &str, record: Option<&Store>) -> Result<String> {
 
     // **Saying "already" rather than "saved" is the honest answer** to a
     // second tap, and it tells him the first one landed.
-    Ok(match changed {
-        true => format!("Saved — {}", verdict.words()),
-        false => format!("Already {}", verdict.words()),
+    //
+    // **A skip asks for the reason.** That is the row worth having, and the
+    // moment he has just tapped is the only moment he is thinking about it.
+    // Nothing asks after "took it" — a reason is only for the ones he turned
+    // down.
+    Ok(match (changed, verdict) {
+        (true, Verdict::Skipped) => "Saved — skipped it. Why? Send /why …".into(),
+        (true, _) => format!("Saved — {}", verdict.words()),
+        (false, _) => format!("Already {}", verdict.words()),
     })
 }
 

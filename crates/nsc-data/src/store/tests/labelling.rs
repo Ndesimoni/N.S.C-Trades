@@ -6,7 +6,7 @@
 
 use chrono::{DateTime, Utc};
 
-use super::super::{Store, because, sent, thought};
+use super::super::{Noted, Store, because, sent, thought};
 use super::deciding::a_signal;
 use super::support::deciding_store;
 
@@ -94,9 +94,10 @@ async fn a_note_with_no_verdict_saves_nothing() {
     let db = deciding_store("TST/NONOTE").await;
     let id = a_recorded_signal(&db, "TST/NONOTE", "2026-09-03T13:00:00Z").await;
 
-    assert!(
-        !because(&db, id, "no verdict yet").await.expect("no error"),
-        "it says so rather than making one up"
+    assert_eq!(
+        because(&db, id, "no verdict yet").await.expect("no error"),
+        Noted::NoVerdict,
+        "it says so rather than making a verdict up"
     );
 }
 
@@ -108,20 +109,27 @@ async fn his_words_survive_a_change_of_mind() {
     let db = deciding_store("TST/KEEPNOTE").await;
     let id = a_recorded_signal(&db, "TST/KEEPNOTE", "2026-09-03T14:00:00Z").await;
 
-    thought(&db, id, "took it", moment("2026-09-03T14:05:00Z"))
+    thought(&db, id, "skipped it", moment("2026-09-03T14:05:00Z"))
         .await
         .expect("a verdict");
 
-    assert!(
+    assert_eq!(
         because(&db, id, "it was right on the weekly")
             .await
             .expect("a note"),
+        Noted::Down,
         "the note lands"
     );
 
-    thought(&db, id, "skipped it", moment("2026-09-03T14:30:00Z"))
-        .await
-        .expect("changed his mind");
+    // Still a skip, so the note has somewhere to stay.
+    thought(
+        &db,
+        id,
+        "would have skipped",
+        moment("2026-09-03T14:30:00Z"),
+    )
+    .await
+    .expect("changed his mind");
 
     let note: Option<String> =
         sqlx::query_scalar("SELECT note FROM signal_labels WHERE signal_id = $1")
@@ -171,4 +179,103 @@ async fn the_newest_of_two_at_the_same_moment_is_the_one_written_last() {
             "the tie must break the way he would — the one that arrived last"
         );
     }
+}
+
+/// **A reason is only for the ones he turned down.**
+///
+/// His call, 3 September 2026: *"if we take a setup there should be no why."*
+/// Taking one means the rules were right and the sentence on the card already
+/// says why; skipping means they produced something he did not want, and that
+/// is the part no measurement can supply.
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "needs Postgres — docker compose up -d"]
+async fn a_setup_he_took_takes_no_reason() {
+    let db = deciding_store("TST/NOWHY").await;
+    let id = a_recorded_signal(&db, "TST/NOWHY", "2026-09-04T10:00:00Z").await;
+
+    thought(&db, id, "took it", moment("2026-09-04T10:05:00Z"))
+        .await
+        .expect("a verdict");
+
+    assert_eq!(
+        because(&db, id, "no reason needed")
+            .await
+            .expect("no error"),
+        Noted::HeTookIt,
+        "it says so rather than writing a row nobody could interpret"
+    );
+
+    let note: Option<String> =
+        sqlx::query_scalar("SELECT note FROM signal_labels WHERE signal_id = $1")
+            .bind(id)
+            .fetch_one(&db)
+            .await
+            .expect("the row");
+
+    assert!(note.is_none(), "and nothing was written");
+}
+
+/// **Changing a skip to a take clears the reason.**
+///
+/// A reason for skipping something he then took is a reason for nothing. The
+/// database refuses to hold one, so the write has to clear it rather than
+/// leave a row that cannot be saved.
+///
+/// **This is the case that would have failed at runtime**, weeks later, on the
+/// one afternoon he changed his mind after explaining himself.
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "needs Postgres — docker compose up -d"]
+async fn taking_one_he_had_explained_clears_the_reason() {
+    let db = deciding_store("TST/CLEARED").await;
+    let id = a_recorded_signal(&db, "TST/CLEARED", "2026-09-04T11:00:00Z").await;
+
+    thought(&db, id, "skipped it", moment("2026-09-04T11:05:00Z"))
+        .await
+        .expect("a verdict");
+
+    because(&db, id, "it ran into news")
+        .await
+        .expect("the reason");
+
+    // He changes his mind and takes it after all.
+    thought(&db, id, "took it", moment("2026-09-04T11:30:00Z"))
+        .await
+        .expect("must not be refused by the constraint");
+
+    let (verdict, note): (String, Option<String>) =
+        sqlx::query_as("SELECT verdict, note FROM signal_labels WHERE signal_id = $1")
+            .bind(id)
+            .fetch_one(&db)
+            .await
+            .expect("the row");
+
+    assert_eq!(verdict, "took it");
+    assert!(note.is_none(), "the reason went with the skip");
+}
+
+/// **The database refuses it outright**, not only the code.
+///
+/// It is a rule about what the data MEANS. A note on a setup he took is not a
+/// mistake to tidy up later — it is a row nobody could interpret — so it must
+/// be impossible however the row is written.
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "needs Postgres — docker compose up -d"]
+async fn the_table_itself_will_not_hold_one() {
+    let db = deciding_store("TST/CONSTRAINT").await;
+    let id = a_recorded_signal(&db, "TST/CONSTRAINT", "2026-09-04T12:00:00Z").await;
+
+    thought(&db, id, "took it", moment("2026-09-04T12:05:00Z"))
+        .await
+        .expect("a verdict");
+
+    let straight_in = sqlx::query("UPDATE signal_labels SET note = $2 WHERE signal_id = $1")
+        .bind(id)
+        .bind("going round the code")
+        .execute(&db)
+        .await;
+
+    assert!(
+        straight_in.is_err(),
+        "the constraint has to stop this, not only `because`"
+    );
 }

@@ -66,17 +66,37 @@ pub(super) async fn ask_him(
         sent_at: Some(now),
     };
 
-    match store::sent(&record, &row).await {
-        Ok(Some(id)) => {
-            if let Err(trouble) = nsc_work_man::watch::ask_about(client, id, sentence).await {
-                println!("    (the buttons did not send: {trouble})");
-            } else {
-                println!("    buttons on signal {id}");
-            }
-        }
+    // **Recorded if it is new, looked up if it is not.**
+    //
+    // The bot refuses a repeat, and rightly — one shape, one candle, one zone,
+    // one card. A previewer is the opposite: showing him a setup again is the
+    // whole job, and the buttons still need the id.
+    let id = match store::sent(&record, &row).await {
+        Ok(Some(id)) => Some(id),
 
-        // Already recorded, so he has already been asked about this one.
-        Ok(None) => println!("    (already recorded, so not asking again)"),
-        Err(trouble) => println!("    (could not record it: {trouble})"),
+        Ok(None) => store::already(
+            &record,
+            &row.symbol,
+            &row.interval,
+            row.band_price,
+            row.candle_opened_at,
+        )
+        .await
+        .unwrap_or_default(),
+
+        Err(trouble) => {
+            println!("    (could not record it: {trouble})");
+            return;
+        }
+    };
+
+    let Some(id) = id else {
+        println!("    (no row to hang the buttons on)");
+        return;
+    };
+
+    match nsc_work_man::watch::ask_about(client, id, sentence).await {
+        Ok(()) => println!("    buttons on signal {id}"),
+        Err(trouble) => println!("    (the buttons did not send: {trouble})"),
     }
 }

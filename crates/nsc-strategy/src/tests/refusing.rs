@@ -6,7 +6,6 @@
 //! level"* are completely different problems, and they were the same silence.
 
 use nsc_ta::pattern::Pattern;
-use rust_decimal::Decimal;
 
 use super::support::{band, d, his_gold, rules};
 use crate::shape::Traded;

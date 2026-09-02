@@ -176,6 +176,19 @@ async fn one_pair(
     let paths: Vec<&Path> = pictures.iter().map(PathBuf::as_path).collect();
     telegram::send_to(client, &OWNER.to_string(), &paths, &words).await?;
 
+    // ── AND THE TWO BUTTONS, IF THERE IS A RECORD TO HANG THEM ON ──
+    //
+    // **The whole point of doing it here.** The buttons carry a signal's row
+    // id, so they cannot exist without a row — which means the only way to see
+    // them before the bot next finds a live setup is to record one.
+    //
+    // The row is honest: a real shape, at a real level he drew, on a candle
+    // that really closed. What it is not is NEW — `candle_opened_at` says when
+    // it printed, which may be days ago.
+    if let Some(found) = &signal {
+        super::asking::ask_him(client, &pair, found, history, &words).await;
+    }
+
     Ok(())
 }
 

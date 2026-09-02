@@ -26,6 +26,7 @@
 //! state hardest to draw, where price is close enough to the edge that the
 //! labels crowd.
 
+mod asking;
 mod beat;
 mod bundle;
 mod charts;

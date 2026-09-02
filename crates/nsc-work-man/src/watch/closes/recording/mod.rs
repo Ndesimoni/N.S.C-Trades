@@ -28,5 +28,6 @@ mod features;
 mod version;
 mod writing;
 
+pub use asking::ask;
 pub(super) use version::rules_version;
 pub(super) use writing::{Made, Missed, keep_refusal, keep_signal};

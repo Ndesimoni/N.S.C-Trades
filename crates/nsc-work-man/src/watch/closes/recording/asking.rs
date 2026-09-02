@@ -25,7 +25,7 @@ use crate::telegram::{self, SendError};
 ///
 /// **Nothing here can end the run.** A button that will not send costs the
 /// label, not the signal — he still has the setup on his phone.
-pub(in crate::watch::closes) async fn ask(
+pub async fn ask(
     client: &reqwest::Client,
     signal_id: i64,
     sentence: &str,

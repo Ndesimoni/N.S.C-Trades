@@ -37,4 +37,5 @@ mod setups;
 mod tests;
 
 pub use look::Closes;
+pub use recording::ask;
 pub use setups::settings;

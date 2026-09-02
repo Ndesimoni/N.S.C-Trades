@@ -11,6 +11,26 @@ use rust_decimal::Decimal;
 use super::asking;
 use super::features::{FEATURES_VERSION, of_the_candle, with_the_band};
 
+/// **When the bot could first KNOW about this candle** — the moment it closed.
+///
+/// ## Not `Utc::now()`, and this was written the wrong way first
+///
+/// The look runs every ten minutes, so `now` is the moment the POLL happened:
+/// up to ten minutes after the candle closed, and a different gap every time.
+///
+/// The design says `at` is *"the honest one and it is the one an outcome must
+/// be measured from"*. Measured from a poll time, an outcome starts late by a
+/// random amount — and a BACKTEST would compute the close, so the two would
+/// disagree while both looked fine. That is the mismatch `CLAUDE.md` refuses:
+/// *"never write 'if we're backtesting, do this instead'"*, and a value that
+/// can only exist live is the same fault wearing different clothes.
+///
+/// The close is `opened_at` plus the timeframe. Deterministic, and the same
+/// number whoever works it out.
+fn when_it_closed(opened_at: DateTime<Utc>, interval: Interval) -> DateTime<Utc> {
+    opened_at + chrono::Duration::minutes(interval.minutes())
+}
+
 /// **One decision, and everything the record needs to describe it.**
 ///
 /// Gathered into a struct rather than passed one by one — ten loose arguments
@@ -78,10 +98,9 @@ pub(in crate::watch::closes) async fn keep_signal(
     let band = signal.standing.band();
 
     let row = Seen {
-        // **When the bot could first KNOW it.** On a candlestick shape that is
-        // the close of the candle that completed it — which is the stamp of
-        // the NEXT candle's open, but the close is what it acted on.
-        at: Utc::now(),
+        // **When the bot could first know it** — see `when_it_closed`. Never
+        // the moment the poll happened.
+        at: when_it_closed(candle_opened_at, made.interval),
         spans_from,
         candle_opened_at,
 
@@ -161,7 +180,9 @@ pub(in crate::watch::closes) async fn keep_refusal(
     };
 
     let row = Turned {
-        at: Utc::now(),
+        // The same moment, for the same reason: a refusal is a decision about
+        // a candle, and it was knowable when that candle closed.
+        at: when_it_closed(candle_opened_at, missed.interval),
         candle_opened_at,
         symbol: missed.pair.symbol.clone(),
         interval: missed.interval.stored().to_string(),
@@ -180,5 +201,68 @@ pub(in crate::watch::closes) async fn keep_refusal(
         Ok(false) => {}
         Ok(true) => println!("  refused [{}]: {}", row.layer, row.why),
         Err(trouble) => eprintln!("Could not record that refusal: {trouble}"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::when_it_closed;
+    use chrono::{DateTime, Utc};
+    use nsc_data::source::Interval;
+
+    fn moment(text: &str) -> DateTime<Utc> {
+        text.parse().expect("a real moment")
+    }
+
+    /// **The candle that opened at 14:00 on the hourly was knowable at 15:00.**
+    /// Not when the poll happened to run.
+    #[test]
+    fn it_is_the_close_not_the_poll() {
+        assert_eq!(
+            when_it_closed(moment("2026-09-02T14:00:00Z"), Interval::H1),
+            moment("2026-09-02T15:00:00Z")
+        );
+    }
+
+    #[test]
+    fn every_timeframe_lands_on_its_own_close() {
+        let opened = moment("2026-09-02T12:00:00Z");
+
+        assert_eq!(
+            when_it_closed(opened, Interval::H4),
+            moment("2026-09-02T16:00:00Z")
+        );
+        assert_eq!(
+            when_it_closed(opened, Interval::Day),
+            moment("2026-09-03T12:00:00Z")
+        );
+    }
+
+    /// **It never lands before the candle it describes.** An `at` earlier than
+    /// the candle's own open would be a signal the market had not printed yet
+    /// — the one mistake in this project that makes results look better.
+    #[test]
+    fn it_is_never_before_the_candle_itself() {
+        let opened = moment("2026-09-02T09:00:00Z");
+
+        for interval in [Interval::H1, Interval::H4, Interval::Day, Interval::Week] {
+            assert!(
+                when_it_closed(opened, interval) > opened,
+                "{interval:?} must close after it opened"
+            );
+        }
+    }
+
+    /// **The same answer whoever works it out.** Called twice a minute apart it
+    /// gives the same moment, which is exactly what `Utc::now()` could not do —
+    /// and why a backtest and the live bot would have disagreed.
+    #[test]
+    fn it_does_not_depend_on_when_it_is_asked() {
+        let opened = moment("2026-09-02T14:00:00Z");
+
+        assert_eq!(
+            when_it_closed(opened, Interval::H1),
+            when_it_closed(opened, Interval::H1)
+        );
     }
 }

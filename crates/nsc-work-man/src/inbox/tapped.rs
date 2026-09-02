@@ -97,18 +97,35 @@ fn read(data: &str) -> Result<(Verdict, i64)> {
 
 /// Stops the button spinning, with a line along the top of his screen.
 async fn answer(client: &reqwest::Client, token: &str, id: &str, text: &str) -> Result<()> {
-    client
+    let reply: Value = client
         .post(format!(
             "https://api.telegram.org/bot{token}/answerCallbackQuery"
         ))
         .json(&json!({ "callback_query_id": id, "text": text }))
         .send()
         .await
-        .map_err(|trouble| {
-            use reqwest::Error;
-            let _: &Error = &trouble;
-            anyhow!("could not answer the button: {}", trouble.without_url())
-        })?;
+        // **The token is in the URL**, and reqwest puts the URL it was trying
+        // into the message. Same rule the rest of this crate already follows.
+        .map_err(|trouble| anyhow!("could not answer the button: {}", trouble.without_url()))?
+        .json()
+        .await
+        .context("Telegram answered the button, but not with JSON")?;
+
+    // **Refused is not answered.** Returning Ok here would leave the button
+    // spinning on his phone while everything upstream believed it had stopped
+    // — and Telegram RESENDS a callback it thinks went unanswered, so the tap
+    // would arrive again and again.
+    //
+    // The commonest refusal is a query older than about fifteen minutes, which
+    // nothing can be done about. It is still worth saying out loud rather than
+    // swallowing, because a button that silently stops working looks exactly
+    // like a button nobody pressed.
+    if reply["ok"] != true {
+        return Err(anyhow!(
+            "Telegram would not take the answer: {}",
+            reply["description"].as_str().unwrap_or("no reason given")
+        ));
+    }
 
     Ok(())
 }

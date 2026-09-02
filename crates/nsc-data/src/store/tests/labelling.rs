@@ -136,3 +136,39 @@ async fn his_words_survive_a_change_of_mind() {
         "his words are the part that cannot be recovered"
     );
 }
+
+/// **Two signals on the same candle must not confuse `/why`.**
+///
+/// `at` is the moment the candle CLOSED, so two pairs finishing an hourly at
+/// 15:00 carry exactly the same `at`. Ordered by `at` alone, Postgres picks
+/// between them however it likes — and his note lands on whichever it chose.
+///
+/// This only became possible when `at` was fixed to the close. It used to be
+/// `Utc::now()`, which differed by microseconds and hid it.
+#[tokio::test(flavor = "multi_thread")]
+#[ignore = "needs Postgres — docker compose up -d"]
+async fn the_newest_of_two_at_the_same_moment_is_the_one_written_last() {
+    let db = deciding_store("TST/SAMETIME_A").await;
+    let _ = deciding_store("TST/SAMETIME_B").await;
+
+    // Both close at the same moment, which is the whole point.
+    let same = "2026-09-04T15:00:00Z";
+
+    let first = a_recorded_signal(&db, "TST/SAMETIME_A", same).await;
+    let second = a_recorded_signal(&db, "TST/SAMETIME_B", same).await;
+
+    assert!(second > first, "ids are handed out in the order written");
+
+    // Ask ten times. Ordered by `at` alone this would wander between them.
+    for _ in 0..10 {
+        let newest = super::super::newest_signal(&db)
+            .await
+            .expect("should read")
+            .expect("there are signals");
+
+        assert!(
+            newest >= second,
+            "the tie must break the way he would — the one that arrived last"
+        );
+    }
+}

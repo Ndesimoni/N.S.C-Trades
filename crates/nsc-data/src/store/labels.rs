@@ -107,8 +107,21 @@ pub async fn because(store: &Store, signal_id: i64, note: &str) -> Result<bool, 
 /// **For `/why` with no number.** He explains the one that just arrived far
 /// more often than an old one, and asking him to quote an id would be asking
 /// him to go and find it.
+///
+/// ## Why `id` is in the ordering, and it has to be
+///
+/// `at` is the moment the candle CLOSED, not the moment the row was written.
+/// So two signals on the same candle — two pairs, or two zones on one pair —
+/// carry exactly the same `at`, and `ORDER BY at` alone picks between them
+/// arbitrarily. His note would land on whichever Postgres felt like.
+///
+/// The id is handed out in the order rows were written, so it breaks the tie
+/// the way he would: the one that arrived last.
+///
+/// **This only became possible when `at` was fixed.** It used to be
+/// `Utc::now()`, which differed by microseconds between two rows and hid it.
 pub async fn newest_signal(store: &Store) -> Result<Option<i64>, StoreError> {
-    sqlx::query_scalar("SELECT id FROM signals ORDER BY at DESC LIMIT 1")
+    sqlx::query_scalar("SELECT id FROM signals ORDER BY at DESC, id DESC LIMIT 1")
         .fetch_optional(store)
         .await
         .map_err(StoreError::from)

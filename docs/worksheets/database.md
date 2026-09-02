@@ -329,10 +329,10 @@ the change is itself information.
 *took it* and *skipped it*, so the table fills itself as he trades rather than
 in a sitting nobody ever schedules.
 
-What that needs, and none of it is hard:
+**BUILT, 2 September 2026.** What it needed, and none of it was hard:
 
 - **`signals` first.** A label points at a signal, so the row has to exist
-  before a button can name it. That is the next table, not this one.
+  before a button can name it. Both landed the same week.
 - **The button carries the `signal_id`**, in the callback data Telegram sends
   back. Nothing else identifies which card he tapped — two setups on one pair
   in an hour would otherwise be indistinguishable.
@@ -342,8 +342,14 @@ What that needs, and none of it is hard:
   says later, in words, when the outcome came in — a third button would invite
   him to answer before the market had.
 
-**It is still the cheapest thing on this page**, and it is the only way
+**It was the cheapest thing on this page**, and it is the only way
 `signal_labels` ever gets a row.
+
+**One thing the design did not foresee: the buttons cannot go on the card.**
+A setup is three pictures in one `sendMediaGroup`, and Telegram does not allow
+`reply_markup` on a media group. They arrive as their own one-line message
+straight after, and that line names the setup so a tap cannot land on the
+wrong one.
 
 ---
 

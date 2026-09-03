@@ -97,24 +97,25 @@ pub(super) async fn draw(
         // **No ring on the run.** It is there to show the shape of the move,
         // and a ring at the far right of four hundred candles would be a dot
         // pointing at nothing readable.
-        let run = card::render(
+        let run = card::render_marked(
             "chart.html",
             &whole,
             &bands,
             &pair.symbol,
             &timeframe,
             pair.digits,
+            card::Mark::part(1),
             &run_out,
         )?;
 
-        let wide = card::render_ringed(
+        let wide = card::render_marked(
             "chart.html",
             &far,
             &bands,
             &pair.symbol,
             &timeframe,
             pair.digits,
-            Some(ring),
+            card::Mark::ringed(2, ring),
             &wide_out,
         )?;
 

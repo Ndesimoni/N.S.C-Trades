@@ -126,6 +126,23 @@ function draw(){
 }
 
 draw();
+
+// ── The setup frame ──
+//
+// The card itself is always the last of the three, so it says so rather than
+// being told. Nothing else draws this template.
+(function(){
+  const frame = document.createElement("div");
+  frame.className = "frame";
+
+  const tab = document.createElement("div");
+  tab.className = "frame__tab";
+  tab.textContent = "SETUP 3/3";
+
+  frame.appendChild(tab);
+  document.body.appendChild(frame);
+})();
+
 </script>
 </body>
 </html>

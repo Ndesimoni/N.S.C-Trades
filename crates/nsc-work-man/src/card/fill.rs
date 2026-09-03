@@ -3,6 +3,7 @@
 use std::path::{Path, PathBuf};
 
 use super::CardError;
+use super::marking::Mark;
 use super::sizes::{CONTEXT, RUN};
 
 use super::{chrome, facts};
@@ -42,19 +43,13 @@ pub(super) fn newest<'a>(bars: &[&'a Bar], many: usize) -> Vec<&'a Bar> {
 /// wrong name on it is believed exactly like a wrong number.
 ///
 /// `interval` is the feed's own spelling — `1h`, `1week`.
-/// **THE WIDE ONE. It draws [`RUN`] candles and never more**, whatever it is
-/// handed.
+/// **THE WIDE ONE, UNMARKED.** [`RUN`] candles, no ring, no setup frame — a
+/// chart he asked for is not a signal and must not wear the badge of one.
 ///
 /// The cap is here rather than at the call sites, and that is the fix of
-/// 1 September 2026. There are four callers and each was slicing for itself —
-/// so one of them did not. `review/picture.rs`, the chart he gets when he ASKS
-/// for one, drew whatever the fetch returned: it asks IBKR for 150 candles,
-/// IBKR reads that as a span of days, and 14 days of hourly forex came back as
-/// **over three hundred**. His words: *"why is AUDUSD showing me 300+ candles
-/// — for all pairs we need only 200."*
-///
-/// A rule every caller has to remember is a rule one of them will forget. Now
-/// there is nothing to remember.
+/// 1 September 2026: four callers each sliced for itself, so one of them did
+/// not, and drew over three hundred. A rule every caller has to remember is a
+/// rule one of them will forget.
 pub fn render(
     template: &str,
     bars: &[&Bar],
@@ -71,7 +66,7 @@ pub fn render(
         symbol,
         interval,
         digits,
-        None,
+        Mark::plain(),
         out,
     )
 }
@@ -84,27 +79,35 @@ pub fn render(
 /// `None` draws no ring, which is what `/chart` wants — that picture answers
 /// "where is price", not "look here".
 #[allow(clippy::too_many_arguments)]
-/// **THE CLOSE-UP. It draws [`CONTEXT`] candles and never more.** Same cap in
-/// the same place, for the same reason as [`render`].
+/// **A chart that is part of a setup**, or a close-up, or both.
+///
+/// Draws [`RUN`] candles when nothing is ringed and [`CONTEXT`] when something
+/// is — the wide picture and the close-up are told apart by the ring, because
+/// the ring is the whole reason the close-up exists.
 #[allow(clippy::too_many_arguments)]
-pub fn render_ringed(
+pub fn render_marked(
     template: &str,
     bars: &[&Bar],
     bands: &[Band],
     symbol: &str,
     interval: &str,
     digits: u32,
-    ring: Option<usize>,
+    mark: Mark,
     out: &Path,
 ) -> Result<PathBuf, CardError> {
+    let many = match mark.ring {
+        Some(_) => CONTEXT,
+        None => RUN,
+    };
+
     chart(
         template,
-        &newest(bars, CONTEXT),
+        &newest(bars, many),
         bands,
         symbol,
         interval,
         digits,
-        ring,
+        mark,
         out,
     )
 }
@@ -119,7 +122,7 @@ fn chart(
     symbol: &str,
     interval: &str,
     digits: u32,
-    ring: Option<usize>,
+    mark: Mark,
     out: &Path,
 ) -> Result<PathBuf, CardError> {
     let Some(latest) = bars.last() else {
@@ -137,8 +140,10 @@ fn chart(
             ("/*__LEVELS__*/", facts::levels(bands, digits).to_string()),
             (
                 "/*__RING__*/",
-                ring.map_or_else(|| "null".to_string(), |many| many.to_string()),
+                mark.ring
+                    .map_or_else(|| "null".to_string(), |many| many.to_string()),
             ),
+            ("/*__PART__*/", mark.as_json().to_string()),
         ],
         out,
     )

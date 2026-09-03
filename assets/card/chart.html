@@ -42,6 +42,7 @@
 <script>
 // Rust replaces these two lines.
 const candle = /*__CANDLE__*/;
+const part   = /*__PART__*/;
 const bars   = /*__BARS__*/;
 const levels = /*__LEVELS__*/;
 
@@ -283,6 +284,25 @@ function chart(){
 
 bands();
 chart();
+
+// ── The setup frame, if this card is part of one ──
+//
+// `null` for a chart he asked for. A review chart is not a signal and must not
+// wear the badge of one.
+(function(){
+  if(!part) return;
+
+  const frame = document.createElement("div");
+  frame.className = "frame";
+
+  const tab = document.createElement("div");
+  tab.className = "frame__tab";
+  tab.textContent = `SETUP ${part.which}/${part.of}`;
+
+  frame.appendChild(tab);
+  document.body.appendChild(frame);
+})();
+
 </script>
 </body>
 </html>

@@ -52,4 +52,7 @@
     width:860px;
     padding:0;
     -webkit-font-smoothing:antialiased;
+
+    /* So the setup frame can sit inset from the card's own edges. */
+    position:relative;
   }

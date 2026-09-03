@@ -82,23 +82,24 @@ pub async fn bundle(client: &reqwest::Client) -> Result<()> {
     // **One pair and one timeframe, read once.** Every picture below takes
     // these, so none of them can name something the others do not.
     let pictures = [
-        card::render(
+        card::render_marked(
             "chart.html",
             &last(RUN),
             &bands,
             &pair.symbol,
             timeframe,
             pair.digits,
+            card::Mark::part(1),
             &PathBuf::from(PREVIEW).join("signal-run.png"),
         )?,
-        card::render_ringed(
+        card::render_marked(
             "chart.html",
             &last(CONTEXT),
             &bands,
             &pair.symbol,
             timeframe,
             pair.digits,
-            Some(signal.shape.candles()),
+            card::Mark::ringed(2, signal.shape.candles()),
             &PathBuf::from(PREVIEW).join("signal-chart.png"),
         )?,
         card::setup(

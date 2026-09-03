@@ -128,23 +128,32 @@ async fn one_pair(
 
     // Same shape as the live path — see `watch/closes/drawing.rs`.
     let charts = [
-        card::render(
+        card::render_marked(
             "chart.html",
             history,
             &bands,
             &pair.symbol,
             "1h",
             pair.digits,
+            // **Only framed when there is a setup.** A pair with nothing on it
+            // is two charts, not two thirds of a signal.
+            match ring {
+                Some(_) => card::Mark::part(1),
+                None => card::Mark::plain(),
+            },
             &run_out,
         )?,
-        card::render_ringed(
+        card::render_marked(
             "chart.html",
             history,
             &bands,
             &pair.symbol,
             "1h",
             pair.digits,
-            ring,
+            match ring {
+                Some(many) => card::Mark::ringed(2, many),
+                None => card::Mark::plain(),
+            },
             &near_out,
         )?,
     ];

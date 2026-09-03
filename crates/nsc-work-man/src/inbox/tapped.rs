@@ -40,18 +40,34 @@ pub async fn pressed(
     // **Answered whatever happens.** An unanswered callback is resent, so a
     // failure here that skipped the answer would become a loop.
     let said = match record_it(data, record).await {
-        Ok(words) => words,
+        Ok(said) => said,
         Err(trouble) => {
-            answer(client, token, id, "Could not save that").await?;
+            answer(client, token, id, "Could not save that", false).await?;
             return Err(trouble);
         }
     };
 
-    answer(client, token, id, &said).await
+    answer(client, token, id, &said.words, said.stop_him).await
+}
+
+/// What to put on his screen, and how hard to put it there.
+struct Said {
+    words: String,
+
+    /// **A real dialogue he has to dismiss, not the little grey strip.**
+    ///
+    /// Kept for the one case that asks something of him: a skip, which wants a
+    /// reason. His words, 3 September 2026 — *"it just shows okay, this has
+    /// been skipped, but it does not show anything indicating that you need to
+    /// say why."*
+    ///
+    /// **Only for that.** A popup after every tap would be a box to dismiss
+    /// twenty times a week, and he would stop reading the one that mattered.
+    stop_him: bool,
 }
 
 /// Reads the button and writes the verdict.
-async fn record_it(data: &str, record: Option<&Store>) -> Result<String> {
+async fn record_it(data: &str, record: Option<&Store>) -> Result<Said> {
     let (verdict, signal_id) = read(data)?;
 
     let Some(record) = record else {
@@ -62,17 +78,30 @@ async fn record_it(data: &str, record: Option<&Store>) -> Result<String> {
         .await
         .context("could not write the verdict")?;
 
+    // **A skip stops him and asks for the reason.** That is the row worth
+    // having, and the moment he has just tapped is the only moment he is
+    // thinking about it — an hour later the reason is gone.
+    //
+    // Nothing asks after "took it": a reason is only for the ones he turned
+    // down, because taking one means the rules were right.
+    //
     // **Saying "already" rather than "saved" is the honest answer** to a
     // second tap, and it tells him the first one landed.
-    //
-    // **A skip asks for the reason.** That is the row worth having, and the
-    // moment he has just tapped is the only moment he is thinking about it.
-    // Nothing asks after "took it" — a reason is only for the ones he turned
-    // down.
     Ok(match (changed, verdict) {
-        (true, Verdict::Skipped) => "Saved — skipped it. Why? Send /why …".into(),
-        (true, _) => format!("Saved — {}", verdict.words()),
-        (false, _) => format!("Already {}", verdict.words()),
+        (_, Verdict::Skipped) => Said {
+            words: "Skipped.\n\nNow tell me why — send:\n\n/why it ran into news".into(),
+            stop_him: true,
+        },
+
+        (true, _) => Said {
+            words: format!("Saved — {}", verdict.words()),
+            stop_him: false,
+        },
+
+        (false, _) => Said {
+            words: format!("Already {}", verdict.words()),
+            stop_him: false,
+        },
     })
 }
 
@@ -102,12 +131,24 @@ fn read(data: &str) -> Result<(Verdict, i64)> {
 }
 
 /// Stops the button spinning, with a line along the top of his screen.
-async fn answer(client: &reqwest::Client, token: &str, id: &str, text: &str) -> Result<()> {
+async fn answer(
+    client: &reqwest::Client,
+    token: &str,
+    id: &str,
+    text: &str,
+    alert: bool,
+) -> Result<()> {
     let reply: Value = client
         .post(format!(
             "https://api.telegram.org/bot{token}/answerCallbackQuery"
         ))
-        .json(&json!({ "callback_query_id": id, "text": text }))
+        .json(&json!({
+            "callback_query_id": id,
+            "text": text,
+            // `false` is the little grey strip along the top; `true` is a
+            // dialogue he has to dismiss.
+            "show_alert": alert,
+        }))
         .send()
         .await
         // **The token is in the URL**, and reqwest puts the URL it was trying

@@ -14,7 +14,7 @@ use nsc_strategy::{look, reasons};
 use nsc_ta::pattern;
 use std::path::Path;
 
-use super::drawing::send;
+use super::drawing::draw;
 use super::look::Closes;
 use super::recording;
 use super::said::{Kind, Said};
@@ -119,19 +119,24 @@ impl Closes {
 
         let sentence = reasons::sentence(&signal, &seen.pair.symbol, written, seen.pair.digits);
 
-        let sent_at = match send(client, &signal, seen, live, &history, written).await {
-            Ok(()) => {
-                pulse.spoke(Utc::now());
-                self.told.insert(key, finished.datetime.clone());
-                Some(Utc::now())
-            }
+        // **Nothing is sent here.** `draw` stacks the three pictures into one,
+        // and it goes out with the buttons on it once the signal has a row —
+        // the buttons carry that row's id, so they cannot go earlier.
+        let card = match draw(&signal, seen, live, &history, written).await {
+            Ok(card) => Some(card),
 
-            // Deliberately not remembered, so the next look tries again.
             Err(trouble) => {
-                eprintln!("Could not send that setup: {trouble:#}");
+                eprintln!("Could not draw that setup: {trouble:#}");
                 None
             }
         };
+
+        if card.is_some() {
+            pulse.spoke(Utc::now());
+            self.told.insert(key, finished.datetime.clone());
+        }
+
+        let sent_at = card.as_ref().map(|_| Utc::now());
 
         // **Recorded whether or not Telegram took it.** The bot saw this, and
         // a signal missing from the record because a message failed would make
@@ -156,6 +161,7 @@ impl Closes {
                 normal,
                 sentence: &sentence,
                 sent_at,
+                card: card.as_deref(),
             },
         )
         .await;

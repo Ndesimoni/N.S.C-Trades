@@ -1,4 +1,4 @@
-//! **Drawing a setup and sending it** — the three pictures.
+//! **Drawing a setup** — the three pictures, stacked into one.
 //!
 //! Split out of `setups.rs` on 2 September 2026, when recording the decision
 //! pushed that file past the limits. It is a clean seam: deciding whether
@@ -10,28 +10,25 @@ use std::path::PathBuf;
 use chrono::Utc;
 use nsc_core::candle::Bar;
 use nsc_core::levels::Band;
-use nsc_strategy::{Signal, reasons};
+use nsc_strategy::Signal;
 
+use crate::card;
 use crate::card::{CONTEXT, RUN};
-use crate::places::{OWNER, PREVIEW};
-use crate::retry::keep_trying;
+use crate::places::PREVIEW;
 use crate::watch::Watching;
-use crate::{card, telegram};
 
 /// Draws the card and sends it.
 ///
 /// **Chrome runs off the price loop.** Drawing is a blocking wait of two to
 /// ten seconds; left in the async task it holds a Tokio worker for all of it,
 /// which stops everything on the one-core box this is meant to be hosted on.
-pub(super) async fn send(
-    client: &reqwest::Client,
+pub(super) async fn draw(
     signal: &Signal,
     seen: &Watching,
     live: &[Band],
     history: &[&Bar],
     written: &str,
-) -> anyhow::Result<()> {
-    let words = reasons::sentence(signal, &seen.pair.symbol, written, seen.pair.digits);
+) -> anyhow::Result<PathBuf> {
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
 
     // **The candles the shape is made of, oldest first — and it asks the shape
@@ -51,8 +48,14 @@ pub(super) async fn send(
     //     the close-up   45 candles, red ring   where the shape PRINTED
     //     the card      the shape itself        WHAT it was
     //
-    // Sent together as one message. Any one of them alone leaves an obvious
-    // question unanswered.
+    // Any one of them alone leaves an obvious question unanswered.
+    //
+    // **STACKED INTO ONE PICTURE**, because Telegram refuses buttons on a
+    // group of photos and he wants the tick and the cross under all three:
+    // *"it should all be on one card — the 200 run, the 45, and then the final
+    // setup, and the take or the skip under."*
+    //
+    // One image is the only shape that allows it. See `card::stack`.
     let take_last = |many: usize| -> Vec<Bar> {
         history
             .iter()
@@ -114,13 +117,10 @@ pub(super) async fn send(
     })
     .await??;
 
-    let owner = OWNER.to_string();
+    // **Widest first, then in.** The run, the close-up, then the shape — he
+    // steps toward it rather than away from it.
+    let whole = PathBuf::from(PREVIEW).join("signal.png");
+    let parts = [three[0].as_path(), three[1].as_path(), three[2].as_path()];
 
-    // **Widest first, then in.** The run, the close-up, then the shape — you
-    // step toward it rather than away from it.
-    let pictures = [three[0].as_path(), three[1].as_path(), three[2].as_path()];
-
-    keep_trying(3, || telegram::send_to(client, &owner, &pictures, &words)).await?;
-
-    Ok(())
+    Ok(card::stack(&parts, &whole)?)
 }

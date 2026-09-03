@@ -1,20 +1,25 @@
 //! **The two buttons under a setup** — took it, skipped it.
 //!
-//! ## Why they are their own message
+//! ## Why the card is sent here and not with the charts
 //!
-//! The setup arrives as three pictures in one `sendMediaGroup`, and **Telegram
-//! does not allow buttons on a media group.** So the bundle lands, and a
-//! one-line message follows it carrying the buttons.
+//! **Telegram does not allow buttons on a group of photos.** So the two charts
+//! go as a group, and the setup card comes through here as a photo of its own
+//! with the tick and the cross on it.
 //!
-//! That one line names the setup. Without it, two setups on one pair in an
-//! hour would leave him tapping under a card he cannot tell apart from the
-//! one above — and the label would go on the wrong signal.
+//! They used to arrive as a separate text message underneath, which is what he
+//! saw and did not want: *"they are in a different card — feed them in the
+//! same card."*
+//!
+//! The card also cannot go earlier than this: the buttons carry the signal's
+//! ROW ID, and the row does not exist until the signal has been written.
 //!
 //! ## Why the id travels in the button
 //!
 //! Telegram hands back whatever the button was created with. The signal's row
 //! id is the only thing that identifies which card he pressed; a symbol and a
 //! time would collide the moment two shapes print on one pair.
+
+use std::path::Path;
 
 use serde_json::json;
 
@@ -29,6 +34,7 @@ pub async fn ask(
     client: &reqwest::Client,
     signal_id: i64,
     sentence: &str,
+    card: Option<&Path>,
 ) -> Result<(), SendError> {
     let keyboard = json!({
         "inline_keyboard": [[
@@ -37,9 +43,22 @@ pub async fn ask(
         ]]
     });
 
-    // **Named, so a tap cannot land on the wrong card.** Two setups on one
-    // pair in an hour would otherwise be two identical questions.
-    let words = format!("<b>{sentence}</b>\n\nDid you take it?");
+    let owner = OWNER.to_string();
 
-    telegram::ask_words(client, &OWNER.to_string(), &words, keyboard).await
+    // **Named either way**, so a tap can never land on the wrong card. Two
+    // setups on one pair in an hour would otherwise be two identical
+    // questions.
+    let words = format!("<b>{sentence}</b>");
+
+    match card {
+        Some(card) => telegram::send_with_buttons(client, &owner, card, &words, keyboard).await,
+
+        // **No card means the pictures never went.** The buttons still can:
+        // he has nothing to look at, but the setup is in the record and a
+        // verdict on it is still worth having.
+        None => {
+            let asking = format!("{words}\n\nDid you take it?");
+            telegram::ask_words(client, &owner, &asking, keyboard).await
+        }
+    }
 }

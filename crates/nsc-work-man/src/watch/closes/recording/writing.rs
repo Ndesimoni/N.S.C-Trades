@@ -7,6 +7,7 @@ use nsc_data::source::Interval;
 use nsc_data::store::{self, Seen, Store, Turned};
 use nsc_strategy::{Refused, Signal};
 use rust_decimal::Decimal;
+use std::path::Path;
 
 use super::asking;
 use super::features::{FEATURES_VERSION, of_the_candle, with_the_band};
@@ -54,6 +55,12 @@ pub(in crate::watch::closes) struct Made<'a> {
 
     /// `None` when Telegram refused it. **The bot still saw it.**
     pub sent_at: Option<DateTime<Utc>>,
+
+    /// The setup card, waiting to go out with the two buttons on it.
+    ///
+    /// **It is sent here rather than with the charts**, because the buttons
+    /// need the signal's row id and the row does not exist until this point.
+    pub card: Option<&'a Path>,
 }
 
 /// **Where and when a refusal happened.** The same bundling, for the same
@@ -149,10 +156,11 @@ pub(in crate::watch::closes) async fn keep_signal(
         return;
     }
 
-    // **A button that will not send costs the label, not the signal.** He has
-    // the setup on his phone either way.
-    if let Err(trouble) = asking::ask(client, id, made.sentence).await {
-        eprintln!("Could not send the buttons: {trouble}");
+    // **The card goes out last, carrying the buttons.** He has the two charts
+    // already; if this fails he has lost the card and the label, which is why
+    // it is said out loud.
+    if let Err(trouble) = asking::ask(client, id, made.sentence, made.card).await {
+        eprintln!("Could not send the setup card: {trouble}");
     }
 }
 

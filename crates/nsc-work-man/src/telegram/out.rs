@@ -96,6 +96,70 @@ pub async fn send_to(
     Ok(())
 }
 
+/// **One picture, with buttons under it.**
+///
+/// A `sendPhoto`, so the keyboard can ride on the card itself.
+///
+/// **This is the one thing `sendMediaGroup` cannot do.** Telegram refuses
+/// `reply_markup` on a group of photos, so a setup that goes out as one
+/// grouped message can never carry its own buttons — they had to arrive as a
+/// separate text message underneath, which is what he saw and did not want:
+/// *"they are in a different card. Feed them in the same card."*
+///
+/// So the two charts go as a group and the setup card comes through here, with
+/// the tick and the cross on it.
+pub async fn send_with_buttons(
+    client: &reqwest::Client,
+    chat: &str,
+    picture: &Path,
+    caption: &str,
+    keyboard: serde_json::Value,
+) -> Result<(), SendError> {
+    let token =
+        std::env::var("TELEGRAM_BOT_TOKEN").map_err(|_| SendError::NotSet("TELEGRAM_BOT_TOKEN"))?;
+
+    let bytes = std::fs::read(picture).map_err(|trouble| SendError::NoPicture {
+        path: picture.display().to_string(),
+        detail: trouble.to_string(),
+    })?;
+
+    let name = picture
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "card.png".into());
+
+    let form = reqwest::multipart::Form::new()
+        .text("chat_id", chat.to_string())
+        .text("caption", caption.to_string())
+        .text("parse_mode", "HTML")
+        .text("reply_markup", keyboard.to_string())
+        .part(
+            "photo",
+            reqwest::multipart::Part::bytes(bytes).file_name(name),
+        );
+
+    let reply: serde_json::Value = client
+        .post(format!("https://api.telegram.org/bot{token}/sendPhoto"))
+        .multipart(form)
+        .send()
+        .await
+        .map_err(|trouble| SendError::Unreachable(quietly(trouble)))?
+        .json()
+        .await
+        .map_err(|trouble| SendError::Unreachable(quietly(trouble)))?;
+
+    if reply["ok"] != true {
+        return Err(SendError::Refused(
+            reply["description"]
+                .as_str()
+                .unwrap_or("no reason given")
+                .to_string(),
+        ));
+    }
+
+    Ok(())
+}
+
 /// **Words with buttons under them.**
 ///
 /// The same message as [`send_words`], plus an inline keyboard.

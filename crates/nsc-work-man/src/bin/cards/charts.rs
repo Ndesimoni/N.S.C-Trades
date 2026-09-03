@@ -11,10 +11,9 @@
 //! stand-in, because a preview drawn from made-up numbers can only tell you
 //! the drawing code runs — not whether the picture is any good.
 //!
-//! **The candle counts come from the watcher**, `RUN` and `CONTEXT`. That is
-//! the whole point: this is the picture used to judge those two numbers, so it
-//! must not be able to hold its own copy of them. It did, once, and it drew a
-//! hundred candles of a bot that had been cut to forty-five.
+//! **The candle counts come from `card`**, `RUN` and `CONTEXT` — this is the
+//! picture used to judge those two numbers, so it must not hold its own copy.
+//! It did once, and drew a hundred candles of a bot cut to forty-five.
 
 use std::path::{Path, PathBuf};
 
@@ -127,7 +126,8 @@ async fn one_pair(
     let run_out = PathBuf::from(PREVIEW).join(format!("run-{stem}.png"));
     let near_out = PathBuf::from(PREVIEW).join(format!("close-up-{stem}.png"));
 
-    let mut pictures = vec![
+    // Same shape as the live path — see `watch/closes/drawing.rs`.
+    let charts = [
         card::render(
             "chart.html",
             history,
@@ -149,11 +149,13 @@ async fn one_pair(
         )?,
     ];
 
-    // **The third picture only exists when there is a shape to draw.** This is
-    // the same bundle the watcher sends — the run, the close-up with the ring,
-    // and the card naming what printed.
+    // **The card only exists when there is a shape to draw.** Same bundle the
+    // watcher sends: the run, the close-up with the ring, and the card naming
+    // what printed — the card last, with the buttons on it.
+    let mut card_out = None;
+
     if let Some(found) = &signal {
-        pictures.push(card::setup(
+        card_out = Some(card::setup(
             found,
             &pair,
             &history[history.len().saturating_sub(found.shape.candles())..],
@@ -173,8 +175,21 @@ async fn one_pair(
     };
     println!("  {words}");
 
-    let paths: Vec<&Path> = pictures.iter().map(PathBuf::as_path).collect();
-    telegram::send_to(client, &OWNER.to_string(), &paths, &words).await?;
+    // **One picture, all three in it** — see `card::stack` for why. With no
+    // shape there is nothing to tap, so the two charts go as they are.
+    let whole = PathBuf::from(PREVIEW).join(format!("signal-{stem}.png"));
+
+    let sheet = match &card_out {
+        Some(card) => {
+            let parts = [charts[0].as_path(), charts[1].as_path(), card.as_path()];
+            Some(card::stack(&parts, &whole)?)
+        }
+        None => {
+            let paths: Vec<&Path> = charts.iter().map(PathBuf::as_path).collect();
+            telegram::send_to(client, &OWNER.to_string(), &paths, &words).await?;
+            None
+        }
+    };
 
     // ── AND THE TWO BUTTONS, IF THERE IS A RECORD TO HANG THEM ON ──
     //
@@ -186,7 +201,7 @@ async fn one_pair(
     // that really closed. What it is not is NEW — `candle_opened_at` says when
     // it printed, which may be days ago.
     if let Some(found) = &signal {
-        super::asking::ask_him(client, &pair, found, history, &words).await;
+        super::asking::ask_him(client, &pair, found, history, &words, sheet.as_deref()).await;
     }
 
     Ok(())

@@ -145,20 +145,24 @@ pub async fn because(store: &Store, signal_id: i64, note: &str) -> Result<Noted,
 /// more often than an old one, and asking him to quote an id would be asking
 /// him to go and find it.
 ///
-/// ## Why `id` is in the ordering, and it has to be
+/// ## "Newest" means the last one that REACHED HIM, not the newest candle
 ///
-/// `at` is the moment the candle CLOSED, not the moment the row was written.
-/// So two signals on the same candle — two pairs, or two zones on one pair —
-/// carry exactly the same `at`, and `ORDER BY at` alone picks between them
-/// arbitrarily. His note would land on whichever Postgres felt like.
+/// Ordered by `at` — the moment the candle closed — it picked the wrong one,
+/// and he caught it on 3 September 2026: four setups went out together, and
+/// `/why` landed on USD/CAD when he meant the gold one he had just been shown.
 ///
-/// The id is handed out in the order rows were written, so it breaks the tie
-/// the way he would: the one that arrived last.
+/// It was not a bug in the ordering. USD/CAD's candle closed at 11:00 and
+/// gold's at 04:00, so by candle time USD/CAD really was the newest. **The
+/// rule was wrong, not the code.** What he means by "that one" is the last
+/// card on his screen, and that is `sent_at`.
 ///
-/// **This only became possible when `at` was fixed.** It used to be
-/// `Utc::now()`, which differed by microseconds between two rows and hid it.
+/// `NULLS LAST` because a signal Telegram refused is recorded but never
+/// reached him — it cannot be the one he is talking about.
+///
+/// The id breaks a tie: two setups sent in the same instant, which happens
+/// when a candle closes on two pairs at once.
 pub async fn newest_signal(store: &Store) -> Result<Option<i64>, StoreError> {
-    sqlx::query_scalar("SELECT id FROM signals ORDER BY at DESC, id DESC LIMIT 1")
+    sqlx::query_scalar("SELECT id FROM signals ORDER BY sent_at DESC NULLS LAST, id DESC LIMIT 1")
         .fetch_optional(store)
         .await
         .map_err(StoreError::from)

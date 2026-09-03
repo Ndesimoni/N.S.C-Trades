@@ -349,9 +349,12 @@ heartbeat, or the line going down and coming back.
 
 ## The two buttons under a setup
 
-They arrive as their own short message right under the three pictures, because
-**Telegram does not allow buttons on a group of photos.** The line names the
-setup, so a tap can never land on the wrong one.
+They sit **under the setup itself**, because the three pictures now arrive as
+one tall image rather than three separate ones.
+
+That is the only shape Telegram allows: buttons can go on a single photo and
+never on a group of them. The picture is tall, so the chat feed shows it small
+until you tap it — that is the trade for having everything in one place.
 
 ```
     ✅ took it        ❌ skipped it

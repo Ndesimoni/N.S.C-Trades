@@ -219,3 +219,20 @@ HOW MANY CANDLES A CHART DRAWS
   three hundred. He spotted it on AUD/USD, 1 September 2026.
 
   A rule every caller has to remember is a rule one of them will forget.
+
+
+ONE PICTURE, NOT THREE
+
+  stacking.rs joins the run, the close-up and the setup card into a single
+  image.
+
+  IT EXISTS BECAUSE OF A TELEGRAM LIMIT. Buttons cannot go on a group of
+  photos -- only on a single one. He wants the tick and the cross under all
+  three pictures: "it should all be on one card, and then the take or the skip
+  under."
+
+  One image is the only shape Telegram allows that in.
+
+  WHAT IT COSTS: the result is tall, so the chat feed shows it small until he
+  taps it. That is the trade for having everything in one place with the
+  buttons attached, and it is the trade he asked for.

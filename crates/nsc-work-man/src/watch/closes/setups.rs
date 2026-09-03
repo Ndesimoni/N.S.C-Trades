@@ -121,11 +121,8 @@ impl Closes {
 
         let sentence = reasons::sentence(&signal, &seen.pair.symbol, written, seen.pair.digits);
 
-        // **The two charts go now; the card waits for its buttons.**
-        //
-        // Three separate messages, so each is full width and each opens on its
-        // own tap. The card is last because the buttons carry the signal's row
-        // id, and the row does not exist until it has been written.
+        // **All three as one group.** The buttons follow in their own message,
+        // because a group of photos cannot carry them — see `drawing.rs`.
         let pictures = match draw(&signal, seen, live, &history, written).await {
             Ok(pictures) => Some(pictures),
 
@@ -139,21 +136,20 @@ impl Closes {
 
         if let Some(pictures) = &pictures {
             let owner = crate::places::OWNER.to_string();
-            let mut went = true;
+            let group = [
+                pictures[0].as_path(),
+                pictures[1].as_path(),
+                pictures[2].as_path(),
+            ];
 
-            for chart in &pictures[..2] {
-                if let Err(trouble) =
-                    keep_trying(3, || telegram::send_one(client, &owner, chart, &sentence)).await
-                {
-                    eprintln!("Could not send that chart: {trouble:#}");
-                    went = false;
+            match keep_trying(3, || telegram::send_to(client, &owner, &group, &sentence)).await {
+                Ok(()) => {
+                    pulse.spoke(Utc::now());
+                    self.told.insert(key, finished.datetime.clone());
+                    sent_at = Some(Utc::now());
                 }
-            }
 
-            if went {
-                pulse.spoke(Utc::now());
-                self.told.insert(key, finished.datetime.clone());
-                sent_at = Some(Utc::now());
+                Err(trouble) => eprintln!("Could not send that setup: {trouble:#}"),
             }
         }
 
@@ -180,7 +176,6 @@ impl Closes {
                 normal,
                 sentence: &sentence,
                 sent_at,
-                card: pictures.as_ref().map(|three| three[2].as_path()),
             },
         )
         .await;

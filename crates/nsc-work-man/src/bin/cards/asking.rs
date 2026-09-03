@@ -25,7 +25,6 @@ pub(super) async fn ask_him(
     signal: &nsc_strategy::Signal,
     history: &[&Bar],
     sentence: &str,
-    card: Option<&std::path::Path>,
 ) {
     let Ok(url) = std::env::var("DATABASE_URL") else {
         println!("    (no DATABASE_URL, so no buttons)");
@@ -96,7 +95,7 @@ pub(super) async fn ask_him(
         return;
     };
 
-    match nsc_work_man::watch::ask_about(client, id, sentence, card).await {
+    match nsc_work_man::watch::ask_about(client, id, sentence).await {
         Ok(()) => println!("    buttons on signal {id}"),
         Err(trouble) => println!("    (the buttons did not send: {trouble})"),
     }

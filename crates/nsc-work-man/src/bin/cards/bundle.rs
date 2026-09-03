@@ -115,25 +115,15 @@ pub async fn bundle(client: &reqwest::Client) -> Result<()> {
     let words = reasons::sentence(&signal, &pair.symbol, timeframe, pair.digits);
     println!("  {words}");
 
-    // **Three separate messages, and the card last with the buttons on it.**
-    // The same shape the watcher sends — see `watch/closes/drawing.rs`. A
-    // preview that sends a different shape teaches the wrong thing about the
-    // code it is previewing.
+    // **One container, then the buttons** — the same shape the watcher sends,
+    // see `watch/closes/drawing.rs`. A preview that sends a different shape
+    // teaches the wrong thing about the code it is previewing.
     let owner = OWNER.to_string();
+    let paths: Vec<&Path> = pictures.iter().map(PathBuf::as_path).collect();
 
-    for chart in &pictures[..2] {
-        telegram::send_one(client, &owner, chart.as_path(), &words).await?;
-    }
+    telegram::send_to(client, &owner, &paths, &words).await?;
 
-    super::asking::ask_him(
-        client,
-        &pair,
-        &signal,
-        &history,
-        &words,
-        Some(pictures[2].as_path()),
-    )
-    .await;
+    super::asking::ask_him(client, &pair, &signal, &history, &words).await;
 
     println!("  three pictures sent");
     Ok(())

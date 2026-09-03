@@ -349,12 +349,25 @@ heartbeat, or the line going down and coming back.
 
 ## The two buttons under a setup
 
-They sit **under the setup itself**, because the three pictures now arrive as
-one tall image rather than three separate ones.
+**The three cards arrive as one container.** Tap any of them to open it
+full-screen, and swipe between all three from there.
 
-That is the only shape Telegram allows: buttons can go on a single photo and
-never on a group of them. The picture is tall, so the chat feed shows it small
-until you tap it — that is the trade for having everything in one place.
+The buttons sit in a slim message directly under that container, because
+**Telegram does not allow buttons on a group of photos.** That is a fixed rule,
+not a design choice, and it is why the layout moved three times before settling
+here:
+
+```
+    a group of three     one container, each opens on a tap, NO BUTTONS
+    stacked into one     one container, buttons, expands only TOGETHER
+    three messages       buttons on the card, but THREE containers
+```
+
+No shape has all three. Your call, 4 September 2026: the container.
+
+The other cost of a container: three tall charts get **cropped into a grid** in
+the feed, so you see slices until you tap. The dashed frame and the `1/3` tabs
+are what carry the meaning at that size.
 
 ```
     ✅ took it        ❌ skipped it

@@ -50,19 +50,27 @@ pub(super) async fn draw(
     //
     // Any one of them alone leaves an obvious question unanswered.
     //
-    // **THREE SEPARATE MESSAGES**, and that is the point of them.
+    // **ONE CONTAINER**, which is a group of photos. His choice, 4 September
+    // 2026, made with the trade in front of him.
     //
-    // A GROUP OF PHOTOS GETS CROPPED side by side in the chat, which on a
-    // chart this tall hides most of it and cannot be opened one at a time.
-    // Stacked into one image they were readable but could only expand
-    // together, and looked cramped besides.
+    // ## What a container costs, and it is fixed
     //
-    // Sent one after another, each is full width and each opens on its own
-    // tap. His words, 3 September 2026: *"I want three different cards, and I
-    // want to click an individual card and have it expand."*
+    // **A group of photos cannot carry buttons.** That is Telegram, not a
+    // design decision, and every layout so far has been trading one against
+    // the other:
     //
-    // The last one carries the buttons — Telegram allows them on a single
-    // photo and never on a group.
+    // ```text
+    //     a group of three     one container, each opens on a tap, NO BUTTONS
+    //     stacked into one     one container, buttons, expands only TOGETHER
+    //     three messages       buttons on the card, but THREE containers
+    // ```
+    //
+    // There is no shape with all three. He picked the container, so the tick
+    // and the cross go in a slim message directly beneath it.
+    //
+    // The other cost he accepted: three tall charts in one group are CROPPED
+    // into a grid in the feed, so he sees slices until he taps. The dashed
+    // frame and the 1/3 tabs are what carry the meaning at that size.
     let take_last = |many: usize| -> Vec<Bar> {
         history
             .iter()

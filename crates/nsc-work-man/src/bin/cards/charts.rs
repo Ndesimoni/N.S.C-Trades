@@ -184,14 +184,17 @@ async fn one_pair(
     };
     println!("  {words}");
 
-    // **Three separate messages**, so each is full width and each opens on its
-    // own tap — see `watch/closes/drawing.rs`. The card goes last, with the
-    // buttons on it.
+    // **One container** — see `watch/closes/drawing.rs` for the trade. With no
+    // shape there are only the two charts and nothing to tap.
     let owner = OWNER.to_string();
 
-    for chart in &charts {
-        telegram::send_one(client, &owner, chart.as_path(), &words).await?;
+    let mut group: Vec<&Path> = charts.iter().map(PathBuf::as_path).collect();
+
+    if let Some(card) = &card_out {
+        group.push(card.as_path());
     }
+
+    telegram::send_to(client, &owner, &group, &words).await?;
 
     // ── AND THE TWO BUTTONS, IF THERE IS A RECORD TO HANG THEM ON ──
     //
@@ -203,7 +206,7 @@ async fn one_pair(
     // that really closed. What it is not is NEW — `candle_opened_at` says when
     // it printed, which may be days ago.
     if let Some(found) = &signal {
-        super::asking::ask_him(client, &pair, found, history, &words, card_out.as_deref()).await;
+        super::asking::ask_him(client, &pair, found, history, &words).await;
     }
 
     Ok(())

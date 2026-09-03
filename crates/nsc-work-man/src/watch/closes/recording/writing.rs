@@ -152,7 +152,7 @@ pub(in crate::watch::closes) async fn keep_signal(
     // **The buttons go last, under the group.** He has the pictures already;
     // if this fails he has lost only the label, which is why it is said out
     // loud rather than swallowed.
-    if let Err(trouble) = asking::ask(client, id, made.sentence).await {
+    if let Err(trouble) = asking::ask(client, id).await {
         eprintln!("Could not send the buttons: {trouble}");
     }
 }

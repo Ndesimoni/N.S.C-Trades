@@ -95,7 +95,7 @@ pub(super) async fn ask_him(
         return;
     };
 
-    match nsc_work_man::watch::ask_about(client, id, sentence).await {
+    match nsc_work_man::watch::ask_about(client, id).await {
         Ok(()) => println!("    buttons on signal {id}"),
         Err(trouble) => println!("    (the buttons did not send: {trouble})"),
     }

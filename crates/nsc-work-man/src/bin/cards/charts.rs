@@ -175,21 +175,14 @@ async fn one_pair(
     };
     println!("  {words}");
 
-    // **One picture, all three in it** — see `card::stack` for why. With no
-    // shape there is nothing to tap, so the two charts go as they are.
-    let whole = PathBuf::from(PREVIEW).join(format!("signal-{stem}.png"));
+    // **Three separate messages**, so each is full width and each opens on its
+    // own tap — see `watch/closes/drawing.rs`. The card goes last, with the
+    // buttons on it.
+    let owner = OWNER.to_string();
 
-    let sheet = match &card_out {
-        Some(card) => {
-            let parts = [charts[0].as_path(), charts[1].as_path(), card.as_path()];
-            Some(card::stack(&parts, &whole)?)
-        }
-        None => {
-            let paths: Vec<&Path> = charts.iter().map(PathBuf::as_path).collect();
-            telegram::send_to(client, &OWNER.to_string(), &paths, &words).await?;
-            None
-        }
-    };
+    for chart in &charts {
+        telegram::send_one(client, &owner, chart.as_path(), &words).await?;
+    }
 
     // ── AND THE TWO BUTTONS, IF THERE IS A RECORD TO HANG THEM ON ──
     //
@@ -201,7 +194,7 @@ async fn one_pair(
     // that really closed. What it is not is NEW — `candle_opened_at` says when
     // it printed, which may be days ago.
     if let Some(found) = &signal {
-        super::asking::ask_him(client, &pair, found, history, &words, sheet.as_deref()).await;
+        super::asking::ask_him(client, &pair, found, history, &words, card_out.as_deref()).await;
     }
 
     Ok(())

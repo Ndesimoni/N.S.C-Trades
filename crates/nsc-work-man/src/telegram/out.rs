@@ -96,6 +96,25 @@ pub async fn send_to(
     Ok(())
 }
 
+/// **One picture, on its own, full width.**
+///
+/// A `sendPhoto` with no keyboard. Three of these, one after another, is how a
+/// setup goes out: **a group of photos gets CROPPED side by side** in the
+/// chat, which on a tall chart hides most of it, and the parts cannot be
+/// opened one at a time.
+///
+/// Separate messages each show at full width and each opens on its own tap.
+/// His words, 3 September 2026: *"let it take the full width, and let me click
+/// individual cards and have them expand."*
+pub async fn send_one(
+    client: &reqwest::Client,
+    chat: &str,
+    picture: &Path,
+    caption: &str,
+) -> Result<(), SendError> {
+    photo(client, chat, picture, caption, None).await
+}
+
 /// **One picture, with buttons under it.**
 ///
 /// A `sendPhoto`, so the keyboard can ride on the card itself.
@@ -115,6 +134,17 @@ pub async fn send_with_buttons(
     caption: &str,
     keyboard: serde_json::Value,
 ) -> Result<(), SendError> {
+    photo(client, chat, picture, caption, Some(keyboard)).await
+}
+
+/// One `sendPhoto`, with or without a keyboard on it.
+async fn photo(
+    client: &reqwest::Client,
+    chat: &str,
+    picture: &Path,
+    caption: &str,
+    keyboard: Option<serde_json::Value>,
+) -> Result<(), SendError> {
     let token =
         std::env::var("TELEGRAM_BOT_TOKEN").map_err(|_| SendError::NotSet("TELEGRAM_BOT_TOKEN"))?;
 
@@ -128,15 +158,18 @@ pub async fn send_with_buttons(
         .map(|name| name.to_string_lossy().into_owned())
         .unwrap_or_else(|| "card.png".into());
 
-    let form = reqwest::multipart::Form::new()
+    let mut form = reqwest::multipart::Form::new()
         .text("chat_id", chat.to_string())
         .text("caption", caption.to_string())
         .text("parse_mode", "HTML")
-        .text("reply_markup", keyboard.to_string())
         .part(
             "photo",
             reqwest::multipart::Part::bytes(bytes).file_name(name),
         );
+
+    if let Some(keyboard) = keyboard {
+        form = form.text("reply_markup", keyboard.to_string());
+    }
 
     let reply: serde_json::Value = client
         .post(format!("https://api.telegram.org/bot{token}/sendPhoto"))

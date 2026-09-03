@@ -7,4 +7,4 @@ mod out;
 mod tests;
 
 pub use error::SendError;
-pub use out::{ask_words, send, send_to, send_with_buttons, send_words};
+pub use out::{ask_words, send, send_one, send_to, send_with_buttons, send_words};

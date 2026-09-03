@@ -28,7 +28,7 @@ pub(super) async fn draw(
     live: &[Band],
     history: &[&Bar],
     written: &str,
-) -> anyhow::Result<PathBuf> {
+) -> anyhow::Result<[PathBuf; 3]> {
     let stamp = Utc::now().format("%-d %b · %H:%M UTC").to_string();
 
     // **The candles the shape is made of, oldest first — and it asks the shape
@@ -50,12 +50,19 @@ pub(super) async fn draw(
     //
     // Any one of them alone leaves an obvious question unanswered.
     //
-    // **STACKED INTO ONE PICTURE**, because Telegram refuses buttons on a
-    // group of photos and he wants the tick and the cross under all three:
-    // *"it should all be on one card — the 200 run, the 45, and then the final
-    // setup, and the take or the skip under."*
+    // **THREE SEPARATE MESSAGES**, and that is the point of them.
     //
-    // One image is the only shape that allows it. See `card::stack`.
+    // A GROUP OF PHOTOS GETS CROPPED side by side in the chat, which on a
+    // chart this tall hides most of it and cannot be opened one at a time.
+    // Stacked into one image they were readable but could only expand
+    // together, and looked cramped besides.
+    //
+    // Sent one after another, each is full width and each opens on its own
+    // tap. His words, 3 September 2026: *"I want three different cards, and I
+    // want to click an individual card and have it expand."*
+    //
+    // The last one carries the buttons — Telegram allows them on a single
+    // photo and never on a group.
     let take_last = |many: usize| -> Vec<Bar> {
         history
             .iter()
@@ -119,8 +126,5 @@ pub(super) async fn draw(
 
     // **Widest first, then in.** The run, the close-up, then the shape — he
     // steps toward it rather than away from it.
-    let whole = PathBuf::from(PREVIEW).join("signal.png");
-    let parts = [three[0].as_path(), three[1].as_path(), three[2].as_path()];
-
-    Ok(card::stack(&parts, &whole)?)
+    Ok(three)
 }

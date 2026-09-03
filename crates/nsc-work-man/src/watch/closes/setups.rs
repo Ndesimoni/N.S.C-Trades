@@ -19,6 +19,8 @@ use super::look::Closes;
 use super::recording;
 use super::said::{Kind, Said};
 use crate::card;
+use crate::retry::keep_trying;
+use crate::telegram;
 use crate::watch::{Watching, pulse};
 
 /// How many candles a "normal" one is averaged over. Fourteen is the usual.
@@ -119,11 +121,13 @@ impl Closes {
 
         let sentence = reasons::sentence(&signal, &seen.pair.symbol, written, seen.pair.digits);
 
-        // **Nothing is sent here.** `draw` stacks the three pictures into one,
-        // and it goes out with the buttons on it once the signal has a row —
-        // the buttons carry that row's id, so they cannot go earlier.
-        let card = match draw(&signal, seen, live, &history, written).await {
-            Ok(card) => Some(card),
+        // **The two charts go now; the card waits for its buttons.**
+        //
+        // Three separate messages, so each is full width and each opens on its
+        // own tap. The card is last because the buttons carry the signal's row
+        // id, and the row does not exist until it has been written.
+        let pictures = match draw(&signal, seen, live, &history, written).await {
+            Ok(pictures) => Some(pictures),
 
             Err(trouble) => {
                 eprintln!("Could not draw that setup: {trouble:#}");
@@ -131,12 +135,27 @@ impl Closes {
             }
         };
 
-        if card.is_some() {
-            pulse.spoke(Utc::now());
-            self.told.insert(key, finished.datetime.clone());
-        }
+        let mut sent_at = None;
 
-        let sent_at = card.as_ref().map(|_| Utc::now());
+        if let Some(pictures) = &pictures {
+            let owner = crate::places::OWNER.to_string();
+            let mut went = true;
+
+            for chart in &pictures[..2] {
+                if let Err(trouble) =
+                    keep_trying(3, || telegram::send_one(client, &owner, chart, &sentence)).await
+                {
+                    eprintln!("Could not send that chart: {trouble:#}");
+                    went = false;
+                }
+            }
+
+            if went {
+                pulse.spoke(Utc::now());
+                self.told.insert(key, finished.datetime.clone());
+                sent_at = Some(Utc::now());
+            }
+        }
 
         // **Recorded whether or not Telegram took it.** The bot saw this, and
         // a signal missing from the record because a message failed would make
@@ -161,7 +180,7 @@ impl Closes {
                 normal,
                 sentence: &sentence,
                 sent_at,
-                card: card.as_deref(),
+                card: pictures.as_ref().map(|three| three[2].as_path()),
             },
         )
         .await;
